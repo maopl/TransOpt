@@ -24,12 +24,12 @@ class AcquisitionEI(AcquisitionBase):
         self.optimizer = optimizer
         super(AcquisitionEI, self).__init__(model, space, optimizer)
         self.model = model
-        if 'jitter' in config['jitter']:
+        if 'jitter' in config:
             self.jitter = config['jitter']
         else:
             self.jitter = 0.01
 
-        if 'threshold' in config['threshold']:
+        if 'threshold' in config:
             self.threshold = config['threshold']
         else:
             self.threshold = 0

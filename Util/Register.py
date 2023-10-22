@@ -2,7 +2,7 @@
 # 定义一个空的注册表字典
 optimizer_registry = {}
 benchmark_registry = {}
-accessor_registry = {}
+normalizer_registry = {}
 acf_registry = {}
 
 
@@ -24,18 +24,18 @@ def benchmark_register(name):
         return func_or_class
     return decorator
 
-def accessor_register(name):
+def normalizer_register(name):
     def decorator(func_or_class):
-        if name in accessor_registry:
+        if name in normalizer_registry:
             raise ValueError(f"Error: '{name}' is already registered.")
-        accessor_registry[name] = func_or_class
+        normalizer_registry[name] = func_or_class
         return func_or_class
     return decorator
 
 def acf_register(name):
     def decorator(func_or_class):
-        if name in accessor_registry:
+        if name in acf_registry:
             raise ValueError(f"Error: '{name}' is already registered.")
-        accessor_registry[name] = func_or_class
+        acf_registry[name] = func_or_class
         return func_or_class
     return decorator

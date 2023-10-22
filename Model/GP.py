@@ -38,7 +38,7 @@ class PriorGP(GP):
         #evaluate the prior log densities
         log_p = 0
         for prior in self.prior_list:
-            param = self[f'.*Mat52.{prior.name}'][0]
+            param = self[f'.*rbf.{prior.name}'][0]
             for i in range(len(self.flattened_parameters)):
                 if self.flattened_parameters[i].name == prior.name and self.flattened_parameters[i][0] == param:
                     priored_indexes.append(i)
@@ -66,7 +66,8 @@ class PriorGP(GP):
         #compute derivate of prior density
         log_p = 0
         for prior in self.prior_list:
-            param = self[f'.*Mat52.{prior.name}'][0]
+            # param = self[f'.*Mat52.{prior.name}'][0]
+            param = self[f'.*rbf.{prior.name}'][0]
             for i in range(len(self.flattened_parameters)):
                 if self.flattened_parameters[i].name == prior.name and self.flattened_parameters[i][0] == param:
                     priored_indexes.append(i)

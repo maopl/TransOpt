@@ -14,10 +14,8 @@ from sklearn.preprocessing import power_transform
 from Util.Data import vectors_to_ndarray
 from Util.Normalization import normalize
 from Util.Kernel import construct_multi_objective_kernel
-from Util.Register import accessor_register
 
 
-@accessor_register("MTRankS")
 def MTRankS(self,
            X:np.ndarray,
            Y:np.ndarray,

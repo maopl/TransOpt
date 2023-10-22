@@ -1,7 +1,21 @@
 import numpy as np
 from typing import Union
 from sklearn.preprocessing import power_transform
+from Util.Register import normalizer_registry,normalizer_register
 
+def get_normalizer(name):
+    """Create the optimizer object."""
+    normalizer = normalizer_registry.get(name)
+
+
+    if normalizer is not None:
+        optimizer = normalizer(config=config)
+    else:
+        # 处理任务名称不在注册表中的情况
+        print(f"Normalizer '{name}' not found in the registry.")
+        raise NameError
+    return normalizer
+@normalizer_register('pt')
 def normalize_with_power_transform(data: Union[np.ndarray, list], mean=None, std=None):
     """
     Normalize the data using mean and standard deviation, followed by power transformation.
@@ -100,7 +114,7 @@ def rank_normalize_with_power_transform(data: Union[np.ndarray, list]):
     raise ValueError('Unsupported input type for normalization and power transform.')
 
 
-
+@normalizer_register('normalize')
 def normalize(data, mean=None, std=None):
     """
     Normalize the data using the given mean and standard deviation or compute them from the data if not provided.

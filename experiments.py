@@ -24,12 +24,12 @@ def run_experiments(tasks, args):
     kb = get_knowledgebase(args)
     testsuits = get_testsuits(tasks, args)
     optimizer = get_optimizer(args)
-    data_handler = OptTaskDataHandler(kb)
+    data_handler = OptTaskDataHandler(kb, args)
     optimizer.set_data_handler(data_handler)
 
     while(testsuits.get_unsolved_num()):
         space_info = testsuits.get_cur_space_info()
-        optimizer.set_space(space_info)
+        optimizer.reset(space_info)
         data_handler.reset_task(testsuits.get_curname(), space_info)
         data_handler.syn_database()
         optimizer.sync_from_handler(data_handler)

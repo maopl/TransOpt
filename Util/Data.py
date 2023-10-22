@@ -26,6 +26,16 @@ def vectors_to_ndarray(keys_order, input_vectors: List[Dict]) -> np.ndarray:
 
     return ndarray
 
+def ndarray_to_vectors(keys_order, ndarray: np.ndarray) -> List[Dict]:
+    """Convert a ndarray to a list of dictionaries."""
+    # Converting ndarray to lists of values
+    data = ndarray.tolist()
+
+    # Converting lists of values to dictionaries using keys from keys_order
+    input_vectors = [{key: value for key, value in zip(keys_order, row)} for row in data]
+
+    return input_vectors
+
 def output_to_ndarray(output_value: List[Dict]) -> np.ndarray:
     """Extract function_value from each output and convert to ndarray."""
     # Extracting function_value from each dictionary in the list

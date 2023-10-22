@@ -2,11 +2,9 @@ from functools import wraps
 from typing import List, Any, Union, Tuple, Dict
 import warnings
 from Knowledge_Base.KnowledgeBase import KnowledgeBase
-from Util.Register import accessor_registry
 
 class KnowledgeBaseAccessor:
     # A dictionary to store custom methods registered by users
-    CUSTOM_SELECTION_METHODS = accessor_registry
 
     def __init__(self, knowledge_base: KnowledgeBase, Optimizer):
         self.kb = knowledge_base

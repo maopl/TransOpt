@@ -1,7 +1,8 @@
 
 from Util.Register import optimizer_registry
 from Knowledge_Base.KnowledgeBaseAccessor import KnowledgeBaseAccessor
-from Optimizer.LFLOptimizer import LFLOptimizer
+import Optimizer
+
 
 def get_optimizer(args):
     """Create the optimizer object."""
@@ -9,6 +10,8 @@ def get_optimizer(args):
     config = {
         'init_method':args.init_method,
         'init_number':args.init_number,
+        'normalize': args.normalize,
+        'acf': args.acquisition_func,
     }
 
     if optimizer_class is not None:

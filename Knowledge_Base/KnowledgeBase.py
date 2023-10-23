@@ -13,11 +13,9 @@ class KnowledgeBase(abc.ABC, metaclass=abc.ABCMeta):
         self._dataset_id = set()
         self._dataset_name = set()
         self._update_datasets_info()
-        self._group = []
 
     def _initialize_data_file(self) -> None:
         directory = os.path.dirname(self.file_path)
-
 
         # 检查目录是否存在
         if directory and not os.path.exists(directory):
@@ -45,9 +43,9 @@ class KnowledgeBase(abc.ABC, metaclass=abc.ABCMeta):
                 return {}
             return data
 
-    def _save_database(self, data: dict) -> None:
+    def _save_database(self) -> None:
         with open(self.file_path, 'w') as f:
-            json.dump(data, f)
+            json.dump(self.data_base, f)
 
     def _update_datasets_info(self) -> None:
         ids_in_file = set()
@@ -75,15 +73,15 @@ class KnowledgeBase(abc.ABC, metaclass=abc.ABCMeta):
 
     def _generate_dataset(self) -> Tuple[int, dict]:
         if not self._dataset_id:
-            dataset_id = 1
+            dataset_id = "1"
         else:
-            consecutive_ids = set(range(1, max(self._dataset_id) + 1))
+            consecutive_ids = set(str(i) for i in range(1, max(map(int, self._dataset_id)) + 2))
             available_ids = consecutive_ids - self._dataset_id
 
             if available_ids:
-                dataset_id = min(available_ids)
+                dataset_id = min(available_ids, key=int)
             else:
-                dataset_id = max(self._dataset_id) + 1
+                dataset_id = str(max(map(int, self._dataset_id)) + 1)
 
         # Create a new dataset with empty values
         new_dataset = {
@@ -247,7 +245,7 @@ class KnowledgeBase(abc.ABC, metaclass=abc.ABCMeta):
         self._dataset_name.remove(dataset_name)  # Remove old dataset name
         self._dataset_name.add(new_dataset["name"])  # Add new dataset name
 
-    def get_dataset_by_id(self, dataset_id: int) -> Union[dict, None]:
+    def get_dataset_by_id(self, dataset_id: str) -> Union[dict, None]:
         """
         Retrieve a dataset from the knowledge base using its ID.
 
@@ -260,7 +258,7 @@ class KnowledgeBase(abc.ABC, metaclass=abc.ABCMeta):
         """
         return self.data_base.get(dataset_id, None)
 
-    def get_dataset_info_by_id(self, dataset_id: int) -> Union[dict, None]:
+    def get_dataset_info_by_id(self, dataset_id: str) -> Union[dict, None]:
         """
         Retrieve the 'dataset_info' dictionary from the dataset with the given dataset_id.
 
@@ -274,21 +272,21 @@ class KnowledgeBase(abc.ABC, metaclass=abc.ABCMeta):
         dataset = self.data_base.get(dataset_id, {})
         return dataset.get('dataset_info', None)
 
-    def get_input_vectors_by_id(self, dataset_id: int) -> List[Any]:
+    def get_input_vectors_by_id(self, dataset_id: str) -> List[Any]:
         """Return the input_vectors from the dataset with the given dataset_id."""
         dataset = self.get_dataset_by_id(dataset_id=dataset_id)
         if not dataset:
             raise ValueError(f"No dataset found with ID {dataset_id}.")
 
-        return dataset.get("input_vectors", [])
+        return dataset.get("input_vector", [])
 
-    def get_output_values_by_id(self, dataset_id: int) -> List[Any]:
+    def get_output_values_by_id(self, dataset_id: str) -> List[Any]:
         """Return the output_values from the dataset with the given dataset_id."""
         dataset = self.get_dataset_by_id(dataset_id=dataset_id)
         if not dataset:
             raise ValueError(f"No dataset found with ID {dataset_id}.")
 
-        return dataset.get("output_values", [])
+        return dataset.get("output_value", [])
 
     def get_dataset_num(self):
         """
@@ -298,6 +296,12 @@ class KnowledgeBase(abc.ABC, metaclass=abc.ABCMeta):
             int: The number of datasets.
         """
         return len(self.data_base)
+
+    def get_var_name_by_id(self, dataset_id):
+        dataset_info = self.get_dataset_info_by_id(dataset_id)
+        assert 'variable_name' in dataset_info
+        var_name = dataset_info['variable_name']
+        return var_name
 
     def get_all_dataset_id(self):
         """

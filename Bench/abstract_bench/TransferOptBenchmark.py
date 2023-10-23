@@ -118,7 +118,8 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
         assert isinstance(self.tasks[self.__id], ConfigOptBenchmark.TabularOptBenchmark)
         return self.tasks[self.__id].get_unobserved_idxs()
 
-
+    def add_query_num(self):
+        self.query_nums[self.__id] += 1
 
 
     def f(self, configuration: Union[ConfigSpace.Configuration, Dict, List[Union[ConfigSpace.Configuration, Dict]]],
@@ -150,16 +151,21 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
                 else:
                     raise TypeError(f'Unrecognized task type.')
 
+                self.add_query_num()
+
                 results.append(result)
             return results
         else:
             if self.get_query_num() >= self.get_curbudget():
                 logger.error(' The current function evaluation has exceeded the user-set budget.')
                 raise EnvironmentError
+
             if isinstance(self.tasks[self.__id], ConfigOptBenchmark.TabularOptBenchmark):
                 return self.tasks[self.__id].f(configuration, fidelity, idx)
 
             if isinstance(self.tasks[self.__id], ConfigOptBenchmark.ContinuousOptBenchmark):
                 return self.tasks[self.__id].f(configuration, fidelity)
+
+            self.add_query_num()
 
             raise TypeError(f'Unrecognized task type.')

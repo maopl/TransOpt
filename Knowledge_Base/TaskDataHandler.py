@@ -1,88 +1,13 @@
 
 from typing import List, Any, Union, Tuple, Dict, Callable
 from Knowledge_Base.KnowledgeBase import KnowledgeBase
+from Knowledge_Base.DataHandlerBase import DataHandler
 
 
-
-class OptTaskDataHandler:
+class OptTaskDataHandler(DataHandler):
 
     def __init__(self, db: KnowledgeBase, args):
-        self.__db = db
-        self.args = args
-
-    def _set_dataset_info(self, space_info):
-        """
-               Supplements the dataset_info based on provided space_info.
-
-               Args:
-               - space_info (dict): Description of the problem's space.
-
-               Returns:
-               - dict: A supplemented dataset_info.
-               """
-
-        # Extract 'input_dim' directly from space_info
-        input_dim = space_info['input_dim']
-        budget = space_info['budget']
-        seed = space_info['seed']
-        task_id = space_info['task_id']
-        variable_names = []
-        variable_types = {}
-        variable_bounds = {}
-        for key, var in space_info.items():
-            if key == 'input_dim' or key == 'budget' or  key == 'seed' or  key == 'task_id':
-                continue
-            variable_names.append(key)
-            variable_types[key] = var['type']
-            variable_bounds[key] = var['bounds']
-
-        self.dataset['dataset_info'] = {
-            'input_dim': input_dim,
-            'budget': budget,
-            'seed': seed,
-            'task_id': task_id,
-            'variable_name': variable_names,
-            'variable_type': variable_types,
-            'variable_bounds': variable_bounds
-
-        }
-
-    def reset_task(self, task_name, task_space_info:Dict):
-        self.dataset_id, self.dataset = self.__db._generate_dataset()
-        self.dataset['name'] = task_name
-        self._set_dataset_info(task_space_info)
-
-
-    def syn_database(self):
-        required_keys = ['input_dim', 'budget', 'seed', 'task_id']
-
-        # 检查是否所有必要的键都在space_info字典中
-        for key in required_keys:
-            if key not in self.dataset['dataset_info'] :
-                raise ValueError(f"Missing key '{key}' in space_info")
-
-        for dataset_id in self.__db.get_all_dataset_id():
-            dataset_name = self.__db.get_dataset_by_id(dataset_id)['name']
-            dataset_info = self.__db.get_dataset_info_by_id(dataset_id)
-
-            if self.dataset['name'] == dataset_name and all(dataset_info[key] == self.dataset['dataset_info'][key] for key in required_keys):
-                self.dataset = self.__db.get_dataset_by_id(dataset_id)
-                self.dataset_id = dataset_id
-                return
-
-        self.__db.add_dataset(self.dataset_id, self.dataset)
-
-    def get_observation_num(self):
-        return len(self.dataset.get('input_vector'))
-
-    def get_dataset_id(self):
-        return self.dataset_id
-
-    def get_input_vectors(self):
-        return self.dataset.get('input_vector')
-
-    def get_output_value(self):
-        return self.dataset.get('output_value')
+        super(OptTaskDataHandler, self).__init__(db, args)
 
     def _validate_input_vector(self, input_vector: Dict) -> bool:
         """
@@ -166,7 +91,8 @@ class OptTaskDataHandler:
         self._flush_dataset()
 
     def _flush_dataset(self):
-        self.__db.update_dataset(self.dataset_id, self.dataset['name'], self.dataset)
+        self.db.update_dataset(self.dataset_id, self.dataset['name'], self.dataset)
+        self.db._save_database()
 
 
     def update_dataset_info(self, **kwargs: Any) -> None:
@@ -189,8 +115,10 @@ class OptTaskDataHandler:
         # Save the updated 'dataset_info' back to the database
         self.dataset['dataset_info'] = dataset_info
 
+
+
     def get_auxillary_data(self):
-        pass
+        return  self.selector(self, self.args)
 
 
 

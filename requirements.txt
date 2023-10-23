@@ -9,15 +9,12 @@ gplearn==0.4.2
 paramz==0.9.5
 emukit==0.4.10
 orbax==0.1.0
-jax==0.3.25
-jaxlib==0.3.25
 ml-collections==0.1.1
 tensorflow==2.11.0
 torch==1.13.1
 flax==0.6.4
 gpytorch==1.8.1
 pymoo==0.6.0.1
-jaxopt==0.7
 ConfigSpace==0.6.1
 seaborn==0.12.2
 cliffs-delta==1.0.0

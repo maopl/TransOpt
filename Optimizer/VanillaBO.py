@@ -1,107 +1,103 @@
 import numpy as np
 import GPy
-import GPyOpt
-import time
-from scipy.stats import norm
-from GPy import kern
-from GPy import util
-from paramz import ObsAr
+from Acquisition.ConstructACF import get_ACF
+from Acquisition.sequential import Sequential
+from typing import Dict, Union, List
+from Optimizer.BayesianOptimizerBase import BayesianOptimizerBase
+from Util.Data import InputData, TaskData, vectors_to_ndarray, output_to_ndarray, ndarray_to_vectors
+from Util.Register import optimizer_register
 
-from GPy.inference.latent_function_inference import expectation_propagation
-from Optimizer.BaseModule import OptimizerBase
-
-from External.transfergpbo.models import TaskData
-from Model.RF import RF
-
-from emukit.core import ContinuousParameter
-from emukit.core import ParameterSpace
+from Util.Normalization import get_normalizer
 
 
-class VBOOptimizer():
-    analytical_gradient_prediction = False  # --- Needed in all models to check is the gradients of acquisitions are computable.
 
-    def __init__(self, Xdim, bounds, kernel='RBF', likelihood=None, acf_name='EI',
-                 optimizer='bfgs',  verbose=True):
-        self.kernel = kernel
-        self.likelihood = likelihood
-        self.Xdim = Xdim
-        self.bounds = bounds
-        self.acf_name = acf_name
-        self.name = 'vanilla_bo'
-        self.num_epochs   = 200
-        self.num_restarts = 10
+@optimizer_register('BO')
+class VanillaBO(BayesianOptimizerBase):
+    def __init__(self, config:Dict, **kwargs):
+        super(VanillaBO, self).__init__(config=config)
 
-        # Set decision space
-        Variables = []
-        task_design_space = []
-        for var in range(Xdim):
-            v_n = f'x{var + 1}'
-            Variables.append(ContinuousParameter(v_n, self.bounds[0][var], self.bounds[1][var]))
-            var_dic = {'name': f'var_{var}', 'type': 'continuous',
-                       'domain': tuple([self.bounds[0][var], self.bounds[1][var]])}
-            task_design_space.append(var_dic.copy())
-        self.model_space = ParameterSpace(Variables)
-        self.acf_space = GPyOpt.Design_space(space=task_design_space)
+        self.init_method = 'Random'
+        self.model = None
 
-        self.optimizer = optimizer
-        self.verbose = verbose
-
-
-    def create_model(self, model_name, Target_data):
-        self.model_name = model_name
-        training_data = TaskData(X=Target_data['X'], Y=Target_data['Y'])
-        ###Construct objective model
-        if self.model_name == 'RF':
-            self.obj_model = RF(num_estimators = 100)
-            self.obj_model.fit(training_data)
+        if 'verbose' in config:
+            self.verbose = config['verbose']
         else:
-            X = Target_data['X']
-            Y = Target_data['Y']
+            self.verbose = True
 
-            # Xc, Xe, y = filter_nan(Xc, Xe, y, 'all')
-
-            k1 = GPy.kern.Linear(self.Xdim, ARD=False)
-            k2 = GPy.kern.Matern32(self.Xdim, ARD=True)
-            k2.lengthscale = np.std(X, axis=0).clip(min=0.02)
-            k2.variance = 0.5
-            k2.variance.set_prior(GPy.priors.Gamma(0.5, 1), warning=False)
-            kern = k1 + k2
-
-            # if self.kernel == None or self.kernel == 'RBF':
-            #     kern = GPy.kern.RBF(self.Xdim, ARD=True)
-            # else:
-            #     kern = GPy.kern.RBF(self.Xdim, ARD=True)
-            warp_f  = GPy.util.input_warping_functions.KumarWarping(X, Xmin = np.array([-1]*X.shape[1]), Xmax = np.array([1]*X.shape[1]))
-            self.obj_model = GPy.models.InputWarpedGP(X, Y, kernel=kern, warping_function = warp_f)
-            # self.obj_model = GPy.models.GPRegression(X, Y, kernel=kern)
-            self.obj_model.likelihood.variance.set_prior(GPy.priors.LogGaussian(-4.63, 0.5), warning=False)
-            # self.obj_model['Gaussian_noise.*variance'].constrain_bounded(1e-9, 1e-3)
-            try:
-                self.obj_model.optimize_restarts(max_iters = self.num_epochs, verbose = self.verbose, num_restarts = self.num_restarts, robust = True)
-            except np.linalg.linalg.LinAlgError as e:
-                # break
-                print('Error: np.linalg.linalg.LinAlgError')
-
-
-    def updateModel(self, Target_data):
-        ## Train target model
-        if self.model_name == 'RF':
-            training_data = TaskData(X=Target_data['X'], Y=Target_data['Y'])
-            self.obj_model.fit(training_data)
+        if 'init_number' in config:
+            self.ini_num = config['init_number']
         else:
-            X = Target_data['X']
-            Y = Target_data['Y']
+            self.ini_num = None
+
+        if 'acf' in config:
+            self.acf = config['acf']
+        else:
+            self.acf = 'EI'
+
+    def reset(self, design_space:Dict, search_sapce:Union[None, Dict] = None):
+        self.set_space(design_space, search_sapce)
+        self.obj_model = None
+        self.var_model = None
+        self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
+        self._Y = np.empty((0,))
+        self.acqusition = get_ACF(self.acf, model=self, search_space=self.search_space, config=self.config)
+        self.evaluator = Sequential(self.acqusition)
+
+    def initial_sample(self):
+        return self.random_sample(self.ini_num)
+
+    def suggest(self, n_suggestions:Union[None, int] = None) ->List[Dict]:
+        if self._X.size == 0:
+            suggests = self.initial_sample()
+            return suggests
+        elif self._X.shape[0] < self.ini_num:
+            pass
+        else:
+            if 'normalize' in self.config:
+                self.normalizer = get_normalizer(self.config['normalize'])
+
+
+            Data = {'Target':{'X':self._X, 'Y':self._Y}}
+            self.update_model(Data)
+            suggested_sample, acq_value = self.evaluator.compute_batch(None, context_manager=None)
+            suggested_sample = self.search_space.zip_inputs(suggested_sample)
+            suggested_sample = ndarray_to_vectors(self._get_var_name('search'), suggested_sample)
+            design_suggested_sample = self.inverse_transform(suggested_sample)
+
+            return design_suggested_sample
+
+    def update_model(self, Data):
+        assert 'Target' in Data
+        target_data = Data['Target']
+        X = target_data['X']
+        Y = target_data['Y']
+
+        if self.normalizer is not None:
+            Y = self.normalizer(Y)
+
+        if self.obj_model == None:
+            self.create_model(X, Y)
+        else:
             self.obj_model.set_XY(X, Y)
-            try:
-                self.obj_model.optimize_restarts(messages=True, num_restarts=1,
-                                             verbose=self.verbose)
-            except np.linalg.linalg.LinAlgError as e:
-                # break
-                print('Error: np.linalg.linalg.LinAlgError')
 
-    def resetModel(self, Source_data, Target_data):
-        ## Train target model
-        pass
+        try:
+            self.obj_model.optimize_restarts(num_restarts=1, verbose=self.verbose, robust=True)
+        except np.linalg.linalg.LinAlgError as e:
+            # break
+            print('Error: np.linalg.linalg.LinAlgError')
+
+    def create_model(self, X, Y):
+        k1 = GPy.kern.Linear(self.input_dim, ARD=False)
+        k2 = GPy.kern.Matern32(self.input_dim, ARD=True)
+        k2.lengthscale = np.std(X, axis=0).clip(min=0.02)
+        k2.variance = 0.5
+        k2.variance.set_prior(GPy.priors.Gamma(0.5, 1), warning=False)
+        kern = k1 + k2
+
+        self.obj_model = GPy.models.GPRegression(X, Y, kernel=kern)
+        # self.obj_model.likelihood.variance.set_prior(GPy.priors.LogGaussian(-4.63, 0.5), warning=False)
+        self.obj_model['Gaussian_noise.*variance'].constrain_bounded(1e-9, 1e-3)
+
 
     def predict(self, X):
         """
@@ -114,89 +110,42 @@ class VBOOptimizer():
         if X.ndim == 1:
             X = X[None,:]
 
-        if self.model_name == 'RandomForests':
-            self.obj_model.predict(X)
-        else:
-            m, v = self.obj_model.predict(X)
+        m, v = self.obj_model.predict(X)
 
         # We can take the square root because v is just a diagonal matrix of variances
         return m, v
 
 
-    def obj_posterior_samples(self, X, sample_size):
-        if X.ndim == 1:
-            X = X[None,:]
-        task_id = self.output_dim - 1
 
-        if self.model_name == 'WSGP' or \
-                self.model_name == 'HGP':
-            samples_obj = self.posterior_samples(X, model_id=0,size=sample_size)
-        elif self.model_name == 'MOGP':
-            noise_dict = {'output_index': np.array([task_id] * X.shape[0])[:, np.newaxis].astype(int)}
-            X_zip = np.hstack((X, noise_dict['output_index']))
+    def random_sample(self, num_samples: int) -> List[Dict]:
+        """
+        Initialize random samples.
 
-            samples_obj = self.obj_model.posterior_samples(X_zip, size=sample_size, Y_metadata=noise_dict) # grid * 1 * sample_num
+        :param num_samples: Number of random samples to generate
+        :return: List of dictionaries, each representing a random sample
+        """
+        if self.input_dim is None:
+            raise ValueError("Input dimension is not set. Call set_search_space() to set the input dimension.")
 
-        else:
-            raise NameError
+        random_samples = []
+        for _ in range(num_samples):
+            sample = {}
+            for var_info in self.search_space.config_space:
+                var_name = var_info['name']
+                var_domain = var_info['domain']
+                # Generate a random floating-point number within the specified range
+                random_value = np.random.uniform(var_domain[0], var_domain[1])
+                sample[var_name] = random_value
+            random_samples.append(sample)
 
-        return samples_obj
+        random_samples = self.inverse_transform(random_samples)
+        return random_samples
 
     def get_fmin(self):
         "Get the minimum of the current model."
         m, v = self.predict(self.obj_model.X)
 
         return m.min()
-
-    def set_XY(self, X=None, Y=None):
-        if isinstance(X, list):
-            X, _, self.obj_model.output_index = util.multioutput.build_XY(X, None)
-        if isinstance(Y, list):
-            _, Y, self.obj_model.output_index = util.multioutput.build_XY(Y, Y)
-
-        self.obj_model.update_model(False)
-        if Y is not None:
-            self.obj_model.Y = ObsAr(Y)
-            self.obj_model.Y_normalized = self.obj_model.Y
-        if X is not None:
-            self.obj_model.X = ObsAr(X)
-
-        self.obj_model.Y_metadata = {'output_index': self.obj_model.output_index, 'trials': np.ones(self.obj_model.output_index.shape)}
-        if isinstance(self.obj_model.inference_method, expectation_propagation.EP):
-            self.obj_model.inference_method.reset()
-        self.obj_model.update_model(True)
-
-    def samples(self, gp):
-        """
-        Returns a set of samples of observations based on a given value of the latent variable.
-
-        :param gp: latent variable
-        """
-        orig_shape = gp.shape
-        gp = gp.flatten()
-        #orig_shape = gp.shape
-        gp = gp.flatten()
-        Ysim = np.array([np.random.normal(gpj, scale=np.sqrt(1e-2), size=1) for gpj in gp])
-        return Ysim.reshape(orig_shape)
-
-    def posterior_samples_f(self,X, model_id, size=10):
-        """
-        Samples the posterior GP at the points X.
-
-        :param X: The points at which to take the samples.
-        :type X: np.ndarray (Nnew x self.input_dim)
-        :param size: the number of a posteriori samples.
-        :type size: int.
-        :returns: set of simulations
-        :rtype: np.ndarray (Nnew x D x samples)
-        """
-        m, v = self.obj_model.predict(X, return_full=True)
-
-        def sim_one_dim(m, v):
-            return np.random.multivariate_normal(m, v, size).T
-
-        return sim_one_dim(m.flatten(), v)[:, np.newaxis, :]
-
 
     def posterior_samples(self, X, model_id, size=10):
         """

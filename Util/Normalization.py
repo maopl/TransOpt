@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Union
+from typing import Union, Dict, List
 from sklearn.preprocessing import power_transform
 from Util.Register import normalizer_registry,normalizer_register
 
@@ -9,12 +9,13 @@ def get_normalizer(name):
 
 
     if normalizer is not None:
-        optimizer = normalizer(config=config)
+        return normalizer
     else:
         # 处理任务名称不在注册表中的情况
         print(f"Normalizer '{name}' not found in the registry.")
         raise NameError
-    return normalizer
+
+
 @normalizer_register('pt')
 def normalize_with_power_transform(data: Union[np.ndarray, list], mean=None, std=None):
     """
@@ -114,8 +115,8 @@ def rank_normalize_with_power_transform(data: Union[np.ndarray, list]):
     raise ValueError('Unsupported input type for normalization and power transform.')
 
 
-@normalizer_register('normalize')
-def normalize(data, mean=None, std=None):
+@normalizer_register('norm')
+def normalize(data:Union[List, Dict, np.ndarray], mean=None, std=None):
     """
     Normalize the data using the given mean and standard deviation or compute them from the data if not provided.
 
@@ -128,10 +129,18 @@ def normalize(data, mean=None, std=None):
     - ndarray: Normalized data.
     """
 
-    # Compute mean and std from data if not provided
-    if mean is None:
-        mean = np.mean(data)
-    if std is None:
-        std = np.std(data)
 
-    return (data - mean) / std
+    # Compute mean and std from data if not provided
+    if isinstance(data, np.ndarray):
+        return (data - mean) / std
+    elif isinstance(data, list):
+        tmp = []
+        for d in data:
+            if mean is None:
+                mean = np.mean(d)
+            if std is None:
+                std = np.std(d)
+            tmp.append((d - mean) / std)
+        return tmp
+    else:
+        raise TypeError("Input data must be a numpy array or a list of numpy arrays.")

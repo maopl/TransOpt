@@ -7,7 +7,7 @@ from Util.Normalization import Norm_pt
 from Util.Initialization import InitData
 from Util import Prior
 from Optimizer.TMTGPOptimizer import MOGPOptimizer
-from Optimizer.MultitaskOptimizer import MultiTaskOptimizer
+from Optimizer.MultitaskOptimizera import MultiTaskOptimizer
 
 from Acquisition.ConstructACF import construct_acf
 

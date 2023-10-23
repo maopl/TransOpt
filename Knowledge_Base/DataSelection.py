@@ -14,7 +14,8 @@ from sklearn.preprocessing import power_transform
 from Util.Data import vectors_to_ndarray
 from Util.Normalization import normalize
 from Util.Kernel import construct_multi_objective_kernel
-
+from Knowledge_Base.DataHandlerBase import selector_register
+from Util.Data import vectors_to_ndarray, output_to_ndarray
 
 def MTRankS(self,
            X:np.ndarray,
@@ -112,3 +113,34 @@ def MTRankS(self,
         else:
             return True, False, np.argmax(np.abs(apcc_lst))
 
+@selector_register('recent')
+def SelectRecent(self, args, **kwards) -> Dict:
+    AUX_DATA = {}
+    history_task_num = self.db.get_dataset_num()
+    if history_task_num < args.source_num:
+        source_num = history_task_num
+    else:
+        source_num = args.source_num
+
+    # 将ID转换为整数
+    int_ids = [int(id) for id in self.db.get_all_dataset_id() if int(id) < int(self.dataset_id)]
+
+    # 按降序排列ID
+    sorted_ids = sorted(int_ids, reverse=True)
+
+    # 选择最大的n个ID
+    largest_ids = sorted_ids[:source_num]
+    AUX_DATA['Y'] = []
+    AUX_DATA['X'] = []
+
+    for dataset_id in largest_ids:
+        if dataset_id == int(self.dataset_id):
+            continue
+
+        var_name = self.db.get_var_name_by_id(str(dataset_id))
+        X = vectors_to_ndarray(var_name, self.db.get_input_vectors_by_id(str(dataset_id)))
+        Y = output_to_ndarray(self.db.get_output_values_by_id(str(dataset_id)))
+        AUX_DATA['Y'].append(Y)
+        AUX_DATA['X'].append(X)
+
+    return {'History':AUX_DATA}

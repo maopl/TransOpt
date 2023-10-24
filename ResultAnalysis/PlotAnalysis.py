@@ -9,7 +9,7 @@ from Util.sk import Rx
 from pathlib import Path
 import scipy
 
-metric_registry = {}
+plot_registry = {}
 
 colors = ['blue', 'green', 'red', 'orange', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan']
 colors_rgb = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
@@ -17,9 +17,9 @@ colors_rgb = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', 
 # 注册函数的装饰器
 def metric_register(name):
     def decorator(func_or_class):
-        if name in metric_registry:
+        if name in plot_registry:
             raise ValueError(f"Error: '{name}' is already registered.")
-        metric_registry[name] = func_or_class
+        plot_registry[name] = func_or_class
         return func_or_class
     return decorator
 
@@ -77,7 +77,7 @@ def convergence_rate(results, save_path, **kwargs):
     sns.violinplot(data=cr_results, inner="quart")
 
     os.makedirs(save_path, exist_ok=True)
-    save_file = save_path / 'acc_iterations'
+    save_file = save_path / 'convergence_rate.png'
     plt.savefig(save_file, format='png')
     plt.close()
 
@@ -98,7 +98,6 @@ def plot_traj(results, save_path, **kwargs):
         plt.figure(figsize=(12, 6))
         for method_id, (method, tasks) in enumerate(results.items()):
             res = []
-
             for Seed, task_seed in tasks.items():
                 result_obj = task_seed.get(task_name)
                 if result_obj is not None:
@@ -170,7 +169,7 @@ def plot_violin(results, save_path, **kwargs):
 
     save_path = Path(save_path)
     save_path.mkdir(parents=True, exist_ok=True)
-    plt.savefig(save_path / 'violin', format='png')
+    plt.savefig(save_path / 'violin.png', format='png')
     plt.close()
 
 
@@ -222,7 +221,7 @@ def plot_box(results, save_path, **kwargs):
 
     save_path = Path(save_path)
     save_path.mkdir(parents=True, exist_ok=True)
-    plt.savefig(save_path / 'box', format='png')
+    plt.savefig(save_path / 'box.png', format='png')
     plt.close()
 
 
@@ -251,3 +250,46 @@ def dbscan_analysis(data, save_path, **kwargs):
         avg_cluster_size = 0
 
     return n_clusters, noise_points, avg_cluster_size
+
+
+@metric_register('heatmap')
+def plot_heatmap(algorithms, test_problems):
+    # 创建一个空的矩阵来存储结果
+    results_matrix = np.empty((len(test_problems), len(algorithms)))
+
+    # 逐个读取结果文件并填充矩阵
+    for i, problem in enumerate(test_problems):
+        for j, algorithm in enumerate(algorithms):
+            # 从文件读取结果
+            file_path = f"{algorithm}_{problem}.txt"
+            with open(file_path, "r") as file:
+                result = float(file.readline().strip())
+            # 填充矩阵
+            results_matrix[i, j] = result
+
+    # 创建热力图
+    fig, ax = plt.subplots()
+    im = ax.imshow(results_matrix, cmap="viridis")
+
+    # 设置轴标签
+    ax.set_xticks(np.arange(len(algorithms)))
+    ax.set_yticks(np.arange(len(test_problems)))
+    ax.set_xticklabels(algorithms)
+    ax.set_yticklabels(test_problems)
+
+    # 在热力图上显示数值
+    for i in range(len(test_problems)):
+        for j in range(len(algorithms)):
+            text = ax.text(j, i, f"{results_matrix[i, j]:.2f}",
+                           ha="center", va="center", color="w")
+
+    # 添加颜色条
+    cbar = ax.figure.colorbar(im, ax=ax)
+
+    # 设置图形标题和标签
+    plt.title("Algorithm Comparison Heatmap")
+    plt.xlabel("Algorithms")
+    plt.ylabel("Test Problems")
+
+    # 显示图形
+    plt.show()

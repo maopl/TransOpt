@@ -100,9 +100,7 @@ class BayesianOptimizerBase(OptimizerBase):
         if len(input_vectors) != len(output_value):
             raise ValueError("Number of input vectors and output values must be the same.")
 
-    def set_data_handler(self, data_handler:OptTaskDataHandler):
-        """设置用于获取辅助数据的回调函数"""
-        self.data_handler = data_handler
+
 
     def _validate_output_value(self, output: Dict) -> None:
         """

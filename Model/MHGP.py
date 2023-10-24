@@ -19,8 +19,7 @@ from typing import Dict, Hashable, Union, Sequence, Tuple
 
 from GPy.kern import RBF
 
-from External.transfergpbo.models import InputData, TaskData, GPBO
-
+import GPy
 
 class MHGP():
     """Stack of Gaussian processes.
@@ -33,7 +32,7 @@ class MHGP():
     stack.
     """
 
-    def __init__(self, n_features: int, within_model_normalize: bool = True):
+    def __init__(self, n_features: int, X, Y):
         """Initialize the Method.
 
         Args:
@@ -46,18 +45,12 @@ class MHGP():
         self.n_samples = 0
         self.n_features = n_features
 
-        self._within_model_normalize = within_model_normalize
-
         self.source_gps = []
 
-        # GP on difference between target data and last source data set
-        self.target_gp = GPBO(
-            RBF(self.n_features, ARD=True),
-            noise_variance=0.1,
-            normalize=self._within_model_normalize,
-        )
 
-    def _compute_residuals(self, data: TaskData) -> np.ndarray:
+        # GP on difference between target data and last source data set
+
+    def _compute_residuals(self, X, Y) -> np.ndarray:
         """Determine the difference between given y-values and the sum of predicted
         values from the models in 'source_gps'.
 
@@ -70,30 +63,28 @@ class MHGP():
             Difference between observed values and sum of predicted values
             from `source_gps`. `shape = (n_points, 1)`
         """
-        if self.n_features != data.X.shape[1]:
+        if self.n_features != X.shape[1]:
             raise ValueError("Number of features in model and input data mismatch.")
 
         if not self.source_gps:
-            return data.Y
+            return Y
 
-        predicted_y = self.predict_posterior_mean(
-            InputData(data.X), idx=len(self.source_gps) - 1
-        )
+        predicted_y = self.predict_posterior_mean(X, idx=len(self.source_gps) - 1)
 
-        residuals = data.Y - predicted_y
+        residuals = Y - predicted_y
 
         return residuals
 
-    def _update_meta_data(self, *gps: GPBO):
+    def _update_meta_data(self, *gps: GPy.models.GPRegression):
         """Cache the meta data after meta training."""
         for gp in gps:
             self.source_gps.append(gp)
 
     def _meta_fit_single_gp(
         self,
-        data: TaskData,
+        X, Y,
         optimize: bool,
-    ) -> GPBO:
+    ) -> GPy.models.GPRegression:
         """Train a new source GP on `data`.
 
         Args:
@@ -103,16 +94,18 @@ class MHGP():
         Returns:
             The newly trained GP.
         """
-        residuals = self._compute_residuals(data)
+        residuals = self._compute_residuals(X, Y)
 
         kernel = RBF(self.n_features, ARD=True)
-        new_gp = GPBO(
-            kernel, noise_variance=0.1, normalize=self._within_model_normalize
-        )
-        new_gp.fit(
-            TaskData(X=data.X, Y=residuals),
-            optimize,
-        )
+        new_gp = GPy.models.GPRegression(X, Y, kernel=kernel)
+        new_gp['Gaussian_noise.*variance'].constrain_bounded(1e-9, 1e-3)
+
+        try:
+            new_gp.optimize_restarts(num_restarts=1, verbose=False, robust=True)
+        except np.linalg.linalg.LinAlgError as e:
+            # break
+            print('Error: np.linalg.linalg.LinAlgError')
+
         return new_gp
 
     def meta_fit(
@@ -154,7 +147,7 @@ class MHGP():
 
     def fit(
         self,
-        data: TaskData,
+        X, Y,
         optimize: bool = False,
     ):
         if not self.source_gps:
@@ -162,16 +155,28 @@ class MHGP():
                 "Error: source gps are not trained. Forgot to call `meta_fit`."
             )
 
-        self._X = copy.deepcopy(data.X)
-        self._y = copy.deepcopy(data.Y)
+        self._X = copy.deepcopy(X)
+        self._Y = copy.deepcopy(Y)
 
         self.n_samples, n_features = self._X.shape
         if self.n_features != n_features:
             raise ValueError("Number of features in model and input data mismatch.")
 
-        residuals = self._compute_residuals(data)
+        kern = GPy.kern.RBF(self.n_features, ARD=False)
 
-        self.target_gp.fit(TaskData(data.X, residuals), optimize)
+        self.target_gp = GPy.models.GPRegression(X, Y, kernel=kern)
+        self.target_gp['Gaussian_noise.*variance'].constrain_bounded(1e-9, 1e-3)
+
+        residuals = self._compute_residuals(X, Y)
+
+        try:
+            new_gp.optimize_restarts(num_restarts=1, verbose=False, robust=True)
+        except np.linalg.linalg.LinAlgError as e:
+            # break
+            print('Error: np.linalg.linalg.LinAlgError')
+
+        return new_gp
+
 
     def predict(
         self, data: InputData, return_full: bool = False, with_noise: bool = False

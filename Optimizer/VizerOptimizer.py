@@ -17,7 +17,7 @@ from Util.Kernel import construct_multi_objective_kernel
 from GPy.inference.latent_function_inference import expectation_propagation
 from GPy.inference.latent_function_inference import ExactGaussianInference
 from GPy.likelihoods.multioutput_likelihood import MixedNoise
-from Model.MPGP import MPGP
+from Model.MHGP import MHGP
 from typing import Dict, Union, List, Tuple
 from Optimizer.BayesianOptimizerBase import BayesianOptimizerBase
 
@@ -47,6 +47,7 @@ class Vizer(BayesianOptimizerBase):
     def reset(self, design_space:Dict, search_sapce:Union[None, Dict] = None):
         self.set_space(design_space, search_sapce)
         self.reset_flag = True
+        self.obj_model = None
         self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
         self._Y = np.empty((0,))
         self.acqusition = get_ACF(self.acf, model=self, search_space=self.search_space, config=self.config)
@@ -100,10 +101,8 @@ class Vizer(BayesianOptimizerBase):
             return design_suggested_sample
 
 
-    def create_model(self, model_name, Source_data, Target_data):
-
-
-
+    def create_model(self, Data):
+        self.obj_model = MHGP()
         self.obj_model.meta_fit(meta_data)
 
         ## Train target model
@@ -114,7 +113,7 @@ class Vizer(BayesianOptimizerBase):
     def update_model(self, Target_data):
         ## Train target model
         if self.reset_flag == True and self.obj_model is None:
-            pass
+            self.create_model()
         elif self.reset_flag == True and self.obj_model is not None:
             pass
         else:

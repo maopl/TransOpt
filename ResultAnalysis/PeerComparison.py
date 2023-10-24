@@ -10,38 +10,16 @@ import seaborn as sns
 from sklearn.cluster import DBSCAN
 from cliffs_delta import cliffs_delta
 from scipy import stats
-from Result_Analysis.heatmap import plot_heatmap
+from ResultAnalysis.heatmap import plot_heatmap
 from scipy.stats import norm
 from Util.sk import Rx
 from collections import Counter
-def convergence_rate(data, start_point, end_point):
-    if start_point < 0 or end_point > len(data) or start_point > end_point:
-        raise ValueError("invalid start point and end point")
-
-    total_weighted_sum = 0.0
-    data = (np.array(data) - np.min(data)) / (np.max(data) - np.min(data))
-
-    best_fn = np.min(data[:start_point])
-    for i in range(start_point, end_point + 1):
-        if best_fn > np.min(data[:i]):
-            weight = i / (end_point - start_point + 1)  # 计算权重
-            total_weighted_sum += (best_fn - np.min(data[:i])) * weight
-            best_fn = np.min(data[:i])
-
-    return total_weighted_sum
 
 
-def acc_iterations(data, start_point, end_point, anchor_value):
-    if start_point < 0 or end_point > len(data) or start_point > end_point:
-        raise ValueError("invalid start point and end point")
-
-    for i in range(start_point, end_point + 1):
-        best_fn = np.min(data[:i])
-        if best_fn <= anchor_value:
-            return i
 
 
-    return len(data)
+
+
 
 def dbscan_analysis(data):
     db = DBSCAN(eps=0.5, min_samples=5)
@@ -67,95 +45,6 @@ def dbscan_analysis(data):
         avg_cluster_size = 0
 
     return n_clusters, noise_points, avg_cluster_size
-
-
-def escape_c(data, start_point, end_point):
-    if start_point < 0 or end_point > len(data) or start_point > end_point:
-        raise ValueError("invalid start point and end point")
-
-    total_weighted_sum = 0.0
-    data = (np.array(data) - np.min(data)) / (np.max(data) - np.min(data))
-    alpha = 0.01
-    n_it = 0
-
-    best_fn = np.min(data[:start_point])
-    for i in range(start_point, end_point + 1):
-        if best_fn > np.min(data[:i]):
-            if n_it >5:
-                weight = 1/(n_it+1)  # 计算权重
-                total_weighted_sum += (best_fn - np.min(data[:i])) * weight
-            n_it = 0
-
-        n_it += 1                       # 使用指数递减的权重
-
-    return total_weighted_sum
-
-def matrix_to_latex(M_mean, M_std, rst, col_names, row_names, oder='min'):
-    num_cols = len(M_mean.keys())
-    num_rows = len(row_names)
-
-    if len(col_names) != num_cols or len(row_names) != num_rows:
-        raise ValueError("Mismatch between matrix dimensions and provided row/column names.")
-
-    latex_code = []
-
-    latex_code.append("\\begin{table*}[t!]")
-    latex_code.append("    \\scriptsize")
-    latex_code.append("    \\centering")
-    latex_code.append("    \\caption{Performance comparisons of the quality of solutions obtained by different algorithms.}")
-    latex_code.append("    \\label{tab:rq1_result}%")
-    latex_code.append("    \\resizebox{1.0\\textwidth}{!}{")
-    latex_code.append("    \\begin{tabular}{c|" + "".join(["c"] * (num_rows)) + "}")
-    latex_code.append("        \\hline")
-
-    # Adding column names
-    col_header = " & ".join([""] + row_names) + " \\\\"
-    latex_code.append("        " + col_header)
-    latex_code.append("        \\hline")
-
-    # Adding rows
-    for i in range(num_cols):
-        str_data = []
-        for j in range(num_rows):
-            str_format = ""
-            if oder =='min':
-                if M_mean[col_names[i]][j] == np.min(M_mean[col_names[i]]):
-                    str_format +="\cellcolor[rgb]{ .682,  .667,  .667}\\textbf{"
-                    str_format += "%.3E(%.3E)" % (float(M_mean[col_names[i]][j]), M_std[col_names[i]][j])
-                    str_format += "}"
-                    str_data.append(str_format)
-                else:
-                    if rst[col_names[i]][row_names[j]] == '+':
-                        str_data.append("%.3E(%.3E)$^\dagger$" % (float(M_mean[col_names[i]][j]), M_std[col_names[i]][j]))
-                    else:
-                        str_data.append("%.3E(%.3E)" % (float(M_mean[col_names[i]][j]), M_std[col_names[i]][j]))
-            else:
-                if M_mean[col_names[i]][j] == np.max(M_mean[col_names[i]]):
-                    str_format +="\cellcolor[rgb]{ .682,  .667,  .667}\\textbf{"
-                    str_format += "%.3E(%.3E)" % (float(M_mean[col_names[i]][j]), M_std[col_names[i]][j])
-                    str_format += "}"
-                    str_data.append(str_format)
-                else:
-                    if rst[col_names[i]][row_names[j]] == '+':
-                        str_data.append("%.3E(%.3E)$^\dagger$" % (float(M_mean[col_names[i]][j]), M_std[col_names[i]][j]))
-                    else:
-                        str_data.append("%.3E(%.3E)" % (float(M_mean[col_names[i]][j]), M_std[col_names[i]][j]))
-        test_name = col_names[i].split('_')[0] + col_names[i].split('_')[1]
-        row_data = " & ".join(["\\texttt{" + f'{test_name}' + "}"] + str_data) + " \\\\"
-        latex_code.append("        " + row_data)
-
-    latex_code.append("        \\hline")
-    latex_code.append("    \\end{tabular}")
-    latex_code.append("    }")
-    latex_code.append("    \\begin{tablenotes}")
-    latex_code.append("        \\tiny")
-    latex_code.append("        \\item The labels in the first column are the combination of the first letter of test problem and the number of variables, e.g., A4 is Ackley problem with $n=4$.")
-    latex_code.append("        \\item $^\\dagger$ indicates that the best algorithm is significantly better than the other one according to the Wilcoxon signed-rank test at a 5\\% significance level.")
-    latex_code.append("    \\end{tablenotes}")
-    latex_code.append("\\end{table*}%")
-
-    return "\n".join(latex_code)
-
 
 
 
@@ -907,7 +796,7 @@ if __name__ == '__main__':
     # Exp_res.plot_acc_iterations(Exper_floder)
     # Exp_res.record_acc_iterations()
     # Exp_res.plot_convergence_rate(Exper_floder)
-    # Exp_res.record_convergence()
+    Exp_res.record_convergence()
     # Exp_res.plot_escape_c(Exper_floder)
     # Exp_res.dbscan_analysis(Exper_floder)
     # Exp_res.plot_violin_all(Exper_floder)

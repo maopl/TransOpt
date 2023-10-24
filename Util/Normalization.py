@@ -132,6 +132,10 @@ def normalize(data:Union[List, Dict, np.ndarray], mean=None, std=None):
 
     # Compute mean and std from data if not provided
     if isinstance(data, np.ndarray):
+        if mean is None:
+            mean = np.mean(data)
+        if std is None:
+            std = np.std(data)
         return (data - mean) / std
     elif isinstance(data, list):
         tmp = []

@@ -101,35 +101,7 @@ class Vizer(BayesianOptimizerBase):
 
 
     def create_model(self, model_name, Source_data, Target_data):
-        self.model_name = model_name
-        source_num = len(Source_data['Y'])
-        self.output_dim = source_num + 1
 
-        ##Meta Date
-        meta_data = {}
-        for i in range(source_num):
-            meta_data[i] = TaskData(X=Source_data['X'][i], Y=Source_data['Y'][i])
-
-        ###Construct objective model
-        if self.model_name == 'GP':
-            if self.kernel == None or self.kernel == 'RBF':
-                kern = GPy.kern.RBF(self.Xdim, ARD=True)
-            else:
-                kern = GPy.kern.RBF(self.Xdim, ARD=True)
-            X = Target_data['X']
-            Y = Target_data['Y']
-
-            self.obj_model = GPy.models.GPRegression(X, Y, kernel=kern)
-            self.obj_model.optimize_restarts(messages=True, num_restarts=1, verbose=self.verbose)
-            self.obj_model['Gaussian_noise.*variance'].constrain_bounded(1e-9, 1e-3)
-            return
-
-        if self.model_name == 'SHGP':
-            self.obj_model = get_model('SHGP', self.model_space)
-        elif self.model_name == 'MHGP':
-            self.obj_model = get_model('MHGP', self.model_space)
-        elif self.model_name == 'BHGP':
-            self.obj_model = get_model('BHGP', self.model_space)
 
 
         self.obj_model.meta_fit(meta_data)
@@ -141,7 +113,9 @@ class Vizer(BayesianOptimizerBase):
 
     def update_model(self, Target_data):
         ## Train target model
-        if self.reset_flag == True:
+        if self.reset_flag == True and self.obj_model is None:
+            pass
+        elif self.reset_flag == True and self.obj_model is not None:
             pass
         else:
             pass

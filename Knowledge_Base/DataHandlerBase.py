@@ -1,7 +1,6 @@
 import abc
 from Knowledge_Base.KnowledgeBase import KnowledgeBase
 from typing import List, Any, Union, Tuple, Dict
-import Knowledge_Base.DataSelection
 
 def selector_register(name):
     def decorator(func_or_class):

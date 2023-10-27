@@ -5,6 +5,7 @@ import logging
 import numpy as np
 from . import ConfigOptBenchmark
 from Knowledge_Base.TaskDataHandler import OptTaskDataHandler
+import matplotlib.pyplot as plt
 logger = logging.getLogger('TransferOptBenchmark')
 
 
@@ -120,6 +121,7 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
 
     def add_query_num(self):
         self.query_nums[self.__id] += 1
+
 
 
     def f(self, configuration: Union[ConfigSpace.Configuration, Dict, List[Union[ConfigSpace.Configuration, Dict]]],

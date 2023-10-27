@@ -116,7 +116,6 @@ class VanillaBO(BayesianOptimizerBase):
         return m, v
 
 
-
     def random_sample(self, num_samples: int) -> List[Dict]:
         """
         Initialize random samples.

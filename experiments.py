@@ -25,7 +25,6 @@ def run_experiments(tasks, args):
     testsuits = get_testsuits(tasks, args)
     optimizer = get_optimizer(args)
     data_handler = OptTaskDataHandler(kb, args)
-    optimizer.set_data_handler(data_handler)
 
     while(testsuits.get_unsolved_num()):
         space_info = testsuits.get_cur_space_info()
@@ -47,7 +46,7 @@ if __name__ == '__main__':
     tasks = {
              'Ackley': {'budget': 11, 'time_stamp': 3, 'params':{'input_dim':1}},
              # 'MPB': {'budget': 110, 'time_stamp': 3},
-             'Griewank': {'budget': 11, 'time_stamp': 3,  'params':{'input_dim':1}},
+             # 'Griewank': {'budget': 11, 'time_stamp': 3,  'params':{'input_dim':1}},
              # 'DixonPrice': {'budget': 110, 'time_stamp': 3},
              # 'Lunar': {'budget': 110, 'time_stamp': 3},
              # 'XGB': {'budget': 110, 'time_stamp': 3},
@@ -55,7 +54,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument("-im", "--init_method", type=str, default='random')
-    parser.add_argument("-in", "--init_number", type=int, default=4)
+    parser.add_argument("-in", "--init_number", type=int, default=2)
     parser.add_argument("-p", "--exp_path", type=str, default='../LFL_experiments')
     parser.add_argument("-n", "--exp_name", type=str, default='test')  # 实验名称，保存在experiments中
     parser.add_argument("-s", "--seed", type=int, default=1)  # 设置随机种子，与迭代次数相关

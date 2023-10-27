@@ -1240,20 +1240,18 @@ class cpOptBenchmark(ContinuousOptBenchmark):
                            seed: Union[np.random.RandomState, int, None] = None,
                            **kwargs) -> Dict:
 
-        X = np.array([[configuration[k] for idx, k in enumerate(configuration.keys())]])
+        X = np.array([[configuration[k] for idx, k in enumerate(configuration.keys())]])[0]
 
-        n = X.shape[0]
-        d = X.shape[1]
 
-        part1 = np.sin(6 * X)
-        # part2 =  0.2 * X**2
-        # if self.shift == -1:
-        #     part3 = 0.1 * ((3) * (X + 0.5)) ** 2
-        # else:
-        #     part3 = 0.1 * ((3) * (X - 0.5)) ** 2
-        part3 = 0.1 * ((3) * (X - 0.5)) ** 2
-        y = part1 + part3
-        # y +=  self.noise(n)
+        part1 = np.sin(6 * X[0]) + X[1] ** 2
+        part2 = 0.1 * X[0] ** 2 + 0.1 * X[1] ** 2
+
+        if self.task_id == 1:
+            part3 = 0.1 * ((3) * (X[0] + 0.3)) ** 2 + 0.1 * ((3) * (X[1] + 0.3)) ** 2
+        else:
+            part3 = 0.1 * ((3) * (X[0] - 0.3)) ** 2 + 0.1 * ((3) * (X[1] - 0.3)) ** 2
+
+        y = part1 + part3 + part2
 
         return {'function_value': float(y),
                 'info': {'fidelity': fidelity}
@@ -1303,6 +1301,104 @@ class cpOptBenchmark(ContinuousOptBenchmark):
         print(1)
         return {}
 
+
+
+@benchmark_register('mpb')
+class mpbOptBenchmark(ContinuousOptBenchmark):
+    def __init__(self, task_name, budget, seed, task_id, task_type='non-tabular', **kwargs):
+        assert 'params' in kwargs
+        parameters = kwargs['params']
+        self.input_dim = parameters['input_dim']
+
+        if 'shift' in parameters:
+            self.shift = parameters['shift']
+        else:
+            shift = np.random.random(size=(self.input_dim, 1)).T
+            self.shift = (shift * 2 - 1) * 0.02
+
+        if 'stretch' in parameters:
+            self.stretch = parameters['stretch']
+        else:
+            self.stretch = np.array([1] * self.input_dim, dtype=np.float64)
+
+        self.optimizers = [
+            tuple(
+                math.pow(2.0, -(1.0 - 2.0 ** (-(i - 1))))
+                for i in range(1, self.input_dim + 1)
+            )
+        ]
+        self.dtype =np.float64
+
+
+        super(mpbOptBenchmark, self).__init__(task_name=task_name, seed=seed, task_id=task_id, task_type=task_type, budget=budget)
+
+    def objective_function(self, configuration: Union[CS.Configuration, Dict],
+                           fidelity: Union[Dict, CS.Configuration, None] = None,
+                           seed: Union[np.random.RandomState, int, None] = None,
+                           **kwargs) -> Dict:
+
+        X = np.array([[configuration[k] for idx, k in enumerate(configuration.keys())]])[0]
+
+
+        n_peak = 2
+        self.peak = np.ndarray([[-0.5, -0.5], [0.2,0.2], []])
+
+        if self.task_id == 0:
+            distance = np.linalg.norm(np.tile(X,(n_peak,1)) - self.peak[0],axis=1)
+        elif self.task_id == 1:
+            distance = np.linalg.norm(np.tile(X, (n_peak, 1)) - self.peak[0], axis=1)
+        else:
+            distance = np.linalg.norm(np.tile(X,(n_peak,1)) - self.peak[0],axis=1)
+
+        y =  np.max(self.height - self.width * distance)
+
+        return {'function_value': float(y),
+                'info': {'fidelity': fidelity}
+                }
+
+    def get_configuration_space(self, seed: Union[int, None] = None) -> CS.ConfigurationSpace:
+        """
+        Creates a ConfigSpace.ConfigurationSpace containing all parameters for
+        the XGBoost Model
+
+        Parameters
+        ----------
+        seed : int, None
+            Fixing the seed for the ConfigSpace.ConfigurationSpace
+
+        Returns
+        -------
+        ConfigSpace.ConfigurationSpace
+        """
+        seed = seed if seed is not None else np.random.randint(1, 100000)
+        cs = CS.ConfigurationSpace(seed=seed)
+        cs.add_hyperparameters([CS.UniformFloatHyperparameter(f'x{i}', lower=-1, upper=1) for i in range(self.input_dim)])
+
+        return cs
+
+    def get_fidelity_space(self, seed: Union[int, None] = None) -> CS.ConfigurationSpace:
+        """
+        Creates a ConfigSpace.ConfigurationSpace containing all fidelity parameters for
+        the XGBoost Benchmark
+
+        Parameters
+        ----------
+        seed : int, None
+            Fixing the seed for the ConfigSpace.ConfigurationSpace
+
+        Returns
+        -------
+        ConfigSpace.ConfigurationSpace
+        """
+        seed = seed if seed is not None else np.random.randint(1, 100000)
+        fidel_space = CS.ConfigurationSpace(seed=seed)
+
+        return fidel_space
+
+
+    def get_meta_information(self) -> Dict:
+        print(1)
+        return {}
 
 
 
@@ -1963,117 +2059,6 @@ class KatsuuraOptBenchmark(ContinuousOptBenchmark):
         print(1)
         return {}
 
-# def plot_true_oned(obj_fun_list, Dim, dtype, Exper_floder=None):
-#     for i in obj_fun_list:
-#         f, ax = plt.subplots(1, 1, figsize=(16, 6))
-#         problem = get_problem(i, seed=0, Dim=Dim)
-#         # bounds = problem.bounds
-#         opt_x = problem.optimizers
-#         # opt_val = problem.optimal_value
-#         test_x = np.arange(-5, 5.05, 0.005, dtype=dtype)
-#         test_x = test_x[:, np.newaxis]
-#         dic_list = []
-#         for i in range(len(test_x)):
-#             for j in range(Dim):
-#                 dic_list.append({f'x{j}':test_x[i][j]})
-#         test_y = []
-#         for j in range(len(test_x)):
-#             test_y.append(problem.f(dic_list[j])['function_value'])
-#         test_y = np.array(test_y)
-#         # test_y = Normalize(test_y)
-#         ax.plot(test_x, test_y, 'r-', linewidth=1, alpha=1)
-#         ax.legend(['True f(x)'])
-#         # ax.set_xlim([bounds[0][0], bounds[1][0]])
-#         ax.set_title(i)
-#         # plt.show()
-#         if not os.path.exists('{}/true_f/oneD/'.format(Exper_floder)):
-#             os.makedirs('{}/true_f/oneD/'.format(Exper_floder))
-#         name = problem.task_name
-#         if '.' in problem.task_name:
-#             name = name.replace('.','|')
-#
-#         save_load = '{}/true_f/oneD/{}'.format(Exper_floder, name)
-#
-#         plt.savefig(save_load+'')
-#
-# def plot_true_contour(obj_fun_list, Dim, dtype, Exper_floder=None):
-#     for fun in obj_fun_list:
-#         obj_fun = get_problem(fun, seed=0, Dim=Dim)
-#
-#         if not os.path.exists('{}/true_f/contour/'.format(Exper_floder, obj_fun.task_name)):
-#             os.makedirs('{}/true_f/contour/'.format(Exper_floder, obj_fun.task_name))
-#         name = obj_fun.task_name
-#         if '.' in obj_fun.task_name:
-#             name = name.replace('.','|')
-#         save_load = '{}/true_f/contour/{}'.format(Exper_floder, name)
-#
-#         x = np.linspace(-5, 5, 101)
-#         y = np.linspace(-5, 5, 101)
-#         X, Y = np.meshgrid(x, y)
-#         all_sample = np.array(np.c_[X.ravel(), Y.ravel()])
-#         v_name = ["x", "y"]
-#         dic_list = [dict(zip(v_name, sample)) for sample in all_sample]
-#         Z_true = []
-#         for j in range(len(all_sample)):
-#             Z_true.append(obj_fun.f(dic_list[j])['function_value'])
-#         Z_true = np.asarray(Z_true)
-#         Z_true = Z_true[:,np.newaxis]
-#         Z_true = Z_true.reshape(X.shape)
-#
-#         optimizers = obj_fun.optimizers
-#
-#         fig = plt.figure(figsize=(10, 8))
-#         ax = plt.subplot(111)
-#         box = ax.get_position()
-#         ax.set_position([box.x0, box.y0, box.width, box.height * 0.8])
-#         a = plt.contourf(X, Y, Z_true, 100, cmap=plt.cm.summer)
-#         # b = plt.contour(X, Y, Z_true, 50, colors='black', linewidths=1, linestyles='solid')
-#         # plt.plot(optimizers[:, 0], optimizers[:, 1], marker='*', linewidth=0, color='white', markersize=10, label="GlobalOpt")
-#         plt.colorbar(a)
-#         plt.title(fun)
-#         # fig.legend(facecolor='gray')
-#         plt.draw()
-#         plt.savefig(save_load, dpi=300)
-#         plt.close()
-#
-#
-# def plot_true_3D(obj_fun_list, Dim, dtype, Exper_floder=None):
-#     for fun in obj_fun_list:
-#         obj_fun = get_problem(fun, seed=0, Dim=Dim)
-#
-#         fig = plt.figure()  # 定义新的三维坐标轴
-#         ax = plt.axes(projection='3d')
-#
-#         # 定义三维数据
-#         x = np.linspace(-5, 5, 101)
-#         y = np.linspace(-5, 5, 101)
-#         X, Y = np.meshgrid(x, y)
-#         all_sample = np.array(np.c_[X.ravel(), Y.ravel()])
-#         v_name = ["x", "y"]
-#         dic_list = [dict(zip(v_name, sample)) for sample in all_sample]
-#         Z_true = []
-#         for j in range(len(all_sample)):
-#             Z_true.append(obj_fun.f(dic_list[j])['function_value'])
-#         Z_true = np.asarray(Z_true)
-#         Z_true = Z_true[:, np.newaxis]
-#         Z_true = Z_true.reshape(X.shape)
-#
-#
-#         # 作图
-#         a = ax.plot_surface(X, Y, Z_true, cmap=plt.cm.summer)
-#         if not os.path.exists('{}/true_f/3D/'.format(Exper_floder, obj_fun.task_name)):
-#             os.makedirs('{}/true_f/3D/'.format(Exper_floder, obj_fun.task_name))
-#         name = obj_fun.task_name
-#         if '.' in obj_fun.task_name:
-#             name = name.replace('.','|')
-#         save_load = '{}/true_f/3D/{}'.format(Exper_floder, name)
-#         plt.colorbar(a)
-#         plt.draw()
-#         # plt.show()
-#         # print(1)
-#         plt.savefig(save_load, dpi=300)
-
-
 def plot_true_function(obj_fun_list, Dim, dtype, Exper_folder=None, plot_type="1D"):
     for fun in obj_fun_list:
         obj_fun = get_problem(fun, seed=0, Dim=Dim)
@@ -2086,9 +2071,10 @@ def plot_true_function(obj_fun_list, Dim, dtype, Exper_folder=None, plot_type="1
                 name = name.replace('.', '|')
             save_load = f'{Exper_folder}/true_f/{plot_type}/{name}'
 
+
         if plot_type == "1D":
             fig, ax = plt.subplots(1, 1, figsize=(16, 6))
-            test_x = np.arange(-5, 5.05, 0.005, dtype=dtype)
+            test_x = np.arange(-1, 1, 0.005, dtype=dtype)
             test_x = test_x[:, np.newaxis]
             dic_list = []
             for i in range(len(test_x)):
@@ -2104,8 +2090,8 @@ def plot_true_function(obj_fun_list, Dim, dtype, Exper_folder=None, plot_type="1
             plt.savefig(save_load)
             plt.close(fig)
         elif plot_type == "2D":
-            x = np.linspace(-5, 5, 101)
-            y = np.linspace(-5, 5, 101)
+            x = np.linspace(-1, 1, 101)
+            y = np.linspace(-1, 1, 101)
             X, Y = np.meshgrid(x, y)
             all_sample = np.array(np.c_[X.ravel(), Y.ravel()])
             v_name = [f'x{i}' for i in range(Dim)]
@@ -2131,8 +2117,8 @@ def plot_true_function(obj_fun_list, Dim, dtype, Exper_folder=None, plot_type="1
         elif plot_type == "3D":
             fig = plt.figure()
             ax = plt.axes(projection='3d')
-            x = np.linspace(-5, 5, 101)
-            y = np.linspace(-5, 5, 101)
+            x = np.linspace(-1, 1, 101)
+            y = np.linspace(-1, 1, 101)
             X, Y = np.meshgrid(x, y)
             all_sample = np.array(np.c_[X.ravel(), Y.ravel()])
             v_name = [f'x{i}' for i in range(Dim)]
@@ -2161,115 +2147,26 @@ def get_problem(fun, seed, Dim):
                              seed=seed,
                              params={'input_dim':Dim}
                              )
-    # if fun == "Sphere":
-    #     problem = SphereOptBenchmark(task_name=fun + f'_{0}',
-    #                                  budget=100000,
-    #                                  seed=seed,
-    #                                  task_type='non-tabular',
-    #                                  params={'input_dim':Dim})
-    # elif fun == "Rastrigin":
-    #     problem = RastriginOptBenchmark(task_name=fun + f'_{0}',
-    #                                  budget=100000,
-    #                                  seed=seed,
-    #                                  task_type='non-tabular',
-    #                                  params={'input_dim':Dim})
-    # elif fun == "Ackley":
-    #     problem = AckleyOptBenchmark(task_name=fun + f'_{0}',
-    #                                  budget=100000,
-    #                                  seed=seed,
-    #                                  task_type='non-tabular',
-    #                                  params={'input_dim':Dim})
-    # elif fun == "Schwefel":
-    #     problem = SchwefelOptBenchmark(task_name=fun + f'_{0}',
-    #                                  budget=100000,
-    #                                  seed=seed,
-    #                                  task_type='non-tabular',
-    #                                  params={'input_dim':Dim})
-    # elif fun == "LevyR":
-    #     problem = LevyROptBenchmark(task_name=fun + f'_{0}',
-    #                                  budget=100000,
-    #                                  seed=seed,
-    #                                  task_type='non-tabular',
-    #                                  params={'input_dim':Dim})
-    # elif fun == "Griewank":
-    #     problem = GriewankOptBenchmark(task_name=fun + f'_{0}',
-    #                                  budget=100000,
-    #                                  seed=seed,
-    #                                  task_type='non-tabular',
-    #                                  params={'input_dim':Dim})
-    # elif fun == "Rosenbrock":
-    #     problem = RosenbrockOptBenchmark(task_name=fun + f'_{0}',
-    #                                  budget=100000,
-    #                                  seed=seed,
-    #                                  task_type='non-tabular',
-    #                                  params={'input_dim':Dim})
-    # elif fun == "DropwaveR":
-    #     problem = DropwaveROptBenchmark(task_name=fun + f'_{0}',
-    #                                  budget=100000,
-    #                                  seed=seed,
-    #                                  task_type='non-tabular',
-    #                                  params={'input_dim':Dim})
-    # elif fun == "Langermann":
-    #     problem = LangermannOptBenchmark(task_name=fun + f'_{0}',
-    #                                  budget=100000,
-    #                                  seed=seed,
-    #                                  task_type='non-tabular',
-    #                                  params={'input_dim':Dim})
-    # elif fun == "RotatedHyperEllipsoid":
-    #     problem = RotatedHyperEllipsoidOptBenchmark(task_name=fun + f'_{0}',
-    #                                  budget=100000,
-    #                                  seed=seed,
-    #                                  task_type='non-tabular',
-    #                                  params={'input_dim':Dim})
-    # elif fun == "SumOfDifferentPowers":
-    #     problem = SumOfDifferentPowersOptBenchmark(task_name=fun + f'_{0}',
-    #                                  budget=100000,
-    #                                  seed=seed,
-    #                                  task_type='non-tabular',
-    #                                  params={'input_dim':Dim})
-    # elif fun == "StyblinskiTang":
-    #     problem = StyblinskiTangOptBenchmark(task_name=fun + f'_{0}',
-    #                                  budget=100000,
-    #                                  seed=seed,
-    #                                  task_type='non-tabular',
-    #                                  params={'input_dim':Dim})
-    # elif fun == "Powell":
-    #     problem = PowellOptBenchmark(task_name=fun + f'_{0}',
-    #                                  budget=100000,
-    #                                  seed=seed,
-    #                                  task_type='non-tabular',
-    #                                  params={'input_dim':Dim})
-    # elif fun == "DixonPrice":
-    #     problem = DixonPriceOptBenchmark(task_name=fun + f'_{0}',
-    #                                  budget=100000,
-    #                                  seed=seed,
-    #                                  task_type='non-tabular',
-    #                                  params={'input_dim':Dim})
-    # elif fun == "cp":
-    #     problem = cpOptBenchmark(task_name=fun + f'_{0}',
-    #                                  budget=100000,
-    #                                  seed=seed,
-    #                                  task_type='non-tabular',
-    #                                  params={'input_dim':Dim})
     return problem
 
 if __name__ == '__main__':
     Dim = 2
     obj_fun_list = [
-        'Sphere',
-        'Rastrigin',
-        'Ackley',
-        'Schwefel',
-        'LevyR',
-        'Griewank',
-        'Rosenbrock',
-        'DropwaveR',
-        'Langermann',
-        'RotatedHyperEllipsoid',
-        'SumOfDifferentPowers',
-        'StyblinskiTang',
-        'Powell',
-        'DixonPrice',
+        # 'Sphere',
+        # 'Rastrigin',
+        # 'Ackley',
+        # 'Schwefel',
+        # 'LevyR',
+        # 'Griewank',
+        # 'Rosenbrock',
+        # 'DropwaveR',
+        # 'Langermann',
+        # 'RotatedHyperEllipsoid',
+        # 'SumOfDifferentPowers',
+        # 'StyblinskiTang',
+        # 'Powell',
+        # 'DixonPrice',
+        'cp'
     ]
 
     if Dim == 1:

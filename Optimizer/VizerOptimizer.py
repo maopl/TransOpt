@@ -48,6 +48,9 @@ class Vizer(BayesianOptimizerBase):
         self.set_space(design_space, search_sapce)
         self.reset_flag = True
         self.obj_model = None
+        if self._X.size != 0:
+            self.meta_add({'X':self._X, 'Y':self._Y})
+            self.meta_fit()
         self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
         self._Y = np.empty((0,))
         self.acqusition = get_ACF(self.acf, model=self, search_space=self.search_space, config=self.config)
@@ -100,37 +103,29 @@ class Vizer(BayesianOptimizerBase):
 
             return design_suggested_sample
 
-
-    def create_model(self, Data):
-        self.obj_model = MHGP()
-        self.obj_model.meta_fit(meta_data)
-
-        ## Train target model
-        self.obj_model.fit(TaskData(Target_data['X'], Target_data['Y']), optimize=True)
+    def sync_from_handler(self, data_handler):
+        self.observe(data_handler.get_input_vectors(), data_handler.get_output_value())
+        self.set_auxillary_data(data_handler.get_auxillary_data())
 
 
+    def create_model(self, Data:Dict):
+        self.obj_model = MHGP(self.input_dim, Data)
 
-    def update_model(self, Target_data):
+
+
+
+    def update_model(self, Data):
         ## Train target model
         if self.reset_flag == True and self.obj_model is None:
-            self.create_model()
+            self.create_model(Data['Target'])
         elif self.reset_flag == True and self.obj_model is not None:
-            pass
+            self.obj_model.set_XY(Data['Target'])
         else:
-            pass
+            self.obj_model.set_XY(Data['Target'])
 
-        if self.model_name == 'GP':
-            X = Target_data['X']
-            Y = Target_data['Y']
-            self.obj_model.set_XY(X, Y)
-            self.obj_model.optimize_restarts(messages=True, num_restarts=1,
-                                             verbose=self.verbose)
+        ## Train target model
+        self.obj_model.fit(optimize=True)
 
-        if self.model_name == 'SHGP' or \
-            self.model_name == 'MHGP' or \
-            self.model_name == 'BHGP':
-
-            self.obj_model.fit(TaskData(Target_data['X'], Target_data['Y']), optimize=True)
 
     def MetaFitModel(self, metadata):
 
@@ -140,8 +135,8 @@ class Vizer(BayesianOptimizerBase):
 
             self.obj_model.meta_fit(metadata)
 
-    def meta_add(self, meta_data):
-        self.obj_model.meta_add(meta_data)
+    # def meta_add(self, meta_data:Dict):
+    #     self.obj_model.meta_add(meta_data:Dict)
 
     def optimize(self):
         time_acf_start = time.time()
@@ -173,20 +168,11 @@ class Vizer(BayesianOptimizerBase):
 
 
     def predict(
-        self, data: InputData, return_full: bool = False, with_noise: bool = False
+        self, X, return_full: bool = False, with_noise: bool = False
     ) -> Tuple[np.ndarray, np.ndarray]:
-        if not self.source_gps:
-            raise ValueError(
-                "Error: source gps are not trained. Forgot to call `meta_fit`."
-            )
 
         # returned mean: sum of means of the predictions of all source and target GPs
-        mu = self.predict_posterior_mean(data)
-
-        # returned variance is the variance of target GP
-        _, var = self.target_gp.predict(
-            data, return_full=return_full, with_noise=with_noise
-        )
+        mu, var = self.obj_model.predict(X, return_full=return_full, with_noise=with_noise)
 
         return mu, var
 

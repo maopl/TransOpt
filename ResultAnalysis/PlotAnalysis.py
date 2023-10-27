@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.cluster import DBSCAN
 from collections import Counter, defaultdict
+from ResultAnalysis.AnalysisBase import AnalysisBase
 import matplotlib.pyplot as plt
 import pandas as pds
 import os
@@ -11,8 +12,6 @@ import scipy
 
 plot_registry = {}
 
-colors = ['blue', 'green', 'red', 'orange', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan']
-colors_rgb = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 
 # 注册函数的装饰器
 def metric_register(name):
@@ -26,7 +25,7 @@ def metric_register(name):
 
 
 @metric_register('cr')
-def convergence_rate(results, save_path, **kwargs):
+def convergence_rate(ab:AnalysisBase, save_path:Path, **kwargs):
     fig = plt.figure(figsize=(14, 9))
     cr_list = []
     cr_all = {}
@@ -38,11 +37,12 @@ def convergence_rate(results, save_path, **kwargs):
                 return i
         return len(Y)
 
+    results = ab.get_results_by_order(["method", "seed", "task"])
     best_Y_values = defaultdict(list)
 
     # 遍历 data 字典，收集 best_Y 值
     for method, tasks in results.items():
-        for Seed, task_seed in tasks.items():
+        for seed, task_seed in tasks.items():
             for task_name, result_obj in task_seed.items():
                 best_Y = result_obj.best_Y
                 if best_Y is not None:
@@ -52,7 +52,7 @@ def convergence_rate(results, save_path, **kwargs):
     quantiles = {task_name: np.percentile(values, 75) for task_name, values in best_Y_values.items()}
 
     for method, tasks in results.items():
-        for Seed, task_seed in tasks.items():
+        for seed, task_seed in tasks.items():
             for task_name, result_obj in task_seed.items():
                 Y = result_obj.Y
                 if Y is None:
@@ -84,40 +84,31 @@ def convergence_rate(results, save_path, **kwargs):
 
 
 
+
 @metric_register('traj')
-def plot_traj(results, save_path, **kwargs):
+def plot_traj(ab, save_path, **kwargs):
     # 先找出所有的任务名称
-    all_task_names = set()
-    for method, tasks in results.items():
-        for Seed, task_seed in tasks.items():
-            for task_name in task_seed.keys():
-                all_task_names.add(task_name)
 
-    # 为每个任务生成一张图
-    for task_name in all_task_names:
-        plt.figure(figsize=(12, 6))
-        for method_id, (method, tasks) in enumerate(results.items()):
+    results = ab.get_results_by_order(["task", "method", "seed"])
+
+    for task_name, tasks_r in results.items():
+        for method, method_r in tasks_r.items():
             res = []
-            for Seed, task_seed in tasks.items():
-                result_obj = task_seed.get(task_name)
-                if result_obj is not None:
-                    Y = result_obj.Y
-                    if Y is not None:
-                        min_values = np.minimum.accumulate(Y)
-                        res.append(min_values)
-
-            if not res:
-                continue  # 如果这个任务在这个方法下没有结果，跳过
+            for seed, result_obj in method_r.items():
+                Y = result_obj.Y
+                if Y is not None:
+                    min_values = np.minimum.accumulate(Y)
+                    res.append(min_values)
 
             res_median = np.median(np.array(res), axis=0)
             res_std = np.std(np.array(res), axis=0)
 
             plt.plot(list(range(res_median.shape[0])),
-                     res_median, label=method, color=colors[method_id])
+                     res_median, label=method, color=ab.get_color_for_method(method))
             plt.fill_between(
                 list(range(res_median.shape[0])),
                 res_median[:,0] + res_std[:,0], res_median[:,0] - res_std[:,0], alpha=0.3,
-                color=colors[method_id])
+                color=ab.get_color_for_method(method))
 
         plt.title(f'Optimization Trajectory for {task_name}')
         plt.xlabel('Function Evaluations')
@@ -131,41 +122,32 @@ def plot_traj(results, save_path, **kwargs):
 
 
 @metric_register('violin')
-def plot_violin(results, save_path, **kwargs):
+def plot_violin(ab:AnalysisBase, save_path, **kwargs):
     data = {'Method': [], 'value': []}
-    all_seed = set()
-    all_task_names = set()
-    methods = set()
-    for method, tasks in results.items():
-        methods.add(method)
-        for Seed, task_seed in tasks.items():
-            all_seed.add(Seed)
-            for task_name in task_seed.keys():
-                all_task_names.add(task_name)
-    res = {}
-    for seed in all_seed:
-        res[seed] = {}
-    # 为每个任务生成一张图
-    for task_name in all_task_names:
-        plt.figure(figsize=(12, 6))
-        for method_id, (method, tasks) in enumerate(results.items()):
-            for Seed, task_seed in tasks.items():
-                result_obj = task_seed.get(task_name)
-                if result_obj is not None:
-                    Y = result_obj.Y
-                    if Y is not None:
-                        min_values = np.min(Y)
-                        res[Seed][method] = min_values
 
-        for Seed in all_seed:
-            sorted_value = sorted(res[Seed].values())
+
+
+    results = ab.get_results_by_order(["task", "seed", "method"])
+    # 为每个任务生成一张图
+    plt.figure(figsize=(12, 6))
+
+    for task_name, task_r in results.items():
+        for seed, seed_r in task_r.items():
+            res = {}
+            for method, result_obj in seed_r.items():
+                Y = result_obj.Y
+                if Y is not None:
+                    min_values = np.min(Y)
+                    res[method] = min_values
+            sorted_value = sorted(res.values())
             for v_id, v in enumerate(sorted_value):
-                for k, vv in res[Seed].items():
+                for k, vv in res.items():
                     if v == vv:
                         data['Method'].append(k)
                         data['value'].append(v_id)
 
-    ax = sns.violinplot(data=data, x='Method', y='value', palette=colors_rgb[:len(methods)], width=0.5)
+
+    ax = sns.violinplot(data=data, x='Method', y='value', palette=ab.get_color_for_method(list(ab.get_methods())), width=0.5)
 
     save_path = Path(save_path)
     save_path.mkdir(parents=True, exist_ok=True)
@@ -174,7 +156,6 @@ def plot_violin(results, save_path, **kwargs):
 
 
 
-@metric_register('box')
 def plot_box(results, save_path, **kwargs):
     if 'mode' in kwargs:
         mode = kwargs['mode']
@@ -252,7 +233,7 @@ def dbscan_analysis(data, save_path, **kwargs):
     return n_clusters, noise_points, avg_cluster_size
 
 
-@metric_register('heatmap')
+# @metric_register('heatmap')
 def plot_heatmap(algorithms, test_problems):
     # 创建一个空的矩阵来存储结果
     results_matrix = np.empty((len(test_problems), len(algorithms)))

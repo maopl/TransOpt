@@ -220,34 +220,4 @@ class MovingPeakBenchmark(ContinuousOptBenchmark):
 
 
 
-if __name__ == '__main__':
-    from Bench.abstract_bench.TransferOptBenchmark import TransferOptBenchmark
-
-    seed=0
-    test_suits = TransferOptBenchmark(seed=seed)
-    dim=1
-    n_step = 11
-    fivepeak = MovingPeakGenerator(n_var=1, n_step=n_step, n_peak=5)
-    peaks, widths, heights = fivepeak.get_MPB()
-    for t in range(11):
-        test_suits.add_task(MovingPeakBenchmark(task_name=f'MP_{t}',
-                                                input_dim=dim, peak=peaks[t], width=widths[t], height=heights[t],
-                                                budget=1000, seed=seed))
-
-    test_x = np.arange(-1, 1.05, 0.005, dtype=np.float64)
-    test_x = test_x[:, np.newaxis]
-    dic_list = []
-    test_y = []
-    for i in range(len(test_x)):
-        for j in range(dim):
-            dic_list.append({f'x{j}':test_x[i][j]})
-    for i in range(1,n_step):
-        for j in range(len(test_x)):
-            test_y.append(test_suits.f(dic_list[j])['function_value'])
-        test_y = np.array(test_y)
-        f, ax = plt.subplots(1, 1, figsize=(16, 6))
-        ax.plot(test_x, test_y, 'r-', linewidth=1, alpha=1)
-        plt.show()
-
-        test_suits.roll()
 

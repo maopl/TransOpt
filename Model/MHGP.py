@@ -32,7 +32,7 @@ class MHGP():
     stack.
     """
 
-    def __init__(self, n_features: int, X, Y):
+    def __init__(self, n_features: int, Data:Dict):
         """Initialize the Method.
 
         Args:
@@ -46,7 +46,10 @@ class MHGP():
         self.n_features = n_features
 
         self.source_gps = []
-
+        X = Data['X']
+        Y = Data['Y']
+        self._X = copy.deepcopy(X)
+        self._Y = copy.deepcopy(Y)
 
         # GP on difference between target data and last source data set
 
@@ -82,7 +85,7 @@ class MHGP():
 
     def _meta_fit_single_gp(
         self,
-        X, Y,
+        Data:Dict,
         optimize: bool,
     ) -> GPy.models.GPRegression:
         """Train a new source GP on `data`.
@@ -110,7 +113,7 @@ class MHGP():
 
     def meta_fit(
         self,
-        source_datasets: Dict[Hashable, TaskData],
+        source_datasets: Dict,
         optimize: Union[bool, Sequence[bool]] = True,
     ):
         """Train the source GPs on the given source data.
@@ -138,25 +141,17 @@ class MHGP():
 
 
     def meta_add(self,
-        source_datasets: Dict[Hashable, TaskData],
+        source_datasets: Dict,
         optimize: Union[bool, Sequence[bool]] = True
                  ):
 
-        self.meta_fit(source_datasets,optimize)
+        self.meta_fit(source_datasets, optimize)
 
 
     def fit(
         self,
-        X, Y,
         optimize: bool = False,
     ):
-        if not self.source_gps:
-            raise ValueError(
-                "Error: source gps are not trained. Forgot to call `meta_fit`."
-            )
-
-        self._X = copy.deepcopy(X)
-        self._Y = copy.deepcopy(Y)
 
         self.n_samples, n_features = self._X.shape
         if self.n_features != n_features:
@@ -164,39 +159,36 @@ class MHGP():
 
         kern = GPy.kern.RBF(self.n_features, ARD=False)
 
-        self.target_gp = GPy.models.GPRegression(X, Y, kernel=kern)
+        residuals = self._compute_residuals(self._X, self._Y)
+
+        self.target_gp = GPy.models.GPRegression(self._X, residuals, kernel=kern)
         self.target_gp['Gaussian_noise.*variance'].constrain_bounded(1e-9, 1e-3)
 
-        residuals = self._compute_residuals(X, Y)
-
         try:
-            new_gp.optimize_restarts(num_restarts=1, verbose=False, robust=True)
+            self.target_gp.optimize_restarts(num_restarts=1, verbose=False, robust=True)
         except np.linalg.linalg.LinAlgError as e:
             # break
             print('Error: np.linalg.linalg.LinAlgError')
 
-        return new_gp
 
 
     def predict(
-        self, data: InputData, return_full: bool = False, with_noise: bool = False
+        self, X, return_full: bool = False, with_noise: bool = False
     ) -> Tuple[np.ndarray, np.ndarray]:
-        if not self.source_gps:
-            raise ValueError(
-                "Error: source gps are not trained. Forgot to call `meta_fit`."
-            )
 
         # returned mean: sum of means of the predictions of all source and target GPs
-        mu = self.predict_posterior_mean(data)
+        mu = self.predict_posterior_mean(X)
 
         # returned variance is the variance of target GP
-        _, var = self.target_gp.predict(
-            data, return_full=return_full, with_noise=with_noise
-        )
+        _, var = self.target_gp.predict(X)
 
         return mu, var
 
-    def predict_posterior_mean(self, data: InputData, idx: int = None) -> np.ndarray:
+    def set_XY(self, Data:Dict):
+        self._X = copy.deepcopy(Data['X'])
+        self._Y = copy.deepcopy(Data['Y'])
+
+    def predict_posterior_mean(self, X, idx: int = None) -> np.ndarray:
         """Predict the mean function for given test point(s).
 
         For `idx=None` returns the same as `self.predict(data)[0]` but avoids the
@@ -219,21 +211,22 @@ class MHGP():
         if idx is None:  # if None, the target GP is considered
             idx = len(all_gps) - 1
 
-        mu = np.zeros((data.X.shape[0], 1))
+        mu = np.zeros((X.shape[0], 1))
         # returned mean is a sum of means of the predictions of all GPs below idx
         for model in all_gps[: idx + 1]:
-            mu += model.predict_posterior_mean(data)
+            mu_, _ = model.predict(X)
+            mu += mu_
 
         return mu
 
-    def predict_posterior_covariance(self, x1: InputData, x2: InputData) -> np.ndarray:
-        """Posterior covariance between two inputs.
-
-        Args:
-            x1: First input to be queried. `shape = (n_points_1, n_features)`
-            x2: Second input to be queried. `shape = (n_points_2, n_features)`
-
-        Returns:
-            Posterior covariance at `(x1, x2)`. `shape = (n_points_1, n_points_2)`
-        """
-        return self.target_gp.predict_posterior_covariance(x1, x2)
+    # def predict_posterior_covariance(self, x1: InputData, x2: InputData) -> np.ndarray:
+    #     """Posterior covariance between two inputs.
+    #
+    #     Args:
+    #         x1: First input to be queried. `shape = (n_points_1, n_features)`
+    #         x2: Second input to be queried. `shape = (n_points_2, n_features)`
+    #
+    #     Returns:
+    #         Posterior covariance at `(x1, x2)`. `shape = (n_points_1, n_points_2)`
+    #     """
+    #     return self.target_gp.predict_posterior_covariance(x1, x2)

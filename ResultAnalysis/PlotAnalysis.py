@@ -3,15 +3,16 @@ from sklearn.cluster import DBSCAN
 from collections import Counter, defaultdict
 from ResultAnalysis.AnalysisBase import AnalysisBase
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import MultipleLocator
 import pandas as pds
 import os
 import seaborn as sns
 from Util.sk import Rx
 from pathlib import Path
 import scipy
+import tikzplotlib
 
 plot_registry = {}
-
 
 # 注册函数的装饰器
 def metric_register(name):
@@ -24,7 +25,7 @@ def metric_register(name):
 
 
 
-@metric_register('cr')
+# @metric_register('cr')
 def convergence_rate(ab:AnalysisBase, save_path:Path, **kwargs):
     fig = plt.figure(figsize=(14, 9))
     cr_list = []
@@ -85,7 +86,7 @@ def convergence_rate(ab:AnalysisBase, save_path:Path, **kwargs):
 
 
 
-@metric_register('traj')
+# @metric_register('traj')
 def plot_traj(ab, save_path, **kwargs):
     # 先找出所有的任务名称
 
@@ -123,18 +124,16 @@ def plot_traj(ab, save_path, **kwargs):
 
 @metric_register('violin')
 def plot_violin(ab:AnalysisBase, save_path, **kwargs):
-    data = {'Method': [], 'value': []}
-
-
+    data = {'Method': [], 'Performance rank': []}
+    method_names = set()
 
     results = ab.get_results_by_order(["task", "seed", "method"])
-    # 为每个任务生成一张图
-    plt.figure(figsize=(12, 6))
 
     for task_name, task_r in results.items():
         for seed, seed_r in task_r.items():
             res = {}
             for method, result_obj in seed_r.items():
+                method_names.add(method)
                 Y = result_obj.Y
                 if Y is not None:
                     min_values = np.min(Y)
@@ -144,19 +143,31 @@ def plot_violin(ab:AnalysisBase, save_path, **kwargs):
                 for k, vv in res.items():
                     if v == vv:
                         data['Method'].append(k)
-                        data['value'].append(v_id)
+                        data['Performance rank'].append(v_id+1)
 
+    sns.set_theme(style="whitegrid", font='FreeSerif')
+    plt.figure(figsize=(12, 7.3))
+    plt.ylim(bottom=0.9, top=len(method_names)+0.1)
+    ax = plt.gca()  # 获取坐标轴对象
+    y_major_locator = MultipleLocator(1)  # 设置坐标的主要刻度间隔
+    ax.yaxis.set_major_locator(y_major_locator)  # 应用在纵坐标上
+    sns.violinplot(x='Method', y='Performance rank', data=data,
+                   order=list(method_names),
+                   inner="box", color="silver", cut=0, linewidth=3)
+    plt.title('Violin plot', fontsize=30, y=1.01)
+    plt.xlabel('Algorithm Name', fontsize=25, labelpad=-7)
+    plt.ylabel('Performance rank', fontsize=25)
+    plt.yticks(fontsize=20)
+    plt.xticks(fontsize=20, rotation=15)
 
-    ax = sns.violinplot(data=data, x='Method', y='value', palette=ab.get_color_for_method(list(ab.get_methods())), width=0.5)
-
-    save_path = Path(save_path)
+    save_path = Path(save_path / 'Overview' / 'temp')
     save_path.mkdir(parents=True, exist_ok=True)
-    plt.savefig(save_path / 'violin.png', format='png')
+    tikzplotlib.save(save_path / "violin.tex")
     plt.close()
 
 
-
-def plot_box(results, save_path, **kwargs):
+@metric_register('box')
+def plot_box(ab:AnalysisBase, save_path, **kwargs):
     if 'mode' in kwargs:
         mode = kwargs['mode']
     else:
@@ -165,20 +176,16 @@ def plot_box(results, save_path, **kwargs):
     all_seed = set()
     all_task_names = set()
     methods = set()
-    for method, tasks in results.items():
-        methods.add(method)
-        for Seed, task_seed in tasks.items():
-            all_seed.add(Seed)
-            for task_name in task_seed.keys():
-                all_task_names.add(task_name)
+
+    results = ab.get_results_by_order(["method", "task", "seed"])
 
     result_list = []
-    for method, tasks in results.items():
+    for method, method_r in results.items():
+        methods.add(method)
         result = []
-        for task_name in all_task_names:
+        for task, task_r in method_r.items():
             best = []
-            for Seed in all_seed:
-                result_obj = tasks[Seed][task_name]
+            for seed, result_obj in task_r.items():
                 if result_obj is not None:
                     Y = result_obj.Y
                     if Y is not None:
@@ -191,18 +198,24 @@ def plot_box(results, save_path, **kwargs):
         result_list.append(result)
     result_list = np.array(result_list).T
 
-
     ranks = np.array([scipy.stats.rankdata(x, method='min') for x in result_list])
-
     df = pds.DataFrame(ranks, columns=methods)
-    sns.boxplot(df)
-    plt.title('Box plot of Ablation')
-    plt.xlabel('Algorithm Name')
-    plt.ylabel('Rank')
 
-    save_path = Path(save_path)
+    sns.set_theme(style='whitegrid', font='FreeSerif')
+    plt.figure(figsize=(12, 8))
+    ax = plt.gca()
+    y_major_locator = MultipleLocator(1)
+    ax.yaxis.set_major_locator(y_major_locator)
+    sns.boxplot(df, color='#c2d0e9')
+    plt.title('Box plot', fontsize=30, y=1.03)
+    plt.xlabel('Algorithm Name', fontsize=25, labelpad=-5)
+    plt.ylabel('Rank', fontsize=25)
+    plt.xticks(fontsize=20, rotation=15)
+    plt.yticks(fontsize=20)
+
+    save_path = Path(save_path /'Overview' / 'temp')
     save_path.mkdir(parents=True, exist_ok=True)
-    plt.savefig(save_path / 'box.png', format='png')
+    tikzplotlib.save(save_path / "box.tex")
     plt.close()
 
 

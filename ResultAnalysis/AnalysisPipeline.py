@@ -10,8 +10,7 @@ def analysis_pipeline(Exper_folder, tasks, methods, seeds):
     ab.read_data_from_kb()
     Exper_folder = Exper_folder / 'analysis'
     for plot_name, plot_func in plot_registry.items():
-        save_path = Exper_folder / f'{plot_name}'
-        plot_func(ab, save_path)  # 假设你的度量函数需要额外的参数
+        plot_func(ab, Exper_folder)  # 假设你的度量函数需要额外的参数
 
     for table_name, table_func in table_registry.items():
         save_path = Exper_folder / f'{table_name}'

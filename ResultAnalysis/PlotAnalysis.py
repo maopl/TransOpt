@@ -11,11 +11,12 @@ from Util.sk import Rx
 from pathlib import Path
 import scipy
 import tikzplotlib
-
+from ResultAnalysis.CompileTex import compile_tex
 plot_registry = {}
+import re
 
 # 注册函数的装饰器
-def metric_register(name):
+def plot_register(name):
     def decorator(func_or_class):
         if name in plot_registry:
             raise ValueError(f"Error: '{name}' is already registered.")
@@ -83,46 +84,164 @@ def convergence_rate(ab:AnalysisBase, save_path:Path, **kwargs):
     plt.close()
 
 
-
-
-
-# @metric_register('traj')
-def plot_traj(ab, save_path, **kwargs):
+def save_traj_data(ab, save_path):
     # 先找出所有的任务名称
-
     results = ab.get_results_by_order(["task", "method", "seed"])
 
     for task_name, tasks_r in results.items():
+        # 为每个任务创建一个字典来存储数据
+        task_data = {}
+
         for method, method_r in tasks_r.items():
             res = []
+
+            for seed, result_obj in method_r.items():
+                Y = result_obj.Y
+                if Y is not None:
+                    res.append(Y.flatten())
+
+            if res:
+                # 计算中位数和标准差
+                res_array = np.array(res)
+                median = np.median(res_array, axis=0)
+                std = np.std(res_array, axis=0)
+
+                # 将数据存储到字典中
+                task_data[f'{method}_mean'] = median
+                task_data[f'{method}_low'] = median - std
+                task_data[f'{method}_high'] = median + std
+
+        if task_data:
+            # 创建保存路径
+            os.makedirs(save_path / 'traj'/ 'tex', exist_ok=True)
+
+            # 设置文件路径
+            file_path = save_path / 'traj'/ 'tex'/ f"{task_name}.dat"
+
+            # 获取序号的起点
+            start_idx = ab._init
+
+            # 选择从 start_idx 开始的数据
+            end_idx = start_idx + len(median)
+            for key in task_data.keys():
+                task_data[key] = task_data[key][start_idx:end_idx]
+
+            # 将数据保存到文件
+            with open(file_path, 'w') as f:
+                # 写入列名
+                col_names = ' '.join(['id'] + list(task_data.keys()))
+                f.write(col_names + '\n')
+
+                # 写入数据
+                for i in range(len(task_data[list(task_data.keys())[0]])):
+                    row_data = ' '.join([str(start_idx + i)] + [f'{x[i]:0.8f}' for x in task_data.values()])
+                    f.write(row_data + '\n')
+
+            print(f"Data saved for {task_name}")
+
+@plot_register('traj')
+def traj2latex(ab: AnalysisBase, save_path: Path):
+    # 从 ab 对象中获取任务名称和方法名称
+    save_traj_data(ab, save_path)
+    results = ab.get_results_by_order(["task", "method", "seed"])
+    methods = ab.get_methods()
+
+    # 从 ab 对象中获取 start_idx, y_max 和 y_min
+    start_idx = ab._init
+    end_idx = ab._end
+
+    # 创建保存路径
+    os.makedirs(save_path / 'traj' / 'tex', exist_ok=True)
+
+
+    # 设置文件路径
+    for task_name, tasks_r in results.items():
+        all_data = []
+
+        for method, method_r in tasks_r.items():
             for seed, result_obj in method_r.items():
                 Y = result_obj.Y
                 if Y is not None:
                     min_values = np.minimum.accumulate(Y)
-                    res.append(min_values)
+                    all_data.append(min_values.flatten())
 
-            res_median = np.median(np.array(res), axis=0)
-            res_std = np.std(np.array(res), axis=0)
+        if all_data:
+            all_data = np.concatenate(all_data)
+            y_min = np.min(all_data) - np.std(all_data)
+            y_max = np.max(all_data) + np.std(all_data)
 
-            plt.plot(list(range(res_median.shape[0])),
-                     res_median, label=method, color=ab.get_color_for_method(method))
-            plt.fill_between(
-                list(range(res_median.shape[0])),
-                res_median[:,0] + res_std[:,0], res_median[:,0] - res_std[:,0], alpha=0.3,
-                color=ab.get_color_for_method(method))
+        tex_save_path = save_path / 'traj' / 'tex' / f"{task_name}.tex"
+        data_file = f"{task_name}.dat"
+        # 开始写入 LaTeX 代码
+        latex_code = f"""
+        \\documentclass{{article}}
+        \\usepackage{{pgfplots}}
+        \\usepackage{{tikz}}
+        \\usetikzlibrary{{intersections}}
+        \\usepackage{{helvet}}
+        \\usepackage[eulergreek]{{sansmath}}
+        \\usepgfplotslibrary{{fillbetween}}
 
-        plt.title(f'Optimization Trajectory for {task_name}')
-        plt.xlabel('Function Evaluations')
-        plt.ylabel('Best Result So Far')
-        plt.legend(loc='upper left', bbox_to_anchor=(1, 1), prop={'size': 6.5})
-
-        file_path = save_path / f"{task_name}.png"
-        os.makedirs(save_path, exist_ok=True)
-        plt.savefig(file_path, format='png', bbox_inches='tight')
-        plt.close()
+        \\begin{{document}}
+        \\pagestyle{{empty}}
 
 
-@metric_register('violin')
+        \\pgfplotsset{{compat=1.12,every axis/.append style={{
+            font = \\large,
+            grid = major,
+            xlabel = {{\\# of FEs}},
+            ylabel = {{$f(\\mathbf{{x}}^\\ast)$}},
+            thick,
+            xmin={start_idx},
+            xmax={end_idx},  % Adjust as needed
+            ymin={y_min},
+            ymax={y_max},
+            line width = 1pt,
+            tick style = {{line width = 0.8pt}}
+        }}}}
+        \pgfplotsset{{every plot/.append style={{very thin}}}}
+        \\begin{{tikzpicture}}
+            \\begin{{axis}}[
+                title={{${task_name}$}},
+                width=\\textwidth,
+                height=0.5\\textwidth,
+            ]"""
+
+
+        for method in methods:
+            # 这里需要根据你的数据文件的具体结构来调整
+            latex_code += f"""
+            \\addplot[color={{{ab.get_color_for_method(method)}}}, solid, line width=1pt]table [x = id, y = {method}_mean]{{{data_file}}};
+            \\addlegendentry{{{method}}};
+            """
+
+        for method in methods:
+            # 这里需要根据你的数据文件的具体结构来调整
+
+            latex_code += f"""
+            \\addplot[color={{{ab.get_color_for_method(method)}}}, name path={method}_L, draw=none] table[x = id, y = {method}_low] {{{data_file}}};
+            \\addplot[color={{{ab.get_color_for_method(method)}}}, name path={method}_U, draw=none] table[x = id, y = {method}_high] {{{data_file}}};
+            \\addplot[color={{{ab.get_color_for_method(method)}}},opacity=0.3] fill between[of={method}_U and {method}_L];
+            """
+
+        latex_code += f"""
+                    \\end{{axis}}
+            \\end{{tikzpicture}}
+        \\end{{document}}"""
+
+        # 将 LaTeX 代码保存到文件
+        with open(tex_save_path, 'w') as f:
+            f.write(latex_code)
+        try:
+            compile_tex(tex_save_path, save_path / 'traj')
+        except:
+            pass
+
+        print(f"LaTeX code has been saved to {tex_save_path}")
+
+
+
+@plot_register('violin')
 def plot_violin(ab:AnalysisBase, save_path, **kwargs):
     data = {'Method': [], 'Performance rank': []}
     method_names = set()
@@ -160,13 +279,40 @@ def plot_violin(ab:AnalysisBase, save_path, **kwargs):
     plt.yticks(fontsize=20)
     plt.xticks(fontsize=20, rotation=15)
 
-    save_path = Path(save_path / 'Overview' / 'temp')
+    save_path = Path(save_path / 'Overview')
+    pdf_path = Path(save_path / 'Pictures')
+    tex_path = Path(save_path / 'tex')
     save_path.mkdir(parents=True, exist_ok=True)
-    tikzplotlib.save(save_path / "violin.tex")
+    pdf_path.mkdir(parents=True, exist_ok=True)
+    tex_path.mkdir(parents=True, exist_ok=True)
+    tikzplotlib.save(tex_path / "violin.tex")
+    with open(tex_path / "violin.tex", 'r', encoding='utf-8') as f:
+        content = f.read()
+
+        # 添加preamble和end document
+    preamble = r"\documentclass{article}" + "\n" + \
+               r"\usepackage{pgfplots}" + "\n" + \
+               r"\usepackage{tikz}" + "\n" + \
+               r"\begin{document}" + "\n"
+    end_document = r"\end{document}" + "\n"
+
+    # 将修改后的内容写回文件
+    with open(tex_path / "violin.tex", 'w', encoding='utf-8') as f:
+        f.write(preamble + content + end_document)
+
+    with open(tex_path / 'violin.tex', 'r') as tex_file:
+        tex_content = tex_file.read()
+    modified_content = re.sub(r'majorticks=false', 'majorticks=true', tex_content)
+    pattern = r'axis line style={lightgray204},\n'
+    modified_content = re.sub(pattern, '', modified_content)
+    with open(tex_path / 'violin.tex', 'w') as tex_file:
+        tex_file.write(modified_content)
+
+    compile_tex(tex_path / "violin.tex", pdf_path)
     plt.close()
 
 
-@metric_register('box')
+@plot_register('box')
 def plot_box(ab:AnalysisBase, save_path, **kwargs):
     if 'mode' in kwargs:
         mode = kwargs['mode']
@@ -213,9 +359,38 @@ def plot_box(ab:AnalysisBase, save_path, **kwargs):
     plt.xticks(fontsize=20, rotation=15)
     plt.yticks(fontsize=20)
 
-    save_path = Path(save_path /'Overview' / 'temp')
+    save_path = Path(save_path / 'Overview')
+    pdf_path = Path(save_path / 'Pictures')
+    tex_path = Path(save_path / 'tex')
     save_path.mkdir(parents=True, exist_ok=True)
-    tikzplotlib.save(save_path / "box.tex")
+    pdf_path.mkdir(parents=True, exist_ok=True)
+    tex_path.mkdir(parents=True, exist_ok=True)
+    tikzplotlib.save(tex_path / "box.tex")
+
+    with open(tex_path / "box.tex", 'r', encoding='utf-8') as f:
+        content = f.read()
+
+        # 添加preamble和end document
+    preamble = r"\documentclass{article}" + "\n" + \
+               r"\usepackage{pgfplots}" + "\n" + \
+               r"\usepackage{tikz}" + "\n" + \
+               r"\begin{document}" + "\n"
+    end_document = r"\end{document}" + "\n"
+
+    # 将修改后的内容写回文件
+    with open(tex_path / "box.tex", 'w', encoding='utf-8') as f:
+        f.write(preamble + content + end_document)
+
+    with open(tex_path / "box.tex", 'r') as tex_file:
+        tex_content = tex_file.read()
+    modified_content = re.sub(r'majorticks=false', 'majorticks=true', tex_content)
+    pattern = r'axis line style={lightgray204},\n'
+    modified_content = re.sub(pattern, '', modified_content)
+    with open(tex_path / "box.tex", 'w') as tex_file:
+        tex_file.write(modified_content)
+
+    compile_tex(tex_path / "box.tex", pdf_path)
+
     plt.close()
 
 

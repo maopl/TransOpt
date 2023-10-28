@@ -12,7 +12,8 @@ def run_analysis(Exper_folder:Path, tasks, methods, seeds):
 
 if __name__ == '__main__':
     tasks = {
-        'cp': {'budget': 8, 'time_stamp': 2, 'params': {'input_dim': 2}},
+        # 'cp': {'budget': 8, 'time_stamp': 2, 'params': {'input_dim': 2}},
+        'Ackley': {'budget': 11, 'time_stamp': 3, 'params':{'input_dim':1}},
         # 'MPB': {'budget': 110, 'time_stamp': 3},
         # 'Griewank': {'budget': 11, 'time_stamp': 3,  'params':{'input_dim':1}},
         # 'DixonPrice': {'budget': 110, 'time_stamp': 3},

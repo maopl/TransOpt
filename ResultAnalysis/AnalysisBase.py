@@ -7,7 +7,7 @@ import json
 from Util.Data import vectors_to_ndarray, output_to_ndarray
 from Knowledge_Base.KnowledgeBase import KnowledgeBase
 import matplotlib.pyplot as plt
-
+import seaborn as sns
 @dataclass
 class result():
     """
@@ -48,12 +48,17 @@ class AnalysisBase(abc.ABC, metaclass=abc.ABCMeta):
                     input_vector = dataset['input_vector']
                     output_value = dataset['output_value']
                     task_name = dataset['name']
+                    if task_name.split('_')[0] not in self._tasks:
+                        continue
 
                     r.X = vectors_to_ndarray(dataset['dataset_info']['variable_name'], input_vector)
                     r.Y = output_to_ndarray(output_value)
                     if self._end is not None:
                         r.X = r.X[:self._end]
                         r.Y = r.Y[:self._end]
+                    else:
+                        assert len(r.Y) == len(r.X)
+                        self._end = len(r.Y)
                     best_id = np.argmin(r.Y)
                     r.best_Y = r.Y[best_id]
                     r.best_X = r.X[best_id]
@@ -140,14 +145,31 @@ class AnalysisBase(abc.ABC, metaclass=abc.ABCMeta):
         dict: A dictionary where keys are method names and values are their assigned colors.
         """
         # Using the 'tab10' color cycle from Matplotlib
-        colors = plt.cm.tab10.colors
+        rgb_colors = [
+            (141, 211, 199),
+            (255, 255, 179),
+            (190, 186, 218),
+            (251, 128, 114),
+            (128, 177, 211),
+            (253, 180, 98),
+            (179, 222, 105),
+            (252, 205, 229),
+            (217, 217, 217),
+            (188, 128, 189),
+            (204, 235, 197)
+        ]
+
+        color_strings = []
+        for rgb in rgb_colors:
+            color_str = f"rgb,255:red,{rgb[0]}; green,{rgb[1]}; blue,{rgb[2]}"
+            color_strings.append(color_str)
 
         # Creating a dictionary to store method names and their assigned colors
         method_colors = {}
         for i, method in enumerate(self._methods):
-            color_index = i % len(colors)  # Cycle through colors if there are more methods than colors
-            color = colors[color_index]
-            method_colors[method] = "#{:02x}{:02x}{:02x}".format(int(color[0]*255), int(color[1]*255), int(color[2]*255))
+            color_index = i % len(color_strings)  # Cycle through colors if there are more methods than colors
+            color = color_strings[color_index]
+            method_colors[method] = color
 
         return method_colors
 

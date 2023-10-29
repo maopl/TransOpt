@@ -26,9 +26,83 @@ def plot_register(name):
 
 
 
-# @metric_register('cr')
+@plot_register('sk')
+def plot_sk(ab:AnalysisBase, save_path:Path):
+    cr_results = {}
+    results = ab.get_results_by_order(["task", "method", "seed"])
+
+    for task_name, tasks_r in results.items():
+        result = {}
+        for method, method_r in tasks_r.items():
+            cr_list = []
+            for seed, result_obj in method_r.items():
+                cr = result_obj.best_Y
+                cr_list.append(cr)
+            result[method] = cr_list
+
+        a = Rx.data(**result)
+        RES = Rx.sk(a)
+        for r in RES:
+            if r.rx in cr_results:
+                cr_results[r.rx].append(r.rank)
+            else:
+                cr_results[r.rx] = [r.rank]
+
+    df = pds.DataFrame(cr_results)
+
+    sns.set_theme(style="whitegrid", font='FreeSerif')
+    plt.figure(figsize=(12, 7.3))
+    # plt.ylim(bottom=0.9, top=len(method_names)+0.1)
+    ax = plt.gca()  # 获取坐标轴对象
+    y_major_locator = MultipleLocator(1)  # 设置坐标的主要刻度间隔
+    ax.yaxis.set_major_locator(y_major_locator)  # 应用在纵坐标上
+    sns.violinplot(data=df, inner="quart")
+    plt.title('Skott knott', fontsize=30, y=1.01)
+    plt.xlabel('Algorithm Name', fontsize=25, labelpad=-7)
+    plt.ylabel('Rank', fontsize=25)
+    plt.yticks(fontsize=20)
+    plt.xticks(fontsize=20, rotation=10)
+
+    save_path = Path(save_path / 'Overview')
+    pdf_path = Path(save_path / 'Pictures')
+    tex_path = Path(save_path / 'tex')
+    save_path.mkdir(parents=True, exist_ok=True)
+    pdf_path.mkdir(parents=True, exist_ok=True)
+    tex_path.mkdir(parents=True, exist_ok=True)
+    tikzplotlib.save(tex_path / "scott_knott.tex")
+
+    with open(tex_path / "scott_knott.tex", 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    # 添加preamble和end document
+    preamble = r"\documentclass{article}" + "\n" + \
+               r"\usepackage{pgfplots}" + "\n" + \
+               r"\usepackage{tikz}" + "\n" + \
+               r"\begin{document}" + "\n" + \
+               r"\pagestyle{empty}" + "\n"
+    end_document = r"\end{document}" + "\n"
+    # 替换 false 为 true
+    content = re.sub(r'majorticks=false', 'majorticks=true', content)
+    pattern = r'axis line style={lightgray204},\n'
+    content = re.sub(pattern, '', content)
+    # 插入字号控制
+    insert_text = r"font=\large," + "\n" + \
+                  r"tick label style={font=\small}," + "\n" + \
+                  r"label style={font=\normalsize}," + "\n"
+    insert_position = content.find(r'tick align=outside,')
+    modified_content = content[:insert_position] + insert_text + content[insert_position:]
+
+    # 将修改后的内容写回文件
+    with open(tex_path / "scott_knott.tex", 'w', encoding='utf-8') as f:
+        f.write(preamble + modified_content + end_document)
+
+    compile_tex(tex_path / "scott_knott.tex", pdf_path)
+    plt.close()
+
+
+
+@plot_register('cr')
 def convergence_rate(ab:AnalysisBase, save_path:Path, **kwargs):
-    fig = plt.figure(figsize=(14, 9))
     cr_list = []
     cr_all = {}
     cr_results = {}
@@ -36,8 +110,8 @@ def convergence_rate(ab:AnalysisBase, save_path:Path, **kwargs):
         for i in range(1, len(Y)):
             best_fn = np.min(Y[:i])
             if best_fn <= anchor_value:
-                return i
-        return len(Y)
+                return i/len(Y)
+        return 1
 
     results = ab.get_results_by_order(["method", "seed", "task"])
     best_Y_values = defaultdict(list)
@@ -75,12 +149,53 @@ def convergence_rate(ab:AnalysisBase, save_path:Path, **kwargs):
 
     cr_results = pds.DataFrame(cr_results)
 
-    # 绘制 violin plot
+    sns.set_theme(style="whitegrid", font='FreeSerif')
+    plt.figure(figsize=(12, 7.3))
+    # plt.ylim(bottom=0.9, top=len(method_names)+0.1)
+    ax = plt.gca()  # 获取坐标轴对象
+    y_major_locator = MultipleLocator(1)  # 设置坐标的主要刻度间隔
+    ax.yaxis.set_major_locator(y_major_locator)  # 应用在纵坐标上
     sns.violinplot(data=cr_results, inner="quart")
+    plt.title('Convergence Rate', fontsize=30, y=1.01)
+    plt.xlabel('Algorithm Name', fontsize=25, labelpad=-7)
+    plt.ylabel('Rate', fontsize=25)
+    plt.yticks(fontsize=20)
+    plt.xticks(fontsize=20, rotation=10)
 
-    os.makedirs(save_path, exist_ok=True)
-    save_file = save_path / 'convergence_rate.png'
-    plt.savefig(save_file, format='png')
+    save_path = Path(save_path / 'Overview')
+    pdf_path = Path(save_path / 'Pictures')
+    tex_path = Path(save_path / 'tex')
+    save_path.mkdir(parents=True, exist_ok=True)
+    pdf_path.mkdir(parents=True, exist_ok=True)
+    tex_path.mkdir(parents=True, exist_ok=True)
+    tikzplotlib.save(tex_path / "convergence_rate.tex")
+
+    with open(tex_path / "convergence_rate.tex", 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    # 添加preamble和end document
+    preamble = r"\documentclass{article}" + "\n" + \
+               r"\usepackage{pgfplots}" + "\n" + \
+               r"\usepackage{tikz}" + "\n" + \
+               r"\begin{document}" + "\n" + \
+               r"\pagestyle{empty}" + "\n"
+    end_document = r"\end{document}" + "\n"
+    # 替换 false 为 true
+    content = re.sub(r'majorticks=false', 'majorticks=true', content)
+    pattern = r'axis line style={lightgray204},\n'
+    content = re.sub(pattern, '', content)
+    # 插入字号控制
+    insert_text = r"font=\large," + "\n" + \
+                  r"tick label style={font=\small}," + "\n" + \
+                  r"label style={font=\normalsize}," + "\n"
+    insert_position = content.find(r'tick align=outside,')
+    modified_content = content[:insert_position] + insert_text + content[insert_position:]
+
+    # 将修改后的内容写回文件
+    with open(tex_path / "convergence_rate.tex", 'w', encoding='utf-8') as f:
+        f.write(preamble + modified_content + end_document)
+
+    compile_tex(tex_path / "convergence_rate.tex", pdf_path)
     plt.close()
 
 
@@ -277,7 +392,7 @@ def plot_violin(ab:AnalysisBase, save_path, **kwargs):
     plt.xlabel('Algorithm Name', fontsize=25, labelpad=-7)
     plt.ylabel('Performance rank', fontsize=25)
     plt.yticks(fontsize=20)
-    plt.xticks(fontsize=20, rotation=15)
+    plt.xticks(fontsize=20, rotation=10)
 
     save_path = Path(save_path / 'Overview')
     pdf_path = Path(save_path / 'Pictures')
@@ -289,24 +404,27 @@ def plot_violin(ab:AnalysisBase, save_path, **kwargs):
     with open(tex_path / "violin.tex", 'r', encoding='utf-8') as f:
         content = f.read()
 
-        # 添加preamble和end document
+    # 添加preamble和end document
     preamble = r"\documentclass{article}" + "\n" + \
                r"\usepackage{pgfplots}" + "\n" + \
                r"\usepackage{tikz}" + "\n" + \
-               r"\begin{document}" + "\n"
+               r"\begin{document}" + "\n" + \
+               r"\pagestyle{empty}" + "\n"
     end_document = r"\end{document}" + "\n"
+    # 替换 false 为 true
+    content = re.sub(r'majorticks=false', 'majorticks=true', content)
+    pattern = r'axis line style={lightgray204},\n'
+    content = re.sub(pattern, '', content)
+    # 插入字号控制
+    insert_text = r"font=\large," + "\n" + \
+                  r"tick label style={font=\small}," + "\n" + \
+                  r"label style={font=\normalsize}," + "\n"
+    insert_position = content.find(r'tick align=outside,')
+    modified_content = content[:insert_position] + insert_text + content[insert_position:]
 
     # 将修改后的内容写回文件
     with open(tex_path / "violin.tex", 'w', encoding='utf-8') as f:
-        f.write(preamble + content + end_document)
-
-    with open(tex_path / 'violin.tex', 'r') as tex_file:
-        tex_content = tex_file.read()
-    modified_content = re.sub(r'majorticks=false', 'majorticks=true', tex_content)
-    pattern = r'axis line style={lightgray204},\n'
-    modified_content = re.sub(pattern, '', modified_content)
-    with open(tex_path / 'violin.tex', 'w') as tex_file:
-        tex_file.write(modified_content)
+        f.write(preamble + modified_content + end_document)
 
     compile_tex(tex_path / "violin.tex", pdf_path)
     plt.close()
@@ -318,9 +436,6 @@ def plot_box(ab:AnalysisBase, save_path, **kwargs):
         mode = kwargs['mode']
     else:
         mode = 'median'
-    data = {'Method': [], 'value': []}
-    all_seed = set()
-    all_task_names = set()
     methods = set()
 
     results = ab.get_results_by_order(["method", "task", "seed"])
@@ -354,9 +469,9 @@ def plot_box(ab:AnalysisBase, save_path, **kwargs):
     ax.yaxis.set_major_locator(y_major_locator)
     sns.boxplot(df, color='#c2d0e9')
     plt.title('Box plot', fontsize=30, y=1.03)
-    plt.xlabel('Algorithm Name', fontsize=25, labelpad=-5)
+    plt.xlabel('Algorithm Name', fontsize=25)
     plt.ylabel('Rank', fontsize=25)
-    plt.xticks(fontsize=20, rotation=15)
+    plt.xticks(fontsize=20, rotation=10)
     plt.yticks(fontsize=20)
 
     save_path = Path(save_path / 'Overview')
@@ -374,20 +489,22 @@ def plot_box(ab:AnalysisBase, save_path, **kwargs):
     preamble = r"\documentclass{article}" + "\n" + \
                r"\usepackage{pgfplots}" + "\n" + \
                r"\usepackage{tikz}" + "\n" + \
-               r"\begin{document}" + "\n"
+               r"\begin{document}" + "\n" + \
+               r"\pagestyle{empty}" + "\n"
     end_document = r"\end{document}" + "\n"
+
+    content = re.sub(r'majorticks=false', 'majorticks=true', content)
+    pattern = r'axis line style={lightgray204},\n'
+    content = re.sub(pattern, '', content)
+    insert_text = r"font=\large," + "\n" + \
+                  r"tick label style={font=\small}," + "\n" + \
+                  r"label style={font=\normalsize}," + "\n"
+    insert_position = content.find(r'tick align=outside,')
+    modified_content = content[:insert_position] + insert_text + content[insert_position:]
 
     # 将修改后的内容写回文件
     with open(tex_path / "box.tex", 'w', encoding='utf-8') as f:
-        f.write(preamble + content + end_document)
-
-    with open(tex_path / "box.tex", 'r') as tex_file:
-        tex_content = tex_file.read()
-    modified_content = re.sub(r'majorticks=false', 'majorticks=true', tex_content)
-    pattern = r'axis line style={lightgray204},\n'
-    modified_content = re.sub(pattern, '', modified_content)
-    with open(tex_path / "box.tex", 'w') as tex_file:
-        tex_file.write(modified_content)
+        f.write(preamble + modified_content + end_document)
 
     compile_tex(tex_path / "box.tex", pdf_path)
 

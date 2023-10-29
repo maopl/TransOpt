@@ -1,10 +1,13 @@
 import numpy as np
+from typing import Union, Dict
 
 
 
 
-
-def matrix_to_latex(mean, std, rst, col_names, row_names, oder='min'):
+def matrix_to_latex(Data:Dict, col_names, row_names, caption, oder='min'):
+    mean = Data['mean']
+    std = Data['std']
+    significance = Data['significance']
     num_cols = len(mean.keys())
     num_rows = len(row_names)
 
@@ -12,12 +15,25 @@ def matrix_to_latex(mean, std, rst, col_names, row_names, oder='min'):
         raise ValueError("Mismatch between matrix dimensions and provided row/column names.")
 
     latex_code = []
+    # 添加文档类和宏包
+    latex_code.append("\\documentclass{article}")
+    latex_code.append("\\usepackage{geometry}")
+    latex_code.append("\\geometry{a4paper, margin=1in}")
+    latex_code.append("\\usepackage{graphicx}")
+    latex_code.append("\\usepackage{colortbl}")
+    latex_code.append("\\usepackage{booktabs}")
+    latex_code.append("\\usepackage{threeparttable}")
+    latex_code.append("\\usepackage{caption}")
+    latex_code.append("\\usepackage{xcolor}")
+    latex_code.append("\\pagestyle{empty}")
 
+    # 开始文档
+    latex_code.append("\\begin{document}")
+    latex_code.append("")
     latex_code.append("\\begin{table*}[t!]")
     latex_code.append("    \\scriptsize")
     latex_code.append("    \\centering")
-    latex_code.append("    \\caption{Performance comparisons of the quality of solutions obtained by different algorithms.}")
-    latex_code.append("    \\label{tab:rq1_result}%")
+    latex_code.append(f"    \\caption{{{caption}}}")
     latex_code.append("    \\resizebox{1.0\\textwidth}{!}{")
     latex_code.append("    \\begin{tabular}{c|" + "".join(["c"] * (num_rows)) + "}")
     latex_code.append("        \\hline")
@@ -39,7 +55,7 @@ def matrix_to_latex(mean, std, rst, col_names, row_names, oder='min'):
                     str_format += "}"
                     str_data.append(str_format)
                 else:
-                    if rst[col_names[i]][row_names[j]] == '+':
+                    if significance[col_names[i]][row_names[j]] == '+':
                         str_data.append("%.3E(%.3E)$^\dagger$" % (float(mean[col_names[i]][j]), std[col_names[i]][j]))
                     else:
                         str_data.append("%.3E(%.3E)" % (float(mean[col_names[i]][j]), std[col_names[i]][j]))
@@ -50,7 +66,7 @@ def matrix_to_latex(mean, std, rst, col_names, row_names, oder='min'):
                     str_format += "}"
                     str_data.append(str_format)
                 else:
-                    if rst[col_names[i]][row_names[j]] == '+':
+                    if significance[col_names[i]][row_names[j]] == '+':
                         str_data.append("%.3E(%.3E)$^\dagger$" % (float(mean[col_names[i]][j]), std[col_names[i]][j]))
                     else:
                         str_data.append("%.3E(%.3E)" % (float(mean[col_names[i]][j]), std[col_names[i]][j]))
@@ -67,5 +83,6 @@ def matrix_to_latex(mean, std, rst, col_names, row_names, oder='min'):
     latex_code.append("        \\item $^\\dagger$ indicates that the best algorithm is significantly better than the other one according to the Wilcoxon signed-rank test at a 5\\% significance level.")
     latex_code.append("    \\end{tablenotes}")
     latex_code.append("\\end{table*}%")
+    latex_code.append("\\end{document}")
 
     return "\n".join(latex_code)

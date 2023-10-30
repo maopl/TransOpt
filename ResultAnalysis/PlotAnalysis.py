@@ -1,5 +1,4 @@
 import numpy as np
-from sklearn.cluster import DBSCAN
 from collections import Counter, defaultdict
 from ResultAnalysis.AnalysisBase import AnalysisBase
 import matplotlib.pyplot as plt
@@ -11,7 +10,9 @@ from Util.sk import Rx
 from pathlib import Path
 import scipy
 import tikzplotlib
+from sklearn.cluster import DBSCAN
 from ResultAnalysis.CompileTex import compile_tex
+import matplotlib.gridspec as gridspec
 plot_registry = {}
 import re
 
@@ -213,7 +214,7 @@ def save_traj_data(ab, save_path):
             for seed, result_obj in method_r.items():
                 Y = result_obj.Y
                 if Y is not None:
-                    res.append(Y.flatten())
+                    res.append(np.minimum.accumulate(Y).flatten())
 
             if res:
                 # 计算中位数和标准差
@@ -511,71 +512,171 @@ def plot_box(ab:AnalysisBase, save_path, **kwargs):
     plt.close()
 
 
-# @metric_register('dbscan')
-def dbscan_analysis(data, save_path, **kwargs):
-    db = DBSCAN(eps=0.5, min_samples=5)
-    # 执行聚类
-    db.fit(data)
+@plot_register('dbscan')
+def dbscan_analysis(ab: AnalysisBase, save_path, **kwargs):
+    results = ab.get_results_by_order(['task', 'method', 'seed'])
+    tasks_names = set()
+    method_names = set()
+    result_of_n_clusters = {}
+    result_of_noise_points = {}
+    result_of_avg_cluster_size = {}
 
-    # 获取聚类标签
-    labels = db.labels_
+    for task_name, task_r in results.items():
+        tasks_names.add(task_name)
+        result_of_n_clusters[task_name] = defaultdict(dict)
+        result_of_noise_points[task_name] = defaultdict(dict)
+        result_of_avg_cluster_size[task_name] = defaultdict(dict)
+        for method, method_r in task_r.items():
+            method_names.add(method)
+            result_of_n_clusters[task_name][method] = []
+            result_of_noise_points[task_name][method] = []
+            result_of_avg_cluster_size[task_name][method] = []
+            for seed, result_obj in method_r.items():
+                if result_obj is not None:
+                    Y = result_obj.Y
+                    X = result_obj.X
+                    if Y is not None:
+                        db = DBSCAN(eps=0.5, min_samples=5)
+                        # 执行聚类
+                        db.fit(X)
+                        # 获取聚类标签
+                        labels = db.labels_
+                        # 计算簇的数量（忽略噪声点，其标签为 -1）
+                        n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+                        cluster_sizes = Counter(labels)
+                        noise_points = cluster_sizes[-1]  # 标签为 -1 的点是噪声点
+                        # 计算平均簇大小（不包括噪声点）
+                        if n_clusters > 0:
+                            t_size = 0
+                            for ids, cs in cluster_sizes.items():
+                                if ids >= 0:
+                                    t_size += cs
+                            avg_cluster_size = t_size / n_clusters
+                        else:
+                            avg_cluster_size = 0
 
-    # 计算簇的数量（忽略噪声点，其标签为 -1）
-    n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
-    cluster_sizes = Counter(labels)
-    noise_points = cluster_sizes[-1]  # 标签为 -1 的点是噪声点
+                        result_of_n_clusters[task_name][method].append(n_clusters)
+                        result_of_noise_points[task_name][method].append(noise_points)
+                        result_of_avg_cluster_size[task_name][method].append(avg_cluster_size)
 
-    # 计算平均簇大小（不包括噪声点）
-    if n_clusters > 0:
-        t_size = 0
-        for ids, cs in cluster_sizes.items():
-            if ids >=0:
-                t_size += cs
-        avg_cluster_size = t_size /n_clusters
-    else:
-        avg_cluster_size = 0
+    def modify_lex_file(tex_path, pdf_path):
+        with open(tex_path, 'r', encoding='utf-8') as f:
+            content = f.read()
 
-    return n_clusters, noise_points, avg_cluster_size
+            # 添加preamble和end document
+        preamble = r"\documentclass{article}" + "\n" + \
+                   r"\usepackage{pgfplots}" + "\n" + \
+                   r"\usepackage{tikz}" + "\n" + \
+                   r"\begin{document}" + "\n" + \
+                   r"\pagestyle{empty}" + "\n"
+        end_document = r"\end{document}" + "\n"
+
+        content = re.sub(r'majorticks=false', 'majorticks=true', content)
+        pattern = r'axis line style={lightgray204},\n'
+        content = re.sub(pattern, '', content)
+        insert_text = r"font=\large," + "\n" + \
+                      r"tick label style={font=\small}," + "\n" + \
+                      r"label style={font=\normalsize}," + "\n"
+        insert_position = content.find(r'tick align=outside,')
+        modified_content = content[:insert_position] + insert_text + content[insert_position:]
+
+        # 将修改后的内容写回文件
+        with open(tex_path, 'w', encoding='utf-8') as f:
+            f.write(preamble + modified_content + end_document)
+
+        compile_tex(tex_path, pdf_path)
+
+    tex_path = save_path / 'dbscan' / 'tex'
+    pdf_path = save_path / 'dbscan'
+    save_path.mkdir(parents=True, exist_ok=True)
+    pdf_path.mkdir(parents=True, exist_ok=True)
+    tex_path.mkdir(parents=True, exist_ok=True)
+    for task_name in tasks_names:
+        df_n_clusters = pds.DataFrame(result_of_n_clusters[task_name])
+        sns.set_theme(style='whitegrid', font='FreeSerif')
+        plt.figure(figsize=(12, 8))
+        ax = plt.gca()
+        y_major_locator = MultipleLocator(1)
+        ax.yaxis.set_major_locator(y_major_locator)
+        sns.boxplot(data=df_n_clusters, order=method_names)
+        plt.title('Clusters', fontsize=30, y=1.03)
+        plt.ylabel('number', fontsize=25)
+        plt.xticks(fontsize=20, rotation=10)
+        plt.yticks(fontsize=20)
+        tikzplotlib.save(tex_path / f"{task_name}_n_clusters.tex")
+        modify_lex_file(tex_path / f"{task_name}_n_clusters.tex", pdf_path)
+        plt.close()
+
+        df_noise_points = pds.DataFrame(result_of_noise_points[task_name])
+        plt.figure(figsize=(12, 8))
+        ax = plt.gca()
+        y_major_locator = MultipleLocator(1)
+        ax.yaxis.set_major_locator(y_major_locator)
+        sns.boxplot(data=df_noise_points, order=method_names)
+        plt.title('Noise Points', fontsize=30, y=1.03)
+        plt.ylabel('number', fontsize=25)
+        plt.xticks(fontsize=20, rotation=10)
+        plt.yticks(fontsize=20)
+        tikzplotlib.save(tex_path / f"{task_name}_noise_points.tex")
+        modify_lex_file(tex_path / f"{task_name}_noise_points.tex", pdf_path)
+        plt.close()
+
+        df_avg_cluster_size = pds.DataFrame(result_of_avg_cluster_size[task_name])
+        plt.figure(figsize=(12, 8))
+        ax = plt.gca()
+        y_major_locator = MultipleLocator(1)
+        ax.yaxis.set_major_locator(y_major_locator)
+        sns.boxplot(data=df_avg_cluster_size, order=method_names)
+        plt.title('Avg Cluster Size', fontsize=30, y=1.03)
+        plt.ylabel('number', fontsize=25)
+        plt.xticks(fontsize=20, rotation=10)
+        plt.yticks(fontsize=20)
+        tikzplotlib.save(tex_path / f"{task_name}_avg_cluster_size.tex")
+        modify_lex_file(tex_path / f"{task_name}_avg_cluster_size.tex", pdf_path)
+        plt.close()
 
 
-# @metric_register('heatmap')
-def plot_heatmap(algorithms, test_problems):
-    # 创建一个空的矩阵来存储结果
-    results_matrix = np.empty((len(test_problems), len(algorithms)))
+@plot_register('heatmap')
+def plot_heatmap(ab:AnalysisBase, save_path, **kwargs):
+    results = ab.get_results_by_order(['method', 'task', 'seed'])
+    methods = ab.get_methods()
+    tasks = list(ab.get_task_names())
 
-    # 逐个读取结果文件并填充矩阵
-    for i, problem in enumerate(test_problems):
-        for j, algorithm in enumerate(algorithms):
-            # 从文件读取结果
-            file_path = f"{algorithm}_{problem}.txt"
-            with open(file_path, "r") as file:
-                result = float(file.readline().strip())
-            # 填充矩阵
-            results_matrix[i, j] = result
+    # Step 1: Calculate the best result for each method, task, and seed
+    best_results = {method: {task: [] for task in tasks} for method in methods}
+    for method in methods:
+        for task in tasks:
+            for seed, result_obj in results[method][task].items():
+                if result_obj is not None and result_obj.Y is not None:
+                    best_results[method][task].append(result_obj.best_Y)
 
-    # 创建热力图
-    fig, ax = plt.subplots()
-    im = ax.imshow(results_matrix, cmap="viridis")
+    # Step 2: Calculate the mean of the best results for each method and task
+    mean_best_results = {method: {task: np.mean(best_results[method][task]) for task in tasks} for method in methods}
 
-    # 设置轴标签
-    ax.set_xticks(np.arange(len(algorithms)))
-    ax.set_yticks(np.arange(len(test_problems)))
-    ax.set_xticklabels(algorithms)
-    ax.set_yticklabels(test_problems)
+    # Step 3: Create a dataframe for the heatmap
+    heatmap_data = pds.DataFrame(mean_best_results).T
 
-    # 在热力图上显示数值
-    for i in range(len(test_problems)):
-        for j in range(len(algorithms)):
-            text = ax.text(j, i, f"{results_matrix[i, j]:.2f}",
-                           ha="center", va="center", color="w")
+    # Step 4: Plot the heatmap
+    n_cols = len(tasks)
+    colormaps = ['Blues', 'Reds', 'Greens', 'Purples']  # Adjust as needed
+    fig = plt.figure(figsize=(n_cols * 2, 5))
+    gs = gridspec.GridSpec(1, n_cols, width_ratios=[1 for _ in range(n_cols)])
+    for col, task in enumerate(tasks):
+        ax = plt.subplot(gs[col])
+        sns.heatmap(heatmap_data[[task]], annot=True, cmap=colormaps[col % len(colormaps)], cbar=False, ax=ax, **kwargs)
+        if col == 0:
+            ax.set_ylabel('Method')
+        if col != 0:
+            ax.set_yticks([])
+            ax.set_yticklabels([])
 
-    # 添加颜色条
-    cbar = ax.figure.colorbar(im, ax=ax)
+    plt.suptitle("Heatmap of Methods")
+    fig.text(0.5, 0.01, 'Task Name', ha='center')
+    plt.tight_layout(rect=[0, 0.03, 1, 0.99])
+    save_path = Path(save_path / 'Overview')
+    png_path = Path(save_path / 'Pictures')
+    save_path.mkdir(parents=True, exist_ok=True)
+    png_path.mkdir(parents=True, exist_ok=True)
 
-    # 设置图形标题和标签
-    plt.title("Algorithm Comparison Heatmap")
-    plt.xlabel("Algorithms")
-    plt.ylabel("Test Problems")
+    plt.savefig(png_path/'heatmap.png', format='png')
 
-    # 显示图形
-    plt.show()

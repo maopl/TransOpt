@@ -34,5 +34,5 @@ def record_convergence(results, save_path, **kwargs):
     pass
 
 def matrix_to_latex(mean, std, rst, col_names, row_names, oder='min'):
-    # Similar to matrix_to_latex function in ToLatex.py
+    # Similar to matrix_to_latex function in TableToLatex.py
     pass

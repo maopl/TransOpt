@@ -2,7 +2,7 @@ import numpy as np
 from collections import defaultdict
 from Util.sk import Rx
 import scipy
-from ResultAnalysis.ToLatex import matrix_to_latex
+from ResultAnalysis.TableToLatex import matrix_to_latex
 from ResultAnalysis.AnalysisBase import AnalysisBase
 from ResultAnalysis.CompileTex import compile_tex
 import os

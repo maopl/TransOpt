@@ -6,12 +6,12 @@ import numpy as np
 
 
 import Util.Register
-import Knowledge_Base.DataSelection
+import KnowledgeBase.DataSelection
 from Bench.ConstructTestSuits import get_testsuits
 from Optimizer.ConstructOptimizer import get_optimizer
-from Knowledge_Base.ConstructKB import get_knowledgebase
-from Knowledge_Base.TaskDataHandler import OptTaskDataHandler
-from Knowledge_Base.KnowledgeBaseAccessor import KnowledgeBaseAccessor
+from KnowledgeBase.ConstructKB import get_knowledgebase
+from KnowledgeBase.TaskDataHandler import OptTaskDataHandler
+from KnowledgeBase.KnowledgeBaseAccessor import KnowledgeBaseAccessor
 
 
 os.environ['MKL_NUM_THREADS'] = "1"

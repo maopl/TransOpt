@@ -15,7 +15,7 @@ from Gym import Gym_Metric
 
 from Optimizer.LFLTreeOptimizer import MTTree
 
-from Knowledge_Base.Task_recognition import reco_Tree
+from KnowledgeBase.Task_recognition import reco_Tree
 
 def LFL_Tree(
         Dty=np.float64,

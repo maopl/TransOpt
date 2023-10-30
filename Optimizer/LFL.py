@@ -9,7 +9,7 @@ from Acquisition.ConstructACF import get_ACF
 from Acquisition.sequential import Sequential
 from typing import Dict, Union, List
 from Optimizer.BayesianOptimizerBase import BayesianOptimizerBase
-from Knowledge_Base.KnowledgeBaseAccessor import KnowledgeBaseAccessor
+from KnowledgeBase.KnowledgeBaseAccessor import KnowledgeBaseAccessor
 from Util.Data import InputData, TaskData, vectors_to_ndarray, output_to_ndarray, ndarray_to_vectors
 from Util.Register import optimizer_register
 from Util.Kernel import construct_multi_objective_kernel

@@ -11,8 +11,8 @@ from Optimizer.MultitaskOptimizera import MultiTaskOptimizer
 
 from Acquisition.ConstructACF import construct_acf
 
-from Knowledge_Base.Task_recognition import reco_MOGP
-from Knowledge_Base.Knowledge_selection import  Source_selec, Source_selec_rank, Source_selec_ori
+from KnowledgeBase.Task_recognition import reco_MOGP
+from KnowledgeBase.Knowledge_selection import  Source_selec, Source_selec_rank, Source_selec_ori
 
 import Visualization.Visual_landscape as visual
 from Gym import Gym_Metric

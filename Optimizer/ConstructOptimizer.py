@@ -1,6 +1,6 @@
 
 from Util.Register import optimizer_registry
-from Knowledge_Base.KnowledgeBaseAccessor import KnowledgeBaseAccessor
+from KnowledgeBase.KnowledgeBaseAccessor import KnowledgeBaseAccessor
 import Optimizer
 
 

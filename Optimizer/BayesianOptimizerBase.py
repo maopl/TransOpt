@@ -7,7 +7,7 @@ from typing import Union, Dict, List
 from Optimizer.OptimizerBase import OptimizerBase
 import GPyOpt
 from Util.Data import InputData, TaskData, vectors_to_ndarray, output_to_ndarray
-from Knowledge_Base.TaskDataHandler import OptTaskDataHandler
+from KnowledgeBase.TaskDataHandler import OptTaskDataHandler
 
 
 class BayesianOptimizerBase(OptimizerBase):

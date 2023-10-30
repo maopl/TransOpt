@@ -5,7 +5,7 @@ import numpy as np
 from collections import defaultdict
 import json
 from Util.Data import vectors_to_ndarray, output_to_ndarray
-from Knowledge_Base.KnowledgeBase import KnowledgeBase
+from KnowledgeBase.KnowledgeBase import KnowledgeBase
 import matplotlib.pyplot as plt
 import seaborn as sns
 @dataclass

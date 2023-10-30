@@ -15,9 +15,9 @@ from Optimizer.MixOptimizer import MixOptimizer
 
 from Acquisition.ConstructACF import construct_acf
 
-from Knowledge_Base.Task_recognition import reco_MOGP,reco_Tree
-from Knowledge_Base.Knowlege_extraction import Extr_barycenter,Extr_Kmeans, Extr_mean, Extr_rank
-from Knowledge_Base.Knowledge_selection import  Source_selec, Source_selec_rank, Source_selec_ori
+from KnowledgeBase.Task_recognition import reco_MOGP,reco_Tree
+from KnowledgeBase.Knowlege_extraction import Extr_barycenter,Extr_Kmeans, Extr_mean, Extr_rank
+from KnowledgeBase.Knowledge_selection import  Source_selec, Source_selec_rank, Source_selec_ori
 
 import Visualization.Visual_landscape as visual
 from Gym import Gym_Metric

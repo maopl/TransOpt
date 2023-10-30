@@ -4,7 +4,7 @@ import ConfigSpace
 import logging
 import numpy as np
 from . import ConfigOptBenchmark
-from Knowledge_Base.TaskDataHandler import OptTaskDataHandler
+from KnowledgeBase.TaskDataHandler import OptTaskDataHandler
 import matplotlib.pyplot as plt
 logger = logging.getLogger('TransferOptBenchmark')
 

@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: TOS
+Version: 0.0.1
+Summary: Transfer Optimiztion System
+Home-page: https://github.com/maopl/TransOpt.git
+Author: Peili Mao
+Author-email: peili.z.mao@gmail.com
+License: MIT
+Keywords: sample package example
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+
+This is a longer description of my package.

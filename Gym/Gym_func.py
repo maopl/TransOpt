@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import os
 from sklearn.cluster import KMeans
 
-from Bench.Synthetic.SyntheticBenchmark import BASE
+from Benchmark.Synthetic.SyntheticBenchmark import BASE
 from KnowledgeBase.CKB import KnowledgeBase
 from Gym import Gym_Metric
 from sklearn.neighbors import KernelDensity

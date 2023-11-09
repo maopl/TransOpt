@@ -8,7 +8,7 @@ import os
 from Util.Normalization  import Normalize
 from Util.Initialization import InitData
 from Optimizer.MultitaskOptimizera import MultiTaskOptimizer
-from Acquisition.ConstructACF import construct_acf
+from Optimizer.Acquisition.ConstructACF import construct_acf
 
 import Visualization.Visual_landscape as visual
 

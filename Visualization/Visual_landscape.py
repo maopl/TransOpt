@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os
 from matplotlib import cm
 import warnings
-from Bench.Synthetic import SyntheticBenchmark
+from Benchmark.Synthetic import SyntheticBenchmark
 from Util.Normalization import Normalize_mean_std, Normalize
 from itertools import product
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE."

@@ -7,7 +7,7 @@ import os
 from Util.Normalization  import Normalize
 from Util.Initialization import InitData
 from Optimizer.RestartOptimizer import RestartOptimizer
-from Acquisition.ConstructACF import construct_acf
+from Optimizer.Acquisition.ConstructACF import construct_acf
 from Util import Prior
 import Visualization.Visual_landscape as visual
 

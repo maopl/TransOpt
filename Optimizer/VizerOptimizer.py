@@ -1,26 +1,13 @@
-import numpy as np
-import GPy
-import GPyOpt
 import time
-from GPy import kern
 import numpy as np
-from Acquisition.ConstructACF import get_ACF
-from Acquisition.sequential import Sequential
-from typing import Dict, Union, List
-from Optimizer.BayesianOptimizerBase import BayesianOptimizerBase
-from Util.Data import InputData, TaskData, vectors_to_ndarray, output_to_ndarray, ndarray_to_vectors
+
+from Util.Data import ndarray_to_vectors
 from Util.Register import optimizer_register
-from paramz import ObsAr
 from Util.Normalization import get_normalizer
-from GPy import util
-from Util.Kernel import construct_multi_objective_kernel
-from GPy.inference.latent_function_inference import expectation_propagation
-from GPy.inference.latent_function_inference import ExactGaussianInference
-from GPy.likelihoods.multioutput_likelihood import MixedNoise
-from Model.MHGP import MHGP
+from Optimizer.Model.MHGP import MHGP
 from typing import Dict, Union, List, Tuple
 from Optimizer.BayesianOptimizerBase import BayesianOptimizerBase
-
+from KnowledgeBase.DataHandlerBase import DataHandler
 @optimizer_register('vizer')
 class Vizer(BayesianOptimizerBase):
 
@@ -44,17 +31,15 @@ class Vizer(BayesianOptimizerBase):
         else:
             self.acf = 'EI'
 
-    def reset(self, design_space:Dict, search_sapce:Union[None, Dict] = None):
-        self.set_space(design_space, search_sapce)
-        self.reset_flag = True
-        self.obj_model = None
-        if self._X.size != 0:
-            self.meta_add({'X':self._X, 'Y':self._Y})
-            self.meta_fit()
-        self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
-        self._Y = np.empty((0,))
-        self.acqusition = get_ACF(self.acf, model=self, search_space=self.search_space, config=self.config)
-        self.evaluator = Sequential(self.acqusition)
+
+    def model_reset(self):
+        if self.obj_model is None:
+            self.obj_model = MHGP(n_features=self.input_dim)
+        if self.obj_model.target_gp is not None:
+            self.meta_update()
+            self.obj_model.fit({'X':self._X, 'Y':self._Y})
+        if self.obj_model.target_gp is None and self._X.size != 0:
+            self.obj_model.fit({'X':self._X, 'Y':self._Y})
 
     def initial_sample(self):
         return self.random_sample(self.ini_num)
@@ -103,28 +88,27 @@ class Vizer(BayesianOptimizerBase):
 
             return design_suggested_sample
 
-    def sync_from_handler(self, data_handler):
-        self.observe(data_handler.get_input_vectors(), data_handler.get_output_value())
-        self.set_auxillary_data(data_handler.get_auxillary_data())
+    def meta_update(self):
+        self.obj_model.meta_update()
 
+    def meta_add(self, Data:List[Dict]):
+        self.obj_model.meta_add(Data)
 
-    def create_model(self, Data:Dict):
-        self.obj_model = MHGP(self.input_dim, Data)
-
-
+    def create_model(self):
+        self.obj_model = MHGP(self.input_dim)
 
 
     def update_model(self, Data):
         ## Train target model
-        if self.reset_flag == True and self.obj_model is None:
+        if self.obj_model is None:
             self.create_model(Data['Target'])
-        elif self.reset_flag == True and self.obj_model is not None:
+        elif self.obj_model is not None:
             self.obj_model.set_XY(Data['Target'])
         else:
             self.obj_model.set_XY(Data['Target'])
 
         ## Train target model
-        self.obj_model.fit(optimize=True)
+        self.obj_model.fit(Data['Target'], optimize=True)
 
 
     def MetaFitModel(self, metadata):
@@ -138,27 +122,6 @@ class Vizer(BayesianOptimizerBase):
     # def meta_add(self, meta_data:Dict):
     #     self.obj_model.meta_add(meta_data:Dict)
 
-    def optimize(self):
-        time_acf_start = time.time()
-        suggested_sample, acq_value = self.evaluator.compute_batch(None, context_manager=None)
-        time_acf_end = time.time()
-
-        suggested_sample = self.model_space.zip_inputs(suggested_sample)
-
-        self.acf_time = time_acf_end - time_acf_start
-
-        print("FitModel:\t{:.0f}h{:.0f}m{:.1f}s".format(
-            (self.fit_time)/3600,
-            (self.fit_time) % 3600 / 60,
-            (self.fit_time) % 3600 % 60,))
-
-
-        print("AcFun:\t\t{:.0f}h{:.0f}m{:.1f}s".format(
-            (self.acf_time)/3600,
-            (self.acf_time) % 3600 / 60,
-            (self.acf_time) % 3600 % 60,))
-
-        return suggested_sample
 
     def get_train_time(self):
         return self.fit_time

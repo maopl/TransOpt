@@ -1,4 +1,3 @@
-import time
 import numpy as np
 import GPyOpt as GPyOpt
 import pickle
@@ -6,15 +5,11 @@ import os
 
 from Util.Normalization import Normalize
 from Util.Initialization import InitData
-from Acquisition.ConstructACF import construct_acf
+from Optimizer.Acquisition.ConstructACF import construct_acf
 
 import Visualization.Visual_landscape as visual
 
-from External.transfergpbo.models import TaskData
-
 from collections import defaultdict
-
-import sobol_seq
 
 
 def MetaBO(

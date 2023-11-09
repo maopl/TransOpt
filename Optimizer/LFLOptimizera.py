@@ -14,7 +14,7 @@ from GPy.mappings.constant import Constant
 from Model.MPGP import MPGP
 from Model.GP import PriorGP
 from Optimizer.BaseModule import OptimizerBase
-from Model.PracGP import PracGP
+from Optimizer.Model.PracGP import PracGP
 from Model.MOKernel import MOKernel
 from External.transfergpbo import models
 from External.transfergpbo.models import TaskData
@@ -22,7 +22,6 @@ from External.transfergpbo.models import TaskData
 from emukit.core import ContinuousParameter
 from emukit.core import ParameterSpace
 
-from Util.Normalization import Normalize,Normalize_std
 from Util import Prior
 from typing import Dict, Hashable
 from External.transfergpbo.models import (

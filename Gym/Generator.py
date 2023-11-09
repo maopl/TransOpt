@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
-# from Bench.Synthetic.SyntheticBenchmark import Select_synthetic_fun
-from Bench.RL.LunarlanderBenchmark import LunarlanderBenchmark
+# from Benchmark.Synthetic.SyntheticBenchmark import Select_synthetic_fun
+from Benchmark.RL.LunarlanderBenchmark import LunarlanderBenchmark
 from sklearn.preprocessing import power_transform
 from Util.Normalization import Normalize
-from Bench.HPOB.HpobBench import HPOb
+from Benchmark.HPOB.HpobBench import HPOb
 from sklearn.mixture import GaussianMixture
 from scipy.stats import pearsonr, spearmanr
 from sklearn.cluster import KMeans
@@ -164,7 +164,7 @@ if __name__ == '__main__':
     dim = 10
     G = PseudoPointsGenerator()
 
-    # problem = HPOb(search_space_id='5965', data_set_id='9946',xdim=10, path='../Bench/HPOB/hpob-data/')
+    # problem = HPOb(search_space_id='5965', data_set_id='9946',xdim=10, path='../Benchmark/HPOB/hpob-data/')
     # indexs = np.random.choice(range(1,13000), size=60)
     # X_original = problem.get_var(indexs=indexs)
     # Y = problem.f(X=None, indexs=indexs)

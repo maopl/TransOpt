@@ -1,5 +1,4 @@
 import abc
-from importlib_metadata import version
 from typing import List, Dict, Union
 
 class OptimizerBase(abc.ABC, metaclass=abc.ABCMeta):
@@ -19,19 +18,6 @@ class OptimizerBase(abc.ABC, metaclass=abc.ABCMeta):
         """
         self.api_config = config
 
-    @classmethod
-    def get_version(cls):
-        """Get the version for this optimizer.
-
-        Returns
-        -------
-        version_str : str
-            Version number of the optimizer. Usually, this is equivalent to ``package.__version__``.
-        """
-        assert (cls.primary_import is None) or isinstance(cls.primary_import, str)
-        # Should use x.x.x as version if sub-class did not specify its primary import
-        version_str = "x.x.x" if cls.primary_import is None else version(cls.primary_import)
-        return version_str
 
     @abc.abstractmethod
     def suggest(self, n_suggestions:Union[None, int] = None)->List[Dict]:
@@ -64,4 +50,8 @@ class OptimizerBase(abc.ABC, metaclass=abc.ABCMeta):
         y : array-like, shape (n,)
             Corresponding values where objective has been evaluated
         """
+        pass
+
+    @abc.abstractmethod
+    def optimize(self, testsuits, data_handler):
         pass

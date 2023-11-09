@@ -73,6 +73,7 @@ class DataHandler(abc.ABC, metaclass=abc.ABCMeta):
         self.dataset_id, self.dataset = self.db._generate_dataset()
         self.dataset['name'] = task_name
         self._set_dataset_info(task_space_info)
+        self.syn_database()
 
 
     def syn_database(self):

@@ -7,8 +7,8 @@ import os
 
 from Util.Normalization  import Normalize
 from Util.Initialization import InitData
-from Optimizer.WeightedSumOptimizer import WeightedSumOptimizer
-from Acquisition.ConstructACF import construct_acf
+from Optimizer.RGPEOptimizer import WeightedSumOptimizer
+from Optimizer.Acquisition.ConstructACF import construct_acf
 
 import Visualization.Visual_landscape as visual
 

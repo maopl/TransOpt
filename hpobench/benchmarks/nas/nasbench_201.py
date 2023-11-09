@@ -1,5 +1,5 @@
 """
-Interface to Benchmarks with Nas-Bench 201
+Interface to Benchmarks with Nas-Benchmark 201
 
 https://github.com/D-X-Y/AutoDL-Projects/blob/master/docs/NAS-Bench-201.md
 
@@ -423,7 +423,7 @@ class NasBench201BaseBenchmark(AbstractBenchmark):
     @staticmethod
     def get_meta_information() -> Dict:
         """ Returns the meta information for the benchmark """
-        return {'name': 'NAS-Bench-201: Extending the Scope of Reproducible Neural Architecture Search',
+        return {'name': 'NAS-Benchmark-201: Extending the Scope of Reproducible Neural Architecture Search',
                 'references': ['@article{dong2020bench,'
                                'title   = {Nas-bench-201: Extending the scope of reproducible neural '
                                '           architecture search},'

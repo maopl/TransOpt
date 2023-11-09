@@ -8,7 +8,7 @@ import pandas as pds
 from Util.Normalization import Norm_rank_pt,Norm_pt,Normalize_mean_std, Normalize
 from Util.Initialization import InitData
 from Optimizer.VanillaBOa import VBOOptimizer
-from Acquisition.ConstructACF import construct_acf
+from Optimizer.Acquisition.ConstructACF import construct_acf
 
 import Visualization.Visual_landscape as visual
 from torch.quasirandom import SobolEngine

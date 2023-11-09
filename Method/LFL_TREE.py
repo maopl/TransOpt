@@ -8,7 +8,7 @@ from Util.Normalization  import Normalize
 from Util.Initialization import InitData
 from External.transfergpbo.models import TaskData
 
-from Acquisition.ConstructACF import construct_acf
+from Optimizer.Acquisition.ConstructACF import construct_acf
 
 import Visualization.Visual_landscape as visual
 from Gym import Gym_Metric

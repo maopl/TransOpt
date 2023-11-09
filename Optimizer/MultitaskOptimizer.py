@@ -1,10 +1,10 @@
 import numpy as np
 import GPy
-from Acquisition.ConstructACF import get_ACF
-from Acquisition.sequential import Sequential
+from Optimizer.Acquisition.ConstructACF import get_ACF
+from Optimizer.Acquisition.sequential import Sequential
 from typing import Dict, Union, List
 from Optimizer.BayesianOptimizerBase import BayesianOptimizerBase
-from Util.Data import InputData, TaskData, vectors_to_ndarray, output_to_ndarray, ndarray_to_vectors
+from Util.Data import ndarray_to_vectors
 from Util.Register import optimizer_register
 from paramz import ObsAr
 from Util.Normalization import get_normalizer
@@ -13,7 +13,7 @@ from Util.Kernel import construct_multi_objective_kernel
 from GPy.inference.latent_function_inference import expectation_propagation
 from GPy.inference.latent_function_inference import ExactGaussianInference
 from GPy.likelihoods.multioutput_likelihood import MixedNoise
-from Model.MPGP import MPGP
+from Optimizer.Model.MPGP import MPGP
 
 @optimizer_register('MTBO')
 class MultitaskBO(BayesianOptimizerBase):
@@ -37,14 +37,6 @@ class MultitaskBO(BayesianOptimizerBase):
         else:
             self.acf = 'EI'
 
-    def reset(self, design_space:Dict, search_sapce:Union[None, Dict] = None):
-        self.set_space(design_space, search_sapce)
-        self.obj_model = None
-        self.var_model = None
-        self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
-        self._Y = np.empty((0,))
-        self.acqusition = get_ACF(self.acf, model=self, search_space=self.search_space, config=self.config)
-        self.evaluator = Sequential(self.acqusition)
 
     def initial_sample(self):
         return self.random_sample(self.ini_num)
@@ -176,6 +168,8 @@ class MultitaskBO(BayesianOptimizerBase):
             self.obj_model.inference_method.reset()
         self.obj_model.update_model(True)
 
+    def model_reset(self):
+        self.obj_model = None
 
     def predict(self, X):
         """

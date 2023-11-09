@@ -1,20 +1,15 @@
-import copy
 import numpy as np
 import GPy
-import GPyOpt
-import time
-import ConfigSpace
 from paramz import ObsAr
-from Acquisition.ConstructACF import get_ACF
-from Acquisition.sequential import Sequential
+from Optimizer.Acquisition.ConstructACF import get_ACF
+from Optimizer.Acquisition.sequential import Sequential
 from typing import Dict, Union, List
 from Optimizer.BayesianOptimizerBase import BayesianOptimizerBase
-from KnowledgeBase.KnowledgeBaseAccessor import KnowledgeBaseAccessor
-from Util.Data import InputData, TaskData, vectors_to_ndarray, output_to_ndarray, ndarray_to_vectors
+from Util.Data import ndarray_to_vectors
 from Util.Register import optimizer_register
 from Util.Kernel import construct_multi_objective_kernel
-from Model.MPGP import MPGP
-from Model.GP import PriorGP
+from Optimizer.Model.MPGP import MPGP
+from Optimizer.Model.GP import PriorGP
 from Util import Prior
 
 from GPy import util

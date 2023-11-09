@@ -25,30 +25,7 @@ def plot_register(name):
         return func_or_class
     return decorator
 
-def modify_tex_file(tex_path, pdf_path):
-    with open(tex_path, 'r', encoding='utf-8') as f:
-        content = f.read()
 
-    # 添加preamble和end document
-    preamble = r"\documentclass{article}" + "\n" + \
-               r"\usepackage{pgfplots}" + "\n" + \
-               r"\usepackage{tikz}" + "\n" + \
-               r"\begin{document}" + "\n" + \
-               r"\pagestyle{empty}" + "\n"
-    end_document = r"\end{document}" + "\n"
-
-    content = re.sub(r'majorticks=false', 'majorticks=true', content)
-    pattern = r'axis line style={lightgray204},\n'
-    content = re.sub(pattern, '', content)
-    insert_text = r"font=\large," + "\n" + \
-                  r"tick label style={font=\small}," + "\n" + \
-                  r"label style={font=\normalsize}," + "\n"
-    insert_position = content.find(r'tick align=outside,')
-    modified_content = content[:insert_position] + insert_text + content[insert_position:]
-
-    # 将修改后的内容写回文件
-    with open(tex_path, 'w', encoding='utf-8') as f:
-        f.write(preamble + modified_content + end_document)
 
 @plot_register('sk')
 def plot_sk(ab:AnalysisBase, save_path:Path):
@@ -95,7 +72,31 @@ def plot_sk(ab:AnalysisBase, save_path:Path):
     tex_path.mkdir(parents=True, exist_ok=True)
     tikzplotlib.save(tex_path / "scott_knott.tex")
 
-    modify_tex_file(tex_path / "scott_knott.tex", pdf_path)
+    with open(tex_path / "scott_knott.tex", 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    # 添加preamble和end document
+    preamble = r"\documentclass{article}" + "\n" + \
+               r"\usepackage{pgfplots}" + "\n" + \
+               r"\usepackage{tikz}" + "\n" + \
+               r"\begin{document}" + "\n" + \
+               r"\pagestyle{empty}" + "\n"
+    end_document = r"\end{document}" + "\n"
+    # 替换 false 为 true
+    content = re.sub(r'majorticks=false', 'majorticks=true', content)
+    pattern = r'axis line style={lightgray204},\n'
+    content = re.sub(pattern, '', content)
+    # 插入字号控制
+    insert_text = r"font=\large," + "\n" + \
+                  r"tick label style={font=\small}," + "\n" + \
+                  r"label style={font=\normalsize}," + "\n"
+    insert_position = content.find(r'tick align=outside,')
+    modified_content = content[:insert_position] + insert_text + content[insert_position:]
+
+    # 将修改后的内容写回文件
+    with open(tex_path / "scott_knott.tex", 'w', encoding='utf-8') as f:
+        f.write(preamble + modified_content + end_document)
+
     compile_tex(tex_path / "scott_knott.tex", pdf_path)
     plt.close()
 
@@ -173,7 +174,28 @@ def convergence_rate(ab:AnalysisBase, save_path:Path, **kwargs):
     with open(tex_path / "convergence_rate.tex", 'r', encoding='utf-8') as f:
         content = f.read()
 
-    modify_tex_file(tex_path / "convergence_rate.tex", pdf_path)
+    # 添加preamble和end document
+    preamble = r"\documentclass{article}" + "\n" + \
+               r"\usepackage{pgfplots}" + "\n" + \
+               r"\usepackage{tikz}" + "\n" + \
+               r"\begin{document}" + "\n" + \
+               r"\pagestyle{empty}" + "\n"
+    end_document = r"\end{document}" + "\n"
+    # 替换 false 为 true
+    content = re.sub(r'majorticks=false', 'majorticks=true', content)
+    pattern = r'axis line style={lightgray204},\n'
+    content = re.sub(pattern, '', content)
+    # 插入字号控制
+    insert_text = r"font=\large," + "\n" + \
+                  r"tick label style={font=\small}," + "\n" + \
+                  r"label style={font=\normalsize}," + "\n"
+    insert_position = content.find(r'tick align=outside,')
+    modified_content = content[:insert_position] + insert_text + content[insert_position:]
+
+    # 将修改后的内容写回文件
+    with open(tex_path / "convergence_rate.tex", 'w', encoding='utf-8') as f:
+        f.write(preamble + modified_content + end_document)
+
     compile_tex(tex_path / "convergence_rate.tex", pdf_path)
     plt.close()
 
@@ -380,8 +402,31 @@ def plot_violin(ab:AnalysisBase, save_path, **kwargs):
     pdf_path.mkdir(parents=True, exist_ok=True)
     tex_path.mkdir(parents=True, exist_ok=True)
     tikzplotlib.save(tex_path / "violin.tex")
+    with open(tex_path / "violin.tex", 'r', encoding='utf-8') as f:
+        content = f.read()
 
-    modify_tex_file(tex_path / "violin.tex", pdf_path)
+    # 添加preamble和end document
+    preamble = r"\documentclass{article}" + "\n" + \
+               r"\usepackage{pgfplots}" + "\n" + \
+               r"\usepackage{tikz}" + "\n" + \
+               r"\begin{document}" + "\n" + \
+               r"\pagestyle{empty}" + "\n"
+    end_document = r"\end{document}" + "\n"
+    # 替换 false 为 true
+    content = re.sub(r'majorticks=false', 'majorticks=true', content)
+    pattern = r'axis line style={lightgray204},\n'
+    content = re.sub(pattern, '', content)
+    # 插入字号控制
+    insert_text = r"font=\large," + "\n" + \
+                  r"tick label style={font=\small}," + "\n" + \
+                  r"label style={font=\normalsize}," + "\n"
+    insert_position = content.find(r'tick align=outside,')
+    modified_content = content[:insert_position] + insert_text + content[insert_position:]
+
+    # 将修改后的内容写回文件
+    with open(tex_path / "violin.tex", 'w', encoding='utf-8') as f:
+        f.write(preamble + modified_content + end_document)
+
     compile_tex(tex_path / "violin.tex", pdf_path)
     plt.close()
 
@@ -438,8 +483,32 @@ def plot_box(ab:AnalysisBase, save_path, **kwargs):
     tex_path.mkdir(parents=True, exist_ok=True)
     tikzplotlib.save(tex_path / "box.tex")
 
-    modify_tex_file(tex_path / "box.tex", pdf_path)
+    with open(tex_path / "box.tex", 'r', encoding='utf-8') as f:
+        content = f.read()
+
+        # 添加preamble和end document
+    preamble = r"\documentclass{article}" + "\n" + \
+               r"\usepackage{pgfplots}" + "\n" + \
+               r"\usepackage{tikz}" + "\n" + \
+               r"\begin{document}" + "\n" + \
+               r"\pagestyle{empty}" + "\n"
+    end_document = r"\end{document}" + "\n"
+
+    content = re.sub(r'majorticks=false', 'majorticks=true', content)
+    pattern = r'axis line style={lightgray204},\n'
+    content = re.sub(pattern, '', content)
+    insert_text = r"font=\large," + "\n" + \
+                  r"tick label style={font=\small}," + "\n" + \
+                  r"label style={font=\normalsize}," + "\n"
+    insert_position = content.find(r'tick align=outside,')
+    modified_content = content[:insert_position] + insert_text + content[insert_position:]
+
+    # 将修改后的内容写回文件
+    with open(tex_path / "box.tex", 'w', encoding='utf-8') as f:
+        f.write(preamble + modified_content + end_document)
+
     compile_tex(tex_path / "box.tex", pdf_path)
+
     plt.close()
 
 
@@ -490,6 +559,33 @@ def dbscan_analysis(ab: AnalysisBase, save_path, **kwargs):
                         result_of_noise_points[task_name][method].append(noise_points)
                         result_of_avg_cluster_size[task_name][method].append(avg_cluster_size)
 
+    def modify_lex_file(tex_path, pdf_path):
+        with open(tex_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+            # 添加preamble和end document
+        preamble = r"\documentclass{article}" + "\n" + \
+                   r"\usepackage{pgfplots}" + "\n" + \
+                   r"\usepackage{tikz}" + "\n" + \
+                   r"\begin{document}" + "\n" + \
+                   r"\pagestyle{empty}" + "\n"
+        end_document = r"\end{document}" + "\n"
+
+        content = re.sub(r'majorticks=false', 'majorticks=true', content)
+        pattern = r'axis line style={lightgray204},\n'
+        content = re.sub(pattern, '', content)
+        insert_text = r"font=\large," + "\n" + \
+                      r"tick label style={font=\small}," + "\n" + \
+                      r"label style={font=\normalsize}," + "\n"
+        insert_position = content.find(r'tick align=outside,')
+        modified_content = content[:insert_position] + insert_text + content[insert_position:]
+
+        # 将修改后的内容写回文件
+        with open(tex_path, 'w', encoding='utf-8') as f:
+            f.write(preamble + modified_content + end_document)
+
+        compile_tex(tex_path, pdf_path)
+
     tex_path = save_path / 'dbscan' / 'tex'
     pdf_path = save_path / 'dbscan'
     save_path.mkdir(parents=True, exist_ok=True)
@@ -508,8 +604,7 @@ def dbscan_analysis(ab: AnalysisBase, save_path, **kwargs):
         plt.xticks(fontsize=20, rotation=10)
         plt.yticks(fontsize=20)
         tikzplotlib.save(tex_path / f"{task_name}_n_clusters.tex")
-        modify_tex_file(tex_path / f"{task_name}_n_clusters.tex", pdf_path)
-        compile_tex(tex_path / f"{task_name}_n_clusters.tex", pdf_path)
+        modify_lex_file(tex_path / f"{task_name}_n_clusters.tex", pdf_path)
         plt.close()
 
         df_noise_points = pds.DataFrame(result_of_noise_points[task_name])
@@ -523,8 +618,7 @@ def dbscan_analysis(ab: AnalysisBase, save_path, **kwargs):
         plt.xticks(fontsize=20, rotation=10)
         plt.yticks(fontsize=20)
         tikzplotlib.save(tex_path / f"{task_name}_noise_points.tex")
-        modify_tex_file(tex_path / f"{task_name}_noise_points.tex", pdf_path)
-        compile_tex(tex_path / f"{task_name}_noise_points.tex", pdf_path)
+        modify_lex_file(tex_path / f"{task_name}_noise_points.tex", pdf_path)
         plt.close()
 
         df_avg_cluster_size = pds.DataFrame(result_of_avg_cluster_size[task_name])
@@ -538,8 +632,7 @@ def dbscan_analysis(ab: AnalysisBase, save_path, **kwargs):
         plt.xticks(fontsize=20, rotation=10)
         plt.yticks(fontsize=20)
         tikzplotlib.save(tex_path / f"{task_name}_avg_cluster_size.tex")
-        modify_tex_file(tex_path / f"{task_name}_avg_cluster_size.tex", pdf_path)
-        compile_tex(tex_path / f"{task_name}_avg_cluster_size.tex", pdf_path)
+        modify_lex_file(tex_path / f"{task_name}_avg_cluster_size.tex", pdf_path)
         plt.close()
 
 

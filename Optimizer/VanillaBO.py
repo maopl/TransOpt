@@ -1,10 +1,10 @@
 import numpy as np
 import GPy
-from Acquisition.ConstructACF import get_ACF
-from Acquisition.sequential import Sequential
+from Optimizer.Acquisition.ConstructACF import get_ACF
+from Optimizer.Acquisition.sequential import Sequential
 from typing import Dict, Union, List
 from Optimizer.BayesianOptimizerBase import BayesianOptimizerBase
-from Util.Data import InputData, TaskData, vectors_to_ndarray, output_to_ndarray, ndarray_to_vectors
+from Util.Data import ndarray_to_vectors
 from Util.Register import optimizer_register
 
 from Util.Normalization import get_normalizer
@@ -34,14 +34,7 @@ class VanillaBO(BayesianOptimizerBase):
         else:
             self.acf = 'EI'
 
-    def reset(self, design_space:Dict, search_sapce:Union[None, Dict] = None):
-        self.set_space(design_space, search_sapce)
-        self.obj_model = None
-        self.var_model = None
-        self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
-        self._Y = np.empty((0,))
-        self.acqusition = get_ACF(self.acf, model=self, search_space=self.search_space, config=self.config)
-        self.evaluator = Sequential(self.acqusition)
+
 
     def initial_sample(self):
         return self.random_sample(self.ini_num)
@@ -139,6 +132,9 @@ class VanillaBO(BayesianOptimizerBase):
 
         random_samples = self.inverse_transform(random_samples)
         return random_samples
+
+    def model_reset(self):
+        self.obj_model = None
 
     def get_fmin(self):
         "Get the minimum of the current model."

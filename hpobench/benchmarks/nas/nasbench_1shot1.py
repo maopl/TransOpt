@@ -251,9 +251,9 @@ class NASBench1shot1BaseBenchmark(AbstractBenchmark):
     @staticmethod
     def get_meta_information() -> Dict:
         """ Returns the meta information for the benchmark """
-        return {'name': 'NAS-Bench-1Shot1: Benchmarking and Dissecting One-shot Neural Architecture Search',
-                'references': ['@inproceedings{Zela2020NAS-Bench-1Shot1:, '
-                               'title     = {NAS-Bench-1Shot1: '
+        return {'name': 'NAS-Benchmark-1Shot1: Benchmarking and Dissecting One-shot Neural Architecture Search',
+                'references': ['@inproceedings{Zela2020NAS-Benchmark-1Shot1:, '
+                               'title     = {NAS-Benchmark-1Shot1: '
                                '             Benchmarking and Dissecting One-shot Neural Architecture Search},'
                                'author    = {Arber Zela and Julien Siems and Frank Hutter},'
                                'booktitle = {International Conference on Learning Representations},'

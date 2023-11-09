@@ -15,7 +15,7 @@ from GPy.likelihoods.multioutput_likelihood import MixedNoise
 from GPy.core.gp import GP
 from Model.MPGP import MPGP
 from Optimizer.BaseModule import OptimizerBase
-from Model.PracGP import PracGP
+from Optimizer.Model.PracGP import PracGP
 
 from External.transfergpbo import models
 from External.transfergpbo.models import TaskData

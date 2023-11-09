@@ -94,18 +94,15 @@ def create_details_report(details_folders, save_path):
         html_content = """"""
         for picture in pictures:
             # 将同一种函数归为一类
-            if len(picture.split('_')) == 2:
-                subtitle = picture.split('_')[0]
-            else:
-                subtitle = picture.split('_')[0] + '_' + picture.split('_')[1]
-            if subtitle not in function_name:
+            if picture.split('_')[0] not in function_name:
                 if len(function_name) != 0:
                     html_content += """
                         </div>
+
                     """
-                function_name.add(subtitle)
+                function_name.add(picture.split('_')[0])
                 html_content += f"""
-                    <h2>{subtitle}</h2>
+                    <h2>{picture.split('_')[0]}</h2>
                     <div class="container">
                 """
             html_content += f"""
@@ -324,7 +321,7 @@ def create_report(save_path):
         </head>
     <body>
         <div class="title_container">
-            <h1 class="title">Analysis Report</h1>
+            <h1 class="title">Analysis Rusults Report</h1>
         </div>
 
         <div class="container">
@@ -337,11 +334,7 @@ def create_report(save_path):
 
     # 读取生成的图片名，并写入html
     pictures_path = save_path / 'Overview' / 'Pictures'
-    pdf_to_png(pictures_path)
-    pictures = []
-    for filename in os.listdir(pictures_path):
-        if filename.endswith(".png"):
-            pictures.append(os.path.splitext(filename)[0])
+    pictures = pdf_to_png(pictures_path)
     html_content = """"""
     for picture in pictures:
         report_container = f"""

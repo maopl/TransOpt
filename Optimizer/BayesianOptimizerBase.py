@@ -2,13 +2,13 @@ import abc
 import numpy as np
 import ConfigSpace
 import math
-from importlib_metadata import version
 from typing import Union, Dict, List
 from Optimizer.OptimizerBase import OptimizerBase
 import GPyOpt
 from Util.Data import InputData, TaskData, vectors_to_ndarray, output_to_ndarray
 from KnowledgeBase.TaskDataHandler import OptTaskDataHandler
-
+from Optimizer.Acquisition.ConstructACF import get_ACF
+from Optimizer.Acquisition.sequential import Sequential
 
 class BayesianOptimizerBase(OptimizerBase):
     """
@@ -23,6 +23,8 @@ class BayesianOptimizerBase(OptimizerBase):
         self.search_space = None
         self.design_space = None
         self.ini_num = None
+        self._data_handler = None
+        self.obj_model = None
 
     def _get_var_bound(self, space_name)->Dict:
         assert self.design_space is not None
@@ -177,15 +179,6 @@ class BayesianOptimizerBase(OptimizerBase):
 
         return space
 
-    def sync_from_handler(self, data_handler):
-        self.observe(data_handler.get_input_vectors(), data_handler.get_output_value())
-        self.set_auxillary_data(data_handler.get_auxillary_data())
-
-    def set_auxillary_data(self, aux_data:Union[Dict, List[Dict], None]):
-        if aux_data is None:
-            self.aux_data = {}
-        else:
-            self.aux_data = aux_data
 
     def validate_space_info(self, space_info: Dict) -> bool:
         """
@@ -333,6 +326,9 @@ class BayesianOptimizerBase(OptimizerBase):
             return self._to_designspace(X)
 
     def observe(self, input_vectors: Union[List[Dict], Dict], output_value: Union[List[Dict], Dict]) -> None:
+
+        self._data_handler.add_observation(input_vectors, output_value)
+
         # Convert dict to list of dict
         if isinstance(input_vectors, Dict):
             input_vectors = [input_vectors]
@@ -350,9 +346,59 @@ class BayesianOptimizerBase(OptimizerBase):
         self._X = np.vstack((self._X, vectors_to_ndarray(self._get_var_name('search'), X))) if self._X.size else vectors_to_ndarray(self._get_var_name('search'), X)
         self._Y = np.vstack((self._Y, output_to_ndarray(output_value))) if self._Y.size else output_to_ndarray(output_value)
 
+    def optimize(self, testsuits, data_handler):
+        self.set_DataHandler(data_handler)
+        while (testsuits.get_unsolved_num()):
+            space_info = testsuits.get_cur_space_info()
+            self.reset(testsuits.get_curname(), space_info, search_sapce=None)
+            testsuits.sync_query_num(len(self._X))
+            self.set_auxillary_data()
+            while (testsuits.get_rest_budget()):
+                suggested_sample = self.suggest()
+                observation = testsuits.f(suggested_sample)
+                self.observe(suggested_sample, observation)
+            testsuits.roll()
+
+    def set_DataHandler(self, data_handler:OptTaskDataHandler):
+        self._data_handler = data_handler
+
+    def sync_data(self, input_vectors: List[Dict], output_value: List[Dict]):
+
+        # Convert dict to list of dict
+        if isinstance(input_vectors, Dict):
+            input_vectors = [input_vectors]
+        if isinstance(output_value, Dict):
+            output_value = [output_value]
+
+        # Check if the lists are empty and return if they are
+        if len(input_vectors) == 0 and len(output_value) == 0:
+            return
+
+
+        self._validate_observation('design', input_vectors=input_vectors, output_value=output_value)
+        X = self.transform(input_vectors)
+
+        self._X = np.vstack((self._X, vectors_to_ndarray(self._get_var_name('search'), X))) if self._X.size else vectors_to_ndarray(self._get_var_name('search'), X)
+        self._Y = np.vstack((self._Y, output_to_ndarray(output_value))) if self._Y.size else output_to_ndarray(output_value)
+
+    def set_auxillary_data(self):
+        if self._data_handler is None:
+            self.aux_data = {}
+        else:
+            self.aux_data = self._data_handler.get_auxillary_data()
+
+    def reset(self, task_name:str, design_space:Dict, search_sapce:Union[None, Dict] = None):
+        self.set_space(design_space, search_sapce)
+        self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
+        self._Y = np.empty((0,))
+        self._data_handler.reset_task(task_name, design_space)
+        self.sync_data(self._data_handler.get_input_vectors(), self._data_handler.get_output_value())
+        self.model_reset()
+        self.acqusition = get_ACF(self.acf, model=self, search_space=self.search_space, config=self.config)
+        self.evaluator = Sequential(self.acqusition)
 
     @abc.abstractmethod
-    def reset(self, design_space: Dict, search_sapce: Union[None, Dict] = None):
+    def model_reset(self):
         return
 
     @abc.abstractmethod

@@ -9,10 +9,10 @@ from Util import Prior
 from Optimizer.LFLOptimizera import LFLOptimizer
 
 
-from Acquisition.ConstructACF import construct_acf
+from Optimizer.Acquisition.ConstructACF import construct_acf
 
 from KnowledgeBase.Task_recognition import reco_MOGP
-from KnowledgeBase.Knowledge_selection import  Source_selec, Source_selec_rank, Source_selec_ori
+from KnowledgeBase.Knowledge_selection import  Source_selec
 
 import Visualization.Visual_landscape as visual
 from Gym import Gym_Metric

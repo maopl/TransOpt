@@ -9,5 +9,6 @@ Notes = {
                         'solution when addressing a problem. A higher convergence rate is often seen as an '
                         'advantage in algorithm performance.',
     'scott_knott': '123',
-    'heatmap': '111',
+    'compare_convergence_rate': '321',
+    'compare_mean': '111',
 }

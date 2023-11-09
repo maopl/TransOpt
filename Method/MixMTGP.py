@@ -3,7 +3,6 @@ import numpy as np
 import pandas
 import gc
 import GPyOpt as GPyOpt
-import pickle
 import os
 
 import GPy
@@ -13,11 +12,10 @@ from Util.Initialization import InitData
 from Util import Prior
 from Optimizer.MixOptimizer import MixOptimizer
 
-from Acquisition.ConstructACF import construct_acf
+from Optimizer.Acquisition.ConstructACF import construct_acf
 
 from KnowledgeBase.Task_recognition import reco_MOGP,reco_Tree
-from KnowledgeBase.Knowlege_extraction import Extr_barycenter,Extr_Kmeans, Extr_mean, Extr_rank
-from KnowledgeBase.Knowledge_selection import  Source_selec, Source_selec_rank, Source_selec_ori
+from KnowledgeBase.Knowledge_selection import  Source_selec, Source_selec_rank
 
 import Visualization.Visual_landscape as visual
 from Gym import Gym_Metric

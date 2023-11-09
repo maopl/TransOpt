@@ -9,7 +9,7 @@ from Util import Prior
 from Optimizer.TMTGPOptimizer import MOGPOptimizer
 from Optimizer.MultitaskOptimizera import MultiTaskOptimizer
 
-from Acquisition.ConstructACF import construct_acf
+from Optimizer.Acquisition.ConstructACF import construct_acf
 
 from KnowledgeBase.Task_recognition import reco_MOGP
 from KnowledgeBase.Knowledge_selection import  Source_selec, Source_selec_rank, Source_selec_ori

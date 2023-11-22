@@ -424,9 +424,13 @@ class BayesianOptimizerBase(OptimizerBase):
         assert self.input_dim
         try:
             assert self.obj_model
-            assert self.acqusition
         except:
             return
+
+        try:
+            assert self.acqusition
+        except:
+            self.acqusition = None
 
         if self.input_dim == 1:
             visual_oned(optimizer=self, train_x=self._X, train_y=self._Y,

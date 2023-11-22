@@ -10,8 +10,8 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE."
 from Util.Data import ndarray_to_vectors, vectors_to_ndarray
 
 
-def visual_contour(optimizer, testsuites, ac_model,
-                train_x, train_y, Ac_candi,test_size=101,
+def visual_contour(optimizer, testsuites,
+                train_x, train_y, Ac_candi, test_size=101, ac_model = None,
                 dtype=np.float64):
     # Initialize plots
     f, ax = plt.subplots(2, 2, figsize=(16, 16))
@@ -46,9 +46,9 @@ def visual_contour(optimizer, testsuites, ac_model,
     test_y = np.array(test_y).reshape(xgrid_0.shape)
 
     # Calculate EI for the problem
-
-    test_ei = ac_model._compute_acq(test_x)
-    test_ei = test_ei.reshape(xgrid_0.shape)
+    if ac_model is not None:
+        test_ei = ac_model._compute_acq(test_x)
+        test_ei = test_ei.reshape(xgrid_0.shape)
 
     candidate = optimizer._to_searchspace(Ac_candi[0])
     candidate = [v for x, v in candidate.items()]
@@ -93,7 +93,8 @@ def visual_contour(optimizer, testsuites, ac_model,
         ax.plot(candidate[0], candidate[1],
                    color='orange', marker='*', linewidth=0)
         ax.set_title(title)
-    ax_plot_ei('Acquisition Function', ax[1][1], train_x, test_ei, candidate ,cm.Greens)
+    if ac_model is not None:
+        ax_plot_ei('Acquisition Function', ax[1][1], train_x, test_ei, candidate ,cm.Greens)
 
     # PLot covariance contour in the last row
     ax_plot('Prediction covariance', ax[1][0], train_x, observed_corv, test_size, cm.Blues)
@@ -110,8 +111,8 @@ def visual_contour(optimizer, testsuites, ac_model,
 
 
 
-def visual_oned(optimizer, testsuites, ac_model,
-                train_x, train_y, Ac_candi,
+def visual_oned(optimizer, testsuites,
+                train_x, train_y, Ac_candi, ac_model = None,
                 dtype=np.float64):
     # Initialize plots
     f, ax = plt.subplots(1, 1, figsize=(8, 8))
@@ -136,7 +137,8 @@ def visual_oned(optimizer, testsuites, ac_model,
     train_y_temp = normalize(train_y, y_mean, y_std)
 
     # Calculate EI for the problem
-    test_ei = ac_model._compute_acq(test_x[:, np.newaxis])
+    if ac_model is not None:
+        test_ei = ac_model._compute_acq(test_x[:, np.newaxis])
 
     pre_mean = observed_pred_y
     pre_best_y = np.min(pre_mean)
@@ -146,7 +148,8 @@ def visual_oned(optimizer, testsuites, ac_model,
 
     ax.plot(test_x, test_y, 'r-', linewidth=1, alpha=1)
     ax.plot(test_x, pre_mean[:,0], 'b-', linewidth=1, alpha=1)
-    ax.plot(test_x, test_ei[:,0], 'g-', linewidth=1, alpha=1)
+    if ac_model is not None:
+        ax.plot(test_x, test_ei[:,0], 'g-', linewidth=1, alpha=1)
 
     candidate = optimizer._to_searchspace(Ac_candi[0])
     ax.plot(train_x[:,0], train_y_temp[:,0], marker='*', color='black', linewidth=0)
@@ -172,7 +175,8 @@ def visual_oned(optimizer, testsuites, ac_model,
                                                    f'{testsuites.get_query_num()}'),np.concatenate((test_x[:, np.newaxis], observed_pred_y - observed_corv), axis=1))
     np.savetxt('{}/verbose/oneD/{}/{}/{}_cov_higher.txt'.format(Exper_folder, optimizer.optimizer_name, f'{testsuites.get_curname()}',
                                                    f'{testsuites.get_query_num()}'),np.concatenate((test_x[:, np.newaxis], observed_pred_y + observed_corv), axis=1))
-    np.savetxt('{}/verbose/oneD/{}/{}/{}_ei.txt'.format(Exper_folder, optimizer.optimizer_name, f'{testsuites.get_curname()}',
+    if ac_model is not None:
+        np.savetxt('{}/verbose/oneD/{}/{}/{}_ei.txt'.format(Exper_folder, optimizer.optimizer_name, f'{testsuites.get_curname()}',
                                                    f'{testsuites.get_query_num()}'), np.concatenate((test_x[:, np.newaxis], test_ei), axis=1))
 
     np.savetxt('{}/verbose/oneD/{}/{}/{}_train.txt'.format(Exper_folder, optimizer.optimizer_name, f'{testsuites.get_curname()}',

@@ -43,7 +43,6 @@ def visual_contour(optimizer, testsuites, ac_model,
     mean = np.mean(train_y)
     std = np.std(train_y)
     test_y = normalize(test_y, mean, std)
-    train_y_temp = normalize(train_y, mean, std)
     test_y = np.array(test_y).reshape(xgrid_0.shape)
 
     # Calculate EI for the problem
@@ -93,7 +92,6 @@ def visual_contour(optimizer, testsuites, ac_model,
                    'g*')
         ax.plot(candidate[0], candidate[1],
                    color='orange', marker='*', linewidth=0)
-        num_sample = train_x.shape[0]
         ax.set_title(title)
     ax_plot_ei('Acquisition Function', ax[1][1], train_x, test_ei, candidate ,cm.Greens)
 

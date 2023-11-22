@@ -1,0 +1,2 @@
+2023-11-14 12:41:50,806 ERROR Workload '1' is not supported. Supported workloads: ['tpcc', 'twitter', 'smallbank', 'sibench', 'voter', 'seats', 'tatp']
+2023-11-14 12:47:24,634 ERROR Workload '1' is not supported. Supported workloads: ['tpcc', 'twitter', 'smallbank', 'sibench', 'voter', 'seats', 'tatp']

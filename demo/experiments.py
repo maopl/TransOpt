@@ -34,10 +34,10 @@ if __name__ == '__main__':
     tasks = {
             # 'DBMS':{'budget': 11, 'time_stamp': 3},
             # 'GCC' : {'budget': 11, 'time_stamp': 3},
-            'LLVM' : {'budget': 11, 'time_stamp': 3},
-             # 'Ackley': {'budget': 11, 'time_stamp': 3, 'params':{'input_dim':1}},
+            # 'LLVM' : {'budget': 11, 'time_stamp': 3},
+            #  'Rosenbrock': {'budget': 11, 'time_stamp': 3, 'params':{'input_dim':1}},
              # 'MPB': {'budget': 110, 'time_stamp': 3},
-             # 'Griewank': {'budget': 11, 'time_stamp': 3,  'params':{'input_dim':1}},
+             'Sphere': {'budget': 100, 'time_stamp': 3,  'params':{'input_dim':1}},
              # 'DixonPrice': {'budget': 110, 'time_stamp': 3},
              # 'Lunar': {'budget': 110, 'time_stamp': 3},
              # 'XGB': {'budget': 110, 'time_stamp': 3},

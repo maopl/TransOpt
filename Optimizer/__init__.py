@@ -4,4 +4,5 @@ from . import VanillaBO
 from . import VizerOptimizer
 from . import MultitaskOptimizer
 from . import RGPEOptimizer
-from . import TPEOptimizer
+from . import SAEA
+# from . import TPEOptimizer

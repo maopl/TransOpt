@@ -37,27 +37,25 @@ if __name__ == '__main__':
             # 'LLVM' : {'budget': 11, 'time_stamp': 3},
              # 'Ackley': {'budget': 11, 'time_stamp': 3, 'params':{'input_dim':1}},
              # 'MPB': {'budget': 110, 'time_stamp': 3},
-             'Griewank': {'budget': 11, 'time_stamp': 3,  'params':{'input_dim':2}},
-             # 'DixonPrice': {'budget': 110, 'time_stamp': 3},
+             # 'Griewank': {'budget': 11, 'time_stamp': 3,  'params':{'input_dim':2}},
+             'DixonPrice': {'budget': 11, 'time_stamp': 3, 'params':{'input_dim':1}},
              # 'Lunar': {'budget': 110, 'time_stamp': 3},
              # 'XGB': {'budget': 110, 'time_stamp': 3},
              }
 
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument("-im", "--init_method", type=str, default='random')
-    parser.add_argument("-in", "--init_number", type=int, default=8)
+    parser.add_argument("-in", "--init_number", type=int, default=7)
     parser.add_argument("-p", "--exp_path", type=str, default='../../LFL_experiments')
     parser.add_argument("-n", "--exp_name", type=str, default='test')  # 实验名称，保存在experiments中
     parser.add_argument("-s", "--seed", type=int, default=0)  # 设置随机种子，与迭代次数相关
-    parser.add_argument("-m", "--optimizer", type=str, default='BO')  # 设置method:WS,MT,INC
+    parser.add_argument("-m", "--optimizer", type=str, default='MTBO')  # 设置method:WS,MT,INC
     parser.add_argument("-v", "--verbose", type=bool, default=True)
     parser.add_argument("-norm", "--normalize", type=str, default='norm')
     parser.add_argument("-ns", "--source_num", type=int, default=2)
     parser.add_argument("-slt", "--selector", type=str, default='recent')
     parser.add_argument("-sm", "--save_mode", type=int, default=1)  # 控制是否保存模型
     parser.add_argument("-lm", "--load_mode", type=int, default=0)  # 控制是否从头开始
-    parser.add_argument("-lg", "--load_gym", type=int, default=1)  #
-    parser.add_argument("-mt", "--match", type=int, default=1)  #
     parser.add_argument("-ac", "--acquisition_func", type=str, default='LCB')  # 控制BO的acquisition function
     args = parser.parse_args()
 

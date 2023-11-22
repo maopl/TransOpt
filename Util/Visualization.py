@@ -30,7 +30,7 @@ def visual_contour(optimizer, testsuites, ac_model,
 
     test_vec = ndarray_to_vectors(var_name, test_x)
 
-    observed_pred_y, observed_corv = optimizer.obj_model.predict(test_x)
+    observed_pred_y, observed_corv = optimizer.predict(test_x)
     observed_pred_y = observed_pred_y.reshape(xgrid_0.shape)
     observed_corv = observed_corv.reshape(xgrid_0.shape)
 
@@ -122,13 +122,13 @@ def visual_oned(optimizer, testsuites, ac_model,
     search_bound = [search_space_info[0]['domain'][0], search_space_info[0]['domain'][1]]
     test_x = np.arange(search_bound[0], search_bound[1] + 0.005, 0.005, dtype=dtype)
 
-    observed_pred_y, observed_corv = optimizer.obj_model.predict(test_x[:,np.newaxis])
+    observed_pred_y, observed_corv = optimizer.predict(test_x[:,np.newaxis])
     test_vec = ndarray_to_vectors(var_name, test_x[:,np.newaxis])
     # Calculate the true value
     test_x_design = [optimizer._to_designspace(v) for v in test_vec]
     testsuites.lock()
     test_y = testsuites.f(test_x_design)
-    test_y = [y['function_value'] for y in test_y]
+    test_y = np.array([y['function_value'] for y in test_y])
 
     y_mean = np.mean(train_y)
     y_std = np.std(train_y)
@@ -165,18 +165,18 @@ def visual_oned(optimizer, testsuites, ac_model,
 
     os.makedirs('{}/verbose/oneD/{}/{}/'.format(Exper_folder, optimizer.optimizer_name, f'{testsuites.get_curname()}'), exist_ok=True)
     np.savetxt('{}/verbose/oneD/{}/{}/{}_true.txt'.format(Exper_folder, optimizer.optimizer_name, f'{testsuites.get_curname()}',
-                                                   f'{testsuites.get_curname()}'), np.concatenate((test_x[:, np.newaxis], test_y[:, np.newaxis]), axis=1))
+                                                   f'{testsuites.get_query_num()}'), np.concatenate((test_x[:, np.newaxis], test_y[:, np.newaxis]), axis=1))
     np.savetxt('{}/verbose/oneD/{}/{}/{}_pred_y.txt'.format(Exper_folder, optimizer.optimizer_name, f'{testsuites.get_curname()}',
-                                                   f'{testsuites.get_curname()}'), np.concatenate((test_x[:, np.newaxis], observed_pred_y), axis=1))
+                                                   f'{testsuites.get_query_num()}'), np.concatenate((test_x[:, np.newaxis], observed_pred_y), axis=1))
     np.savetxt('{}/verbose/oneD/{}/{}/{}_cov_lower.txt'.format(Exper_folder, optimizer.optimizer_name, f'{testsuites.get_curname()}',
-                                                   f'{testsuites.get_curname()}'),np.concatenate((test_x[:, np.newaxis], observed_pred_y - observed_corv), axis=1))
+                                                   f'{testsuites.get_query_num()}'),np.concatenate((test_x[:, np.newaxis], observed_pred_y - observed_corv), axis=1))
     np.savetxt('{}/verbose/oneD/{}/{}/{}_cov_higher.txt'.format(Exper_folder, optimizer.optimizer_name, f'{testsuites.get_curname()}',
-                                                   f'{testsuites.get_curname()}'),np.concatenate((test_x[:, np.newaxis], observed_pred_y + observed_corv), axis=1))
+                                                   f'{testsuites.get_query_num()}'),np.concatenate((test_x[:, np.newaxis], observed_pred_y + observed_corv), axis=1))
     np.savetxt('{}/verbose/oneD/{}/{}/{}_ei.txt'.format(Exper_folder, optimizer.optimizer_name, f'{testsuites.get_curname()}',
-                                                   f'{testsuites.get_curname()}'), np.concatenate((test_x[:, np.newaxis], test_ei), axis=1))
+                                                   f'{testsuites.get_query_num()}'), np.concatenate((test_x[:, np.newaxis], test_ei), axis=1))
 
-    np.savetxt('{}/toy/{}/{}/{}_train.txt'.format(Exper_folder, optimizer.optimizer_name, f'{testsuites.get_current_task_name()}',
-                                                   f'{testsuites.get_curname()}'), np.concatenate((train_x, train_y_temp), axis=1))
+    np.savetxt('{}/verbose/oneD/{}/{}/{}_train.txt'.format(Exper_folder, optimizer.optimizer_name, f'{testsuites.get_curname()}',
+                                                   f'{testsuites.get_query_num()}'), np.concatenate((train_x, train_y_temp), axis=1))
 
     plt.close()
     testsuites.unlock()

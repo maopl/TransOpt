@@ -436,7 +436,6 @@ class BayesianOptimizerBase(OptimizerBase):
             visual_contour(optimizer=self, train_x=self._X, train_y=self._Y,
                         testsuites=testsuits, ac_model=self.acqusition, Ac_candi=candidate)
 
-
     @abc.abstractmethod
     def model_reset(self):
         return

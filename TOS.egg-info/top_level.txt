@@ -1,7 +1,0 @@
-Benchmark
-External
-KnowledgeBase
-Optimizer
-ResultAnalysis
-Util
-hpobench

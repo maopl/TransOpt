@@ -15,7 +15,6 @@ class RGPEOptimizer(BayesianOptimizerBase):
     def __init__(self, config: Dict, **kwargs):
         super(RGPEOptimizer, self).__init__(config=config)
         self.init_method = 'Random'
-        self.model = None
 
         if 'verbose' in config:
             self.verbose = config['verbose']
@@ -63,12 +62,14 @@ class RGPEOptimizer(BayesianOptimizerBase):
     def model_reset(self):
         if self.obj_model is None:
             self.obj_model = RGPE(n_features=self.input_dim)
-        if self.obj_model.target_gp is not None:
+        if self.obj_model.target_model is not None:
             self.meta_update()
-            self.obj_model.fit({'X':self._X, 'Y':self._Y})
-        if self.obj_model.target_gp is None and self._X.size != 0:
+        if self._X.size != 0:
             self.obj_model.fit({'X':self._X, 'Y':self._Y})
 
+
+    def meta_update(self):
+        self.obj_model.meta_update()
     def suggest(self, n_suggestions:Union[None, int] = None) ->List[Dict]:
         if self._X.size == 0:
             suggests = self.initial_sample()
@@ -90,7 +91,7 @@ class RGPEOptimizer(BayesianOptimizerBase):
             return design_suggested_sample
 
     def create_model(self):
-        self.obj_model = MHGP(self.input_dim)
+        self.obj_model = RGPE(self.input_dim)
 
     def create_model(self, model_name, Source_data, Target_data):
         self.model_name = model_name
@@ -167,27 +168,14 @@ class RGPEOptimizer(BayesianOptimizerBase):
         return self.acf_time
 
 
-    def predict(self, X):
-        """
-        Predictions with the model. Returns posterior means and standard deviations at X. Note that this is different in GPy where the variances are given.
+    def predict(
+        self, X, return_full: bool = False, with_noise: bool = False
+    ) -> Tuple[np.ndarray, np.ndarray]:
 
-        Parameters:
-            X (np.ndarray) - points to run the prediction for.
-            with_noise (bool) - whether to add noise to the prediction. Default is True.
-        """
-        if X.ndim == 1:
-            X = X[None,:]
-        task_id = self.output_dim - 1
+        # returned mean: sum of means of the predictions of all source and target GPs
+        mu, var = self.obj_model.predict(X, return_full=return_full)
 
-        if self.model_name == 'SGPT_POE' or self.model_name == 'SGPT_M' or\
-            self.model_name == 'RGPE':
-            m, v = self.obj_model.predict(X)
-
-        else:
-            m, v = self.obj_model.predict(X)
-
-        # We can take the square root because v is just a diagonal matrix of variances
-        return m, v
+        return mu, var
 
 
     def obj_posterior_samples(self, X, sample_size):
@@ -204,8 +192,17 @@ class RGPEOptimizer(BayesianOptimizerBase):
 
         return samples_obj
 
-    def update_model(self, data: Dict):
-        return
+    def update_model(self, Data: Dict):
+        ## Train target model
+        if self.obj_model is None:
+            self.create_model(Data['Target'])
+        elif self.obj_model is not None:
+            self.obj_model.set_XY(Data['Target'])
+        else:
+            self.obj_model.set_XY(Data['Target'])
+
+        ## Train target model
+        self.obj_model.fit(Data['Target'], optimize=True)
 
     def get_fmin(self):
         "Get the minimum of the current model."

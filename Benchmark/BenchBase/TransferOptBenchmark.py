@@ -94,7 +94,10 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
         cs = self.get_curcs()
 
         for k, v in cs.items():
-            space_info[k] = {'bounds':[v.lower, v.upper], 'type':type(v).__name__}
+            if type(v) is ConfigSpace.CategoricalHyperparameter:
+                space_info[k] = {'bounds': [0, len(v.choices) - 1], 'type': type(v).__name__}
+            else:
+                space_info[k] = {'bounds':[v.lower, v.upper], 'type':type(v).__name__}
 
         return space_info
 

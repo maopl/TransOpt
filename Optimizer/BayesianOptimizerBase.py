@@ -22,6 +22,7 @@ class BayesianOptimizerBase(OptimizerBase):
         self.config = config
         self.search_space = None
         self.design_space = None
+        self.mapping = None
         self.ini_num = None
         self._data_handler = None
         self.obj_model = None
@@ -159,6 +160,8 @@ class BayesianOptimizerBase(OptimizerBase):
                 var_dic['type'] = 'continuous'
             elif var['type'] == 'UniformIntegerHyperparameter':
                 var_dic['type'] = 'discrete'
+            elif var['type'] == 'CategoricalHyperparameter':
+                var_dic['type'] = 'categorical'
             else:
                 raise NameError('Unknown variable type!')
             space.append(var_dic.copy())
@@ -225,6 +228,7 @@ class BayesianOptimizerBase(OptimizerBase):
         return True
 
 
+
     def set_space(self, design_space_info: Dict[str, dict], search_space_info: Union[Dict[str, dict], None]= None):
         """
         Define the design space based on the provided space_info and copy the design space to the search space.
@@ -248,6 +252,8 @@ class BayesianOptimizerBase(OptimizerBase):
             task_search_space = self._set_default_search_space()
         self.search_space = GPyOpt.Design_space(space=task_search_space)
 
+
+
     def _to_searchspace(self, X: Union[ConfigSpace.Configuration, Dict]) -> Dict:
         xx = []
         search_bound_dic = self._get_var_bound('search')
@@ -268,7 +274,7 @@ class BayesianOptimizerBase(OptimizerBase):
         design_bounds = np.array(design_bounds)
         xx = (xx - design_bounds[:, 0]) * (search_bounds[:, 1] - search_bounds[:, 0]) / (design_bounds[:, 1] - design_bounds[:, 0]) + (search_bounds[:, 0])
 
-        int_flag = [idx for idx, i in enumerate(search_type) if i == 'discrete']
+        int_flag = [idx for idx, i in enumerate(search_type) if i == 'discrete' or i == 'categorical']
 
         configuration_t = {k: np.round(xx[idx]).astype(int) if idx in int_flag else xx[idx] for idx, k in
                            enumerate(design_bound_dic.keys())}
@@ -292,9 +298,10 @@ class BayesianOptimizerBase(OptimizerBase):
         xx = np.array(xx)
         search_bounds = np.array(search_bounds)
         design_bounds = np.array(design_bounds)
+
         xx = (xx - search_bounds[:, 0]) * (design_bounds[:, 1] - design_bounds[:, 0]) / (search_bounds[:, 1] - search_bounds[:, 0]) + (design_bounds[:, 0])
 
-        int_flag = [idx for idx, i in enumerate(design_type) if i == 'discrete']
+        int_flag = [idx for idx, i in enumerate(design_type) if i == 'discrete' or i == 'categorical']
 
         configuration_t = {k: np.round(xx[idx]).astype(int) if idx in int_flag else xx[idx] for idx, k in
                            enumerate(design_bound_dic.keys())}

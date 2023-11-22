@@ -35,7 +35,8 @@ setup(
         "tikzplotlib",
         "pdf2image",
         "GPy",
-        "GPyOpt"
+        "GPyOpt",
+        "tpe",
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',

@@ -44,6 +44,31 @@ class KnowledgeBase(abc.ABC, metaclass=abc.ABCMeta):
             return data
 
     def _save_database(self) -> None:
+        # def print_value_types(obj, path=""):
+        #     """
+        #     Print the type of each value in the dictionary. If the value is iterable (like dictionaries and lists),
+        #     it recursively prints the type of each nested item.
+        #
+        #     Args:
+        #     obj: The object (typically a dictionary) to analyze.
+        #     path: The path to the current object within the main object.
+        #     """
+        #     if isinstance(obj, dict):
+        #         for key, value in obj.items():
+        #             new_path = f"{path}.{key}" if path else str(key)
+        #             print(f"Path: {new_path}, Type: {type(value).__name__}")
+        #             print_value_types(value, new_path)
+        #     elif isinstance(obj, list):
+        #         for index, item in enumerate(obj):
+        #             new_path = f"{path}[{index}]"
+        #             print(f"Path: {new_path}, Type: {type(item).__name__}")
+        #             print_value_types(item, new_path)
+        #     else:
+        #         # Not a dict or list, just print the type of the item
+        #         print(f"Path: {path}, Type: {type(obj).__name__}")
+
+
+        # print_value_types(self.data_base)
         with open(self.file_path, 'w') as f:
             json.dump(self.data_base, f)
 

@@ -2,15 +2,10 @@ import copy
 import numpy as np
 import os
 from typing import Dict
-# from Benchmark.HPO import HPOSVM, HPOXGBoost, HPORes18
-# from notused_py import HPOCNN, HPOMLP
-from Benchmark.Synthetic.SyntheticBenchmark import AckleyOptBenchmark
-# from Benchmark.RL.LunarlanderBenchmark import LunarlanderBenchmark
+import Benchmark
+
 from Benchmark.BenchBase.TransferOptBenchmark import TransferOptBenchmark
-from Benchmark.HPOB.HpobBench import HPOb
-from Benchmark.Synthetic.MovingPeakBenchmark import MovingPeakBenchmark, MovingPeakGenerator
 from Util.Register import benchmark_registry
-import matplotlib.pyplot as plt
 
 
 
@@ -26,7 +21,10 @@ def ConstructLFLTestSuits(tasks:Dict = None, seed=0):
             fun = task_name
             budget = task_params['budget']
             time_stamp_num = task_params['time_stamp']
-            params = task_params['params']
+            if 'params' in task_params:
+                params = task_params['params']
+            else:
+                params = {}
 
             # 从注册表中获取任务类
             task_class = benchmark_registry.get(fun)

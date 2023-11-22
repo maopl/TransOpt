@@ -1,18 +1,3 @@
-# Copyright (c) 2021 Robert Bosch GmbH
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published
-# by the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 import copy
 from typing import Dict, Hashable, Tuple
 
@@ -84,7 +69,7 @@ class RGPE(Model):
         self._source_gps = {}
         self._source_gp_weights = {}
 
-        self._target_model = GPBO(**copy.deepcopy(gpygp_kwargs))
+        self.target_model = None
         self._target_model_weight = 1
 
     @property

@@ -14,7 +14,6 @@ class Vizer(BayesianOptimizerBase):
     def __init__(self, config: Dict, **kwargs):
         super(Vizer, self).__init__(config=config)
         self.init_method = 'Random'
-        self.model = None
 
         if 'verbose' in config:
             self.verbose = config['verbose']

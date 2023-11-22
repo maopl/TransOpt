@@ -1,17 +1,13 @@
 import logging
 import os
 import argparse
-import pickle
-import numpy as np
 
 
-import Util.Register
-import KnowledgeBase.DataSelection
+
 from Benchmark.ConstructTestSuits import get_testsuits
 from Optimizer.ConstructOptimizer import get_optimizer
 from KnowledgeBase.ConstructKB import get_knowledgebase
 from KnowledgeBase.TaskDataHandler import OptTaskDataHandler
-from KnowledgeBase.KnowledgeBaseAccessor import KnowledgeBaseAccessor
 
 
 os.environ['MKL_NUM_THREADS'] = "1"

@@ -6,6 +6,7 @@ from typing import Union, Dict, List
 from Optimizer.OptimizerBase import OptimizerBase
 import GPyOpt
 from Util.Data import InputData, TaskData, vectors_to_ndarray, output_to_ndarray
+from Util.Visualization import visual_oned, visual_contour
 from KnowledgeBase.TaskDataHandler import OptTaskDataHandler
 from Optimizer.Acquisition.ConstructACF import get_ACF
 from Optimizer.Acquisition.sequential import Sequential
@@ -252,6 +253,19 @@ class BayesianOptimizerBase(OptimizerBase):
             task_search_space = self._set_default_search_space()
         self.search_space = GPyOpt.Design_space(space=task_search_space)
 
+    def get_spaceinfo(self, space_name):
+        assert self.design_space is not None
+        assert self.search_space is not None
+
+        if space_name == 'design':
+            space = self.design_space.config_space
+        elif space_name == 'search':
+            space = self.search_space.config_space
+        else:
+            raise NameError('Wrong space name, choose space name from design or search!')
+
+        return space
+
 
 
     def _to_searchspace(self, X: Union[ConfigSpace.Configuration, Dict]) -> Dict:
@@ -364,6 +378,8 @@ class BayesianOptimizerBase(OptimizerBase):
                 suggested_sample = self.suggest()
                 observation = testsuits.f(suggested_sample)
                 self.observe(suggested_sample, observation)
+                if self.verbose:
+                    self.visualization(testsuits, suggested_sample)
             testsuits.roll()
 
     def set_DataHandler(self, data_handler:OptTaskDataHandler):
@@ -403,6 +419,23 @@ class BayesianOptimizerBase(OptimizerBase):
         self.model_reset()
         self.acqusition = get_ACF(self.acf, model=self, search_space=self.search_space, config=self.config)
         self.evaluator = Sequential(self.acqusition)
+
+    def visualization(self, testsuits, candidate):
+        assert self.input_dim
+        try:
+            assert self.obj_model
+            assert self.acqusition
+        except:
+            return
+
+        if self.input_dim == 1:
+            visual_oned(optimizer=self, train_x=self._X, train_y=self._Y,
+                        testsuites=testsuits, ac_model=self.acqusition, Ac_candi=candidate)
+
+        if self.input_dim == 2:
+            visual_contour(optimizer=self, train_x=self._X, train_y=self._Y,
+                        testsuites=testsuits, ac_model=self.acqusition, Ac_candi=candidate)
+
 
     @abc.abstractmethod
     def model_reset(self):

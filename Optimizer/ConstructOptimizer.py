@@ -12,6 +12,9 @@ def get_optimizer(args):
         'init_number':args.init_number,
         'normalize': args.normalize,
         'acf': args.acquisition_func,
+        'verbose': args.verbose,
+        'optimizer_name': args.optimizer,
+        'save_path': args.exp_path,
     }
 
     if optimizer_class is not None:

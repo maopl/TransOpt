@@ -80,6 +80,9 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
     def unlock(self):
         self.tasks[self.__id].unlock()
 
+    def get_lockstate(self):
+        return self.tasks[self.__id].get_lock_state()
+
     def get_task_type(self):
         if isinstance(self.tasks[self.__id], ConfigOptBenchmark.TabularOptBenchmark):
             return 'tabular'
@@ -123,7 +126,8 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
         return self.tasks[self.__id].get_unobserved_idxs()
 
     def add_query_num(self):
-        self.query_nums[self.__id] += 1
+        if self.get_lockstate() == False:
+            self.query_nums[self.__id] += 1
 
 
 
@@ -132,7 +136,7 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
                            idx: Union[int, None, List[int]] = None,
                            **kwargs):
         if isinstance(configuration, list):
-            if self.get_query_num() + len(configuration) > self.get_curbudget():
+            if self.get_query_num() + len(configuration) > self.get_curbudget() and self.get_lockstate() == False:
                 logger.error(' The current function evaluation has exceeded the user-set budget.')
                 raise EnvironmentError
 
@@ -161,7 +165,7 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
                 results.append(result)
             return results
         else:
-            if self.get_query_num() >= self.get_curbudget():
+            if self.get_query_num() >= self.get_curbudget() and self.get_lockstate() == False:
                 logger.error(' The current function evaluation has exceeded the user-set budget.')
                 raise EnvironmentError
 

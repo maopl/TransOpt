@@ -19,7 +19,7 @@ class NonTabularOptBenchmark(Base.BenchmarkBase):
         self.task_name = task_name
         self.task_id = task_id
         self.budget = budget
-        self.lock = False
+        self.lock_flag = False
 
         super(NonTabularOptBenchmark, self).__init__(seed, **kwargs)
         self.var_range = self.get_configuration_bound()
@@ -102,13 +102,13 @@ class NonTabularOptBenchmark(Base.BenchmarkBase):
 
 
     def lock(self):
-        self.lock = True
+        self.lock_flag = True
 
     def unlock(self):
-        self.lock = False
+        self.lock_flag = False
 
     def get_lock_state(self) -> bool:
-        return self.lock
+        return self.lock_flag
 
 class TabularOptBenchmark(NonTabularOptBenchmark):
     def __init__(self, task_name: str, task_type: str, budget:int, path: str,

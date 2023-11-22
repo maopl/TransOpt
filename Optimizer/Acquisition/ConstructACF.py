@@ -1,6 +1,5 @@
 
 import GPyOpt
-import Optimizer.Acquisition
 from Util.Register import acf_registry
 
 

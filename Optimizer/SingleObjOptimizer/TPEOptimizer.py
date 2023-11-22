@@ -1,15 +1,11 @@
-import ConfigSpace as CS
 import numpy as np
-import GPy
-from Optimizer.Acquisition.ConstructACF import get_ACF
-from Optimizer.Acquisition.sequential import Sequential
-from typing import Any, Dict, List, Optional, Union
-from Optimizer.BayesianOptimizerBase import BayesianOptimizerBase
+from typing import Dict, List, Union
+from Optimizer.SingleObjOptimizer.BayesianOptimizerBase import BayesianOptimizerBase
 from Util.Data import ndarray_to_vectors
 from Util.Register import optimizer_register
 
 from Util.Normalization import get_normalizer
-from tpe.optimizer import TPEOptimizer as TPE
+
 
 @optimizer_register('TPE')
 class TPEOptimizer(BayesianOptimizerBase):

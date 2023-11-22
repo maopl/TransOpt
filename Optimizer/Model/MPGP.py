@@ -1,24 +1,7 @@
 import numpy as np
-import GPy
-import abc
-from six import with_metaclass
-from GPy import kern
-from GPy import util
-from paramz import ObsAr
 from Optimizer.Model.GP import PriorGP
-from GPy.core.parameterization import Param
-from  GPy.models.multioutput_gp import MultioutputGP
-from numpy.linalg.linalg import LinAlgError
-import matplotlib.pyplot as plt
 import multiprocessing as mp
-import itertools
-from GPy.util.linalg import pdinv, dpotrs, tdot
-from GPy.util import diag
 
-from paramz.transformations import Transformation, __fixed__
-from functools import reduce
-
-from GPy.likelihoods import gaussian
 log_2_pi = np.log(2*np.pi)
 
 def opt_wrapper(args):

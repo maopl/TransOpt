@@ -1,4 +1,3 @@
-import time
 import numpy as np
 import GPyOpt as GPyOpt
 import pickle
@@ -7,13 +6,11 @@ import os
 
 from Util.Normalization  import Normalize
 from Util.Initialization import InitData
-from Optimizer.MultitaskOptimizera import MultiTaskOptimizer
-from Optimizer.Acquisition.ConstructACF import construct_acf
+from Optimizer import MultiTaskOptimizer
+from Optimizer import construct_acf
 
 import Visualization.Visual_landscape as visual
 
-from External.transfergpbo.models import TaskData
-import sobol_seq
 from collections import defaultdict
 def MultiTask(
         Dty=np.float64,

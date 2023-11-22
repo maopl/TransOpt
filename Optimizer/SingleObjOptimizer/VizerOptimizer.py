@@ -1,4 +1,3 @@
-import time
 import numpy as np
 
 from Util.Data import ndarray_to_vectors
@@ -6,8 +5,9 @@ from Util.Register import optimizer_register
 from Util.Normalization import get_normalizer
 from Optimizer.Model.MHGP import MHGP
 from typing import Dict, Union, List, Tuple
-from Optimizer.BayesianOptimizerBase import BayesianOptimizerBase
-from KnowledgeBase.DataHandlerBase import DataHandler
+from Optimizer.SingleObjOptimizer.BayesianOptimizerBase import BayesianOptimizerBase
+
+
 @optimizer_register('vizer')
 class Vizer(BayesianOptimizerBase):
 

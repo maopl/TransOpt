@@ -11,7 +11,6 @@ from External.hyperbo.bo_utils import data
 from External.hyperbo.gp_utils import objectives as obj
 import jax
 import jax.numpy as jnp
-import jaxopt
 import matplotlib
 import matplotlib.pyplot as plt
 from typing import Any, Callable, Dict, List, Tuple, Union

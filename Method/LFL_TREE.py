@@ -8,12 +8,12 @@ from Util.Normalization  import Normalize
 from Util.Initialization import InitData
 from External.transfergpbo.models import TaskData
 
-from Optimizer.Acquisition.ConstructACF import construct_acf
+from Optimizer import construct_acf
 
 import Visualization.Visual_landscape as visual
 from Gym import Gym_Metric
 
-from Optimizer.LFLTreeOptimizer import MTTree
+from Optimizer import MTTree
 
 from KnowledgeBase.Task_recognition import reco_Tree
 

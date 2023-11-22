@@ -6,13 +6,13 @@ import os
 from Util.Normalization import Norm_pt
 from Util.Initialization import InitData
 from Util import Prior
-from Optimizer.TMTGPOptimizer import MOGPOptimizer
-from Optimizer.MultitaskOptimizera import MultiTaskOptimizer
+from Optimizer import MOGPOptimizer
+from Optimizer import MultiTaskOptimizer
 
-from Optimizer.Acquisition.ConstructACF import construct_acf
+from Optimizer import construct_acf
 
 from KnowledgeBase.Task_recognition import reco_MOGP
-from KnowledgeBase.Knowledge_selection import  Source_selec, Source_selec_rank, Source_selec_ori
+from KnowledgeBase.Knowledge_selection import  Source_selec
 
 import Visualization.Visual_landscape as visual
 from Gym import Gym_Metric

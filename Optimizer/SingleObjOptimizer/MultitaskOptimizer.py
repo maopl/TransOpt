@@ -1,9 +1,7 @@
 import numpy as np
 import GPy
-from Optimizer.Acquisition.ConstructACF import get_ACF
-from Optimizer.Acquisition.sequential import Sequential
 from typing import Dict, Union, List
-from Optimizer.BayesianOptimizerBase import BayesianOptimizerBase
+from Optimizer.SingleObjOptimizer.BayesianOptimizerBase import BayesianOptimizerBase
 from Util.Data import ndarray_to_vectors
 from Util.Register import optimizer_register
 from paramz import ObsAr

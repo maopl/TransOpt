@@ -6,10 +6,10 @@ import os
 
 from Util.Normalization  import Normalize
 from Util.Initialization import InitData
-from Optimizer.RestartOptimizer import RestartOptimizer
-from Optimizer.Acquisition.ConstructACF import construct_acf
+from Optimizer import RestartOptimizer
+from Optimizer import construct_acf
 from Util import Prior
-import Visualization.Visual_landscape as visual
+
 
 def GymOpt(
         Dty=np.float64,

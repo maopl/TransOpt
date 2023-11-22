@@ -8,8 +8,8 @@ from GPy import util
 from paramz import ObsAr
 
 from GPy.inference.latent_function_inference import expectation_propagation
-from Optimizer.BaseModule import OptimizerBase
-from Model.HyperBO import hyperbo
+from Optimizer.SingleObjOptimizer.OptimizerBase import OptimizerBase
+# from Model.HyperBO import hyperbo
 
 from External.transfergpbo import models
 from External.transfergpbo.models import TaskData

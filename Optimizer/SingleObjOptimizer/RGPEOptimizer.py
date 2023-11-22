@@ -1,13 +1,11 @@
 import numpy as np
 import GPy
-import GPyOpt
 
 from Util.Data import ndarray_to_vectors
 from Util.Register import optimizer_register
 from Util.Normalization import get_normalizer
 from typing import Dict, Union, List, Tuple
-from Optimizer.BayesianOptimizerBase import BayesianOptimizerBase
-from KnowledgeBase.DataHandlerBase import DataHandler
+from Optimizer.SingleObjOptimizer.BayesianOptimizerBase import BayesianOptimizerBase
 from Optimizer.Model.RGPE import RGPE
 
 @optimizer_register("RGPE")

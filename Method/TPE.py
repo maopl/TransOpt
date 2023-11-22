@@ -1,16 +1,10 @@
-import copy
-
 import numpy as np
-import GPyOpt as GPyOpt
 import os
 
-from Util.Normalization  import Normalize
 from Util.Initialization import InitData
-from External.transfergpbo.models import TaskData
-from Optimizer.TPEOptimizer import TPEOptimizer
+from Optimizer import TPEOptimizer
 import ConfigSpace as CS
 import ConfigSpace.hyperparameters as CSH
-import random
 
 
 def TPE(

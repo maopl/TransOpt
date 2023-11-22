@@ -1,27 +1,21 @@
-import time
 import numpy as np
 import pandas
-import gc
 import GPyOpt as GPyOpt
 import os
 
-import GPy
-from  GPy.mappings.constant import Constant
-from Util.Normalization import Norm_rank_pt,Norm_pt,Normalize_mean_std
+from Util.Normalization import Norm_pt
 from Util.Initialization import InitData
 from Util import Prior
-from Optimizer.MixOptimizer import MixOptimizer
+from Optimizer import MixOptimizer
 
-from Optimizer.Acquisition.ConstructACF import construct_acf
+from Optimizer import construct_acf
 
-from KnowledgeBase.Task_recognition import reco_MOGP,reco_Tree
-from KnowledgeBase.Knowledge_selection import  Source_selec, Source_selec_rank
+from KnowledgeBase.Task_recognition import reco_Tree
+from KnowledgeBase.Knowledge_selection import  Source_selec
 
 import Visualization.Visual_landscape as visual
 from Gym import Gym_Metric
 
-from Gym import Gym_func
-from Util.Cpu_state import get_cpu_state
 
 def Mix(
         Dty=np.float64,

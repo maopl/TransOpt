@@ -6,10 +6,10 @@ import os
 # from Util.Normalization import Norm_pt
 from Util.Initialization import InitData
 from Util import Prior
-from Optimizer.LFLOptimizera import LFLOptimizer
+from Optimizer import LFLOptimizer
 
 
-from Optimizer.Acquisition.ConstructACF import construct_acf
+from Optimizer import construct_acf
 
 from KnowledgeBase.Task_recognition import reco_MOGP
 from KnowledgeBase.Knowledge_selection import  Source_selec

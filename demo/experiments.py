@@ -55,7 +55,7 @@ if __name__ == '__main__':
     parser.add_argument("-ns", "--source_num", type=int, default=2)
     parser.add_argument("-slt", "--selector", type=str, default='recent')
     parser.add_argument("-sm", "--save_mode", type=int, default=1)  # 控制是否保存模型
-    parser.add_argument("-lm", "--load_mode", type=int, default=0)  # 控制是否从头开始
+    parser.add_argument("-lm", "--load_mode", type=bool, default=False)  # 控制是否从头开始
     parser.add_argument("-ac", "--acquisition_func", type=str, default='LCB')  # 控制BO的acquisition function
     args = parser.parse_args()
 

@@ -6,13 +6,15 @@ from typing import List, Any, Union, Tuple, Dict
 import warnings
 
 class KnowledgeBase(abc.ABC, metaclass=abc.ABCMeta):
-    def __init__(self, file_path: str):
+    def __init__(self, file_path: str, load_mode:bool = False):
         self.file_path = file_path
+        self.load_mode = load_mode
         self._initialize_data_file()
         self.data_base = self._load_database()
         self._dataset_id = set()
         self._dataset_name = set()
         self._update_datasets_info()
+
 
     def _initialize_data_file(self) -> None:
         directory = os.path.dirname(self.file_path)
@@ -24,17 +26,21 @@ class KnowledgeBase(abc.ABC, metaclass=abc.ABCMeta):
             except OSError as e:
                 raise OSError(f"Unable to create directory for file: {e}")
 
-        # 检查文件是否存在
-        if not os.path.exists(self.file_path):
+        if self.load_mode:
+            # 检查文件是否存在
+            if not os.path.exists(self.file_path):
+                with open(self.file_path, 'w') as f:
+                    json.dump({}, f)
+            else:
+                # 为了确保文件是一个有效的JSON文件，你可以尝试读取它
+                try:
+                    with open(self.file_path, 'r') as f:
+                        json.load(f)
+                except json.JSONDecodeError:
+                    raise ValueError(f"The file {self.file_path} exists but is not a valid JSON file.")
+        else:
             with open(self.file_path, 'w') as f:
                 json.dump({}, f)
-        else:
-            # 为了确保文件是一个有效的JSON文件，你可以尝试读取它
-            try:
-                with open(self.file_path, 'r') as f:
-                    json.load(f)
-            except json.JSONDecodeError:
-                raise ValueError(f"The file {self.file_path} exists but is not a valid JSON file.")
 
     def _load_database(self) -> dict:
         with open(self.file_path, 'r') as f:

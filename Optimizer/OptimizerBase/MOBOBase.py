@@ -5,19 +5,19 @@ import math
 from typing import Union, Dict, List
 from Optimizer.OptimizerBase.OptimizerBase import OptimizerBase
 import GPyOpt
-from Util.Data import vectors_to_ndarray, output_to_ndarray
+from Util.Data import vectors_to_ndarray, output_to_ndarray, multioutput_to_ndarray
 from Util.Visualization import visual_oned, visual_contour
 from KnowledgeBase.TaskDataHandler import OptTaskDataHandler
 from Optimizer.Acquisition.ConstructACF import get_ACF
 from Optimizer.Acquisition.sequential import Sequential
 
-class BayesianOptimizerBase(OptimizerBase):
+class MOBOBase(OptimizerBase):
     """
     The abstract Model for Bayesian Optimization
     """
 
     def __init__(self, config):
-        super(BayesianOptimizerBase, self).__init__(config=config)
+        super(MOBOBase, self).__init__(config=config)
         self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
         self._Y = np.empty((0,))
         self.config = config
@@ -25,9 +25,10 @@ class BayesianOptimizerBase(OptimizerBase):
         self.design_space = None
         self.mapping = None
         self.ini_num = None
-        self.output_dim = None
+        self.num_objective = None
         self._data_handler = None
-        self.obj_model = None
+        self.model_list = []
+        self.kernel_list = []
 
     def _get_var_bound(self, space_name)->Dict:
         assert self.design_space is not None
@@ -120,25 +121,7 @@ class BayesianOptimizerBase(OptimizerBase):
         if not isinstance(output, dict):
             raise ValueError("Expected output to be a dictionary.")
 
-        if 'function_value' not in output:
-            raise ValueError("Output value must contain 'function_value' key.")
 
-        function_value = output['function_value']
-        if not isinstance(function_value, (int, float)):
-            raise ValueError("'function_value' should be an int or float.")
-
-        # Check for NaN and infinite values
-        if math.isnan(function_value) or math.isinf(function_value):
-            raise ValueError("'function_value' should not be NaN or infinite.")
-
-        if 'info' not in output:
-            raise ValueError("Output value must contain 'info' key.")
-
-        if not isinstance(output['info'], dict):
-            raise ValueError("'info' key should contain a dictionary.")
-
-        if 'fidelity' not in output['info']:
-            raise ValueError("'info' dictionary must contain 'fidelity' key.")
 
 
     def _set_space(self, space_info: Dict[str, dict]) -> List[dict]:
@@ -151,7 +134,7 @@ class BayesianOptimizerBase(OptimizerBase):
         # Ensure 'input_dim' is present.
         space = []
         for key, var in space_info.items():
-            if key == 'input_dim' or key == 'budget' or key == 'seed' or key == 'task_id':
+            if key == 'input_dim' or key == 'budget' or key == 'seed' or key == 'task_id' or key == 'num_objective':
                 continue
 
             var_dic = {
@@ -206,10 +189,13 @@ class BayesianOptimizerBase(OptimizerBase):
         if 'task_id' not in space_info:
             raise ValueError("'task_id' must be present in space_info.")
 
+        if 'num_objective' not in space_info:
+            raise ValueError("'num_objective' must be present in space_info.")
+
         # Ensure the rest of the keys equal the count specified by 'input_dim'.
         input_dim = space_info['input_dim']
-        if len(space_info) - 4 != input_dim:
-            raise ValueError(f"Expected {input_dim} variable(s), but got {len(space_info) - 4}.")
+        if len(space_info) - 5 != input_dim:
+            raise ValueError(f"Expected {input_dim} variable(s), but got {len(space_info) - 5}.")
 
         # Validate each variable.
         for key, value in space_info.items():
@@ -241,6 +227,7 @@ class BayesianOptimizerBase(OptimizerBase):
 
         self.design_info = design_space_info.copy()
         self.input_dim = design_space_info['input_dim']
+        self.num_objective = design_space_info['num_objective']
         self.budget = design_space_info['budget']
 
         if self.ini_num is None:
@@ -366,7 +353,10 @@ class BayesianOptimizerBase(OptimizerBase):
         X = self.transform(input_vectors)
 
         self._X = np.vstack((self._X, vectors_to_ndarray(self._get_var_name('search'), X))) if self._X.size else vectors_to_ndarray(self._get_var_name('search'), X)
-        self._Y = np.vstack((self._Y, output_to_ndarray(output_value))) if self._Y.size else output_to_ndarray(output_value)
+        if self.num_objective >= 2:
+            self._Y = np.vstack((self._Y, multioutput_to_ndarray(output_value, self.num_objective))) if self._Y.size else multioutput_to_ndarray(output_value, self.num_objective)
+        else:
+            self._Y = np.vstack((self._Y, output_to_ndarray(output_value))) if self._Y.size else output_to_ndarray(output_value)
 
     def optimize(self, testsuits, data_handler):
         self.set_DataHandler(data_handler)
@@ -403,7 +393,10 @@ class BayesianOptimizerBase(OptimizerBase):
         X = self.transform(input_vectors)
 
         self._X = np.vstack((self._X, vectors_to_ndarray(self._get_var_name('search'), X))) if self._X.size else vectors_to_ndarray(self._get_var_name('search'), X)
-        self._Y = np.vstack((self._Y, output_to_ndarray(output_value))) if self._Y.size else output_to_ndarray(output_value)
+        if self.get_spaceinfo('design')['num_objective'] >= 2:
+            self._Y = []
+        else:
+            self._Y = np.vstack((self._Y, output_to_ndarray(output_value))) if self._Y.size else output_to_ndarray(output_value)
 
     def set_auxillary_data(self):
         if self._data_handler is None:

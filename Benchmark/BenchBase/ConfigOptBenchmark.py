@@ -25,6 +25,7 @@ class NonTabularOptBenchmark(Base.BenchmarkBase):
         self.var_range = self.get_configuration_bound()
         self.var_type = self.get_configuration_type()
         self.input_dim = len(self.configuration_space.keys())
+        self.num_objective = self.get_meta_information()['number_objective']
 
 
     def f(self,
@@ -52,8 +53,6 @@ class NonTabularOptBenchmark(Base.BenchmarkBase):
         for k, v in self.configuration_space.items():
             configuration_type[k] = type(v).__name__
         return configuration_type
-
-
 
 
     def get_budget(self) -> int:
@@ -99,6 +98,10 @@ class NonTabularOptBenchmark(Base.BenchmarkBase):
 
         """
         return self.input_dim
+
+    def get_objective_num(self) -> int:
+
+        return self.num_objective
 
 
     def lock(self):

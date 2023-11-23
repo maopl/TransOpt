@@ -56,6 +56,8 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
     def get_curdim(self):
         return self.tasks[self.__id].get_input_dim()
 
+    def get_curobjnum(self):
+        return self.tasks[self.__id].get_objective_num()
     def get_curtask(self):
         return self.tasks[self.__id]
 
@@ -93,7 +95,7 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
             raise NameError
 
     def get_cur_space_info(self)->Dict:
-        space_info = {'input_dim': self.get_curdim(), 'budget': self.get_curbudget(), 'seed': self.get_curseed(), 'task_id':self.get_curtask_id()}
+        space_info = {'input_dim': self.get_curdim(), 'num_objective': self.get_curobjnum(), 'budget': self.get_curbudget(), 'seed': self.get_curseed(), 'task_id':self.get_curtask_id()}
         cs = self.get_curcs()
 
         for k, v in cs.items():

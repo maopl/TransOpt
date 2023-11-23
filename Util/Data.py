@@ -45,3 +45,15 @@ def output_to_ndarray(output_value: List[Dict]) -> np.ndarray:
     ndarray = np.array(function_values)[:,np.newaxis]
 
     return ndarray
+
+def multioutput_to_ndarray(output_value: List[Dict], num_output:int) -> np.ndarray:
+    """Extract function_value from each output and convert to ndarray."""
+    # Extracting function_value from each dictionary in the list
+    function_values = []
+    for i in range(1, num_output+1):
+        function_values.append([item[f'function_value_{i}'] for item in output_value])
+
+    # Converting list to ndarray
+    ndarray = np.array(function_values)
+
+    return ndarray

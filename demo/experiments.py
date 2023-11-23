@@ -34,7 +34,7 @@ if __name__ == '__main__':
              # 'Ackley': {'budget': 11, 'time_stamp': 3, 'params':{'input_dim':1}},
              # 'MPB': {'budget': 110, 'time_stamp': 3},
              # 'Griewank': {'budget': 11, 'time_stamp': 3,  'params':{'input_dim':2}},
-             'DixonPrice': {'budget': 11, 'time_stamp': 3, 'params':{'input_dim':2}},
+             'AckleySphere': {'budget': 100, 'time_stamp': 3, 'params':{'input_dim':2}},
              # 'Lunar': {'budget': 110, 'time_stamp': 3},
              # 'XGB': {'budget': 110, 'time_stamp': 3},
              }
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--exp_path", type=str, default='../../LFL_experiments')
     parser.add_argument("-n", "--exp_name", type=str, default='test')  # 实验名称，保存在experiments中
     parser.add_argument("-s", "--seed", type=int, default=0)  # 设置随机种子，与迭代次数相关
-    parser.add_argument("-m", "--optimizer", type=str, default='KrigingGA')  # 设置method:WS,MT,INC
+    parser.add_argument("-m", "--optimizer", type=str, default='ParEGO')  # 设置method:WS,MT,INC
     parser.add_argument("-v", "--verbose", type=bool, default=True)
     parser.add_argument("-norm", "--normalize", type=str, default='norm')
     parser.add_argument("-ns", "--source_num", type=int, default=2)

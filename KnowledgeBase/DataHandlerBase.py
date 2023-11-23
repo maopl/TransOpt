@@ -48,11 +48,12 @@ class DataHandler(abc.ABC, metaclass=abc.ABCMeta):
         budget = space_info['budget']
         seed = space_info['seed']
         task_id = space_info['task_id']
+        num_objective = space_info['num_objective']
         variable_names = []
         variable_types = {}
         variable_bounds = {}
         for key, var in space_info.items():
-            if key == 'input_dim' or key == 'budget' or  key == 'seed' or  key == 'task_id':
+            if key == 'input_dim' or key == 'budget' or  key == 'seed' or  key == 'task_id' or key == 'num_objective':
                 continue
             variable_names.append(key)
             variable_types[key] = var['type']
@@ -60,6 +61,7 @@ class DataHandler(abc.ABC, metaclass=abc.ABCMeta):
 
         self.dataset['dataset_info'] = {
             'input_dim': input_dim,
+            'num_objective': num_objective,
             'budget': budget,
             'seed': seed,
             'task_id': task_id,
@@ -77,7 +79,7 @@ class DataHandler(abc.ABC, metaclass=abc.ABCMeta):
 
 
     def syn_database(self):
-        required_keys = ['input_dim', 'budget', 'seed', 'task_id']
+        required_keys = ['input_dim', 'budget', 'seed', 'task_id', 'num_objective']
 
         # 检查是否所有必要的键都在space_info字典中
         for key in required_keys:

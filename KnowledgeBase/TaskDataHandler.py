@@ -43,20 +43,6 @@ class OptTaskDataHandler(DataHandler):
         if not isinstance(output, dict):
             raise ValueError("Expected output to be a dictionary.")
 
-        if 'function_value' not in output:
-            raise ValueError("Output value must contain 'function_value' key.")
-
-        if not isinstance(output['function_value'], (int, float)):
-            raise ValueError("'function_value' should be an int or float.")
-
-        if 'info' not in output:
-            raise ValueError("Output value must contain 'info' key.")
-
-        if not isinstance(output['info'], dict):
-            raise ValueError("'info' key should contain a dictionary.")
-
-        if 'fidelity' not in output['info']:
-            raise ValueError("'info' dictionary must contain 'fidelity' key.")
 
     def add_observation(self, input_vectors: Union[List[Dict], Dict], output_value: Union[List[Dict], Dict]) -> None:
         """

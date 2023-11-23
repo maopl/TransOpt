@@ -26,7 +26,7 @@ def import_modules_from_dir(directory, folder_name):
             register_classes(module)
 
 # 递归地导入 Optimizer 下的 singleOptimizer 和 MultiOptimizer 子文件夹中的模块
-subfolders = ['SingleObjOptimizer', 'MultiObjOptimizer']
+subfolders = ['SingleObjOptimizer', 'MultiObjOptimizer', 'Acquisition']
 for subfolder in subfolders:
     subfolder_path = os.path.join(os.path.dirname(__file__), subfolder)
     import_modules_from_dir(subfolder_path, subfolder)

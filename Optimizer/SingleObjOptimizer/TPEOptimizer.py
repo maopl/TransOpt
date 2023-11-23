@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Dict, List, Union
-from Optimizer.SingleObjOptimizer.BayesianOptimizerBase import BayesianOptimizerBase
+from Optimizer.OptimizerBase.BayesianOptimizerBase import BayesianOptimizerBase
 from Util.Data import ndarray_to_vectors
 from Util.Register import optimizer_register
 

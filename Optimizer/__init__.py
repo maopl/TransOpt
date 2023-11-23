@@ -18,11 +18,10 @@ def register_classes(module):
             registry[attribute_name] = attribute
 
 # 定义一个函数用来导入指定文件夹下的所有模块
-def import_modules_from_dir(directory):
-    submodule_name = directory.split('/')[-1]
+def import_modules_from_dir(directory, folder_name):
     for (finder, name, ispkg) in pkgutil.iter_modules([directory]):
         if not ispkg:
-            module_name = f"{base_package_name}.{submodule_name}.{name}"
+            module_name = f"{base_package_name}.{folder_name}.{name}"
             module = importlib.import_module(module_name)
             register_classes(module)
 
@@ -30,7 +29,7 @@ def import_modules_from_dir(directory):
 subfolders = ['SingleObjOptimizer', 'MultiObjOptimizer']
 for subfolder in subfolders:
     subfolder_path = os.path.join(os.path.dirname(__file__), subfolder)
-    import_modules_from_dir(subfolder_path)
+    import_modules_from_dir(subfolder_path, subfolder)
 
 # 将registry导出，以便可以从包外部访问
 __all__ = ['registry']

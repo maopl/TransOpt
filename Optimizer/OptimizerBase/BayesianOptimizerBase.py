@@ -3,7 +3,7 @@ import numpy as np
 import ConfigSpace
 import math
 from typing import Union, Dict, List
-from Optimizer.SingleObjOptimizer.OptimizerBase import OptimizerBase
+from Optimizer.OptimizerBase.OptimizerBase import OptimizerBase
 import GPyOpt
 from Util.Data import vectors_to_ndarray, output_to_ndarray
 from Util.Visualization import visual_oned, visual_contour

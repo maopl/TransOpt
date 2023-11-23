@@ -4,7 +4,7 @@ from pymoo.core.problem import Problem
 from pymoo.algorithms.soo.nonconvex.ga import GA
 from typing import Dict, Union, List
 from Util.Data import vectors_to_ndarray, output_to_ndarray
-from Optimizer.SingleObjOptimizer.BayesianOptimizerBase import BayesianOptimizerBase
+from Optimizer.OptimizerBase.BayesianOptimizerBase import BayesianOptimizerBase
 from Util.Data import ndarray_to_vectors
 from Util.Register import optimizer_register
 from Util.Normalization import get_normalizer

@@ -1,28 +1,22 @@
 import numpy as np
 import GPy
 import GPyOpt
-import time
-from scipy.stats import norm
-from GPy import kern
 from GPy import util
 from paramz import ObsAr
 
 from GPy.inference.latent_function_inference import expectation_propagation
-from Optimizer.SingleObjOptimizer.OptimizerBase import OptimizerBase
+from Optimizer.OptimizerBase.OptimizerBase import OptimizerBase
 # from Model.HyperBO import hyperbo
 
 from External.transfergpbo import models
-from External.transfergpbo.models import TaskData
 
 from emukit.core import ContinuousParameter
 from emukit.core import ParameterSpace
 
 from External.FSBO.fsbo_modules import FSBO, DeepKernelGP
-from External.FSBO.fsbo_utils import totorch, Metric, EI
+from External.FSBO.fsbo_utils import totorch
 import os
-import torch
 
-from typing import Dict, Hashable
 from External.transfergpbo.models import (
     WrapperBase,
     MHGP,

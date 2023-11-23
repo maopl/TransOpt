@@ -5,7 +5,7 @@ from Util.Register import optimizer_register
 from Util.Normalization import get_normalizer
 from Optimizer.Model.MHGP import MHGP
 from typing import Dict, Union, List, Tuple
-from Optimizer.SingleObjOptimizer.BayesianOptimizerBase import BayesianOptimizerBase
+from Optimizer.OptimizerBase.BayesianOptimizerBase import BayesianOptimizerBase
 
 
 @optimizer_register('vizer')

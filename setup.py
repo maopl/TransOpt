@@ -37,6 +37,10 @@ setup(
         "GPy",
         "GPyOpt",
         "tpe",
+        "flask",
+        "celery",
+        "pymoo",
+        "gpytorch"
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',

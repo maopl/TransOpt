@@ -9,7 +9,7 @@ package_name = __name__
 registry = {}
 
 # 定义一个列表来包含要跳过的模块名或子包名
-excluded_modules = ['hpobench', 'subpackage_to_skip']
+excluded_modules = ['hpobench', 'subpackage_to_skip', 'Remote']
 
 # 定义一个函数用来注册类
 def register_classes(module):

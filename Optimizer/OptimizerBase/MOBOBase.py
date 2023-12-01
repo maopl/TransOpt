@@ -6,7 +6,7 @@ from typing import Union, Dict, List
 from Optimizer.OptimizerBase.OptimizerBase import OptimizerBase
 import GPyOpt
 from Util.Data import vectors_to_ndarray, output_to_ndarray, multioutput_to_ndarray
-from Util.Visualization import visual_oned, visual_contour
+from Util.Visualization import visual_pf
 from KnowledgeBase.TaskDataHandler import OptTaskDataHandler
 from Optimizer.Acquisition.ConstructACF import get_ACF
 from Optimizer.Acquisition.sequential import Sequential
@@ -354,7 +354,7 @@ class MOBOBase(OptimizerBase):
 
         self._X = np.vstack((self._X, vectors_to_ndarray(self._get_var_name('search'), X))) if self._X.size else vectors_to_ndarray(self._get_var_name('search'), X)
         if self.num_objective >= 2:
-            self._Y = np.vstack((self._Y, multioutput_to_ndarray(output_value, self.num_objective))) if self._Y.size else multioutput_to_ndarray(output_value, self.num_objective)
+            self._Y = np.hstack((self._Y, multioutput_to_ndarray(output_value, self.num_objective))) if self._Y.size else multioutput_to_ndarray(output_value, self.num_objective)
         else:
             self._Y = np.vstack((self._Y, output_to_ndarray(output_value))) if self._Y.size else output_to_ndarray(output_value)
 
@@ -426,12 +426,8 @@ class MOBOBase(OptimizerBase):
         except:
             self.acqusition = None
 
-        if self.input_dim == 1:
-            visual_oned(optimizer=self, train_x=self._X, train_y=self._Y,
-                        testsuites=testsuits, ac_model=self.acqusition, Ac_candi=candidate)
-
-        if self.input_dim == 2:
-            visual_contour(optimizer=self, train_x=self._X, train_y=self._Y,
+        if self.num_objective == 2:
+            visual_pf(optimizer=self, train_x=self._X, train_y=self._Y,
                         testsuites=testsuits, ac_model=self.acqusition, Ac_candi=candidate)
 
     @abc.abstractmethod

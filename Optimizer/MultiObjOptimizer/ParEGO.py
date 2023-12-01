@@ -9,6 +9,7 @@ from Util.Normalization import get_normalizer
 
 
 
+
 @optimizer_register('ParEGO')
 class ParEGO(MOBOBase):
     def __init__(self, config:Dict, **kwargs):
@@ -26,7 +27,22 @@ class ParEGO(MOBOBase):
         else:
             self.ini_num = None
 
-        self.acf = 'ParEGO'
+        self.acf = 'EI'
+        self.rho = 0.1
+
+    def scalarization(self, Y:np.ndarray, rho):
+        """
+        scalarize observed output data
+        """
+        theta = np.random.random_sample(Y.shape[0])
+        sum_theta = np.sum(theta)
+        theta = theta / sum_theta
+
+        theta_f =  Y.T * theta
+        max_k = np.max(theta_f, axis=1)
+        rho_sum_theta_f = rho * np.sum(theta_f, axis=1)
+
+        return max_k + rho_sum_theta_f
 
     def initial_sample(self):
         return self.random_sample(self.ini_num)
@@ -63,32 +79,28 @@ class ParEGO(MOBOBase):
         if self.normalizer is not None:
             Y_norm = np.array([self.normalizer(y) for y in Y])
 
+        Y_scalar = self.scalarization(Y_norm, 0.1)[:,np.newaxis]
 
         if len(self.model_list) == 0:
-            self.create_model(X, Y_norm)
+            self.create_model(X, Y_scalar)
         else:
-            for i in range(self.num_objective):
-                self.model_list[i].set_XY(X, Y_norm[i])
+            self.model_list[0].set_XY(X, Y_scalar)
 
         try:
-            for i in range(self.num_objective):
-                self.model_list[i].optimize_restarts(num_restarts=1, verbose=self.verbose, robust=True)
+            self.model_list[0].optimize_restarts(num_restarts=1, verbose=self.verbose, robust=True)
         except np.linalg.linalg.LinAlgError as e:
             # break
             print('Error: np.linalg.linalg.LinAlgError')
 
     def create_model(self, X, Y):
         assert self.num_objective is not None
-        assert self.num_objective == Y.shape[0]
 
-        for l in range(self.num_objective):
-            kernel = GPy.kern.RBF(input_dim = self.input_dim)
-            model = GPy.models.GPRegression(X, Y[l][:, np.newaxis], kernel=kernel, normalizer=None)
-            model['.*Gaussian_noise.variance'].constrain_fixed(1.0e-4)
-            model['.*rbf.variance'].constrain_fixed(1.0)
-            model.optimize_restarts()
-            self.kernel_list.append(model.kern)
-            self.model_list.append(model)
+        kernel = GPy.kern.RBF(input_dim = self.input_dim)
+        model = GPy.models.GPRegression(X, Y, kernel=kernel, normalizer=None)
+        model['.*Gaussian_noise.variance'].constrain_fixed(1.0e-4)
+        model['.*rbf.variance'].constrain_fixed(1.0)
+        self.kernel_list.append(model.kern)
+        self.model_list.append(model)
         print("model state")
         for i, model in enumerate(self.model_list):
             print("--------model for {}th object--------".format(i))
@@ -137,12 +149,10 @@ class ParEGO(MOBOBase):
 
     def model_reset(self):
         self.model_list = []
+        self.kernel_list = []
 
     def get_fmin(self):
         "Get the minimum of the current model."
-        fmin = np.zeros((self.num_objective, 0))
-        for i in range(self.num_objective):
-            m, v = self.predict(self._X)
-            fmin = np.append(fmin, m, axis=1)
+        m, v = self.predict(self._X)
 
         return m.min()

@@ -104,6 +104,8 @@ class OptTaskDataHandler(DataHandler):
 
 
     def get_auxillary_data(self):
+        if self.selector is None:
+            return {}
         return  self.selector(self, self.args)
 
 

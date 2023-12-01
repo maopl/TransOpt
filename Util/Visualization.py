@@ -184,3 +184,39 @@ def visual_oned(optimizer, testsuites,
 
     plt.close()
     testsuites.unlock()
+
+
+
+def visual_pf(optimizer, testsuites,
+                train_x, train_y, Ac_candi, ac_model = None,
+                dtype=np.float64):
+    f, ax = plt.subplots(1, 1, figsize=(8, 8))
+
+    search_space_info = optimizer.get_spaceinfo('search')
+
+    final_pfront = pareto.find_pareto_only_y(obs_points_dic['ParEGO'])
+    pfront_sorted = final_pfront[final_pfront[:, 0].argsort(), :]
+    plt.scatter(pfront_sorted[:, 0], pfront_sorted[:, 1], c='r', label='ParEGO')
+    plt.vlines(pfront_sorted[0, 0], ymin=pfront_sorted[0, 1], ymax=w_ref[1], colors='r')
+    for i in range(pfront_sorted.shape[0] - 1):
+        plt.hlines(y=pfront_sorted[i, 1], xmin=pfront_sorted[i, 0], xmax=pfront_sorted[i + 1, 0], colors='r')
+        plt.vlines(x=pfront_sorted[i + 1, 0], ymin=pfront_sorted[i + 1, 1], ymax=pfront_sorted[i, 1], colors='r')
+    plt.hlines(y=pfront_sorted[-1, 1], xmin=pfront_sorted[-1, 0], xmax=w_ref[0], colors='r')
+
+
+    var_name = [var['name'] for var in search_space_info]
+    search_bound = [search_space_info[0]['domain'][0], search_space_info[0]['domain'][1]]
+    test_x = np.arange(search_bound[0], search_bound[1] + 0.005, 0.005, dtype=dtype)
+
+    observed_pred_y, observed_corv = optimizer.predict(test_x[:, np.newaxis])
+    test_vec = ndarray_to_vectors(var_name, test_x[:, np.newaxis])
+    # Calculate the true value
+    test_x_design = [optimizer._to_designspace(v) for v in test_vec]
+    testsuites.lock()
+    test_y = testsuites.f(test_x_design)
+    test_y = np.array([y['function_value'] for y in test_y])
+
+    y_mean = np.mean(train_y)
+    y_std = np.std(train_y)
+    test_y = normalize(test_y, y_mean, y_std)
+    train_y_temp = normalize(train_y, y_mean, y_std)

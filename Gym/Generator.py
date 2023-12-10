@@ -1,15 +1,15 @@
 import matplotlib.pyplot as plt
 import numpy as np
-# from Benchmark.Synthetic.SyntheticBenchmark import Select_synthetic_fun
-from Benchmark.RL.LunarlanderBenchmark import LunarlanderBenchmark
+# from transopt.Benchmark.Synthetic.SyntheticBenchmark import Select_synthetic_fun
+from transopt.Benchmark.RL.LunarlanderBenchmark import LunarlanderBenchmark
 from sklearn.preprocessing import power_transform
-from Util.Normalization import Normalize
-from Benchmark.HPOB.HpobBench import HPOb
+from transopt.Utils.Normalization import Normalize
+from transopt.Benchmark.HPOB.HpobBench import HPOb
 from sklearn.mixture import GaussianMixture
 from scipy.stats import pearsonr, spearmanr
 from sklearn.cluster import KMeans
 from sklearn.neighbors import KernelDensity
-from Util.Normalization import normalize
+from transopt.Utils.Normalization import normalize
 
 
 class PseudoPointsGenerator():

@@ -4,9 +4,9 @@ import numpy as np
 import GPyOpt as GPyOpt
 import os
 
-from Util.Normalization  import Normalize
-from Util.Initialization import InitData
-from External.transfergpbo.models import TaskData
+from transopt.Utils.Normalization  import Normalize
+from transopt.Utils.Initialization import InitData
+from transopt_External.transfergpbo.models import TaskData
 
 from Optimizer import construct_acf
 
@@ -15,7 +15,7 @@ from Gym import Gym_Metric
 
 from Optimizer import MTTree
 
-from KnowledgeBase.Task_recognition import reco_Tree
+from transopt.KnowledgeBase.Task_recognition import reco_Tree
 
 def LFL_Tree(
         Dty=np.float64,

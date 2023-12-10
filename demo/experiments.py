@@ -7,10 +7,10 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 package_dir = os.path.dirname(current_dir)
 sys.path.insert(0, package_dir)
 
-from Benchmark.ConstructTestSuits import get_testsuits
-from Optimizer.ConstructOptimizer import get_optimizer
-from KnowledgeBase.ConstructKB import get_knowledgebase
-from KnowledgeBase.TaskDataHandler import OptTaskDataHandler
+from transopt.Benchmark.ConstructTestSuits import get_testsuits
+from transopt.Optimizer.ConstructOptimizer import get_optimizer
+from transopt.KnowledgeBase.ConstructKB import get_knowledgebase
+from transopt.KnowledgeBase.TaskDataHandler import OptTaskDataHandler
 
 
 os.environ["MKL_NUM_THREADS"] = "1"
@@ -43,7 +43,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process some integers.")
     parser.add_argument("-im", "--init_method", type=str, default="random")
     parser.add_argument("-in", "--init_number", type=int, default=7)
-    parser.add_argument("-p", "--exp_path", type=str, default="../../LFL_experiments")
+    parser.add_argument(
+        "-p", "--exp_path", type=str, default=f"{package_dir}/../LFL_experiments"
+    )
     parser.add_argument(
         "-n", "--exp_name", type=str, default="test"
     )  # 实验名称，保存在experiments中

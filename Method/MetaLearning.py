@@ -3,8 +3,8 @@ import GPyOpt as GPyOpt
 import pickle
 import os
 
-from Util.Normalization import Normalize
-from Util.Initialization import InitData
+from transopt.Utils.Normalization import Normalize
+from transopt.Utils.Initialization import InitData
 from Optimizer import construct_acf
 
 import Visualization.Visual_landscape as visual

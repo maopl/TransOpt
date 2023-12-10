@@ -4,13 +4,13 @@ import pickle
 import os
 import pandas as pds
 
-from Util.Normalization import Norm_pt
+from transopt.Utils.Normalization import Norm_pt
 from Optimizer import VBOOptimizer
 from Optimizer import construct_acf
 
 import Visualization.Visual_landscape as visual
 from torch.quasirandom import SobolEngine
-from External.hebo.design_space.design_space import DesignSpace
+from transopt_External.hebo.design_space.design_space import DesignSpace
 
 
 def quasi_sample(sobol, n, space, fix_input=None):
@@ -28,7 +28,7 @@ def quasi_sample(sobol, n, space, fix_input=None):
     return df_samp
 import torch
 from torch import Tensor, FloatTensor
-from External.hebo.models.scalers import TorchMinMaxScaler, TorchStandardScaler
+from transopt_External.hebo.models.scalers import TorchMinMaxScaler, TorchStandardScaler
 
 def fit_scaler(space, Xc: FloatTensor, y: FloatTensor):
     xscaler = TorchMinMaxScaler((-1, 1))

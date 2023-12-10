@@ -1,5 +1,5 @@
 import numpy as np
-from Util.Normalization import Normalize
+from transopt.Utils.Normalization import Normalize
 
 
 def traj_metric(Y:np.ndarray, initial_size):

@@ -2,8 +2,8 @@ import numpy as np
 import pickle
 import os
 
-from External.hebo.design_space.design_space import DesignSpace
-from External.hebo.optimizers.hebo import HEBO as hebo
+from transopt_External.hebo.design_space.design_space import DesignSpace
+from transopt_External.hebo.optimizers.hebo import HEBO as hebo
 
 def HEBO(
         Dty=np.float64,

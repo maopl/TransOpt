@@ -16,9 +16,9 @@ from Method import TMTGP
 # from Method import HEBO
 # from Method import TPE
 
-from Benchmark import ConstructTestSuits
+from transopt.Benchmark import ConstructTestSuits
 
-from KnowledgeBase.KnowledgeBase import KnowledgeBase
+from transopt.KnowledgeBase.KnowledgeBase import KnowledgeBase
 os.environ['MKL_NUM_THREADS'] = "1"
 os.environ['NUMEXPR_NUM_THREADS'] = "1"
 os.environ['OMP_NUM_THREADS'] = "1"

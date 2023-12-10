@@ -4,14 +4,14 @@ import pickle
 import os
 
 
-from Util.Normalization  import Normalize
-from Util.Initialization import InitData
+from transopt.Utils.Normalization  import Normalize
+from transopt.Utils.Initialization import InitData
 from Optimizer import WeightedSumOptimizer
 from Optimizer import construct_acf
 
 import Visualization.Visual_landscape as visual
 
-from External.transfergpbo.models import TaskData
+from transopt_External.transfergpbo.models import TaskData
 
 from collections import defaultdict
 

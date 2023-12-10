@@ -40,7 +40,8 @@ setup(
         "flask",
         "celery",
         "pymoo",
-        "gpytorch"
+        "gpytorch",
+        "oslo.concurrency",
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',

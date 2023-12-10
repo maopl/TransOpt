@@ -4,8 +4,8 @@ import pickle
 import os
 
 
-from Util.Normalization  import Normalize
-from Util.Initialization import InitData
+from transopt.Utils.Normalization  import Normalize
+from transopt.Utils.Initialization import InitData
 from Optimizer import ELLA_Optimizer
 from Optimizer import construct_acf
 

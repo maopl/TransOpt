@@ -2,9 +2,9 @@ import numpy as np
 from collections import defaultdict
 from transopt.Utils.sk import Rx
 import scipy
-from ResultAnalysis.TableToLatex import matrix_to_latex
-from ResultAnalysis.AnalysisBase import AnalysisBase
-from ResultAnalysis.CompileTex import compile_tex
+from transopt.ResultAnalysis.TableToLatex import matrix_to_latex
+from transopt.ResultAnalysis.AnalysisBase import AnalysisBase
+from transopt.ResultAnalysis.CompileTex import compile_tex
 import os
 
 table_registry = {}

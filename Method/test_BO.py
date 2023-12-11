@@ -10,7 +10,7 @@ from Optimizer import construct_acf
 
 import Visualization.Visual_landscape as visual
 from torch.quasirandom import SobolEngine
-from transopt_External.hebo.design_space.design_space import DesignSpace
+from transopt_external.hebo.design_space.design_space import DesignSpace
 
 
 def quasi_sample(sobol, n, space, fix_input=None):
@@ -28,7 +28,7 @@ def quasi_sample(sobol, n, space, fix_input=None):
     return df_samp
 import torch
 from torch import Tensor, FloatTensor
-from transopt_External.hebo.models.scalers import TorchMinMaxScaler, TorchStandardScaler
+from transopt_external.hebo.models.scalers import TorchMinMaxScaler, TorchStandardScaler
 
 def fit_scaler(space, Xc: FloatTensor, y: FloatTensor):
     xscaler = TorchMinMaxScaler((-1, 1))

@@ -18,8 +18,8 @@ import numpy as np
 from typing import Tuple, Dict, Hashable
 from sklearn.preprocessing import StandardScaler
 
-from transopt_External.transfergpbo.models import InputData, TaskData, Model
-from transopt_External.transfergpbo.models.utils import is_pd, nearest_pd
+from transopt_external.transfergpbo.models import InputData, TaskData, Model
+from transopt_external.transfergpbo.models.utils import is_pd, nearest_pd
 
 
 import sklearn

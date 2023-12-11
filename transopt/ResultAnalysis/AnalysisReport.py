@@ -1,6 +1,6 @@
 import os
 from pdf2image import convert_from_path
-from ResultAnalysis.ReportNote import Notes
+from transopt.ResultAnalysis.ReportNote import Notes
 
 
 def pdf_to_png(pictures_path):

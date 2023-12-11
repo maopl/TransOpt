@@ -3,7 +3,7 @@ import GPy
 import matplotlib.pyplot as plt
 from GPy.mappings.constant import Constant
 from transopt.KnowledgeBase.CKB import KnowledgeBase
-from transopt_External.WGPOT.wgpot import *
+from transopt_external.WGPOT.wgpot import *
 from Visualization.Visual_model import Visual_task_recognition
 from GPy.likelihoods.multioutput_likelihood import MixedNoise
 from Model.MPGP import MPGP

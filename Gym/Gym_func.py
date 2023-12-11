@@ -9,7 +9,7 @@ import os
 from sklearn.cluster import KMeans
 
 from transopt.Benchmark.Synthetic.SyntheticBenchmark import BASE
-from transopt.KnowledgeBase.CKB import KnowledgeBase
+from transopt.KnowledgeBase import KnowledgeBase
 from Gym import Gym_Metric
 from sklearn.neighbors import KernelDensity
 

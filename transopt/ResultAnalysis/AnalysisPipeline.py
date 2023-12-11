@@ -1,8 +1,8 @@
-from ResultAnalysis.PlotAnalysis import plot_registry
-from ResultAnalysis.TableAnalysis import table_registry
-from ResultAnalysis.TrackOptimization import track_registry
-from ResultAnalysis.AnalysisBase import AnalysisBase
-from ResultAnalysis.AnalysisReport import create_report
+from transopt.ResultAnalysis.PlotAnalysis import plot_registry
+from transopt.ResultAnalysis.TableAnalysis import table_registry
+from transopt.ResultAnalysis.TrackOptimization import track_registry
+from transopt.ResultAnalysis.AnalysisBase import AnalysisBase
+from transopt.ResultAnalysis.AnalysisReport import create_report
 
 
 

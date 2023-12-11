@@ -1,6 +1,6 @@
 import numpy as np
 from collections import Counter, defaultdict
-from ResultAnalysis.AnalysisBase import AnalysisBase
+from transopt.ResultAnalysis.AnalysisBase import AnalysisBase
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import MultipleLocator
 import pandas as pds
@@ -11,7 +11,7 @@ from pathlib import Path
 import scipy
 import tikzplotlib
 from sklearn.cluster import DBSCAN
-from ResultAnalysis.CompileTex import compile_tex
+from transopt.ResultAnalysis.CompileTex import compile_tex
 import matplotlib.gridspec as gridspec
 plot_registry = {}
 import re

@@ -1,56 +1,64 @@
+import os
+import json
 from setuptools import setup, find_packages
 
+def get_extra_requirements(folder='./extra_requirements'):
+    """ Helper function to read in all extra requirement files in the specified
+        folder. """
+    extra_requirements = {}
+    if not os.path.exists(folder):
+        print(f"Folder {folder} does not exist.")
+        return extra_requirements
+
+    for file in os.listdir(folder):
+        if file.endswith('.json'):
+            with open(os.path.join(folder, file), 'r', encoding='utf-8') as fh:
+                requirements = json.load(fh)
+                extra_requirements.update(requirements)
+
+    return extra_requirements
+
+req = [
+    "scipy>=1.4.1",
+    "numpy>=1.18.1",
+    "ConfigSpace>=0.4.12",
+    "pandas",
+    "scikit-learn",
+    "matplotlib",
+    "pdf2image",
+    "torch",
+    "torchvision",
+    "seaborn",
+    "GPy",
+    "GPyOpt"
+    "Pillow",
+    "gym",
+    "sobol-seq",
+    "xgboost",
+    "paramz",
+    "matplotlib",
+    "emukit",
+    "pymoo",
+    "jax",
+    "tikzplotlib",
+    "gplearn",
+]
+
 setup(
-    name='TOS',
-    version='0.0.1',
-    packages=find_packages(),
-    author='Peili Mao',
-    author_email='peili.z.mao@gmail.com',
-    description='Transfer Optimiztion System',
-    long_description='This is a longer description of my package.',
-    url='https://github.com/maopl/TransOpt.git',
-    install_requires=[
-        "numpy==1.21.6",
-        "scipy==1.7.3",
-        "pandas==1.3.5",
-        "scikit-learn==1.0.2",
-        "matplotlib==3.5.1",
-        "sobol-seq==0.2.0",
-        "gplearn==0.4.2",
-        "paramz==0.9.5",
-        "emukit==0.4.10",
-        "ml-collections==0.1.1",
-        "tensorflow",
-        "torch",
-        "ConfigSpace",
-        "seaborn",
-        "cliffs-delta==1.0.0",
-        # "oslo-concurrency",
-        "openpyxl",
-        "openml",
-        "PyYAML",
-        "xgboost",
-        "tqdm",
-        "torchvision",
-        "tikzplotlib",
-        "pdf2image",
-        "GPy",
-        "GPyOpt",
-        "tpe",
-        "flask",
-        "celery",
-        "pymoo",
-        "gpytorch",
-        "oslo.concurrency",
-    ],
+    name="transopt",
+    version="0.0.1",
+    author="transopt",
+    description="Transfer Optimiztion System",
+    long_description="This is a longer description of my package.",
+    url="https://github.com/maopl/TransOpt.git",
     classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
     ],
-    keywords='sample package example',
-    license='MIT',
+    license="BSD",
+    packages=find_packages(exclude=["hpobench"]),
+    install_requires=req,
+    extras_require=get_extra_requirements(),
 )

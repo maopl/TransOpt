@@ -1,6 +1,6 @@
 import numpy as np
 from collections import Counter, defaultdict
-from ResultAnalysis.AnalysisBase import AnalysisBase
+from transopt.ResultAnalysis.AnalysisBase import AnalysisBase
 
 
 track_registry = {}

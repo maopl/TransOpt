@@ -11,7 +11,7 @@ from Optimizer import construct_acf
 
 import Visualization.Visual_landscape as visual
 
-from transopt_External.transfergpbo.models import TaskData
+from transopt_external.transfergpbo.models import TaskData
 
 from collections import defaultdict
 def Incremental(

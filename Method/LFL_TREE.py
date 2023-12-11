@@ -6,7 +6,7 @@ import os
 
 from transopt.Utils.Normalization  import Normalize
 from transopt.Utils.Initialization import InitData
-from transopt_External.transfergpbo.models import TaskData
+from transopt_external.transfergpbo.models import TaskData
 
 from Optimizer import construct_acf
 

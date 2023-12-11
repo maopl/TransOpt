@@ -3,7 +3,7 @@ import os
 import argparse
 
 from pathlib import Path
-from ResultAnalysis.AnalysisPipeline import analysis_pipeline
+from transopt.ResultAnalysis.AnalysisPipeline import analysis_pipeline
 
 
 def run_analysis(Exper_folder:Path, tasks, methods, seeds, args):

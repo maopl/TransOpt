@@ -1,7 +1,5 @@
 from celery import Celery, Task
-from celery.contrib import rdb
 from celery.utils.log import get_task_logger
-from time import sleep
 from transopt.Utils.Register import benchmark_registry
 
 celery_inst = Celery(__name__)

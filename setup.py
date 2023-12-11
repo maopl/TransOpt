@@ -19,6 +19,8 @@ def get_extra_requirements(folder='./extra_requirements'):
     print(f"Extra requirements: {extra_requirements}")
     return extra_requirements
 
+extra_requirements = get_extra_requirements()
+
 req = [
     "scipy>=1.4.1",
     "numpy>=1.18.1",
@@ -57,5 +59,5 @@ setup(
     license="BSD",
     packages=find_packages(exclude=["hpobench"]),
     install_requires=req,
-    extras_require=get_extra_requirements(),
+    extras_require=extra_requirements,
 )

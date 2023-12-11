@@ -22,27 +22,22 @@ req = [
     "scipy>=1.4.1",
     "numpy>=1.18.1",
     "ConfigSpace>=0.4.12",
-    "pandas",
     "scikit-learn",
     "openml",
     "matplotlib",
-    "pdf2image",
     "torch",
     "torchvision",
-    "seaborn",
     "GPy",
     "GPyOpt",
-    "Pillow",
     "gym",
     "sobol-seq",
     "xgboost",
     "paramz",
-    "matplotlib",
     "emukit",
     "pymoo",
     "jax",
-    "tikzplotlib",
     "gplearn",
+    "oslo.concurrency>=4.2.0"
 ]
 
 setup(

@@ -30,7 +30,7 @@ req = [
     "matplotlib",
     "torch",
     "torchvision",
-    "GPy",
+    # "GPy",
     "GPyOpt",
     "gym",
     "sobol-seq",
@@ -40,7 +40,8 @@ req = [
     "pymoo",
     "jax",
     "gplearn",
-    "oslo.concurrency>=4.2.0"
+    "oslo.concurrency>=4.2.0",
+    'GPy @ git+https://github.com/SheffieldML/GPy.git@devel'
 ]
 
 setup(

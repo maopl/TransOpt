@@ -5,19 +5,19 @@ from transopt.Optimizer.Acquisition.ConstructACF import get_ACF
 from transopt.Optimizer.Acquisition.sequential import Sequential
 from typing import Dict, Union, List
 from transopt.Optimizer.OptimizerBase import BayesianOptimizerBase
-from transopt.Utils.Data import ndarray_to_vectors
-from transopt.Utils.Register import optimizer_register
-from transopt.Utils.Kernel import construct_multi_objective_kernel
+from transopt.utils.Data import ndarray_to_vectors
+from transopt.utils.Register import optimizer_register
+from transopt.utils.Kernel import construct_multi_objective_kernel
 from transopt.Optimizer.Model.MPGP import MPGP
 from transopt.Optimizer.Model.GP import PriorGP
-from transopt.Utils import Prior
+from transopt.utils import Prior
 
 from GPy import util
 from GPy.inference.latent_function_inference import expectation_propagation
 from GPy.inference.latent_function_inference import ExactGaussianInference
 from GPy.likelihoods.multioutput_likelihood import MixedNoise
 
-from transopt.Utils.Normalization import get_normalizer
+from transopt.utils.Normalization import get_normalizer
 
 @optimizer_register('LFL')
 class LFLOptimizer(BayesianOptimizerBase):

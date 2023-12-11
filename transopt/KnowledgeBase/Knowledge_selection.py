@@ -4,7 +4,7 @@ from sklearn.cluster import KMeans
 from sklearn.preprocessing import power_transform
 
 from transopt.KnowledgeBase import KnowledgeBase
-from transopt.Utils.Normalization import normalize
+from transopt.utils.Normalization import normalize
 
 
 def Knowledge_randS(Target_data, task_id, KB: KnowledgeBase, number):

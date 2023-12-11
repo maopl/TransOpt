@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import ConfigSpace as CS
 from typing import Union, Dict
 
-from transopt.Utils.Register import benchmark_register
+from transopt.utils.Register import benchmark_register
 from transopt.Benchmark.BenchBase import NonTabularOptBenchmark
 
 logger = logging.getLogger("MultiObjBenchmark")

@@ -4,7 +4,7 @@ from typing import Dict, Hashable, Tuple, List, Union
 import numpy as np
 from collections import defaultdict
 import json
-from transopt.Utils.Data import vectors_to_ndarray, output_to_ndarray
+from transopt.utils.Data import vectors_to_ndarray, output_to_ndarray
 from transopt.KnowledgeBase.KnowledgeBase import KnowledgeBase
 import matplotlib.pyplot as plt
 import seaborn as sns

@@ -5,8 +5,8 @@ from scipy.stats import *
 from scipy.spatial import distance
 from GPyOpt.acquisitions.base import AcquisitionBase
 
-from transopt.Utils.Register import acf_register
-from transopt.Utils.hypervolume import calc_hypervolume
+from transopt.utils.Register import acf_register
+from transopt.utils.hypervolume import calc_hypervolume
 
 
 @acf_register("SMSEGO")

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import ConfigSpace as CS
 from typing import Union, Dict
 
-from transopt.Utils.Register import benchmark_register, benchmark_registry
+from transopt.utils.Register import benchmark_register, benchmark_registry
 from transopt.Benchmark.BenchBase.ConfigOptBenchmark import NonTabularOptBenchmark
 
 logger = logging.getLogger("SyntheticBenchmark")

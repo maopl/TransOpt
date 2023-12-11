@@ -11,10 +11,10 @@ from sklearn.impute import SimpleImputer
 from sklearn.metrics import accuracy_score, make_scorer
 from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
 
-from transopt.Benchmark.HPO.openml_data_manager import OpenMLHoldoutDataManager
+from transopt.utils.openml_data_manager import OpenMLHoldoutDataManager
 from transopt.Benchmark.BenchBase import BenchmarkBase
 from transopt.Benchmark.BenchBase import NonTabularOptBenchmark
-from transopt.Utils.Register import benchmark_register
+from transopt.utils.Register import benchmark_register
 
 logger = logging.getLogger('SVMBenchmark')
 

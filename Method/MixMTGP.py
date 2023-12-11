@@ -3,9 +3,9 @@ import pandas
 import GPyOpt as GPyOpt
 import os
 
-from transopt.Utils.Normalization import Norm_pt
-from transopt.Utils.Initialization import InitData
-from Util import Prior
+from transopt.utils.Normalization import Norm_pt
+from transopt.utils.Initialization import InitData
+from transopt.utils import Prior
 from Optimizer import MixOptimizer
 
 from Optimizer import construct_acf

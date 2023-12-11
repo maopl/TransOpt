@@ -1,3 +1,10 @@
+"""
+This file includes code adapted from HPOBench (https://github.com/automl/HPOBench),
+which is licensed under the Apache License 2.0. A copy of the license can be
+found at http://www.apache.org/licenses/LICENSE-2.0.
+"""
+
+
 """ OpenMLDataManager organizing the data for the benchmarks with data from
 OpenML-tasks.
 
@@ -9,24 +16,33 @@ It can be distinguished between holdout and cross-validation data sets.
 For Non-OpenML data sets please use the hpobench.util.data_manager.
 """
 
-from typing import Tuple, Union, List
-
+import os
+import abc
+import logging
+import tarfile
+import requests
+import openml
 import numpy as np
+from pathlib import Path
+from typing import Tuple, List, Union
+from zipfile import ZipFile
+from oslo_concurrency import lockutils
+from sklearn.model_selection import train_test_split
 
-try:
-    import openml
-except ImportError:
-    print("openmlpython not installed, can't download datasets (not needed for containers)")
-
-try:
-    from sklearn.model_selection import train_test_split
-except ImportError:
-    print("scikit-learn not installed, can't download datasets (not needed for containers)")
+from transopt.utils.rng_helper import get_rng
 
 
-import hpobench
-from hpobench.util.data_manager import HoldoutDataManager, CrossvalidationDataManager
-from hpobench.util.rng_helper import get_rng
+# TODO: 考虑使用 config 模块管理
+def _check_dir(path: Path):
+    """ Check whether dir exists and if not create it"""
+    Path(path).mkdir(exist_ok=True, parents=True)
+
+cache_dir = os.environ.get('OPENML_CACHE_HOME', '~/.cache/transopt')
+data_dir = os.environ.get('OPENML_DATA_HOME', '~/.local/share/transopt')
+cache_dir = Path(cache_dir).expanduser().absolute()
+data_dir = Path(data_dir).expanduser().absolute()
+_check_dir(cache_dir)
+_check_dir(data_dir)
 
 
 def get_openml100_taskids():
@@ -104,6 +120,124 @@ def _load_data(task_id: int):
 
     return X_train, y_train, X_test, y_test, variable_types, dataset.name
 
+class DataManager(abc.ABC, metaclass=abc.ABCMeta):
+    """ Base Class for loading and managing the data.
+
+    Attributes
+    ----------
+    logger : logging.Logger
+
+    """
+
+    def __init__(self):
+        self.logger = logging.getLogger("DataManager")
+
+    @abc.abstractmethod
+    def load(self):
+        """ Loads data from data directory as defined in
+        config_file.data_directory
+        """
+        raise NotImplementedError()
+
+    def create_save_directory(self, save_dir: Path):
+        """ Helper function. Check if data directory exists. If not, create it.
+
+        Parameters
+        ----------
+        save_dir : Path
+            Path to the directory. where the data should be stored
+        """
+        if not save_dir.is_dir():
+            self.logger.debug(f'Create directory {save_dir}')
+            save_dir.mkdir(parents=True, exist_ok=True)
+
+    @lockutils.synchronized('not_thread_process_safe', external=True,
+                            lock_path=f'{cache_dir}/lock_download_file', delay=0.5)
+    def _download_file_with_progressbar(self, data_url: str, data_file: Path):
+        data_file = Path(data_file)
+
+        if data_file.exists():
+            self.logger.info('Data File already exists. Skip downloading.')
+            return
+
+        self.logger.info(f"Download the file from {data_url} to {data_file}")
+        data_file.parent.mkdir(parents=True, exist_ok=True)
+
+        from tqdm import tqdm
+        r = requests.get(data_url, stream=True)
+        with open(data_file, 'wb') as f:
+            total_length = int(r.headers.get('content-length'))
+            for chunk in tqdm(r.iter_content(chunk_size=1024),
+                              unit_divisor=1024, unit='kB', total=int(total_length / 1024) + 1):
+                if chunk:
+                    _ = f.write(chunk)
+                    f.flush()
+        self.logger.info(f"Finished downloading to {data_file}")
+
+    @lockutils.synchronized('not_thread_process_safe', external=True,
+                            lock_path=f'{cache_dir}/lock_unzip_file', delay=0.5)
+    def _untar_data(self, compressed_file: Path, save_dir: Union[Path, None] = None):
+        self.logger.debug('Extract the compressed data')
+        with tarfile.open(compressed_file, 'r') as fh:
+            if save_dir is None:
+                save_dir = compressed_file.parent
+            fh.extractall(save_dir)
+        self.logger.debug(f'Successfully extracted the data to {save_dir}')
+
+    @lockutils.synchronized('not_thread_process_safe', external=True,
+                            lock_path=f'{cache_dir}/lock_unzip_file', delay=0.5)
+    def _unzip_data(self, compressed_file: Path, save_dir: Union[Path, None] = None):
+        self.logger.debug('Extract the compressed data')
+        with ZipFile(compressed_file, 'r') as fh:
+            if save_dir is None:
+                save_dir = compressed_file.parent
+            fh.extractall(save_dir)
+        self.logger.debug(f'Successfully extracted the data to {save_dir}')
+
+class HoldoutDataManager(DataManager):
+    """  Base Class for loading and managing the Holdout data sets.
+
+    Attributes
+    ----------
+    X_train : np.ndarray
+    y_train : np.ndarray
+    X_valid : np.ndarray
+    y_valid : np.ndarray
+    X_test : np.ndarray
+    y_test : np.ndarray
+    """
+
+    def __init__(self):
+        super().__init__()
+
+        self.X_train = None
+        self.y_train = None
+        self.X_valid = None
+        self.y_valid = None
+        self.X_test = None
+        self.y_test = None
+    
+    
+class CrossvalidationDataManager(DataManager):
+    """
+    Base Class for loading and managing the cross-validation data sets.
+
+    Attributes
+    ----------
+    X_train : np.ndarray
+    y_train : np.ndarray
+    X_test : np.ndarray
+    y_test : np.ndarray
+    """
+
+    def __init__(self):
+        super().__init__()
+
+        self.X_train = None
+        self.y_train = None
+        self.X_test = None
+        self.y_test = None
+
 
 class OpenMLHoldoutDataManager(HoldoutDataManager):
     """ Base class for loading holdout data set from OpenML.
@@ -128,7 +262,7 @@ class OpenMLHoldoutDataManager(HoldoutDataManager):
     def __init__(self, openml_task_id: int, rng: Union[int, np.random.RandomState, None] = None):
         super(OpenMLHoldoutDataManager, self).__init__()
 
-        self._save_to = hpobench.config_file.data_dir / 'OpenML'
+        self._save_to = data_dir / 'OpenML'
         self.task_id = openml_task_id
         self.rng = get_rng(rng=rng)
         self.name = None
@@ -137,7 +271,7 @@ class OpenMLHoldoutDataManager(HoldoutDataManager):
         self.create_save_directory(self._save_to)
 
         openml.config.apikey = '610344db6388d9ba34f6db45a3cf71de'
-        openml.config.set_cache_directory(str(self._save_to))
+        openml.config.set_root_cache_directory(str(self._save_to))
 
     def load(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray,
                             np.ndarray, np.ndarray, np.ndarray]:
@@ -215,7 +349,7 @@ class OpenMLCrossvalidationDataManager(CrossvalidationDataManager):
     def __init__(self, openml_task_id: int, rng: Union[int, np.random.RandomState, None] = None):
         super(OpenMLCrossvalidationDataManager, self).__init__()
 
-        self._save_to = hpobench.config_file.data_dir / 'OpenML'
+        self._save_to = data_dir / 'OpenML'
         self.task_id = openml_task_id
         self.rng = get_rng(rng=rng)
         self.name = None

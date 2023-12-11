@@ -9,7 +9,7 @@ from gplearn.genetic import SymbolicRegressor
 from typing import Union, Dict
 
 from transopt.Benchmark.BenchBase import NonTabularOptBenchmark
-from transopt.Utils.Register import benchmark_register
+from transopt.utils.Register import benchmark_register
 
 
 logger = logging.getLogger("LunarLanderBenchmark")

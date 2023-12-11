@@ -4,7 +4,7 @@ import pickle
 import os
 import pandas as pds
 
-from transopt.Utils.Normalization import Norm_pt
+from transopt.utils.Normalization import Norm_pt
 from Optimizer import VBOOptimizer
 from Optimizer import construct_acf
 

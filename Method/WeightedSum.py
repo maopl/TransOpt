@@ -4,8 +4,8 @@ import pickle
 import os
 
 
-from transopt.Utils.Normalization  import Normalize
-from transopt.Utils.Initialization import InitData
+from transopt.utils.Normalization  import Normalize
+from transopt.utils.Initialization import InitData
 from Optimizer import WeightedSumOptimizer
 from Optimizer import construct_acf
 

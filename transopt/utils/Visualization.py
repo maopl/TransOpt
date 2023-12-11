@@ -8,8 +8,8 @@ from itertools import product
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE."
 
 from transopt.Benchmark.Synthetic import SyntheticBenchmark
-from transopt.Utils.Data import ndarray_to_vectors, vectors_to_ndarray
-from transopt.Utils.Normalization import normalize
+from transopt.utils.Data import ndarray_to_vectors, vectors_to_ndarray
+from transopt.utils.Normalization import normalize
 
 
 def visual_contour(

@@ -3,13 +3,13 @@ import numpy as np
 # from transopt.Benchmark.Synthetic.SyntheticBenchmark import Select_synthetic_fun
 from transopt.Benchmark.RL.LunarlanderBenchmark import LunarlanderBenchmark
 from sklearn.preprocessing import power_transform
-from transopt.Utils.Normalization import Normalize
+from transopt.utils.Normalization import Normalize
 from transopt.Benchmark.HPOB.HpobBench import HPOb
 from sklearn.mixture import GaussianMixture
 from scipy.stats import pearsonr, spearmanr
 from sklearn.cluster import KMeans
 from sklearn.neighbors import KernelDensity
-from transopt.Utils.Normalization import normalize
+from transopt.utils.Normalization import normalize
 
 
 class PseudoPointsGenerator():

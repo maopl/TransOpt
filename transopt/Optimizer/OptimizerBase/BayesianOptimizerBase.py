@@ -5,8 +5,8 @@ import math
 from typing import Union, Dict, List
 from transopt.Optimizer.OptimizerBase import OptimizerBase
 import GPyOpt
-from transopt.Utils.Data import vectors_to_ndarray, output_to_ndarray
-from transopt.Utils.Visualization import visual_oned, visual_contour
+from transopt.utils.Data import vectors_to_ndarray, output_to_ndarray
+from transopt.utils.Visualization import visual_oned, visual_contour
 from transopt.KnowledgeBase.TaskDataHandler import OptTaskDataHandler
 from transopt.Optimizer.Acquisition.ConstructACF import get_ACF
 from transopt.Optimizer.Acquisition.sequential import Sequential

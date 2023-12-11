@@ -1,7 +1,7 @@
 
 import GPyOpt
 
-from transopt.Utils.Register import acf_registry
+from transopt.utils.Register import acf_registry
 
 
 def get_ACF(acf_name, model, search_space, config, tabular=False):

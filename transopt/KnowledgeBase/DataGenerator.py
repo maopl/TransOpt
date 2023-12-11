@@ -4,7 +4,7 @@ from sklearn.mixture import GaussianMixture
 from scipy.stats import pearsonr, spearmanr
 from sklearn.cluster import KMeans
 from sklearn.neighbors import KernelDensity
-from transopt.Utils.Normalization import normalize
+from transopt.utils.Normalization import normalize
 
 
 class PseudoPointsGenerator():

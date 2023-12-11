@@ -5,7 +5,7 @@ from GPy.core.gp import GP
 
 from paramz.transformations import Transformation, __fixed__
 from functools import reduce
-from transopt.Utils.Prior import *
+from transopt.utils.Prior import *
 
 from GPy.likelihoods import gaussian
 log_2_pi = np.log(2*np.pi)

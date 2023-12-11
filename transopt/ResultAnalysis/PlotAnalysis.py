@@ -6,7 +6,7 @@ from matplotlib.pyplot import MultipleLocator
 import pandas as pds
 import os
 import seaborn as sns
-from transopt.Utils.sk import Rx
+from transopt.utils.sk import Rx
 from pathlib import Path
 import scipy
 import tikzplotlib

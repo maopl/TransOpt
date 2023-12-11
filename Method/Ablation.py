@@ -3,9 +3,9 @@ import pandas
 import GPyOpt as GPyOpt
 import os
 
-from transopt.Utils.Normalization import Norm_pt
-from transopt.Utils.Initialization import InitData
-from Util import Prior
+from transopt.utils.Normalization import Norm_pt
+from transopt.utils.Initialization import InitData
+from transopt.utils import Prior
 from Optimizer import MOGPOptimizer
 from Optimizer import MultiTaskOptimizer
 
@@ -18,7 +18,7 @@ import Visualization.Visual_landscape as visual
 from Gym import Gym_Metric
 from Gym import Generator
 import pickle
-from transopt.Utils.Normalization  import Normalize
+from transopt.utils.Normalization  import Normalize
 from collections import defaultdict
 
 def Aba1(

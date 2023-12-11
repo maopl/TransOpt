@@ -15,7 +15,7 @@ from GPy.inference.latent_function_inference import ExactGaussianInference
 from scipy.stats import spearmanr
 
 from transopt.KnowledgeBase.Knowledge_selection import Knowledge_SimS,Knowledge_NSimS
-from transopt.Utils.Normalization import Norm_rank_pt,Norm_pt,Normalize_mean_std
+from transopt.utils.Normalization import Norm_rank_pt,Norm_pt,Normalize_mean_std
 
 def construct_MOkernel(input_dim,output_dim, base_kernel = 'RBF', Q = 1, rank=2):
     if base_kernel == 'RBF':

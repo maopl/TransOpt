@@ -1,6 +1,6 @@
 from celery import Celery, Task
 from celery.utils.log import get_task_logger
-from transopt.Utils.Register import benchmark_registry
+from transopt.utils.Register import benchmark_registry
 
 celery_inst = Celery(__name__)
 celery_inst.config_from_object("celeryconfig")

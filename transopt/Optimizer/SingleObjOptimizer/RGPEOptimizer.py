@@ -1,9 +1,9 @@
 import numpy as np
 import GPy
 
-from transopt.Utils.Data import ndarray_to_vectors
-from transopt.Utils.Register import optimizer_register
-from transopt.Utils.Normalization import get_normalizer
+from transopt.utils.Data import ndarray_to_vectors
+from transopt.utils.Register import optimizer_register
+from transopt.utils.Normalization import get_normalizer
 from typing import Dict, Union, List, Tuple
 from transopt.Optimizer.OptimizerBase import BayesianOptimizerBase
 from transopt.Optimizer.Model.RGPE import RGPE

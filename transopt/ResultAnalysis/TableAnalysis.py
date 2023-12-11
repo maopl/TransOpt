@@ -1,6 +1,6 @@
 import numpy as np
 from collections import defaultdict
-from transopt.Utils.sk import Rx
+from transopt.utils.sk import Rx
 import scipy
 from transopt.ResultAnalysis.TableToLatex import matrix_to_latex
 from transopt.ResultAnalysis.AnalysisBase import AnalysisBase

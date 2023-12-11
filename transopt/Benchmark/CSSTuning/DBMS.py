@@ -8,7 +8,7 @@ from pathlib import Path
 from csstuning.dbms.dbms_benchmark import MySQLBenchmark
 
 from transopt.Benchmark.BenchBase import NonTabularOptBenchmark
-from transopt.Utils.Register import benchmark_register
+from transopt.utils.Register import benchmark_register
 
 
 @benchmark_register("DBMS")

@@ -3,7 +3,7 @@ import copy
 import numpy as np
 from typing import Dict
 
-from transopt.Utils.Register import benchmark_registry
+from transopt.utils.Register import benchmark_registry
 from transopt.Benchmark.BenchBase import (
     TransferOptBenchmark,
     RemoteTransferOptBenchmark,

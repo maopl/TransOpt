@@ -1,3 +1,0 @@
-{
-    "hopbench": ["hpobench @ git+https://github.com/automl/HPOBench.git"]
-}

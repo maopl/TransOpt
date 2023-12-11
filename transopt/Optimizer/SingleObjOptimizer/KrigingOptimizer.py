@@ -5,10 +5,10 @@ from pymoo.algorithms.soo.nonconvex.ga import GA
 from typing import Dict, Union, List
 
 from transopt.Optimizer.OptimizerBase import BayesianOptimizerBase
-from transopt.Utils.Data import vectors_to_ndarray, output_to_ndarray
-from transopt.Utils.Data import ndarray_to_vectors
-from transopt.Utils.Register import optimizer_register
-from transopt.Utils.Normalization import get_normalizer
+from transopt.utils.Data import vectors_to_ndarray, output_to_ndarray
+from transopt.utils.Data import ndarray_to_vectors
+from transopt.utils.Register import optimizer_register
+from transopt.utils.Normalization import get_normalizer
 
 
 @optimizer_register('KrigingGA')

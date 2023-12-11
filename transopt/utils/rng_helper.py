@@ -1,3 +1,10 @@
+"""
+This file includes code adapted from HPOBench (https://github.com/automl/HPOBench),
+which is licensed under the Apache License 2.0. A copy of the license can be
+found at http://www.apache.org/licenses/LICENSE-2.0.
+"""
+
+
 """ Helper functions to easily obtain randomState """
 from typing import Union, Tuple, List
 

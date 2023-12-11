@@ -22,7 +22,7 @@ from transopt_external.transfergpbo.models import TaskData
 from emukit.core import ContinuousParameter
 from emukit.core import ParameterSpace
 
-from transopt.Utils import Prior
+from transopt.utils import Prior
 from typing import Dict, Hashable
 from transopt_external.transfergpbo.models import (
     WrapperBase,

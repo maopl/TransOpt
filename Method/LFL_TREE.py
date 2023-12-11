@@ -4,8 +4,8 @@ import numpy as np
 import GPyOpt as GPyOpt
 import os
 
-from transopt.Utils.Normalization  import Normalize
-from transopt.Utils.Initialization import InitData
+from transopt.utils.Normalization  import Normalize
+from transopt.utils.Initialization import InitData
 from transopt_external.transfergpbo.models import TaskData
 
 from Optimizer import construct_acf

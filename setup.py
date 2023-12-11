@@ -24,6 +24,7 @@ req = [
     "ConfigSpace>=0.4.12",
     "pandas",
     "scikit-learn",
+    "openml",
     "matplotlib",
     "pdf2image",
     "torch",

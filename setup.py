@@ -31,7 +31,7 @@ req = [
     "torchvision",
     "seaborn",
     "GPy",
-    "GPyOpt"
+    "GPyOpt",
     "Pillow",
     "gym",
     "sobol-seq",

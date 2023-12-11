@@ -16,6 +16,7 @@ def get_extra_requirements(folder='./extra_requirements'):
                 requirements = json.load(fh)
                 extra_requirements.update(requirements)
 
+    print(f"Extra requirements: {extra_requirements}")
     return extra_requirements
 
 req = [

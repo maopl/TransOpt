@@ -51,7 +51,8 @@ class DBMSTuning(NonTabularOptBenchmark):
         performance = self.benchmark.run(c)
         end_time = time.time()
         return {
-            "function_value": float(-performance["throughput"]),
+            "function_value_1": float(-performance["throughput"]),
+            "function_value_2": float(performance["latency"] * 10e-3),
             "latency": float(performance["latency"] * 10e-3),
             "throughput": float(-performance["throughput"]),
             "cost": float(end_time - start_time),

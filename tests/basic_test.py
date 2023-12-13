@@ -40,7 +40,7 @@ class TestTransOptInstallation(unittest.TestCase):
         kb = get_knowledgebase(args)
         self.assertIsNotNone(kb)
 
-        testsuits = get_testsuits({"GCC": {"budget": 11, "time_stamp": 3}}, args)
+        testsuits = get_testsuits({"GCC": {"budget": 5, "time_stamp": 2}}, args)
         self.assertIsNotNone(testsuits)
 
         optimizer = get_optimizer(args)

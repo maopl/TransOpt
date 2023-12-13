@@ -14,7 +14,7 @@ ERROR_VALUE = 1e5
 
 
 @benchmark_register("GCC")
-class GCC(NonTabularOptBenchmark):
+class GCCTuning(NonTabularOptBenchmark):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -22,7 +22,7 @@ class GCC(NonTabularOptBenchmark):
         self.benchmark_name = WORKLOAD[task_id]
         self.benchmark = GCCBenchmark(workload=self.benchmark_name)
         self.config_knob = self.benchmark.config_space.get_all_details()
-        super(GCC, self).__init__(
+        super(GCCTuning, self).__init__(
             task_name=task_name,
             seed=seed,
             task_type=task_type,
@@ -137,7 +137,7 @@ class GCC(NonTabularOptBenchmark):
 
 
 @benchmark_register("LLVM")
-class LLVM(NonTabularOptBenchmark):
+class LLVMTuning(NonTabularOptBenchmark):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -145,7 +145,7 @@ class LLVM(NonTabularOptBenchmark):
         self.benchmark_name = WORKLOAD[task_id]
         self.benchmark = LLVMBenchmark(workload=self.benchmark_name)
         self.config_knob = self.benchmark.config_space.get_all_details()
-        super(LLVM, self).__init__(
+        super(LLVMTuning, self).__init__(
             task_name=task_name,
             seed=seed,
             task_type=task_type,
@@ -246,4 +246,4 @@ class LLVM(NonTabularOptBenchmark):
 
 
 if __name__ == "__main__":
-    a = DBMSTuning("1", 121, 0, 1)
+    a = GCCTuning("1", 121, 0, 1)

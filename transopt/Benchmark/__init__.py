@@ -1,5 +1,5 @@
 # Import all the benchmark classes here
-from transopt.Benchmark.CSSTuning.Compiler import GCC, LLVM
+from transopt.Benchmark.CSSTuning.Compiler import GCCTuning, LLVMTuning
 from transopt.Benchmark.CSSTuning.DBMS import DBMSTuning
 from transopt.Benchmark.HPO.HPORes18 import HPOResNet
 from transopt.Benchmark.HPO.HPOSVM import SupportVectorMachine

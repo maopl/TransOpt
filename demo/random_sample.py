@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
     samples_num = 5000
     available_workloads = CompilerBenchmarkBase.AVAILABLE_WORKLOADS
-    split_workloads = split_into_segments(available_workloads, 10)[0]
+    split_workloads = split_into_segments(available_workloads, 10)
 
     if split_index >= len(split_workloads):
         raise IndexError("split index out of range")

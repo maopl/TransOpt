@@ -53,25 +53,25 @@ if __name__ == "__main__":
 
     print(f"Runing workloads: {workloads}")
 
-    tasks = {
-        "GCC": {"budget": samples_num, "workloads": workloads},
-        "LLVM": {"budget": samples_num, "workloads": workloads},
-    }
+    # tasks = {
+    #     "GCC": {"budget": samples_num, "workloads": workloads},
+    #     "LLVM": {"budget": samples_num, "workloads": workloads},
+    # }
 
-    args = argparse.Namespace(
-        seed=0,
-        optimizer="ParEGO",
-        init_number=samples_num,
-        init_method="random",
-        exp_path=f"{package_dir}/../experiment_results",
-        exp_name="sampling_compiler",
-        verbose=True,
-        normalize="norm",
-        source_num=2,
-        selector="None",
-        save_mode=1,
-        load_mode=False,
-        acquisition_func="LCB",
-    )
+    # args = argparse.Namespace(
+    #     seed=0,
+    #     optimizer="ParEGO",
+    #     init_number=samples_num,
+    #     init_method="random",
+    #     exp_path=f"{package_dir}/../experiment_results",
+    #     exp_name="sampling_compiler",
+    #     verbose=True,
+    #     normalize="norm",
+    #     source_num=2,
+    #     selector="None",
+    #     save_mode=1,
+    #     load_mode=False,
+    #     acquisition_func="LCB",
+    # )
 
-    run_experiments(tasks, args)
+    # run_experiments(tasks, args)

@@ -2,6 +2,7 @@ import logging
 import os
 import argparse
 import sys
+import numpy as np
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 package_dir = os.path.dirname(current_dir)
@@ -33,18 +34,17 @@ def split_into_segments(lst, n):
 
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument(
-    #     "split_index", type=int, help="Index for splitting the workload segments"
-    # )
-    # args = parser.parse_args()
-    # split_index = args.split_index
-    split_index = 0
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "split_index", type=int, help="Index for splitting the workload segments"
+    )
+    args = parser.parse_args()
+    split_index = args.split_index
 
 
     samples_num = 5
     available_workloads = CompilerBenchmarkBase.AVAILABLE_WORKLOADS
-    split_workloads = split_into_segments(available_workloads, 10)
+    split_workloads = split_into_segments(available_workloads, 10)[0]
 
     if split_index >= len(split_workloads):
         raise IndexError("split index out of range")

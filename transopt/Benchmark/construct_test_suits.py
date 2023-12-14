@@ -33,6 +33,7 @@ def construct_test_suits(
                 task_id=idx,
                 budget=budget,
                 seed=seed,
+                workload=workload,
                 params=params,
             )
             test_suits.add_task(problem)

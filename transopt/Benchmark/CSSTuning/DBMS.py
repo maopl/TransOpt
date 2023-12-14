@@ -14,10 +14,9 @@ from transopt.utils.Register import benchmark_register
 @benchmark_register("DBMS")
 class DBMSTuning(NonTabularOptBenchmark):
     def __init__(
-        self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
+        self, task_name, budget, seed, task_id, task_type="non-tabular", workload=None, **kwargs
     ):
-        WORKLOAD = MySQLBenchmark.AVAILABLE_WORKLOADS
-        self.benchmark_name = WORKLOAD[task_id]
+        self.benchmark_name = workload
         self.benchmark = MySQLBenchmark(workload="twitter")
         self.config_knob = self.benchmark.get_config_space()
         super(DBMSTuning, self).__init__(

@@ -16,10 +16,9 @@ ERROR_VALUE = 1e5
 @benchmark_register("GCC")
 class GCCTuning(NonTabularOptBenchmark):
     def __init__(
-        self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
+        self, task_name, budget, seed, task_id, task_type="non-tabular", workload = None, **kwargs
     ):
-        WORKLOAD = GCCBenchmark.AVAILABLE_WORKLOADS
-        self.benchmark_name = WORKLOAD[task_id]
+        self.benchmark_name = workload
         self.benchmark = GCCBenchmark(workload=self.benchmark_name)
         self.config_knob = self.benchmark.config_space.get_all_details()
         super(GCCTuning, self).__init__(
@@ -139,10 +138,9 @@ class GCCTuning(NonTabularOptBenchmark):
 @benchmark_register("LLVM")
 class LLVMTuning(NonTabularOptBenchmark):
     def __init__(
-        self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
+        self, task_name, budget, seed, task_id, task_type="non-tabular", workload = None, **kwargs
     ):
-        WORKLOAD = LLVMBenchmark.AVAILABLE_WORKLOADS
-        self.benchmark_name = WORKLOAD[task_id]
+        self.benchmark_name = workload
         self.benchmark = LLVMBenchmark(workload=self.benchmark_name)
         self.config_knob = self.benchmark.config_space.get_all_details()
         super(LLVMTuning, self).__init__(

@@ -21,7 +21,7 @@ os.environ["OMP_NUM_THREADS"] = "1"
 
 def run_experiments(tasks, args):
     kb = construct_knowledgebase(args)
-    testsuits = construct_test_suits(tasks, args)
+    testsuits = construct_test_suits(tasks, args.seed)
     optimizer = get_optimizer(args)
     data_handler = OptTaskDataHandler(kb, args)
     optimizer.optimize(testsuits, data_handler)
@@ -33,20 +33,23 @@ def split_into_segments(lst, n):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "split_index", type=int, help="Index for splitting the workload segments"
-    )
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument(
+    #     "split_index", type=int, help="Index for splitting the workload segments"
+    # )
+    # args = parser.parse_args()
+    # split_index = args.split_index
+    split_index = 0
+
 
     samples_num = 5
     available_workloads = CompilerBenchmarkBase.AVAILABLE_WORKLOADS
     split_workloads = split_into_segments(available_workloads, 10)
 
-    if args.split_index >= len(split_workloads):
-        raise IndexError("Split index out of range")
+    if split_index >= len(split_workloads):
+        raise IndexError("split index out of range")
 
-    workloads = split_workloads[args.split_index]
+    workloads = split_workloads[split_index]
 
     tasks = {
         "GCC": {"budget": samples_num, "workloads": workloads},

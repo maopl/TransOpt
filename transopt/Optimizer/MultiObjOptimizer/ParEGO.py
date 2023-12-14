@@ -1,36 +1,34 @@
 import numpy as np
 import GPy
 from typing import Dict, Union, List
+
 from transopt.Optimizer.OptimizerBase import MOBOBase
 from transopt.utils.Data import ndarray_to_vectors
 from transopt.utils.Register import optimizer_register
-
 from transopt.utils.Normalization import get_normalizer
 
 
-
-
-@optimizer_register('ParEGO')
+@optimizer_register("ParEGO")
 class ParEGO(MOBOBase):
-    def __init__(self, config:Dict, **kwargs):
+    def __init__(self, config: Dict, **kwargs):
         super(ParEGO, self).__init__(config=config)
 
-        self.init_method = 'Random'
+        self.init_method = "Random"
 
-        if 'verbose' in config:
-            self.verbose = config['verbose']
+        if "verbose" in config:
+            self.verbose = config["verbose"]
         else:
             self.verbose = True
 
-        if 'init_number' in config:
-            self.ini_num = config['init_number']
+        if "init_number" in config:
+            self.ini_num = config["init_number"]
         else:
             self.ini_num = None
 
-        self.acf = 'EI'
+        self.acf = "EI"
         self.rho = 0.1
 
-    def scalarization(self, Y:np.ndarray, rho):
+    def scalarization(self, Y: np.ndarray, rho):
         """
         scalarize observed output data
         """
@@ -38,7 +36,7 @@ class ParEGO(MOBOBase):
         sum_theta = np.sum(theta)
         theta = theta / sum_theta
 
-        theta_f =  Y.T * theta
+        theta_f = Y.T * theta
         max_k = np.max(theta_f, axis=1)
         rho_sum_theta_f = rho * np.sum(theta_f, axis=1)
 
@@ -47,39 +45,41 @@ class ParEGO(MOBOBase):
     def initial_sample(self):
         return self.random_sample(self.ini_num)
 
-    def suggest(self, n_suggestions:Union[None, int] = None) ->List[Dict]:
+    def suggest(self, n_suggestions: Union[None, int] = None) -> List[Dict]:
         if self._X.size == 0:
             suggests = self.initial_sample()
             return suggests
         elif self._X.shape[0] < self.ini_num:
             pass
         else:
-            if 'normalize' in self.config:
-                self.normalizer = get_normalizer(self.config['normalize'])
+            if "normalize" in self.config:
+                self.normalizer = get_normalizer(self.config["normalize"])
 
-
-            Data = {'Target':{'X':self._X, 'Y':self._Y}}
+            Data = {"Target": {"X": self._X, "Y": self._Y}}
             self.update_model(Data)
-            suggested_sample, acq_value = self.evaluator.compute_batch(None, context_manager=None)
+            suggested_sample, acq_value = self.evaluator.compute_batch(
+                None, context_manager=None
+            )
             suggested_sample = self.search_space.zip_inputs(suggested_sample)
-            suggested_sample = ndarray_to_vectors(self._get_var_name('search'), suggested_sample)
+            suggested_sample = ndarray_to_vectors(
+                self._get_var_name("search"), suggested_sample
+            )
             design_suggested_sample = self.inverse_transform(suggested_sample)
 
             return design_suggested_sample
 
-
     def update_model(self, Data):
-        Target_Data = Data['Target']
-        assert 'X' in Target_Data
+        Target_Data = Data["Target"]
+        assert "X" in Target_Data
 
-        X = Target_Data['X']
-        Y = Target_Data['Y']
+        X = Target_Data["X"]
+        Y = Target_Data["Y"]
         assert Y.shape[0] == self.num_objective
 
         if self.normalizer is not None:
             Y_norm = np.array([self.normalizer(y) for y in Y])
 
-        Y_scalar = self.scalarization(Y_norm, 0.1)[:,np.newaxis]
+        Y_scalar = self.scalarization(Y_norm, 0.1)[:, np.newaxis]
 
         if len(self.model_list) == 0:
             self.create_model(X, Y_scalar)
@@ -87,18 +87,20 @@ class ParEGO(MOBOBase):
             self.model_list[0].set_XY(X, Y_scalar)
 
         try:
-            self.model_list[0].optimize_restarts(num_restarts=1, verbose=self.verbose, robust=True)
+            self.model_list[0].optimize_restarts(
+                num_restarts=1, verbose=self.verbose, robust=True
+            )
         except np.linalg.linalg.LinAlgError as e:
             # break
-            print('Error: np.linalg.linalg.LinAlgError')
+            print("Error: np.linalg.linalg.LinAlgError")
 
     def create_model(self, X, Y):
         assert self.num_objective is not None
 
-        kernel = GPy.kern.RBF(input_dim = self.input_dim)
+        kernel = GPy.kern.RBF(input_dim=self.input_dim)
         model = GPy.models.GPRegression(X, Y, kernel=kernel, normalizer=None)
-        model['.*Gaussian_noise.variance'].constrain_fixed(1.0e-4)
-        model['.*rbf.variance'].constrain_fixed(1.0)
+        model[".*Gaussian_noise.variance"].constrain_fixed(1.0e-4)
+        model[".*rbf.variance"].constrain_fixed(1.0)
         self.kernel_list.append(model.kern)
         self.model_list.append(model)
         print("model state")
@@ -122,7 +124,6 @@ class ParEGO(MOBOBase):
                 pred_var = np.append(pred_var, var, axis=1)
         return pred_mean, pred_var
 
-
     def random_sample(self, num_samples: int) -> List[Dict]:
         """
         Initialize random samples.
@@ -131,14 +132,16 @@ class ParEGO(MOBOBase):
         :return: List of dictionaries, each representing a random sample
         """
         if self.input_dim is None:
-            raise ValueError("Input dimension is not set. Call set_search_space() to set the input dimension.")
+            raise ValueError(
+                "Input dimension is not set. Call set_search_space() to set the input dimension."
+            )
 
         random_samples = []
         for _ in range(num_samples):
             sample = {}
             for var_info in self.search_space.config_space:
-                var_name = var_info['name']
-                var_domain = var_info['domain']
+                var_name = var_info["name"]
+                var_domain = var_info["domain"]
                 # Generate a random floating-point number within the specified range
                 random_value = np.random.uniform(var_domain[0], var_domain[1])
                 sample[var_name] = random_value

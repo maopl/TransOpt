@@ -117,7 +117,7 @@ class DBMSTuning(NonTabularOptBenchmark):
         return fidel_space
 
     def get_meta_information(self) -> Dict:
-        pass
+        return {"number_objective": 2}
 
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ from Method import TMTGP
 # from Method import HEBO
 # from Method import TPE
 
-from transopt.Benchmark import ConstructTestSuits
+from transopt.Benchmark import construct_test_suits
 
 from transopt.KnowledgeBase.KnowledgeBase import KnowledgeBase
 os.environ['MKL_NUM_THREADS'] = "1"
@@ -151,7 +151,7 @@ if __name__ == '__main__':
 
     ini_quantile = 0.5
     knowledge_num = 2
-    test_suits = ConstructTestSuits.ConstructLFLTestSuits(tasks=task_list, budget_list=FEs_list)
+    test_suits = construct_test_suits.ConstructTestSuits(tasks=task_list, budget_list=FEs_list)
 
     # recorder = Record.Recorder
 

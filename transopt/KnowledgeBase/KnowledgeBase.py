@@ -1,84 +1,42 @@
 import abc
-import json
 import os
+import json
 import warnings
-from functools import wraps
-from typing import List, Any, Union, Tuple, Dict
+from pathlib import Path
+from typing import Any, List, Tuple, Union
 
 
 class KnowledgeBase(abc.ABC, metaclass=abc.ABCMeta):
     def __init__(self, file_path: str, load_mode: bool = False):
-        self.file_path = file_path
+        self.file_path = Path(file_path)
         self.load_mode = load_mode
-        self._initialize_data_file()
         self.data_base = self._load_database()
         self._dataset_id = set()
         self._dataset_name = set()
         self._update_datasets_info()
 
-    def _initialize_data_file(self) -> None:
-        directory = os.path.dirname(self.file_path)
-
-        # 检查目录是否存在
-        if directory and not os.path.exists(directory):
-            try:
-                os.makedirs(directory)
-            except OSError as e:
-                raise OSError(f"Unable to create directory for file: {e}")
-
-        if self.load_mode:
-            # 检查文件是否存在
-            if not os.path.exists(self.file_path):
-                with open(self.file_path, "w") as f:
-                    json.dump({}, f)
-            else:
-                # 为了确保文件是一个有效的JSON文件，你可以尝试读取它
-                try:
-                    with open(self.file_path, "r") as f:
-                        json.load(f)
-                except json.JSONDecodeError:
-                    raise ValueError(
-                        f"The file {self.file_path} exists but is not a valid JSON file."
-                    )
-        else:
-            with open(self.file_path, "w") as f:
-                json.dump({}, f)
-
     def _load_database(self) -> dict:
-        with open(self.file_path, "r") as f:
-            data = json.load(f)
-            if not isinstance(data, dict) or not data:
-                return {}
-            return data
+        self.file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if self.load_mode and self.file_path.exists():
+            try:
+                with self.file_path.open("r") as f:
+                    data = json.load(f)
+                    return data
+            except json.JSONDecodeError:
+                raise ValueError(f"The file {self.file_path} is not a valid JSON file.")
+        else:
+            with self.file_path.open("w") as f:
+                json.dump({}, f)
+            return {}
 
     def _save_database(self) -> None:
-        # def print_value_types(obj, path=""):
-        #     """
-        #     Print the type of each value in the dictionary. If the value is iterable (like dictionaries and lists),
-        #     it recursively prints the type of each nested item.
-        #
-        #     Args:
-        #     obj: The object (typically a dictionary) to analyze.
-        #     path: The path to the current object within the main object.
-        #     """
-        #     if isinstance(obj, dict):
-        #         for key, value in obj.items():
-        #             new_path = f"{path}.{key}" if path else str(key)
-        #             print(f"Path: {new_path}, Type: {type(value).__name__}")
-        #             print_value_types(value, new_path)
-        #     elif isinstance(obj, list):
-        #         for index, item in enumerate(obj):
-        #             new_path = f"{path}[{index}]"
-        #             print(f"Path: {new_path}, Type: {type(item).__name__}")
-        #             print_value_types(item, new_path)
-        #     else:
-        #         # Not a dict or list, just print the type of the item
-        #         print(f"Path: {path}, Type: {type(obj).__name__}")
-
-        # print_value_types(self.data_base)
-        with open(self.file_path, "w") as f:
-            json.dump(self.data_base, f)
-
+        try:
+            with self.file_path.open("w") as f:
+                json.dump(self.data_base, f)
+        except Exception as e:
+            raise IOError(f"Failed to save data to {self.file_path}: {e}")
+        
     def _update_datasets_info(self) -> None:
         ids_in_file = set()
         names_in_file = set()

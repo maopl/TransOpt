@@ -141,7 +141,7 @@ class LLVMTuning(NonTabularOptBenchmark):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
-        WORKLOAD = LLVMBenchmark.AVALIABLE_WORKLOADS
+        WORKLOAD = LLVMBenchmark.AVAILABLE_WORKLOADS
         self.benchmark_name = WORKLOAD[task_id]
         self.benchmark = LLVMBenchmark(workload=self.benchmark_name)
         self.config_knob = self.benchmark.config_space.get_all_details()
@@ -176,7 +176,8 @@ class LLVMTuning(NonTabularOptBenchmark):
             end_time = time.time()
 
             return {
-                "function_value": float(performance["avrg_exec_time"]),
+                "function_value_1": float(performance["avrg_exec_time"]),
+                "function_value_2": float(performance["file_size"]),
                 "avrg_exec_time": float(performance["avrg_exec_time"]),
                 "file_size": float(performance["file_size"]),
                 "PAPI_TOT_CYC": float(performance["PAPI_TOT_CYC"]),
@@ -193,7 +194,8 @@ class LLVMTuning(NonTabularOptBenchmark):
             }
         except:
             return {
-                "function_value": float(ERROR_VALUE),
+                "function_value_1": float(ERROR_VALUE),
+                "function_value_2": float(ERROR_VALUE),
                 "avrg_exec_time": float(ERROR_VALUE),
                 "file_size": float(ERROR_VALUE),
                 "PAPI_TOT_CYC": float(ERROR_VALUE),
@@ -242,7 +244,7 @@ class LLVMTuning(NonTabularOptBenchmark):
         return fidel_space
 
     def get_meta_information(self) -> Dict:
-        pass
+        return {"number_objective": 2}
 
 
 if __name__ == "__main__":

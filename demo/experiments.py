@@ -7,9 +7,9 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 package_dir = os.path.dirname(current_dir)
 sys.path.insert(0, package_dir)
 
-from transopt.Benchmark.ConstructTestSuits import get_testsuits
+from transopt.Benchmark import construct_test_suits
 from transopt.Optimizer.ConstructOptimizer import get_optimizer
-from transopt.KnowledgeBase.ConstructKB import get_knowledgebase
+from transopt.KnowledgeBase.kb_builder import construct_knowledgebase
 from transopt.KnowledgeBase.TaskDataHandler import OptTaskDataHandler
 
 
@@ -20,8 +20,8 @@ os.environ["OMP_NUM_THREADS"] = "1"
 
 def run_experiments(tasks, args):
     logger = logging.getLogger(__name__)
-    kb = get_knowledgebase(args)
-    testsuits = get_testsuits(tasks, args)
+    kb = construct_knowledgebase(args)
+    testsuits = construct_test_suits(tasks, args)
     optimizer = get_optimizer(args)
     data_handler = OptTaskDataHandler(kb, args)
     optimizer.optimize(testsuits, data_handler)

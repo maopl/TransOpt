@@ -7,9 +7,9 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 package_dir = os.path.dirname(current_dir)
 sys.path.insert(0, package_dir)
 
-from transopt.Benchmark.ConstructTestSuits import get_testsuits
+from transopt.Benchmark.construct_test_suits import get_testsuits
 from transopt.Optimizer.ConstructOptimizer import get_optimizer
-from transopt.KnowledgeBase.ConstructKB import get_knowledgebase
+from transopt.KnowledgeBase.kb_builder import construct_knowledgebase
 from transopt.KnowledgeBase.TaskDataHandler import OptTaskDataHandler
 
 
@@ -17,7 +17,7 @@ class TestTransOptInstallation(unittest.TestCase):
     def test_imports(self):
         self.assertIsNotNone(get_testsuits)
         self.assertIsNotNone(get_optimizer)
-        self.assertIsNotNone(get_knowledgebase)
+        self.assertIsNotNone(construct_knowledgebase)
         self.assertIsNotNone(OptTaskDataHandler)
 
     def test_basic_operations(self):
@@ -37,10 +37,10 @@ class TestTransOptInstallation(unittest.TestCase):
             acquisition_func="LCB",
         )
 
-        kb = get_knowledgebase(args)
+        kb = construct_knowledgebase(args)
         self.assertIsNotNone(kb)
 
-        testsuits = get_testsuits({"GCC": {"budget": 5, "time_stamp": 2}}, args)
+        testsuits = get_testsuits({"DBMS": {"budget": 11, "time_stamp": 3}}, args)
         self.assertIsNotNone(testsuits)
 
         optimizer = get_optimizer(args)

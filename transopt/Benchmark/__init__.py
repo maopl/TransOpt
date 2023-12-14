@@ -31,3 +31,5 @@ from transopt.Benchmark.Synthetic.SyntheticBenchmark import (
     GriewankRosenbrockOptBenchmark,
     KatsuuraOptBenchmark,
 )
+
+from transopt.Benchmark.construct_test_suits import construct_test_suits

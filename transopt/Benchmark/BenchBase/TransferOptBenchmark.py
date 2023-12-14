@@ -179,7 +179,7 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
                 logger.error(
                     " The current function evaluation has exceeded the user-set budget."
                 )
-                raise EnvironmentError
+                raise RuntimeError("The current function evaluation has exceeded the user-set budget.")
 
             if isinstance(fidelity, list):
                 assert len(fidelity) == len(configuration)

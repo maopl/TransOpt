@@ -4,12 +4,12 @@ MOEA/D multi-objective solver.
 
 import numpy as np
 from sklearn.cluster import KMeans
-from pymoo.algorithms.moead import MOEAD as MOEADAlgo
+from pymoo.algorithms.moo.moead import MOEAD as MOEADAlgo
 from pymoo.util.nds.non_dominated_sorting import NonDominatedSorting
 from pymoo.optimize import minimize
 
-from autooed.utils.sampling import lhs
-from autooed.utils.pareto import find_pareto_front
+from transopt.utils.sampling import lhs
+from transopt.utils.pareto import find_pareto_front
 from autooed.mobo.solver.base import Solver
 
 
@@ -19,7 +19,9 @@ class MOEAD(Solver):
     NOTE: only compatible with Direct selection.
     '''
     def __init__(self, problem, n_gen=100, pop_size=100, **kwargs):
-        super().__init__(problem)
+        self.real_problem = problem # real problem
+        self.problem = None # surrogate problem
+        self.transformation = problem.transformation
         self.n_gen = n_gen
         self.pop_size = pop_size
 
@@ -28,6 +30,30 @@ class MOEAD(Solver):
         self.ref_dirs /= np.expand_dims(np.sum(self.ref_dirs, axis=1), 1)
         self.algo = MOEADAlgo(pop_size=pop_size, ref_dirs=self.ref_dirs, eliminate_duplicates=False)
 
+    def solve(self, X, Y, batch_size, acquisition):
+        '''
+        Solve the multi-objective problem and propose a batch of candidates.
+
+        Parameters
+        ----------
+        X: np.array
+            Current design variables (raw).
+        batch_size: int
+            Size of the candidate batch.
+
+        Returns
+        -------
+        X_candidate: np.array
+            Proposed candidate design variables (raw).
+        Y_candidate: np.array
+            Objective values of proposed candidate designs.
+        '''
+        self.problem = SurrogateProblem(self.real_problem, acquisition)
+        X = self.transformation.do(X)
+        X_candidate, Y_candidate = self._solve(X, Y, batch_size)
+        X_candidate = self.transformation.undo(X_candidate)
+        return X_candidate, Y_candidate
+    
     def _solve(self, X, Y, batch_size):
 
         # initialize population

@@ -42,7 +42,7 @@ if __name__ == "__main__":
     split_index = args.split_index
 
 
-    samples_num = 5
+    samples_num = 5000
     available_workloads = CompilerBenchmarkBase.AVAILABLE_WORKLOADS
     split_workloads = split_into_segments(available_workloads, 10)[0]
 

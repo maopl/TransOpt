@@ -34,13 +34,12 @@ def split_into_segments(lst, n):
 
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument(
-    #     "split_index", type=int, help="Index for splitting the workload segments"
-    # )
-    # args = parser.parse_args()
-    # split_index = args.split_index
-    split_index = 1
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "split_index", type=int, help="Index for splitting the workload segments"
+    )
+    args = parser.parse_args()
+    split_index = args.split_index
 
     samples_num = 5000
     available_workloads = CompilerBenchmarkBase.AVAILABLE_WORKLOADS

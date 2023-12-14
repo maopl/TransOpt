@@ -28,6 +28,8 @@ class BayesianOptimizerBase(OptimizerBase):
         self.output_dim = None
         self._data_handler = None
         self.obj_model = None
+        
+        self._ignore_keys = ['input_dim', 'budget', 'seed', 'task_id', 'num_objective']
 
     def _get_var_bound(self, space_name)->Dict:
         assert self.design_space is not None
@@ -151,7 +153,7 @@ class BayesianOptimizerBase(OptimizerBase):
         # Ensure 'input_dim' is present.
         space = []
         for key, var in space_info.items():
-            if key == 'input_dim' or key == 'budget' or key == 'seed' or key == 'task_id':
+            if key in self._ignore_keys:
                 continue
 
             var_dic = {
@@ -208,8 +210,9 @@ class BayesianOptimizerBase(OptimizerBase):
 
         # Ensure the rest of the keys equal the count specified by 'input_dim'.
         input_dim = space_info['input_dim']
-        if len(space_info) - 4 != input_dim:
-            raise ValueError(f"Expected {input_dim} variable(s), but got {len(space_info) - 4}.")
+        actual_dim = len([key for key in space_info if key not in self._ignore_keys])
+        if actual_dim != input_dim:
+            raise ValueError(f"Expected {input_dim} variable(s), but got {actual_dim}.")
 
         # Validate each variable.
         for key, value in space_info.items():

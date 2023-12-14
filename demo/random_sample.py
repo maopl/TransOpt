@@ -51,6 +51,8 @@ if __name__ == "__main__":
 
     workloads = split_workloads[split_index]
 
+    print(f"Runing workloads: {workloads}")
+
     tasks = {
         "GCC": {"budget": samples_num, "workloads": workloads},
         "LLVM": {"budget": samples_num, "workloads": workloads},

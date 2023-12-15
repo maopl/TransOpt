@@ -1,7 +1,7 @@
-import logging
 import os
 import argparse
 import sys
+import datetime
 import numpy as np
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -36,12 +36,15 @@ def split_into_segments(lst, n):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "split_index", type=int, help="Index for splitting the workload segments"
+        "--samples_num", type=int, help="Number of samples to be collected for each workload", default=5
+    )
+    parser.add_argument(
+        "--split_index", type=int, help="Index for splitting the workload segments", default=0
     )
     args = parser.parse_args()
     split_index = args.split_index
-
-    samples_num = 5000
+    samples_num = args.samples_num
+    
     available_workloads = CompilerBenchmarkBase.AVAILABLE_WORKLOADS
     split_workloads = split_into_segments(available_workloads, 10)
 
@@ -55,13 +58,17 @@ if __name__ == "__main__":
         "LLVM": {"budget": samples_num, "workloads": workloads},
     }
 
+    # Get date and set exp name
+    date = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    exp_name = f"sampling_compiler_{date}"
+
     args = argparse.Namespace(
         seed=0,
         optimizer="ParEGO",
         init_number=samples_num,
         init_method="random",
         exp_path=f"{package_dir}/../experiment_results",
-        exp_name="sampling_compiler",
+        exp_name=exp_name,
         verbose=True,
         normalize="norm",
         source_num=2,

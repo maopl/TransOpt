@@ -65,7 +65,7 @@ if __name__ == "__main__":
     args = argparse.Namespace(
         seed=0,
         optimizer="ParEGO",
-        init_number=samples_num,
+        init_number=2,
         init_method="random",
         exp_path=f"{package_dir}/../experiment_results",
         exp_name=exp_name,

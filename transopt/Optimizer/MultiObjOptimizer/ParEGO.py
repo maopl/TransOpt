@@ -46,27 +46,30 @@ class ParEGO(MOBOBase):
         return self.random_sample(self.ini_num)
 
     def suggest(self, n_suggestions: Union[None, int] = None) -> List[Dict]:
-        if self._X.size == 0:
-            suggests = self.initial_sample()
-            return suggests
-        elif self._X.shape[0] < self.ini_num:
-            pass
-        else:
-            if "normalize" in self.config:
-                self.normalizer = get_normalizer(self.config["normalize"])
+        suggests = self.initial_sample()
+        return suggests
+            
+        # if self._X.size == 0:
+        #     suggests = self.initial_sample()
+        #     return suggests
+        # elif self._X.shape[0] < self.ini_num:
+        #     pass
+        # else:
+        #     if "normalize" in self.config:
+        #         self.normalizer = get_normalizer(self.config["normalize"])
 
-            Data = {"Target": {"X": self._X, "Y": self._Y}}
-            self.update_model(Data)
-            suggested_sample, acq_value = self.evaluator.compute_batch(
-                None, context_manager=None
-            )
-            suggested_sample = self.search_space.zip_inputs(suggested_sample)
-            suggested_sample = ndarray_to_vectors(
-                self._get_var_name("search"), suggested_sample
-            )
-            design_suggested_sample = self.inverse_transform(suggested_sample)
+        #     Data = {"Target": {"X": self._X, "Y": self._Y}}
+        #     self.update_model(Data)
+        #     suggested_sample, acq_value = self.evaluator.compute_batch(
+        #         None, context_manager=None
+        #     )
+        #     suggested_sample = self.search_space.zip_inputs(suggested_sample)
+        #     suggested_sample = ndarray_to_vectors(
+        #         self._get_var_name("search"), suggested_sample
+        #     )
+        #     design_suggested_sample = self.inverse_transform(suggested_sample)
 
-            return design_suggested_sample
+        #     return design_suggested_sample
 
     def update_model(self, Data):
         Target_Data = Data["Target"]

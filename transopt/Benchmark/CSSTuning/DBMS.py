@@ -16,8 +16,11 @@ class DBMSTuning(NonTabularOptBenchmark):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", workload=None, **kwargs
     ):
+        if workload is None:
+            workload = MySQLBenchmark.AVAILABLE_WORKLOADS[0]
+
         self.benchmark_name = workload
-        self.benchmark = MySQLBenchmark(workload="twitter")
+        self.benchmark = MySQLBenchmark(workload=self.benchmark_name)
         self.config_knob = self.benchmark.get_config_space()
         super(DBMSTuning, self).__init__(
             task_name=task_name,
@@ -50,10 +53,10 @@ class DBMSTuning(NonTabularOptBenchmark):
         performance = self.benchmark.run(c)
         end_time = time.time()
         return {
-            "function_value_1": float(-performance["throughput"]),
+            "function_value_1": float(performance["throughput"]),
             "function_value_2": float(performance["latency"] * 10e-3),
             "latency": float(performance["latency"] * 10e-3),
-            "throughput": float(-performance["throughput"]),
+            "throughput": float(performance["throughput"]),
             "cost": float(end_time - start_time),
             "info": {"fidelity": fidelity},
         }

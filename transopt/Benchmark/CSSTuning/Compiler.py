@@ -18,6 +18,9 @@ class GCCTuning(NonTabularOptBenchmark):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", workload = None, **kwargs
     ):
+        if workload is None:
+            workload = GCCBenchmark.AVAILABLE_WORKLOADS[0]
+        
         self.benchmark_name = workload
         self.benchmark = GCCBenchmark(workload=self.benchmark_name)
         self.config_knob = self.benchmark.config_space.get_all_details()
@@ -140,6 +143,9 @@ class LLVMTuning(NonTabularOptBenchmark):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", workload = None, **kwargs
     ):
+        if workload is None:
+            workload = GCCBenchmark.AVAILABLE_WORKLOADS[0]
+        
         self.benchmark_name = workload
         self.benchmark = LLVMBenchmark(workload=self.benchmark_name)
         self.config_knob = self.benchmark.config_space.get_all_details()

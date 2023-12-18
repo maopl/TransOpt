@@ -36,16 +36,38 @@ def split_into_segments(lst, n):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--samples_num", type=int, help="Number of samples to be collected for each workload", default=5
+        "samples_num",
+        type=int,
+        help="Number of samples to be collected for each workload",
     )
     parser.add_argument(
-        "--split_index", type=int, help="Index for splitting the workload segments", default=0
+        "--split_index",
+        type=int,
+        help="Index for splitting the workload segments",
+        default=0,
     )
     args = parser.parse_args()
     split_index = args.split_index
     samples_num = args.samples_num
-    
+
     available_workloads = CompilerBenchmarkBase.AVAILABLE_WORKLOADS
+    collected_workloads = [
+        "cbench-automotive-susan-c",
+        "cbench-automotive-bitcount",
+        "cbench-security-rijndael",
+        "cbench-consumer-tiff2rgba",
+        "cbench-telecom-adpcm-d",
+        "cbench-consumer-tiff2bw",
+        "cbench-telecom-adpcm-c",
+        "cbench-consumer-tiff2dither",
+        "cbench-telecom-gsm",
+        "cbench-automotive-susan-e",
+        "cbench-security-sha",
+        "cbench-network-patricia",
+        "cbench-automotive-qsort1",
+    ]
+    available_workloads = list(set(available_workloads) - set(collected_workloads))
+
     split_workloads = split_into_segments(available_workloads, 10)
 
     if split_index >= len(split_workloads):
@@ -55,7 +77,7 @@ if __name__ == "__main__":
 
     tasks = {
         "GCC": {"budget": samples_num, "workloads": workloads},
-        "LLVM": {"budget": samples_num, "workloads": workloads},
+        # "LLVM": {"budget": samples_num, "workloads": workloads},
     }
 
     # Get date and set exp name

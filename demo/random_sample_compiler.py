@@ -37,10 +37,9 @@ def split_into_segments(lst, n):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--samples_num",
+        "samples_num",
         type=int,
         help="Number of samples to be collected for each workload",
-        default=6,
     )
     parser.add_argument(
         "--split_index",

@@ -1,15 +1,19 @@
 import abc
-import numpy as np
-import ConfigSpace
 import math
-from typing import Union, Dict, List
+from typing import Dict, List, Union
+
+import ConfigSpace
 import GPyOpt
-from transopt.utils.Data import vectors_to_ndarray, output_to_ndarray, multioutput_to_ndarray
-from transopt.utils.Visualization import visual_pf
+import numpy as np
+
 from transopt.KnowledgeBase.TaskDataHandler import OptTaskDataHandler
-from transopt.Optimizer.OptimizerBase import OptimizerBase
 from transopt.Optimizer.Acquisition.ConstructACF import get_ACF
 from transopt.Optimizer.Acquisition.sequential import Sequential
+from transopt.Optimizer.OptimizerBase import OptimizerBase
+from transopt.utils.Data import (multioutput_to_ndarray, output_to_ndarray,
+                                 vectors_to_ndarray)
+from transopt.utils.Visualization import visual_pf
+
 
 class MOBOBase(OptimizerBase):
     """

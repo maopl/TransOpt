@@ -1,19 +1,19 @@
-import os
-import argparse
-import sys
-import datetime
-import numpy as np
-
 current_dir = os.path.dirname(os.path.abspath(__file__))
 package_dir = os.path.dirname(current_dir)
 sys.path.insert(0, package_dir)
 
+import argparse
+import datetime
+import os
+import sys
+
+import numpy as np
 from csstuning.dbms.dbms_benchmark import MySQLBenchmark
+
 from transopt.Benchmark import construct_test_suits
-from transopt.Optimizer.ConstructOptimizer import get_optimizer
 from transopt.KnowledgeBase.kb_builder import construct_knowledgebase
 from transopt.KnowledgeBase.TaskDataHandler import OptTaskDataHandler
-
+from transopt.Optimizer.ConstructOptimizer import get_optimizer
 
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["NUMEXPR_NUM_THREADS"] = "1"

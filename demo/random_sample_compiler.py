@@ -1,19 +1,20 @@
 import os
-import argparse
 import sys
-import datetime
-import numpy as np
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 package_dir = os.path.dirname(current_dir)
 sys.path.insert(0, package_dir)
 
+import argparse
+import datetime
+
+import numpy as np
 from csstuning.compiler.compiler_benchmark import CompilerBenchmarkBase
+
 from transopt.Benchmark import construct_test_suits
-from transopt.Optimizer.ConstructOptimizer import get_optimizer
 from transopt.KnowledgeBase.kb_builder import construct_knowledgebase
 from transopt.KnowledgeBase.TaskDataHandler import OptTaskDataHandler
-
+from transopt.Optimizer.ConstructOptimizer import get_optimizer
 
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["NUMEXPR_NUM_THREADS"] = "1"
@@ -36,9 +37,10 @@ def split_into_segments(lst, n):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "samples_num",
+        "--samples_num",
         type=int,
         help="Number of samples to be collected for each workload",
+        default=6,
     )
     parser.add_argument(
         "--split_index",
@@ -64,7 +66,25 @@ if __name__ == "__main__":
         "cbench-automotive-susan-e",
         "cbench-security-sha",
         "cbench-network-patricia",
+        "cbench-telecom-crc32",
+        "cbench-security-pgp",
+        "cbench-consumer-mad",
         "cbench-automotive-qsort1",
+        "polybench-cholesky",
+        "polybench-trisolv",
+        "polybench-adi",
+        "polybench-symm",
+        "polybench-gesummv",
+        "polybench-gemver",
+        "polybench-durbin",
+        "polybench-atax",
+        "polybench-fdtd-apml",
+        "polybench-jacobi-1d-imper",
+        "polybench-bicg",
+        "polybench-syr2k",
+        "polybench-mvt",
+        "polybench-lu",
+        "polybench-3mm",
     ]
     available_workloads = list(set(available_workloads) - set(collected_workloads))
 

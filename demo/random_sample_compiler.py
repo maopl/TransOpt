@@ -124,7 +124,7 @@ if __name__ == "__main__":
         verbose=True,
         normalize="norm",
         source_num=2,
-        selector="None",
+        selector=None,
         save_mode=1,
         load_mode=False,
         acquisition_func="LCB",

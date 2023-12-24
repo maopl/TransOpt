@@ -31,7 +31,7 @@ class DataHandler(abc.ABC, metaclass=abc.ABCMeta):
     def __init__(self, db: KnowledgeBase, args):
         self.db = db
         self.args = args
-        if args.selector == "None":
+        if not hasattr(args, "selector") or args.selector is None:
             self.selector = None
         elif DataHandler.AUX_DATA_SELEC[args.selector] is not None:
             self.selector = DataHandler.AUX_DATA_SELEC[args.selector]

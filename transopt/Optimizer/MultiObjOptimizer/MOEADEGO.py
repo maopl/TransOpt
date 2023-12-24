@@ -4,7 +4,7 @@ from pymoo.algorithms.moo.moead import MOEAD as MOEADAlgo
 from pymoo.util.nds.non_dominated_sorting import NonDominatedSorting
 from pymoo.optimize import minimize
 
-from transopt.Optimizer.OptimizerBase import MOBOBase
+from transopt.Optimizer.OptimizerBase import BOBase
 from transopt.utils.Data import ndarray_to_vectors
 from transopt.utils.Register import optimizer_register
 from transopt.utils.Normalization import get_normalizer
@@ -13,7 +13,7 @@ from transopt.utils.pareto import find_pareto_front
 
 
 @optimizer_register("MOEAD")
-class MOEADEGO(MOBOBase):
+class MOEADEGO(BOBase):
     def __init__(self, config: dict, **kwargs):
         pass
 

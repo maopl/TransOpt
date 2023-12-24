@@ -5,11 +5,11 @@ from transopt.utils.Data import ndarray_to_vectors
 from transopt.utils.Register import optimizer_register
 from transopt.utils.Normalization import get_normalizer
 from typing import Dict, Union, List, Tuple
-from transopt.Optimizer.OptimizerBase import BayesianOptimizerBase
+from transopt.Optimizer.OptimizerBase import BOBase
 from transopt.Optimizer.Model.RGPE import RGPE
 
 @optimizer_register("RGPE")
-class RGPEOptimizer(BayesianOptimizerBase):
+class RGPEOptimizer(BOBase):
     def __init__(self, config: Dict, **kwargs):
         super(RGPEOptimizer, self).__init__(config=config)
         self.init_method = 'Random'

@@ -117,32 +117,21 @@ class KnowledgeBase(abc.ABC, metaclass=abc.ABCMeta):
         ):
             warnings.warn("'input_dim' is either missing or not an integer.")
 
-        # Check 'variable_name'
-        if "variable_name" in dataset_info:
-            if not isinstance(dataset_info["variable_name"], list) or not all(
-                isinstance(i, str) for i in dataset_info["variable_name"]
-            ):
-                warnings.warn("'variable_name' should be a list of strings.")
-            elif len(dataset_info["variable_name"]) != dataset_info["input_dim"]:
-                warnings.warn("'variable_name' length doesn't match 'input_dim'.")
+        input_dim = dataset_info['input_dim']
+        if len(dataset_info['variables']) != input_dim:
+            raise ValueError(f"Expected {input_dim} variable(s), but got {len(dataset_info['variables'])}.")
 
-        # Check 'variable_type'
-        if "variable_type" in dataset_info:
-            if not isinstance(dataset_info["variable_type"], list) or not all(
-                i in ["continuous", "discrete", "categorical"]
-                for i in dataset_info["variable_type"]
-            ):
-                warnings.warn(
-                    "'variable_type' should be a list containing 'continuous', 'discrete', or 'categorical'."
-                )
-            elif len(dataset_info["variable_type"]) != dataset_info["input_dim"]:
-                warnings.warn("'variable_type' length doesn't match 'input_dim'.")
+        # Validate each variable.
+        for key, value in dataset_info['variables'].items():
+            # Check if the variable's value is a dictionary.
+            if not isinstance(value, dict):
+                raise TypeError(f"Expected a dictionary for variable '{key}', but got {type(value).__name__}.")
 
-        # Check 'variable_bounds'
-        if "variable_bounds" in dataset_info and not isinstance(
-            dataset_info["variable_bounds"], list
-        ):
-            warnings.warn("'variable_bounds' should be a list.")
+            # Check if 'bounds' and 'type' are present in the dictionary.
+            if 'bounds' not in value:
+                raise KeyError(f"'bounds' is missing for variable '{key}'.")
+            if 'type' not in value:
+                raise KeyError(f"'type' is missing for variable '{key}'.")
 
     def _validate_dataset_structure(self, dataset):
         required_keys = {"name", "input_vector", "output_value", "dataset_info"}

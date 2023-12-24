@@ -85,6 +85,10 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
     def get_curtask_id(self):
         return self.tasks[self.__id].task_id
 
+    def get_curtworkload(self):
+        return self.tasks[self.__id].workload
+
+
     def sync_query_num(self, query_num: int):
         self.query_nums[self.__id] = query_num
 
@@ -115,7 +119,9 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
             "num_objective": self.get_curobjnum(),
             "budget": self.get_curbudget(),
             "seed": self.get_curseed(),
-            "task_id": self.get_curtask_id(),
+            # "task_id": self.get_curtask_id(),
+            "workload": self.get_curtworkload(),
+            "variables": {},
         }
         cs = self.get_curcs()
 
@@ -126,7 +132,7 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
                     "type": type(v).__name__,
                 }
             else:
-                space_info[k] = {"bounds": [v.lower, v.upper], "type": type(v).__name__}
+                space_info["variables"][k] = {"bounds": [v.lower, v.upper], "type": type(v).__name__}
 
         return space_info
 

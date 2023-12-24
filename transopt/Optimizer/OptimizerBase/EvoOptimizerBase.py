@@ -11,12 +11,12 @@ from transopt.KnowledgeBase.TaskDataHandler import OptTaskDataHandler
 
 
 
-class BayesianOptimizerBase(OptimizerBase):
+class EVOBase(OptimizerBase):
     """
     The abstract Model for Evolutionary Optimization
     """
     def __init__(self, config):
-        super(BayesianOptimizerBase, self).__init__(config=config)
+        super(EVOBase, self).__init__(config=config)
         self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
         self._Y = np.empty((0,))
         self.config = config

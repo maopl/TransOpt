@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Dict, List, Union
-from transopt.Optimizer.OptimizerBase import BayesianOptimizerBase
+from transopt.Optimizer.OptimizerBase import BOBase
 from transopt.utils.Data import ndarray_to_vectors
 from transopt.utils.Register import optimizer_register
 
@@ -8,7 +8,7 @@ from transopt.utils.Normalization import get_normalizer
 
 
 @optimizer_register('TPE')
-class TPEOptimizer(BayesianOptimizerBase):
+class TPEOptimizer(BOBase):
     def __init__(self, config:Dict, **kwargs):
         super(TPEOptimizer, self).__init__(config=config)
 

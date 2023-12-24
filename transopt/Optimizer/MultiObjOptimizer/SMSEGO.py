@@ -1,7 +1,7 @@
 import numpy as np
 import GPy
 from typing import Dict, Union, List
-from transopt.Optimizer.OptimizerBase import MOBOBase
+from transopt.Optimizer.OptimizerBase import BOBase
 from transopt.utils.Data import ndarray_to_vectors
 from transopt.utils.Register import optimizer_register
 from transopt.utils.Register import optimizer_register
@@ -12,7 +12,7 @@ from transopt.utils.Normalization import get_normalizer
 
 
 @optimizer_register('SMSEGO')
-class SMSEGO(MOBOBase):
+class SMSEGO(BOBase):
     def __init__(self, config:Dict, **kwargs):
         super(SMSEGO, self).__init__(config=config)
 

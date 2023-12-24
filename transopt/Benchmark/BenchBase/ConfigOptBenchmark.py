@@ -16,14 +16,12 @@ class NonTabularOptBenchmark(BenchmarkBase):
         self,
         task_name: str,
         task_type: str,
-        task_id: int,
         budget: int,
         seed: Union[int, np.random.RandomState, None] = None,
         **kwargs,
     ):
         self.task_type = task_type
         self.task_name = task_name
-        self.task_id = task_id
         self.budget = budget
         self.lock_flag = False
 

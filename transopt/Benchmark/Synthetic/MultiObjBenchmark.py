@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import ConfigSpace as CS
 from typing import Union, Dict
-
+import random
 from transopt.utils.Register import benchmark_register
 from transopt.Benchmark.BenchBase import NonTabularOptBenchmark
 
@@ -15,16 +15,20 @@ logger = logging.getLogger("MultiObjBenchmark")
 @benchmark_register("AckleySphere")
 class AckleySphereOptBenchmark(NonTabularOptBenchmark):
     def __init__(
-        self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
+        self, task_name, budget, seed, workload = None, task_type="non-tabular", **kwargs
     ):
+
         assert "params" in kwargs
         parameters = kwargs["params"]
         self.input_dim = parameters["input_dim"]
+        self.workload = workload
+        rnd_instance = random.Random()
+        rnd_instance.seed(self.workload)
 
         if "shift" in parameters:
             self.shift = parameters["shift"]
         else:
-            shift = np.random.random(size=(self.input_dim, 1)).T
+            shift = np.array([rnd_instance.random() for _ in range(self.input_dim)])[:, np.newaxis].T
             self.shift = (shift * 2 - 1) * 0.02
 
         if "stretch" in parameters:
@@ -35,10 +39,10 @@ class AckleySphereOptBenchmark(NonTabularOptBenchmark):
         self.optimizers = tuple(self.shift)
         self.dtype = np.float64
 
+
         super(AckleySphereOptBenchmark, self).__init__(
             task_name=task_name,
             seed=seed,
-            task_id=task_id,
             task_type=task_type,
             budget=budget,
         )

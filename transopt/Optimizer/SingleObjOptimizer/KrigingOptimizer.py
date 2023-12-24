@@ -4,7 +4,7 @@ from pymoo.core.problem import Problem
 from pymoo.algorithms.soo.nonconvex.ga import GA
 from typing import Dict, Union, List
 
-from transopt.Optimizer.OptimizerBase import BayesianOptimizerBase
+from transopt.Optimizer.OptimizerBase import BOBase
 from transopt.utils.Data import vectors_to_ndarray, output_to_ndarray
 from transopt.utils.Data import ndarray_to_vectors
 from transopt.utils.Register import optimizer_register
@@ -12,7 +12,7 @@ from transopt.utils.Normalization import get_normalizer
 
 
 @optimizer_register('KrigingGA')
-class KrigingGA(BayesianOptimizerBase):
+class KrigingGA(BOBase):
     def __init__(self, config: Dict, **kwargs):
         super(KrigingGA, self).__init__(config=config)
 

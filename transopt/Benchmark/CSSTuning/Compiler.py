@@ -16,7 +16,7 @@ ERROR_VALUE = 1e5
 @benchmark_register("GCC")
 class GCCTuning(NonTabularOptBenchmark):
     def __init__(
-        self, task_name, budget, seed, task_id, task_type="non-tabular", workload = None, **kwargs
+        self, task_name, budget, seed, task_type="non-tabular", workload = None, **kwargs
     ):
         if workload is None:
             workload = GCCBenchmark.AVAILABLE_WORKLOADS[0]
@@ -29,7 +29,6 @@ class GCCTuning(NonTabularOptBenchmark):
             seed=seed,
             task_type=task_type,
             budget=budget,
-            task_id=task_id,
         )
         np.random.seed(seed)
 
@@ -141,7 +140,7 @@ class GCCTuning(NonTabularOptBenchmark):
 @benchmark_register("LLVM")
 class LLVMTuning(NonTabularOptBenchmark):
     def __init__(
-        self, task_name, budget, seed, task_id, task_type="non-tabular", workload = None, **kwargs
+        self, task_name, budget, seed, task_type="non-tabular", workload = None, **kwargs
     ):
         if workload is None:
             workload = GCCBenchmark.AVAILABLE_WORKLOADS[0]
@@ -154,7 +153,6 @@ class LLVMTuning(NonTabularOptBenchmark):
             seed=seed,
             task_type=task_type,
             budget=budget,
-            task_id=task_id,
         )
         np.random.seed(seed)
 

@@ -1,7 +1,7 @@
 import numpy as np
 import GPy
 from typing import Dict, Union, List
-from transopt.Optimizer.OptimizerBase import BayesianOptimizerBase
+from transopt.Optimizer.OptimizerBase import BOBase
 from transopt.utils.Data import ndarray_to_vectors
 from transopt.utils.Register import optimizer_register
 from paramz import ObsAr
@@ -14,7 +14,7 @@ from GPy.likelihoods.multioutput_likelihood import MixedNoise
 from transopt.Optimizer.Model.MPGP import MPGP
 
 @optimizer_register('MTBO')
-class MultitaskBO(BayesianOptimizerBase):
+class MultitaskBO(BOBase):
     def __init__(self, config:Dict, **kwargs):
         super(MultitaskBO, self).__init__(config=config)
         self.init_method = 'Random'

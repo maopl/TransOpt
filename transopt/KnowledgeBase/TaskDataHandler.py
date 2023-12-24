@@ -21,7 +21,7 @@ class OptTaskDataHandler(DataHandler):
         - bool: True if valid, raises an exception otherwise.
         """
         # Extract variable names from the current dataset_info
-        expected_variable_names = self.dataset['dataset_info']['variable_name']
+        expected_variable_names = self.dataset['dataset_info']['variables'].keys()
 
         # Check if all keys in the input_vector are present in expected_variable_names
         if not all(key in expected_variable_names for key in input_vector.keys()):
@@ -41,8 +41,13 @@ class OptTaskDataHandler(DataHandler):
         Raises:
         - ValueError: If the output value structure is not as expected.
         """
-        if not isinstance(output, dict):
-            raise ValueError("Expected output to be a dictionary.")
+        expected_obj_num = self.dataset['dataset_info']['num_objective']
+        real_obj_num = 0
+        for i in output:
+            if 'function_value' in i:
+                real_obj_num += 1
+        if real_obj_num != expected_obj_num:
+            raise ValueError(f"Expected number_objective is {expected_obj_num}, but real objective number is {real_obj_num}.")
 
 
     def add_observation(self, input_vectors: Union[List[Dict], Dict], output_value: Union[List[Dict], Dict]) -> None:

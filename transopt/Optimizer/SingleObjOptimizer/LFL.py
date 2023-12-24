@@ -4,7 +4,7 @@ from paramz import ObsAr
 from transopt.Optimizer.Acquisition.ConstructACF import get_ACF
 from transopt.Optimizer.Acquisition.sequential import Sequential
 from typing import Dict, Union, List
-from transopt.Optimizer.OptimizerBase import BayesianOptimizerBase
+from transopt.Optimizer.OptimizerBase import BOBase
 from transopt.utils.Data import ndarray_to_vectors
 from transopt.utils.Register import optimizer_register
 from transopt.utils.Kernel import construct_multi_objective_kernel
@@ -20,7 +20,7 @@ from GPy.likelihoods.multioutput_likelihood import MixedNoise
 from transopt.utils.Normalization import get_normalizer
 
 @optimizer_register('LFL')
-class LFLOptimizer(BayesianOptimizerBase):
+class LFLOptimizer(BOBase):
     def __init__(self, config:Dict, **kwargs):
         super(LFLOptimizer, self).__init__(config=config)
 

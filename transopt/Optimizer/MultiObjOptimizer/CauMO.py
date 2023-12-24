@@ -8,10 +8,10 @@ from transopt.utils.Register import optimizer_register
 from transopt.utils.Normalization import get_normalizer
 
 
-@optimizer_register("ParEGO")
-class ParEGO(BOBase):
+@optimizer_register("CauMO")
+class CauMO(BOBase):
     def __init__(self, config: Dict, **kwargs):
-        super(ParEGO, self).__init__(config=config)
+        super(CauMO, self).__init__(config=config)
 
         self.init_method = "Random"
 

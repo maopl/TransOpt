@@ -21,7 +21,7 @@ os.environ["OMP_NUM_THREADS"] = "1"
 def run_experiments(tasks, args):
     logger = logging.getLogger(__name__)
     kb = construct_knowledgebase(args)
-    testsuits = construct_test_suits(tasks, args)
+    testsuits = construct_test_suits(tasks, args.seed)
     optimizer = get_optimizer(args)
     data_handler = OptTaskDataHandler(kb, args)
     optimizer.optimize(testsuits, data_handler)
@@ -30,12 +30,12 @@ def run_experiments(tasks, args):
 if __name__ == "__main__":
     tasks = {
         # 'DBMS':{'budget': 11, 'time_stamp': 3},
-        'GCC' : {'budget': 11, 'time_stamp': 3},
+        # 'GCC' : {'budget': 11, 'time_stamp': 3},
         # 'LLVM' : {'budget': 11, 'time_stamp': 3},
         # 'Ackley': {'budget': 11, 'time_stamp': 3, 'params':{'input_dim':1}},
         # 'MPB': {'budget': 110, 'time_stamp': 3},
         # 'Griewank': {'budget': 11, 'time_stamp': 3,  'params':{'input_dim':2}},
-        # "AckleySphere": {"budget": 11, "time_stamp": 3, "params": {"input_dim": 2}},
+        "AckleySphere": {"budget": 11, "workloads":[1,2,3], "params": {"input_dim": 2}},
         # 'Lunar': {'budget': 110, 'time_stamp': 3},
         # 'XGB': {'budget': 110, 'time_stamp': 3},
     }
@@ -51,12 +51,10 @@ if __name__ == "__main__":
     )  # 实验名称，保存在experiments中
     parser.add_argument("-s", "--seed", type=int, default=0)  # 设置随机种子，与迭代次数相关
     parser.add_argument(
-        "-m", "--optimizer", type=str, default="ParEGO"
+        "-m", "--optimizer", type=str, default="CauMO"
     )  # 设置method:WS,MT,INC
     parser.add_argument("-v", "--verbose", type=bool, default=True)
     parser.add_argument("-norm", "--normalize", type=str, default="norm")
-    parser.add_argument("-ns", "--source_num", type=int, default=2)
-    parser.add_argument("-slt", "--selector", type=str, default="None")
     parser.add_argument("-sm", "--save_mode", type=int, default=1)  # 控制是否保存模型
     parser.add_argument("-lm", "--load_mode", type=bool, default=False)  # 控制是否从头开始
     parser.add_argument(

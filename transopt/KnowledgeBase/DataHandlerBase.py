@@ -55,34 +55,21 @@ class DataHandler(abc.ABC, metaclass=abc.ABCMeta):
         input_dim = space_info["input_dim"]
         budget = space_info["budget"]
         seed = space_info["seed"]
-        task_id = space_info["task_id"]
+        workload = space_info["workload"]
         num_objective = space_info["num_objective"]
-        variable_names = []
-        variable_types = {}
-        variable_bounds = {}
-        for key, var in space_info.items():
-            if (
-                key == "input_dim"
-                or key == "budget"
-                or key == "seed"
-                or key == "task_id"
-                or key == "num_objective"
-            ):
-                continue
-            variable_names.append(key)
-            variable_types[key] = var["type"]
-            variable_bounds[key] = var["bounds"]
 
         self.dataset["dataset_info"] = {
             "input_dim": input_dim,
             "num_objective": num_objective,
             "budget": budget,
             "seed": seed,
-            "task_id": task_id,
-            "variable_name": variable_names,
-            "variable_type": variable_types,
-            "variable_bounds": variable_bounds,
+            "workload": workload,
+            "variables": {}
         }
+        for key, var in space_info['variables'].items():
+            self.dataset["dataset_info"]['variables'][key] = \
+                {"type": var["type"], "bounds": var["bounds"]}
+
 
     def reset_task(self, task_name, task_space_info: Dict):
         self.dataset_id, self.dataset = self.db._generate_dataset()
@@ -91,7 +78,7 @@ class DataHandler(abc.ABC, metaclass=abc.ABCMeta):
         self.syn_database()
 
     def syn_database(self):
-        required_keys = ["input_dim", "budget", "seed", "task_id", "num_objective"]
+        required_keys = ["input_dim", "budget", "seed", "num_objective", "variables"]
 
         # 检查是否所有必要的键都在space_info字典中
         for key in required_keys:

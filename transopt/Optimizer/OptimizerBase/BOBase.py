@@ -15,13 +15,13 @@ from transopt.utils.Data import (multioutput_to_ndarray, output_to_ndarray,
 from transopt.utils.Visualization import visual_pf
 
 
-class MOBOBase(OptimizerBase):
+class BOBase(OptimizerBase):
     """
     The abstract Model for Bayesian Optimization
     """
 
     def __init__(self, config):
-        super(MOBOBase, self).__init__(config=config)
+        super(BOBase, self).__init__(config=config)
         self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
         self._Y = np.empty((0,))
         self.config = config
@@ -91,7 +91,6 @@ class MOBOBase(OptimizerBase):
 
         # Get the variable bounds and types for the specified space
         var_bounds = self._get_var_bound(space_name)
-        var_types = self._get_var_type(space_name)
 
         # Validate input_vectors
         for iv in input_vectors:
@@ -137,10 +136,7 @@ class MOBOBase(OptimizerBase):
         """
         # Ensure 'input_dim' is present.
         space = []
-        for key, var in space_info.items():
-            if key == 'input_dim' or key == 'budget' or key == 'seed' or key == 'task_id' or key == 'num_objective':
-                continue
-
+        for key, var in space_info['variables'].items():
             var_dic = {
                 'name': key,
                 'domain': tuple(var['bounds'])
@@ -187,25 +183,19 @@ class MOBOBase(OptimizerBase):
         if 'budget' not in space_info:
             raise ValueError("'budget' must be present in space_info.")
 
-        if 'seed' not in space_info:
-            raise ValueError("'seed' must be present in space_info.")
-
-        if 'task_id' not in space_info:
-            raise ValueError("'task_id' must be present in space_info.")
+        if 'variables' not in space_info:
+            raise ValueError("'variables' must be present in space_info.")
 
         if 'num_objective' not in space_info:
             raise ValueError("'num_objective' must be present in space_info.")
 
         # Ensure the rest of the keys equal the count specified by 'input_dim'.
         input_dim = space_info['input_dim']
-        if len(space_info) - 5 != input_dim:
-            raise ValueError(f"Expected {input_dim} variable(s), but got {len(space_info) - 5}.")
+        if len(space_info['variables']) != input_dim:
+            raise ValueError(f"Expected {input_dim} variable(s), but got {len(space_info['variables'])}.")
 
         # Validate each variable.
-        for key, value in space_info.items():
-            if key == 'input_dim' or 'budget':
-                continue  # We've already checked 'input_dim'.
-
+        for key, value in space_info['variables'].items():
             # Check if the variable's value is a dictionary.
             if not isinstance(value, dict):
                 raise TypeError(f"Expected a dictionary for variable '{key}', but got {type(value).__name__}.")
@@ -218,7 +208,6 @@ class MOBOBase(OptimizerBase):
 
 
         return True
-
 
 
     def set_space(self, design_space_info: Dict[str, dict], search_space_info: Union[Dict[str, dict], None]= None):
@@ -248,15 +237,21 @@ class MOBOBase(OptimizerBase):
     def get_spaceinfo(self, space_name):
         assert self.design_space is not None
         assert self.search_space is not None
-
+        space_info = {}
+        space_info['input_dim'] = self.input_dim
+        space_info['num_objective'] = self.num_objective
+        space_info['budget'] = self.budget
+        space_info['variables'] = {}
         if space_name == 'design':
-            space = self.design_space.config_space
+            for var in self.design_space.config_space:
+                space_info['variables'][var['name']] = {'bounds':var['domain'], 'type':var['type']}
         elif space_name == 'search':
-            space = self.search_space.config_space
+            for var in self.search_space.config_space:
+                space_info['variables'][var['name']] = {'bounds':var['domain'], 'type':var['type']}
         else:
             raise NameError('Wrong space name, choose space name from design or search!')
 
-        return space
+        return space_info
 
 
 
@@ -391,7 +386,6 @@ class MOBOBase(OptimizerBase):
         # Check if the lists are empty and return if they are
         if len(input_vectors) == 0 and len(output_value) == 0:
             return
-
 
         self._validate_observation('design', input_vectors=input_vectors, output_value=output_value)
         X = self.transform(input_vectors)

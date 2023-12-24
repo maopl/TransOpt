@@ -5,11 +5,11 @@ from transopt.utils.Register import optimizer_register
 from transopt.utils.Normalization import get_normalizer
 from transopt.Optimizer.Model.MHGP import MHGP
 from typing import Dict, Union, List, Tuple
-from transopt.Optimizer.OptimizerBase import BayesianOptimizerBase
+from transopt.Optimizer.OptimizerBase import BOBase
 
 
 @optimizer_register('vizer')
-class Vizer(BayesianOptimizerBase):
+class Vizer(BOBase):
 
     def __init__(self, config: Dict, **kwargs):
         super(Vizer, self).__init__(config=config)

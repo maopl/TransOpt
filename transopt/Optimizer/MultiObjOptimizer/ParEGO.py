@@ -65,18 +65,7 @@ class ParEGO(BOBase):
                 self._get_var_name("search"), suggested_sample
             )
             design_suggested_sample = self.inverse_transform(suggested_sample)
-            Data = {"Target": {"X": self._X, "Y": self._Y}}
-            self.update_model(Data)
-            suggested_sample, acq_value = self.evaluator.compute_batch(
-                None, context_manager=None
-            )
-            suggested_sample = self.search_space.zip_inputs(suggested_sample)
-            suggested_sample = ndarray_to_vectors(
-                self._get_var_name("search"), suggested_sample
-            )
-            design_suggested_sample = self.inverse_transform(suggested_sample)
 
-            return design_suggested_sample
             return design_suggested_sample
 
     def update_model(self, Data):

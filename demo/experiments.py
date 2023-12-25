@@ -35,7 +35,9 @@ if __name__ == "__main__":
         # 'Ackley': {'budget': 11, 'time_stamp': 3, 'params':{'input_dim':1}},
         # 'MPB': {'budget': 110, 'time_stamp': 3},
         # 'Griewank': {'budget': 11, 'time_stamp': 3,  'params':{'input_dim':2}},
-        "AckleySphere": {"budget": 1000, "workloads":[1,2,3], "params": {"input_dim": 2}},
+        # "AckleySphere": {"budget": 1000, "workloads":[1,2,3], "params": {"input_dim": 2}},
+        'LRZIP': {"budget": 1000, "workloads":['831M.csv','241M.csv'], "path":'/home/peilimao/下载/data/LRZIP_data',
+                  "tabular":True, "params": {"dir": 2}},
         # 'Lunar': {'budget': 110, 'time_stamp': 3},
         # 'XGB': {'budget': 110, 'time_stamp': 3},
     }

@@ -17,12 +17,14 @@ class NonTabularOptBenchmark(BenchmarkBase):
         task_name: str,
         task_type: str,
         budget: int,
+        workload,
         seed: Union[int, np.random.RandomState, None] = None,
         **kwargs,
     ):
         self.task_type = task_type
         self.task_name = task_name
         self.budget = budget
+        self.workload = workload
         self.lock_flag = False
 
         super(NonTabularOptBenchmark, self).__init__(seed, **kwargs)
@@ -124,15 +126,16 @@ class TabularOptBenchmark(NonTabularOptBenchmark):
         task_name: str,
         task_type: str,
         budget: int,
-        path: str,
-        bounds: Union[np.ndarray, None] = None,
+        workload,
+        path: str = None,
         seed: Union[int, np.random.RandomState, None] = None,
         **kwargs,
     ):
-        self.data_path = path
+
+        self.path = path
         self.data_set = None
         super(TabularOptBenchmark, self).__init__(
-            task_name, task_type, budget, bounds, seed, **kwargs
+            task_name, task_type, budget, workload, seed, **kwargs
         )
 
     def f(
@@ -148,6 +151,27 @@ class TabularOptBenchmark(NonTabularOptBenchmark):
             configuration={}, fidelity={}, seed=self.seed, idx=idx
         )
         return results
+
+    def objective_function(
+        self,
+        configuration: Union[ConfigSpace.Configuration, Dict],
+        fidelity: Union[Dict, ConfigSpace.Configuration, None] = None,
+        seed: Union[np.random.RandomState, int, None] = None,
+        **kwargs,
+    ) -> Dict:
+        pass
+
+    def get_configuration_space(
+        self, seed: Union[int, None] = None
+    ) -> ConfigSpace.ConfigurationSpace:
+        pass
+
+    def get_fidelity_space(
+        self, seed: Union[int, None] = None
+    ) -> ConfigSpace.ConfigurationSpace:
+        pass
+    def get_meta_information() -> Dict:
+        pass
 
     def read_data_from_json(self):
         if not self.data_path.endswith(".json"):

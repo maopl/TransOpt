@@ -37,9 +37,10 @@ def split_into_segments(lst, n):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "samples_num",
+        "--samples_num",
         type=int,
         help="Number of samples to be collected for each workload",
+        default=6,
     )
     parser.add_argument(
         "--split_index",
@@ -84,6 +85,16 @@ if __name__ == "__main__":
         "polybench-mvt",
         "polybench-lu",
         "polybench-3mm",
+        "cbench-consumer-jpeg-d",
+        "polybench-gramschmidt",
+        "polybench-syrk",
+        "polybench-fdtd-2d",
+        "polybench-seidel-2d",
+        "polybench-medley-floyd-warshall",
+        "polybench-doitgen",
+        "polybench-ludcmp",
+        "cbench-office-stringsearch2",
+        "polybench-2mm",
     ]
     available_workloads = list(set(available_workloads) - set(collected_workloads))
 
@@ -113,7 +124,7 @@ if __name__ == "__main__":
         verbose=True,
         normalize="norm",
         source_num=2,
-        selector="None",
+        selector=None,
         save_mode=1,
         load_mode=False,
         acquisition_func="LCB",

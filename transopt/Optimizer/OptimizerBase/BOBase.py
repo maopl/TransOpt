@@ -382,7 +382,7 @@ class BOBase(OptimizerBase):
             input_vectors = [input_vectors]
         if isinstance(output_value, Dict):
             output_value = [output_value]
-
+        self.get_spaceinfo('design')
         # Check if the lists are empty and return if they are
         if len(input_vectors) == 0 and len(output_value) == 0:
             return

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import normalize
 from typing import Union, Tuple, Dict, List
 
-from transopt.Benchmark.BenchBase import NonTabularOptBenchmark
+from transopt.Benchmark.BenchBase import NonTabularBenchmark
 from transopt.utils.Register import benchmark_register
 
 
@@ -157,7 +157,7 @@ class MovingPeakGenerator:
 
 
 @benchmark_register("MPB")
-class MovingPeakBenchmark(NonTabularOptBenchmark):
+class MovingPeakBenchmark(NonTabularBenchmark):
     def __init__(
         self,
         task_name,

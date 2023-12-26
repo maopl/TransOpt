@@ -1,6 +1,6 @@
 from pathlib import Path
 from transopt.utils.Register import benchmark_registry
-from transopt.Benchmark.BenchBase.ConfigOptBenchmark import TabularOptBenchmark
+from transopt.Benchmark.BenchBase.TabularBenchmark import TabularBenchmark
 from transopt.utils import  check
 from transopt.Benchmark.BenchBase import (
     TransferOptBenchmark,
@@ -31,7 +31,7 @@ def construct_test_suits(
             assert 'path' in task_params
             data_path = task_params['path']
             for workload in workloads:
-                problem = TabularOptBenchmark(task_name, budget=budget, path=data_path, workload=workload,
+                problem = TabularBenchmark(task_name, budget=budget, path=data_path, workload=workload,
                                               task_type='tabular', seed=seed, bounds = None)
                 test_suits.add_task(problem)
         else:

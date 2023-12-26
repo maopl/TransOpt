@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 
 
-def read_file(file_path):
+def read_file(file_path)->pd.DataFrame:
     _, file_extension = os.path.splitext(file_path)
 
     if file_extension:
@@ -13,7 +13,9 @@ def read_file(file_path):
         elif file_extension == '.txt':
             return pd.read_csv(file_path, sep='\t')  # Adjust delimiter as needed
         elif file_extension == '.csv':
-            return pd.read_csv(file_path)
+            df = pd.read_csv(file_path)
+
+            return df
         elif file_extension in ['.xls', '.xlsx']:
             return pd.read_excel(file_path)
         else:

@@ -7,12 +7,12 @@ from typing import Union, Dict, Tuple
 from pathlib import Path
 from csstuning.dbms.dbms_benchmark import MySQLBenchmark
 
-from transopt.Benchmark.BenchBase import NonTabularOptBenchmark
+from transopt.Benchmark.BenchBase import NonTabularBenchmark
 from transopt.utils.Register import benchmark_register
 
 
 @benchmark_register("DBMS")
-class DBMSTuning(NonTabularOptBenchmark):
+class DBMSTuning(NonTabularBenchmark):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", workload=None, **kwargs
     ):

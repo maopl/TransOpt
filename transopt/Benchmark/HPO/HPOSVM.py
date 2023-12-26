@@ -13,14 +13,14 @@ from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
 
 from transopt.utils.openml_data_manager import OpenMLHoldoutDataManager
 from transopt.Benchmark.BenchBase import BenchmarkBase
-from transopt.Benchmark.BenchBase import NonTabularOptBenchmark
+from transopt.Benchmark.BenchBase import NonTabularBenchmark
 from transopt.utils.Register import benchmark_register
 
 logger = logging.getLogger('SVMBenchmark')
 
 
 @benchmark_register('SVM')
-class SupportVectorMachine(NonTabularOptBenchmark):
+class SupportVectorMachine(NonTabularBenchmark):
     """
     Hyperparameter optimization task to optimize the regularization
     parameter C and the kernel parameter gamma of a support vector machine.

@@ -21,9 +21,9 @@ def construct_test_suits(
         test_suits = TransferOptBenchmark(seed)
 
     for task_name, task_params in tasks.items():
-        benchmark = task_name
         budget = task_params["budget"]
-        workloads = task_params["workloads"]
+        workloads = task_params.get("workloads", [])
+        konbs = task_params.get("knobs", None)
         params = task_params.get("params", {})
         if "tabular" in task_params:
             Tabular = task_params['tabular']
@@ -42,15 +42,16 @@ def construct_test_suits(
             if benchmark_cls is None:
                 raise KeyError(f"Task '{benchmark}' not found in the benchmark registry.")
 
-            for idx, workload in enumerate(workloads):
-                problem = benchmark_cls(
-                    task_name=f"{task_name}_{workload}",
-                    task_id=idx,
-                    budget=budget,
-                    seed=seed,
-                    workload=workload,
-                    params=params,
-                )
-                test_suits.add_task(problem)
+        for idx, workload in enumerate(workloads):
+            problem = benchmark_cls(
+                task_name=f"{task_name}_{workload}",
+                task_id=idx,
+                budget=budget,
+                seed=seed,
+                workload=workload,
+                knobs=konbs,
+                params=params,
+            )
+            test_suits.add_task(problem)
 
     return test_suits

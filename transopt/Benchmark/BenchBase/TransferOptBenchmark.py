@@ -127,7 +127,7 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
 
         for k, v in cs.items():
             if type(v) is ConfigSpace.CategoricalHyperparameter:
-                space_info['variables'][k] = {
+                space_info["variables"][k] = {
                     "bounds": [0, len(v.choices) - 1],
                     "type": type(v).__name__,
                 }

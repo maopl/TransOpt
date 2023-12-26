@@ -1,9 +1,10 @@
 import abc
-import os
 import json
 import warnings
 from pathlib import Path
 from typing import Any, List, Tuple, Union
+
+import numpy as np
 
 
 class KnowledgeBase(abc.ABC, metaclass=abc.ABCMeta):
@@ -33,7 +34,10 @@ class KnowledgeBase(abc.ABC, metaclass=abc.ABCMeta):
     def _save_database(self) -> None:
         try:
             with self.file_path.open("w") as f:
-                json.dump(self.data_base, f)
+                # Convert numpy types to native Python types
+                data_to_save = convert_numpy(self.data_base)
+                with self.file_path.open("w") as f:
+                    json.dump(data_to_save, f)
         except Exception as e:
             raise IOError(f"Failed to save data to {self.file_path}: {e}")
         
@@ -313,3 +317,18 @@ class KnowledgeBase(abc.ABC, metaclass=abc.ABCMeta):
             set: A set containing all the dataset IDs.
         """
         return self.data_base.keys()
+
+
+def convert_numpy(obj):
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {key: convert_numpy(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_numpy(item) for item in obj]
+    else:
+        return obj

@@ -10,26 +10,23 @@ from csstuning.compiler.compiler_benchmark import GCCBenchmark, LLVMBenchmark
 from transopt.Benchmark.BenchBase import NonTabularOptBenchmark
 from transopt.utils.Register import benchmark_register
 
-ERROR_VALUE = 1e5
+ERROR_VALUE = 1e10
 
 
 @benchmark_register("GCC")
 class GCCTuning(NonTabularOptBenchmark):
     def __init__(
-        self, task_name, budget, seed, task_type="non-tabular", workload = None, **kwargs
+        self, task_name, budget, seed, task_type="non-tabular", workload=None, knobs=None, **kwargs
     ):
-        if workload is None:
-            workload = GCCBenchmark.AVAILABLE_WORKLOADS[0]
+        self.objectives = ["execution_time", "file_size", "compilation_time"]
         
-        self.benchmark_name = workload
-        self.benchmark = GCCBenchmark(workload=self.benchmark_name)
-        self.config_knob = self.benchmark.config_space.get_all_details()
-        super(GCCTuning, self).__init__(
-            task_name=task_name,
-            seed=seed,
-            task_type=task_type,
-            budget=budget,
-        )
+        self.workload = workload if workload is not None else GCCBenchmark.AVAILABLE_WORKLOADS[0]
+        self.benchmark = GCCBenchmark(workload=self.workload)
+        
+        all_knobs = self.benchmark.config_space.get_all_details()
+        self.config_knob = {k: all_knobs[k] for k in knobs} if knobs else all_knobs
+        
+        super().__init__(task_name=task_name, seed=seed, task_type=task_type, budget=budget)
         np.random.seed(seed)
 
     def objective_function(
@@ -41,23 +38,19 @@ class GCCTuning(NonTabularOptBenchmark):
     ) -> Dict:
         c = {}
         for k, v in configuration.items():
-            assert k in self.config_knob
-            if self.config_knob[k]["type"] == "enum":
-                c[k] = self.config_knob[k]["range"][v]
-                configuration[k] = int(configuration[k])
-            elif self.config_knob[k]["type"] == "integer":
-                c[k] = int(configuration[k])
-                configuration[k] = int(configuration[k])
-            else:
-                pass
+            assert k in self.config_knob, f"Invalid configuration key: {k}"
+            knob_type = self.config_knob[k]["type"]
+            if knob_type == "enum":
+                c[k] = self.config_knob[k]["range"][int(v)]
+            elif knob_type == "integer":
+                c[k] = int(v)
 
         try:
             start_time = time.time()
             performance = self.benchmark.run(c)
             end_time = time.time()
-            return {
-                "function_value_1": float(performance["avrg_exec_time"]),
-                "function_value_2": float(performance["file_size"]),
+
+            results = {
                 "avrg_exec_time": float(performance["avrg_exec_time"]),
                 "file_size": float(performance["file_size"]),
                 "PAPI_TOT_CYC": float(performance["PAPI_TOT_CYC"]),
@@ -72,10 +65,16 @@ class GCCTuning(NonTabularOptBenchmark):
                 "cost": float(end_time - start_time),
                 "info": {"fidelity": fidelity},
             }
+
+            results.update({
+                f"function_value_{i + 1}": results[objective]
+                for i, objective in enumerate(self.objectives)
+            })
+
+            return results
+            
         except:
-            return {
-                "function_value_1": float(ERROR_VALUE),
-                "function_value_2": float(ERROR_VALUE),
+            error_results = {
                 "avrg_exec_time": float(ERROR_VALUE),
                 "file_size": float(ERROR_VALUE),
                 "PAPI_TOT_CYC": float(ERROR_VALUE),
@@ -91,17 +90,21 @@ class GCCTuning(NonTabularOptBenchmark):
                 "info": {"fidelity": fidelity},
             }
 
+            error_results.update({
+                f"function_value_{i + 1}": error_results[objective]
+                for i, objective in enumerate(self.objectives)
+            })
+            return error_results
+        
+
     def get_configuration_space(
         self, seed: Union[int, None] = None
     ) -> ConfigSpace.ConfigurationSpace:
-        seed = seed if seed is not None else np.random.randint(1, 100000)
-        cs = CS.ConfigurationSpace(seed=seed)
+        cs = CS.ConfigurationSpace(seed=seed or np.random.randint(1, 100000))
 
-        config = self.benchmark.config_space.get_all_details()
         hyperparameters = []
-        expflag = {}
         self.min_value = {}
-        for key, value in config.items():
+        for key, value in self.config_knob.items():
             if value["type"] == "enum":
                 hyperparameters.append(
                     CS.CategoricalHyperparameter(
@@ -117,8 +120,6 @@ class GCCTuning(NonTabularOptBenchmark):
                         default_value=value["default"],
                     )
                 )
-            else:
-                pass
 
         cs.add_hyperparameters(hyperparameters)
 
@@ -127,24 +128,20 @@ class GCCTuning(NonTabularOptBenchmark):
     def get_fidelity_space(
         self, seed: Union[int, None] = None
     ) -> ConfigSpace.ConfigurationSpace:
-        seed = seed if seed is not None else np.random.randint(1, 100000)
-        fidel_space = CS.ConfigurationSpace(seed=seed)
-
-        return fidel_space
+        return CS.ConfigurationSpace(seed=seed or np.random.randint(1, 100000))
 
     def get_meta_information(self) -> Dict:
-        return {"number_objective": 2}
-        # pass
+        return {"number_objective": len(self.objectives)}
 
 
 @benchmark_register("LLVM")
 class LLVMTuning(NonTabularOptBenchmark):
     def __init__(
-        self, task_name, budget, seed, task_type="non-tabular", workload = None, **kwargs
+        self, task_name, budget, seed, task_type="non-tabular", workload=None, **kwargs
     ):
         if workload is None:
             workload = GCCBenchmark.AVAILABLE_WORKLOADS[0]
-        
+
         self.benchmark_name = workload
         self.benchmark = LLVMBenchmark(workload=self.benchmark_name)
         self.config_knob = self.benchmark.config_space.get_all_details()

@@ -6,8 +6,9 @@ import numpy as np
 import ConfigSpace as CS
 from typing import Union, Dict, List
 from urllib.parse import urlparse
+import pandas as pds
 from pathlib import Path
-from transopt.Benchmark.BenchBase import BenchmarkBase
+from transopt.Benchmark.BenchBase.Base import BenchmarkBase
 from transopt.utils.Read import read_file
 
 logger = logging.getLogger("TabularBenchmark")
@@ -28,6 +29,10 @@ class TabularBenchmark(BenchmarkBase):
     ):
 
         self.path = path
+        self.task_name = task_name
+        self.task_type = task_type
+        self.budget = budget
+        self.workload = workload
 
         parsed = urlparse(path)
         if parsed.scheme and parsed.netloc:
@@ -42,26 +47,26 @@ class TabularBenchmark(BenchmarkBase):
             data.drop(unnamed_columns, axis=1, inplace=True)
 
             para_names = [value for value in data.columns]
-            if space_info is None or not isinstance(data, dict):
+            if space_info is None or not isinstance(space_info, dict):
                 self.space_info = {}
             else:
                 self.space_info = space_info
 
             if 'input_dim' not in self.space_info and 'num_objective' not in self.space_info:
                 self.space_info['input_dim'] = len(para_names) - 1
-                self.input_dim = self.space_info['input_dim']
+
                 self.space_info['num_objective'] = len(para_names) - self.space_info['input_dim']
-                self.num_objective = self.space_info['num_objective']
+            elif 'input_dim' in self.space_info and 'num_objective' in self.space_info:
+                pass
             else:
                 if 'num_objective' in self.space_info:
                     self.space_info['input_dim'] = len(para_names) - self.space_info['num_objective']
-                    self.input_dim = self.space_info['input_dim']
 
                 if 'input_dim' in self.space_info:
-                    self.space_info['num_objective'] = len(para_names) - self.space_info['input_dim']
-                    self.num_objective = self.space_info['num_objective']
+                        self.space_info['num_objective'] = len(para_names) - self.space_info['input_dim']
 
-
+            self.input_dim = self.space_info['input_dim']
+            self.num_objective = self.space_info['num_objective']
 
             if 'variables' not in self.space_info:
                 self.space_info['variables'] = {}
@@ -84,20 +89,26 @@ class TabularBenchmark(BenchmarkBase):
                                                                       'type': var_type}
                         elif contains_str:
                             var_type = 'categorical'
+                            data[var_name] = data[var_name].astype(str)
                             self.space_info['variables'][var_name] = {'bounds': list(data[var_name][1:].unique()),
                                                                       'type': var_type}
+
                         else:
                             var_type = 'discrete'
+                            data[var_name] = data[var_name].astype(int)
                             self.space_info['variables'][var_name] = {'bounds': [min_value, max_value],
                                                                       'type': var_type}
 
+
                     else:
                         var_type = 'categorical'
+                        data[var_name] = data[var_name].astype(str)
                         self.space_info['variables'][var_name] = {'bounds': list(data[var_name][1:].unique()),
                                                                   'type': var_type}
 
-            data["fitness"] = data[para_names[-1]]
-            data['config'] = data.apply(lambda row: row.tolist(), axis=1)
+            for i in range(self.num_objective):
+                data[f"function_value_{i+1}"] = data[para_names[self.input_dim+i]]
+            data['config'] = data.apply(lambda row: row[:self.input_dim].tolist(), axis=1)
             data["config_s"] = data["config"].astype(str)
         else:
             raise ValueError("Unknown path type, only accept url or file path")
@@ -105,7 +116,8 @@ class TabularBenchmark(BenchmarkBase):
         super(TabularBenchmark, self).__init__(seed, **kwargs)
         self.var_range = self.get_configuration_bound()
         self.var_type = self.get_configuration_type()
-        self.data_set = data
+        self.unqueried_data = data
+        self.queried_data = pds.DataFrame(columns=data.columns)
 
     def f(
             self,
@@ -113,12 +125,11 @@ class TabularBenchmark(BenchmarkBase):
             fidelity: Union[Dict, ConfigSpace.Configuration, None] = None,
             **kwargs,
     ) -> Dict:
-        if "idx" not in kwargs:
-            raise ValueError("The passed arguments must include the 'idx' parameter.")
-        idx = kwargs["idx"]
+
         results = self.objective_function(
-            configuration={}, fidelity={}, seed=self.seed, idx=idx
+            configuration=configuration, fidelity=fidelity, seed=self.seed
         )
+
         return results
 
     def objective_function(
@@ -128,7 +139,21 @@ class TabularBenchmark(BenchmarkBase):
             seed: Union[np.random.RandomState, int, None] = None,
             **kwargs,
     ) -> Dict:
-        pass
+
+        X = str([configuration[k] for idx, k in enumerate(configuration.keys())])
+        data = self.unqueried_data[self.unqueried_data['config_s'] == X]
+
+        if not data.empty:
+            self.unqueried_data.drop(data.index, inplace=True)
+            self.queried_data = pds.concat([self.queried_data, data], ignore_index=True)
+        else:
+            raise ValueError(f"Configuration {X} not exist in oracle")
+
+        res = {}
+        for i in range(self.num_objective):
+            res[f"function_value_{i+1}"] = float(data['fitness'])
+        res["info"] = {"fidelity": fidelity}
+        return res
 
     def sample_dataframe(key, df, p_remove=0.):
         """Randomly sample dataframe by the removal percentage."""
@@ -215,6 +240,62 @@ class TabularBenchmark(BenchmarkBase):
 
     def get_meta_information(self) -> Dict:
         return {}
+
+    def get_budget(self) -> int:
+        """Provides the function evaluations number about the benchmark.
+
+        Returns
+        -------
+        int
+            some human-readable information
+
+        """
+        return self.budget
+
+    def get_name(self) -> str:
+        """Provides the task name about the benchmark.
+
+        Returns
+        -------
+        str
+            some human-readable information
+
+        """
+        return self.task_name
+
+    def get_type(self) -> str:
+        """Provides the task type about the benchmark.
+
+        Returns
+        -------
+        str
+            some human-readable information
+
+        """
+        return self.task_type
+
+    def get_input_dim(self) -> int:
+        """Provides the input dimension about the benchmark.
+
+        Returns
+        -------
+        int
+            some human-readable information
+
+        """
+        return self.input_dim
+
+    def get_objective_num(self) -> int:
+        return self.num_objective
+
+    def lock(self):
+        self.lock_flag = True
+
+    def unlock(self):
+        self.lock_flag = False
+
+    def get_lock_state(self) -> bool:
+        return self.lock_flag
 
 
     def get_dataset_size(self):

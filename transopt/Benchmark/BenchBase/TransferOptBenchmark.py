@@ -109,7 +109,7 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
         if isinstance(self.tasks[self.__id], TabularBenchmark):
             return "tabular"
         elif isinstance(self.tasks[self.__id], NonTabularBenchmark):
-            return "Continuous"
+            return "non-tabular"
         else:
             logger.error("Unknown task type.")
             raise NameError
@@ -120,20 +120,13 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
             "num_objective": self.get_curobjnum(),
             "budget": self.get_curbudget(),
             "seed": self.get_curseed(),
-            # "task_id": self.get_curtask_id(),
             "workload": self.get_curtworkload(),
             "variables": {},
         }
         cs = self.get_curcs()
 
         for k, v in cs.items():
-            if type(v) is ConfigSpace.CategoricalHyperparameter:
-                space_info["variables"][k] = {
-                    "bounds": [0, len(v.choices) - 1],
-                    "type": type(v).__name__,
-                }
-            else:
-                space_info["variables"][k] = {"bounds": [v.lower, v.upper], "type": type(v).__name__}
+            space_info["variables"][k] = {"bounds": [v.lower, v.upper], "type": type(v).__name__}
 
         return space_info
 
@@ -175,7 +168,6 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
             None,
             List[Union[ConfigSpace.Configuration, Dict]],
         ] = None,
-        idx: Union[int, None, List[int]] = None,
         **kwargs,
     ):
         if isinstance(configuration, list):
@@ -195,19 +187,9 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
             else:
                 pass
 
-            if isinstance(idx, list):
-                assert len(idx) == len(configuration)
-
             results = []
             for c_id, config in enumerate(configuration):
-                if isinstance(self.tasks[self.__id], TabularBenchmark):
-                    result = self.tasks[self.__id].f(config, fidelity[c_id], idx[c_id])
-
-                elif isinstance(self.tasks[self.__id], NonTabularBenchmark):
-                    result = self.tasks[self.__id].f(config, fidelity[c_id])
-                else:
-                    raise TypeError(f"Unrecognized task type.")
-
+                result = self.tasks[self.__id].f(config, fidelity[c_id])
                 self.add_query_num()
 
                 results.append(result)
@@ -222,12 +204,7 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
                 )
                 raise EnvironmentError
 
-            if isinstance(self.tasks[self.__id], TabularBenchmark):
-                return self.tasks[self.__id].f(configuration, fidelity, idx)
-
-            if isinstance(self.tasks[self.__id], NonTabularBenchmark):
-                return self.tasks[self.__id].f(configuration, fidelity)
-
+            self.tasks[self.__id].f(configuration, fidelity)
             self.add_query_num()
 
             raise TypeError(f"Unrecognized task type.")

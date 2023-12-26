@@ -8,7 +8,7 @@ import numpy as np
 
 
 class KnowledgeBase(abc.ABC, metaclass=abc.ABCMeta):
-    def __init__(self, file_path: str, load_mode: bool = False):
+    def __init__(self, file_path: str or Path, load_mode: bool = False):
         self.file_path = Path(file_path)
         self.load_mode = load_mode
         self.data_base = self._load_database()

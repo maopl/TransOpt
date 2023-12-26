@@ -28,7 +28,7 @@ class SMSEGO(BOBase):
         else:
             self.ini_num = None
 
-        self.acf = 'None'
+        self.acf = 'SMSEGO'
 
     def initial_sample(self):
         return self.random_sample(self.ini_num)

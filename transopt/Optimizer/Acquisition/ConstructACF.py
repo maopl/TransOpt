@@ -1,6 +1,7 @@
 
 import GPyOpt
 
+from pymoo.algorithms.moo.nsga2 import NSGA2
 from transopt.utils.Register import acf_registry
 
 

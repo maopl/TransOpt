@@ -25,22 +25,19 @@ def construct_test_suits(
         workloads = task_params.get("workloads", [])
         konbs = task_params.get("knobs", None)
         params = task_params.get("params", {})
-        if "tabular" in task_params:
-            Tabular = task_params['tabular']
-        else:
-            Tabular = False
+        tabular = task_params.get("tabular", False)
 
-        if Tabular:
+        if tabular:
             assert 'path' in task_params
             data_path = task_params['path']
             for workload in workloads:
-                problem = TabularOptBenchmark(benchmark, budget=budget, path=data_path, workload=workload,
+                problem = TabularOptBenchmark(task_name, budget=budget, path=data_path, workload=workload,
                                               task_type='tabular', seed=seed, bounds = None)
                 test_suits.add_task(problem)
         else:
-            benchmark_cls = benchmark_registry.get(benchmark)
+            benchmark_cls = benchmark_registry.get(task_name)
             if benchmark_cls is None:
-                raise KeyError(f"Task '{benchmark}' not found in the benchmark registry.")
+                raise KeyError(f"Task '{task_name}' not found in the benchmark registry.")
 
         for idx, workload in enumerate(workloads):
             problem = benchmark_cls(

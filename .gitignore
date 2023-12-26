@@ -95,4 +95,6 @@ dmypy.json
 cython_debug/
 
 *.log
-
+experiment_results/
+collected_results/
+```

@@ -1,5 +1,4 @@
 import os
-import json
 import logging
 import ConfigSpace
 import numpy as np
@@ -10,6 +9,7 @@ import pandas as pds
 from pathlib import Path
 from transopt.Benchmark.BenchBase.Base import BenchmarkBase
 from transopt.utils.Read import read_file
+from transopt.utils.encoding import target_encoding, multitarget_encoding
 
 logger = logging.getLogger("TabularBenchmark")
 
@@ -67,6 +67,9 @@ class TabularBenchmark(BenchmarkBase):
 
             self.input_dim = self.space_info['input_dim']
             self.num_objective = self.space_info['num_objective']
+            self.encodings = {}
+            for i in range(self.num_objective):
+                data[f"function_value_{i+1}"] = data[para_names[self.input_dim+i]]
 
             if 'variables' not in self.space_info:
                 self.space_info['variables'] = {}
@@ -90,24 +93,34 @@ class TabularBenchmark(BenchmarkBase):
                         elif contains_str:
                             var_type = 'categorical'
                             data[var_name] = data[var_name].astype(str)
-                            self.space_info['variables'][var_name] = {'bounds': list(data[var_name][1:].unique()),
+
+                            self.space_info['variables'][var_name] = {'bounds': list(data[var_name][1:].unique()) ,
                                                                       'type': var_type}
+                            if self.num_objective > 1:
+                                bounds = multitarget_encoding(data, var_name, [f'function_value_{i+1}' for i in range(self.num_objective)])
+                            else:
+                                bounds = target_encoding(data, var_name, 'function_value_1')
+
+
 
                         else:
-                            var_type = 'discrete'
+                            var_type = 'integer'
                             data[var_name] = data[var_name].astype(int)
                             self.space_info['variables'][var_name] = {'bounds': [min_value, max_value],
                                                                       'type': var_type}
-
 
                     else:
                         var_type = 'categorical'
                         data[var_name] = data[var_name].astype(str)
                         self.space_info['variables'][var_name] = {'bounds': list(data[var_name][1:].unique()),
                                                                   'type': var_type}
+                        if self.num_objective > 1:
+                            bounds = multitarget_encoding(data, var_name, [f'function_value_{i + 1}' for i in
+                                                                           range(self.num_objective)])
+                        else:
+                            bounds = target_encoding(data, var_name, 'function_value_1')
 
-            for i in range(self.num_objective):
-                data[f"function_value_{i+1}"] = data[para_names[self.input_dim+i]]
+
             data['config'] = data.apply(lambda row: row[:self.input_dim].tolist(), axis=1)
             data["config_s"] = data["config"].astype(str)
         else:
@@ -166,6 +179,7 @@ class TabularBenchmark(BenchmarkBase):
             df = df.sample(n=n_remain, replace=False, random_state=key[0])
         return df
 
+
     def get_configuration_bound(self):
         configuration_bound = {}
         for k, v in self.configuration_space.items():
@@ -207,7 +221,7 @@ class TabularBenchmark(BenchmarkBase):
             upper = v['bounds'][1]
             if 'continuous' == v['type']:
                 variables.append(CS.UniformFloatHyperparameter(k, lower=lower, upper=upper))
-            elif 'discrete' == v['type']:
+            elif 'integer' == v['type']:
                 variables.append(CS.UniformIntegerHyperparameter(k, lower=lower, upper=upper))
             elif 'categorical' == v['type']:
                 variables.append(CS.CategoricalHyperparameter(k, choices=v['bounds']))

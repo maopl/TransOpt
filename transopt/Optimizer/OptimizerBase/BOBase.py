@@ -144,9 +144,9 @@ class BOBase(OptimizerBase):
             if var['type'] == 'UniformFloatHyperparameter':
                 var_dic['type'] = 'continuous'
             elif var['type'] == 'UniformIntegerHyperparameter':
-                var_dic['type'] = 'discrete'
+                var_dic['type'] = 'continuous'
             elif var['type'] == 'CategoricalHyperparameter':
-                var_dic['type'] = 'categorical'
+                var_dic['type'] = 'discrete'
             else:
                 raise NameError('Unknown variable type!')
             space.append(var_dic.copy())
@@ -223,8 +223,15 @@ class BOBase(OptimizerBase):
         self.num_objective = design_space_info['num_objective']
         self.budget = design_space_info['budget']
 
+        for key, var in self.design_info['variables'].items():
+            var_dic = {
+                'name': key,
+                'domain': tuple(var['bounds'])
+            }
+
+
         if self.ini_num is None:
-            self.ini_num = 4 * self.input_dim
+            self.ini_num = 11 * self.input_dim - 1
 
         task_design_space = self._set_space(design_space_info)
         self.design_space = GPyOpt.Design_space(space=task_design_space)
@@ -275,7 +282,7 @@ class BOBase(OptimizerBase):
         design_bounds = np.array(design_bounds)
         xx = (xx - design_bounds[:, 0]) * (search_bounds[:, 1] - search_bounds[:, 0]) / (design_bounds[:, 1] - design_bounds[:, 0]) + (search_bounds[:, 0])
 
-        int_flag = [idx for idx, i in enumerate(search_type) if i == 'discrete' or i == 'categorical']
+        int_flag = [idx for idx, i in enumerate(search_type) if i == 'integer' or i == 'categorical']
 
         configuration_t = {k: np.round(xx[idx]).astype(int) if idx in int_flag else xx[idx] for idx, k in
                            enumerate(design_bound_dic.keys())}
@@ -302,10 +309,13 @@ class BOBase(OptimizerBase):
 
         xx = (xx - search_bounds[:, 0]) * (design_bounds[:, 1] - design_bounds[:, 0]) / (search_bounds[:, 1] - search_bounds[:, 0]) + (design_bounds[:, 0])
 
-        int_flag = [idx for idx, i in enumerate(design_type) if i == 'discrete' or i == 'categorical']
+        int_flag = [idx for idx, i in enumerate(design_type) if i == 'integer']
+
+        cat_flag = [idx for idx, i in enumerate(design_type) if i == 'categorical']
 
         configuration_t = {k: np.round(xx[idx]).astype(int) if idx in int_flag else xx[idx] for idx, k in
                            enumerate(design_bound_dic.keys())}
+
         return configuration_t
 
     def transform(self, X: Union[ConfigSpace.Configuration, Dict, List[Union[ConfigSpace.Configuration, Dict]]]) -> Union[Dict, List[Dict]]:

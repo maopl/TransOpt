@@ -120,13 +120,20 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
             "num_objective": self.get_curobjnum(),
             "budget": self.get_curbudget(),
             "seed": self.get_curseed(),
+            # "task_id": self.get_curtask_id(),
             "workload": self.get_curtworkload(),
             "variables": {},
         }
         cs = self.get_curcs()
 
         for k, v in cs.items():
-            space_info["variables"][k] = {"bounds": [v.lower, v.upper], "type": type(v).__name__}
+            if type(v) is ConfigSpace.CategoricalHyperparameter:
+                space_info["variables"][k] = {
+                    "bounds": v.choices,
+                    "type": type(v).__name__,
+                }
+            else:
+                space_info["variables"][k] = {"bounds": [v.lower, v.upper], "type": type(v).__name__}
 
         return space_info
 

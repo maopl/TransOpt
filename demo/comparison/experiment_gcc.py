@@ -86,8 +86,8 @@ def main(repeat=5, budget=20, init_number=10):
 
     exp_path = Path.cwd() / "experiment_results"
 
-    for workload in workloads:
-        for optimizer_name in ["ParEGO", "SMSEGO", "MoeadEGO"]:
+    for optimizer_name in ["ParEGO", "MoeadEGO"]:
+        for workload in workloads:
             for i in range(repeat):
                 tasks, exp_args = configure_experiment(
                     workload,
@@ -98,8 +98,11 @@ def main(repeat=5, budget=20, init_number=10):
                     budget,
                     init_number,
                 )
-                execute_tasks(tasks, exp_args)
+                try:
+                    execute_tasks(tasks, exp_args)
+                except Exception as e:
+                    print(f"Experiment {optimizer_name}_{workload} failed with error: {e}")
 
 
 if __name__ == "__main__":
-     main(repeat=5, budget=1000, init_number=21)
+     main(repeat=5, budget=500, init_number=21)

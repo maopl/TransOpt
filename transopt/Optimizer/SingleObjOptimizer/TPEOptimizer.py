@@ -1,7 +1,7 @@
 import numpy as np
 from typing import Dict, List, Union
 from transopt.Optimizer.OptimizerBase import BOBase
-from transopt.utils.Data import ndarray_to_vectors
+from transopt.utils.serialization import ndarray_to_vectors
 from transopt.utils.Register import optimizer_register
 
 from transopt.utils.Normalization import get_normalizer

@@ -11,11 +11,11 @@ from GPy.likelihoods.multioutput_likelihood import MixedNoise
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import power_transform
 
-from transopt.utils.Data import vectors_to_ndarray
+from transopt.utils.serialization import vectors_to_ndarray
 from transopt.utils.Normalization import normalize
 from transopt.utils.Kernel import construct_multi_objective_kernel
 from transopt.KnowledgeBase.DataHandlerBase import selector_register
-from transopt.utils.Data import vectors_to_ndarray, output_to_ndarray
+from transopt.utils.serialization import vectors_to_ndarray, output_to_ndarray
 
 def MTRankS(self,
            X:np.ndarray,

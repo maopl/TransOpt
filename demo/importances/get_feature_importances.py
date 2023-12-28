@@ -1,4 +1,5 @@
 import json
+import os
 import tarfile
 from pathlib import Path
 
@@ -11,10 +12,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeRegressor
 
-# pd.set_option("display.max_rows", None)
-# pd.set_option("display.max_columns", None)
-
 data_path = Path(__file__).parent.absolute() / "collected_results" 
+
 
 def load_and_prepare_data(file_path, objectives):
     """
@@ -285,6 +284,8 @@ def get_features_for_exp(workloads, repetitions=5):
 
 
 if __name__ == "__main__":
+    os.chdir(Path(__file__).parent.absolute())
+
     if not data_path.exists():
         print("Data directory not found. Untarring data...")
         tar = tarfile.open("collected_results.tar.gz")

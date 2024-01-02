@@ -14,7 +14,8 @@ def read_file(file_path)->pd.DataFrame:
             return pd.read_csv(file_path, sep='\t')  # Adjust delimiter as needed
         elif file_extension == '.csv':
             df = pd.read_csv(file_path)
-
+            unnamed_columns = [col for col in df.columns if "--unlimited" in col]
+            df.drop(unnamed_columns, axis=1, inplace=True)
             return df
         elif file_extension in ['.xls', '.xlsx']:
             return pd.read_excel(file_path)

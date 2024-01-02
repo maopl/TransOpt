@@ -14,9 +14,17 @@ def target_encoding(df:pds.DataFrame, column_name, target_name):
     """
     # 计算每个唯一值的目标均值
     target_mean = df.groupby(column_name)[target_name].mean()
+    target_rank = target_mean.rank(method='average')
+
+    df[f'mean_encoding'] = df.groupby(column_name)[target_name].transform('mean')
+    df[f'rank_encoding'] = df[column_name].map(target_rank)
+    # target_rank = target_mean.rank
+    print(df[[column_name, target_name, f'mean_encoding', f'rank_encoding']].head(10))
+
+    encodings = {value: key for key, value in target_rank.to_dict().items()}
 
     # 返回结果字典
-    return target_mean.to_dict()
+    return encodings
 
 def multitarget_encoding(df:pds.DataFrame, column_name, target_names):
     encodings = {}

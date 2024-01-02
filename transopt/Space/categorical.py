@@ -1,7 +1,9 @@
 import numpy as np
-from .param import Parameter
+from transopt.Space.param import Param
+from transopt.utils.Register import para_register
 
-class CategoricalPara(Parameter):
+@para_register('categorical')
+class categorical(Param):
     def __init__(self, param):
         super().__init__(param)
         self.categories = list(param['categories'])

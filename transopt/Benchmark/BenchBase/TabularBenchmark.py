@@ -94,31 +94,34 @@ class TabularBenchmark(BenchmarkBase):
                             var_type = 'categorical'
                             data[var_name] = data[var_name].astype(str)
 
-                            self.space_info['variables'][var_name] = {'bounds': list(data[var_name][1:].unique()) ,
+                            self.space_info['variables'][var_name] = {'bounds': [0, len(data[var_name][1:].unique()) - 1] ,
                                                                       'type': var_type}
                             if self.num_objective > 1:
-                                bounds = multitarget_encoding(data, var_name, [f'function_value_{i+1}' for i in range(self.num_objective)])
+                                self.cat_mapping = multitarget_encoding(data, var_name, [f'function_value_{i+1}' for i in range(self.num_objective)])
                             else:
-                                bounds = target_encoding(data, var_name, 'function_value_1')
-
-
+                                self.cat_mapping = target_encoding(data, var_name, 'function_value_1')
 
                         else:
                             var_type = 'integer'
                             data[var_name] = data[var_name].astype(int)
                             self.space_info['variables'][var_name] = {'bounds': [min_value, max_value],
                                                                       'type': var_type}
-
                     else:
                         var_type = 'categorical'
                         data[var_name] = data[var_name].astype(str)
-                        self.space_info['variables'][var_name] = {'bounds': list(data[var_name][1:].unique()),
-                                                                  'type': var_type}
+
+
                         if self.num_objective > 1:
-                            bounds = multitarget_encoding(data, var_name, [f'function_value_{i + 1}' for i in
+                            self.cat_mapping = multitarget_encoding(data, var_name, [f'function_value_{i + 1}' for i in
                                                                            range(self.num_objective)])
                         else:
-                            bounds = target_encoding(data, var_name, 'function_value_1')
+                            self.cat_mapping = target_encoding(data, var_name, 'function_value_1')
+                        max_key = max(self.cat_mapping.keys())
+
+                        # 找出最小的键
+                        min_key = min(self.cat_mapping.keys())
+                        self.space_info['variables'][var_name] = {'bounds': [min_key, max_key],
+                                                                  'type': var_type}
 
 
             data['config'] = data.apply(lambda row: row[:self.input_dim].tolist(), axis=1)
@@ -152,6 +155,12 @@ class TabularBenchmark(BenchmarkBase):
             seed: Union[np.random.RandomState, int, None] = None,
             **kwargs,
     ) -> Dict:
+        c = {}
+        for k in configuration.keys():
+            if self.space_info['variables'][k]['type'] == 'categorical':
+                c[k] = self.cat_mapping[configuration[k]]
+            else:
+                c[k] = configuration[k]
 
         X = str([configuration[k] for idx, k in enumerate(configuration.keys())])
         data = self.unqueried_data[self.unqueried_data['config_s'] == X]
@@ -224,7 +233,7 @@ class TabularBenchmark(BenchmarkBase):
             elif 'integer' == v['type']:
                 variables.append(CS.UniformIntegerHyperparameter(k, lower=lower, upper=upper))
             elif 'categorical' == v['type']:
-                variables.append(CS.CategoricalHyperparameter(k, choices=v['bounds']))
+                variables.append(CS.UniformIntegerHyperparameter(k, lower=lower, upper=upper))
             else:
                 raise ValueError('Unknown variable type')
 

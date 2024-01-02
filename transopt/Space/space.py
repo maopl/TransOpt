@@ -1,5 +1,5 @@
 # Copyright (C) 2020. Huawei Technologies Co., Ltd. All rights reserved.
-
+import numpy as np
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the MIT license.
 
@@ -8,29 +8,12 @@
 # PARTICULAR PURPOSE. See the MIT License for more details.
 
 import pandas as pd
-import torch
-from torch import Tensor
+from transopt.utils.Register import para_regitry
 
-from .numeric_param     import NumericPara
-from .integer_param     import IntegerPara
-from .pow_param         import PowPara
-from .categorical_param import CategoricalPara
-from .bool_param        import BoolPara
-from .pow_integer_param import PowIntegerPara
-from .int_exponent_param import IntExponentPara
-from .step_int import StepIntPara
-
-class SearchSpace:
+class DesignSpace:
     def __init__(self):
         self.para_types = {}
-        self.register_para_type('num', NumericPara)
-        self.register_para_type('pow', PowPara)
-        self.register_para_type('pow_int', PowIntegerPara)
-        self.register_para_type('int_exponent', IntExponentPara)
-        self.register_para_type('int', IntegerPara)
-        self.register_para_type('step_int', StepIntPara)
-        self.register_para_type('cat', CategoricalPara)
-        self.register_para_type('bool', BoolPara)
+
         self.paras         = {}
         self.para_names    = []
         self.numeric_names = []
@@ -64,12 +47,9 @@ class SearchSpace:
         assert len(self.para_names) == len(set(self.para_names)), "There are duplicated parameter names"
         return self
 
-    def register_para_type(self, type_name, para_class):
-        """
-        User can define their specific parameter type and register the new type
-        using this function
-        """
-        self.para_types[type_name] = para_class
+    def register_para_type(self):
+        for type_name,  type_class in para_regitry.items():
+            self.para_types[type_name] = para_class
 
     def sample(self, num_samples = 1):
         """
@@ -80,7 +60,7 @@ class SearchSpace:
             df[c] = self.paras[c].sample(num_samples)
         return df
 
-    def transform(self, data : pd.DataFrame) -> (Tensor, Tensor):
+    def transform(self, data : np.ndarray) ->  np.ndarray:
         """
         input: pandas dataframe
         output: xc and xe

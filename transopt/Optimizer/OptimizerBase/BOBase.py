@@ -206,7 +206,6 @@ class BOBase(OptimizerBase):
             if 'type' not in value:
                 raise KeyError(f"'type' is missing for variable '{key}'.")
 
-
         return True
 
 
@@ -223,13 +222,6 @@ class BOBase(OptimizerBase):
         self.num_objective = design_space_info['num_objective']
         self.budget = design_space_info['budget']
 
-        for key, var in self.design_info['variables'].items():
-            var_dic = {
-                'name': key,
-                'domain': tuple(var['bounds'])
-            }
-
-
         if self.ini_num is None:
             self.ini_num = 11 * self.input_dim - 1
 
@@ -241,6 +233,20 @@ class BOBase(OptimizerBase):
             task_search_space = self._set_default_search_space()
         self.search_space = GPyOpt.Design_space(space=task_search_space)
 
+        self.design_params = self.design_info['variables']
+        self.search_param = {}
+        for k, v in self.design_params.items():
+            self.search_param[k] = {'bounds': [-1,1], 'type': 'continuous'}
+
+            if self.design_params[k]['type'] == 'UniformFloatHyperparameter':
+                self.design_params[k]['type'] = 'continuous'
+            elif self.design_params[k]['type'] == 'UniformIntegerHyperparameter':
+                self.design_params[k]['type'] = 'integer'
+            elif self.design_params[k]['type'] == 'CategoricalHyperparameter':
+                self.design_params[k]['type'] = 'categorical'
+            else:
+                raise NameError('Unknown variable type!')
+
     def get_spaceinfo(self, space_name):
         assert self.design_space is not None
         assert self.search_space is not None
@@ -250,11 +256,11 @@ class BOBase(OptimizerBase):
         space_info['budget'] = self.budget
         space_info['variables'] = {}
         if space_name == 'design':
-            for var in self.design_space.config_space:
-                space_info['variables'][var['name']] = {'bounds':var['domain'], 'type':var['type']}
+            for k, v in self.design_params.items():
+                space_info['variables'][k] = {'bounds':v['bounds'], 'type':v['type']}
         elif space_name == 'search':
-            for var in self.search_space.config_space:
-                space_info['variables'][var['name']] = {'bounds':var['domain'], 'type':var['type']}
+            for  k, v  in self.search_params.items():
+                space_info['variables'][k] = {'bounds':v['bounds'], 'type':v['type']}
         else:
             raise NameError('Wrong space name, choose space name from design or search!')
 
@@ -309,9 +315,8 @@ class BOBase(OptimizerBase):
 
         xx = (xx - search_bounds[:, 0]) * (design_bounds[:, 1] - design_bounds[:, 0]) / (search_bounds[:, 1] - search_bounds[:, 0]) + (design_bounds[:, 0])
 
-        int_flag = [idx for idx, i in enumerate(design_type) if i == 'integer']
+        int_flag = [idx for idx, i in enumerate(design_type) if i == 'integer' or i == 'categorical']
 
-        cat_flag = [idx for idx, i in enumerate(design_type) if i == 'categorical']
 
         configuration_t = {k: np.round(xx[idx]).astype(int) if idx in int_flag else xx[idx] for idx, k in
                            enumerate(design_bound_dic.keys())}

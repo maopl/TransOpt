@@ -1,7 +1,8 @@
 import numpy as np
-from .param import Parameter
-
-class CategoricalPara(Parameter):
+from transopt.Space.param import Param
+from transopt.utils.Register import para_register
+@para_register('numerical')
+class numerical(Param):
     def __init__(self, param):
         super().__init__(param)
         self.categories = list(param['categories'])
@@ -9,8 +10,7 @@ class CategoricalPara(Parameter):
             self._categories_dict = {k:v for v, k in enumerate(self.categories)}
         except TypeError: # there are unhashable types
             self._categories_dict = None
-        self.lb         = 0
-        self.ub         = len(self.categories) - 1
+        self.choice         = []
 
     def sample(self, num = 1):
         assert(num > 0)

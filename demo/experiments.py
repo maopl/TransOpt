@@ -1,6 +1,7 @@
+import argparse
+import cProfile
 import logging
 import os
-import argparse
 import sys
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -8,10 +9,9 @@ package_dir = os.path.dirname(current_dir)
 sys.path.insert(0, package_dir)
 
 from transopt.Benchmark import construct_test_suits
-from transopt.Optimizer.ConstructOptimizer import get_optimizer
 from transopt.KnowledgeBase.kb_builder import construct_knowledgebase
 from transopt.KnowledgeBase.TaskDataHandler import OptTaskDataHandler
-
+from transopt.Optimizer.ConstructOptimizer import get_optimizer
 
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["NUMEXPR_NUM_THREADS"] = "1"
@@ -24,8 +24,11 @@ def run_experiments(tasks, args):
     testsuits = construct_test_suits(tasks, args.seed)
     optimizer = get_optimizer(args)
     data_handler = OptTaskDataHandler(kb, args)
-    optimizer.optimize(testsuits, data_handler)
 
+    profiler = cProfile.Profile()
+    optimizer.optimize(testsuits, data_handler, profiler=profiler)
+    profiler.create_stats()
+    profiler.print_stats(sort='time')
 
 if __name__ == "__main__":
     tasks = {

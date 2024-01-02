@@ -10,7 +10,7 @@ from transopt.KnowledgeBase.TaskDataHandler import OptTaskDataHandler
 from transopt.Optimizer.Acquisition.ConstructACF import get_ACF
 from transopt.Optimizer.Acquisition.sequential import Sequential
 from transopt.Optimizer.OptimizerBase import OptimizerBase
-from transopt.utils.Data import (multioutput_to_ndarray, output_to_ndarray,
+from transopt.utils.serialization import (multioutput_to_ndarray, output_to_ndarray,
                                  vectors_to_ndarray)
 from transopt.utils.Visualization import visual_pf
 
@@ -373,6 +373,7 @@ class BOBase(OptimizerBase):
             self._Y = np.vstack((self._Y, output_to_ndarray(output_value))) if self._Y.size else output_to_ndarray(output_value)
 
     def optimize(self, testsuits, data_handler):
+
         self.set_DataHandler(data_handler)
         while (testsuits.get_unsolved_num()):
             space_info = testsuits.get_cur_space_info()
@@ -386,7 +387,7 @@ class BOBase(OptimizerBase):
                 if self.verbose:
                     self.visualization(testsuits, suggested_sample)
             testsuits.roll()
-
+        
     def set_DataHandler(self, data_handler:OptTaskDataHandler):
         self._data_handler = data_handler
 

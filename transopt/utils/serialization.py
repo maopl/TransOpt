@@ -57,3 +57,18 @@ def multioutput_to_ndarray(output_value: List[Dict], num_output:int) -> np.ndarr
     ndarray = np.array(function_values)
 
     return ndarray
+
+
+def convert_np_to_bulidin(obj):
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {key: convert_np_to_bulidin(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_np_to_bulidin(item) for item in obj]
+    else:
+        return obj

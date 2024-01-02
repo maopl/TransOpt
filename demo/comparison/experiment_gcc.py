@@ -72,7 +72,7 @@ def configure_experiment(workload, features, seed, optimizer_name, exp_path, bud
     }
     return tasks, args
 
-def main(optimizers = [], repeat=5, budget=1000, init_number=21):
+def main(optimizers = [], repeat=5, budget=500, init_number=21):
     features_file = package_dir / "demo" / "comparison" / "features_by_workload.json"
     features = load_features(features_file)
 
@@ -129,9 +129,9 @@ def main_debug(repeat=1, budget=20, init_number=10):
 
 
 if __name__ == "__main__":
-    debug = True
-    # debug = False
+    # debug = True
+    debug = False
     if debug:
         main_debug(repeat=1, budget=20, init_number=10)
     else:
-        main(["SMSEGO"], repeat=5, budget=1000, init_number=21)
+        main(["SMSEGO"], repeat=5, budget=500, init_number=21)

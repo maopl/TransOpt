@@ -72,8 +72,7 @@ def configure_experiment(workload, features, seed, optimizer_name, exp_path, bud
     }
     return tasks, args
 
-
-def main(repeat=5, budget=20, init_number=10):
+def main(optimizers = [], repeat=5, budget=1000, init_number=21):
     features_file = package_dir / "demo" / "comparison" / "features_by_workload.json"
     features = load_features(features_file)
 
@@ -86,7 +85,7 @@ def main(repeat=5, budget=20, init_number=10):
 
     exp_path = Path.cwd() / "experiment_results"
 
-    for optimizer_name in ["ParEGO", "MoeadEGO"]:
+    for optimizer_name in optimizers:
         for workload in workloads:
             for i in range(repeat):
                 tasks, exp_args = configure_experiment(
@@ -98,11 +97,41 @@ def main(repeat=5, budget=20, init_number=10):
                     budget,
                     init_number,
                 )
-                try:
-                    execute_tasks(tasks, exp_args)
-                except Exception as e:
-                    print(f"Experiment {optimizer_name}_{workload} failed with error: {e}")
+                execute_tasks(tasks, exp_args)
+
+
+def main_debug(repeat=1, budget=20, init_number=10):
+    features_file = package_dir / "demo" / "comparison" / "features_by_workload.json"
+    features = load_features(features_file)
+
+    parser = argparse.ArgumentParser(description="Run optimization experiments")
+    parser.add_argument("--split_index", type=int, default=9,
+                        help="Index for splitting the workload segments")
+    args = parser.parse_args()
+
+    workloads = get_workloads(features.keys(), args.split_index)[:1]
+
+    exp_path = Path.cwd() / "experiment_results"
+
+    for optimizer_name in ["SMSEGO"]:
+        for workload in workloads:
+            for i in range(repeat):
+                tasks, exp_args = configure_experiment(
+                    workload,
+                    features,
+                    65535 + i,
+                    optimizer_name,
+                    exp_path,
+                    budget,
+                    init_number,
+                )
+                execute_tasks(tasks, exp_args)
 
 
 if __name__ == "__main__":
-     main(repeat=5, budget=500, init_number=21)
+    debug = True
+    # debug = False
+    if debug:
+        main_debug(repeat=1, budget=20, init_number=10)
+    else:
+        main(["SMSEGO"], repeat=5, budget=1000, init_number=21)

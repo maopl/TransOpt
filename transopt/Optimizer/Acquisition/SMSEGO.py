@@ -38,10 +38,8 @@ class SMSEGO:
 
     def optimize(self, duplicate_manager=None):
         x_bounds = self.model._get_var_bound("search")
-        default = np.array([(v[1] + v[0]) / 2 for k, v in x_bounds.items()])[
-            np.newaxis, :
-        ]
-        bounds = [(v[0], v[1]) for k, v in x_bounds.items()]
+        default = np.array([(v[1] + v[0]) / 2 for _, v in x_bounds.items()])
+        bounds = [(v[0], v[1]) for _, v in x_bounds.items()]
         result = opt.minimize(
             self._compute_acq, x0=default, bounds=bounds, method="L-BFGS-B"
         )

@@ -3,6 +3,7 @@ import numpy as np
 import scipy.optimize as opt
 from scipy.stats import *
 from scipy.spatial import distance
+from scipy.spatial.distance import cdist
 from GPyOpt.util.general import get_quantiles
 
 from transopt.utils.Register import acf_register
@@ -14,65 +15,125 @@ from transopt.Optimizer.Acquisition.ACF import AcquisitionBase
 import numpy as np
 from sklearn.metrics import pairwise_distances
 
-class ClusterNode:
-    def __init__(self, members, centroid):
-        self.members = members  # 簇成员索引
-        self.children = []  # 子簇
-        self.centroid = centroid  # 簇的质心
 
-def cluster_centroid(data, cluster):
-    # 计算给定簇的质心
-    cluster_data = data[list(cluster)]
-    return np.mean(cluster_data, axis=0)
+class Tree:
+    def __init__(self, id, data=None):
+        self.id = id
+        self.data = data
+        self.children = []
+
+    def add_child(self, child):
+        self.children.append(child)
+
+class Node:
+    def __init__(self, id):
+        self.id = id
+        self.children = [] # 节点的唯一标识
+
+
+def cluster_centroid(data, indices):
+    # Assuming data is a 2D array-like structure and indices is a set of integer indices
+    return np.mean([data[i] for i in indices], axis=0)
+
 
 def hierarchical_clustering(data, dominate_set_indices):
     # Convert dominate_set_indices to a set for efficient checking
     dominate_set = set(dominate_set_indices)
 
-    # Initialize clusters and centroids
-    clusters = [{i} for i in range(len(data))]
-    centroids = [data[i] for i in range(len(data))]
+    # Initialize clusters
+    clusters = [{'indices': {i}, 'centroid': data[i], 'is_non_dominated': i in dominate_set} for i in range(len(data))]
 
-    # Initialize a list to track if a cluster has a non-dominated solution
-    contains_dominated = [not (cluster & dominate_set) for cluster in clusters]
+    centroid_matrix = np.array([cluster['centroid'] for cluster in clusters])
+    distances = cdist(centroid_matrix, centroid_matrix, metric='euclidean')
+    np.fill_diagonal(distances, np.inf)
 
-    while any(contains_dominated):  # Continue until all clusters have a non-dominated solution
-        merged_in_this_pass = set()  # Keep track of merged clusters to avoid double merging
+    # Merge clusters until all are non-dominated
+    while any(cluster['is_non_dominated'] for cluster in clusters):
+        if len(clusters) == 1:  # Only one cluster left
+            break
 
-        for i in range(len(clusters) - 1, -1, -1):
-            if i in merged_in_this_pass:  # Skip if this cluster has already been merged in this pass
+        merged_indices = set()  # Keep track of merged clusters
+        for i, cluster in enumerate(clusters) or cluster['is_non_dominated'] :
+            if i in merged_indices:  # Skip already merged clusters
                 continue
 
-            if contains_dominated[i]:
-                # Calculate distances between this centroid and others
-                distances_to_others = pairwise_distances([centroids[i]], centroids, metric='euclidean')[0]
-                distances_to_others[i] = np.inf  # Ignore distance to itself
-                for idx in merged_in_this_pass:  # Avoid merging with clusters already merged in this pass
-                    distances_to_others[idx] = np.inf
+            # Find the nearest cluster to merge with
+            j = np.argmin(distances[i])
+            if j not in merged_indices and i != j:  # Ensure it's a valid cluster to merge
+                # Merge clusters i and j
+                cluster['indices'].update(clusters[j]['indices'])
+                cluster['centroid'] = cluster_centroid(data, cluster['indices'])
+                cluster['is_non_dominated'] = any(idx in dominate_set for idx in cluster['indices'])
 
-                # Find the closest cluster to merge with
-                closest_cluster_index = np.argmin(distances_to_others)
+                merged_indices.add(j)
 
-                # Merge clusters
-                clusters[i].update(clusters[closest_cluster_index])
-                centroids[i] = cluster_centroid(data, clusters[i])
+        # Remove merged clusters and reconstruct the clusters list
+        clusters = [cluster for k, cluster in enumerate(clusters) if k not in merged_indices]
+        centroid_matrix = np.array([cluster['centroid'] for cluster in clusters])
 
-                # Update the 'contains_dominated' list for the new cluster
-                contains_dominated[i] = not (clusters[i] & dominate_set)
-
-                # Mark the merged clusters
-                merged_in_this_pass.add(closest_cluster_index)
-                merged_in_this_pass.add(i)
-
-                # Remove the merged cluster
-                del clusters[closest_cluster_index]
-                del centroids[closest_cluster_index]
-                del contains_dominated[closest_cluster_index]
-
-        # Recalculate contains_dominated for remaining clusters
-        contains_dominated = [not (cluster & dominate_set) for cluster in clusters]
+        # Update distance matrix once after all merges
+        distances = cdist(centroid_matrix, centroid_matrix, metric='euclidean')
+        np.fill_diagonal(distances, np.inf)
 
     return clusters
+
+
+def hierarchical_clustering_2order(data, clusters_ori, dominate_set_indices):
+    dominate_set = set(dominate_set_indices)
+    mapping = {}
+    # Initialize clusters
+    clusters = []
+    nodes = []
+    for c_id, c in enumerate(clusters_ori):
+        indices = c['indices']
+        non_dominated_set = {}
+        is_non_dominated = False
+        for idx in indices:
+            if idx in dominate_set_indices:
+                is_non_dominated = True
+                non_dominated_set.update(idx)
+
+        clusters.append({'indices': indices, 'centroid':c['centroid'],
+                         'is_non_dominated':is_non_dominated, 'non_dominated_set': non_dominated_set})
+        nodes.append(Node(c_id))
+
+
+    centroid_matrix = np.array([cluster['centroid'] for cluster in clusters])
+    distances = cdist(centroid_matrix, centroid_matrix, metric='euclidean')
+    np.fill_diagonal(distances, np.inf)
+
+    # Merge clusters until all are non-dominated
+    while any(cluster['is_non_dominated'] for cluster in clusters):
+        if len(clusters) == 1:  # Only one cluster left
+            break
+
+        merged_indices = set()  # Keep track of merged clusters
+        for i, cluster in enumerate(clusters) or cluster['is_non_dominated']:
+            if i in merged_indices:  # Skip already merged clusters
+                continue
+
+            # Find the nearest cluster to merge with
+            j = np.argmin(distances[i])
+            if j not in merged_indices and i != j:  # Ensure it's a valid cluster to merge
+                # Merge clusters i and j
+                cluster['indices'].update(clusters[j]['indices'])
+                cluster['centroid'] = cluster_centroid(data, cluster['indices'])
+                cluster['is_non_dominated'] = any(idx in dominate_set for idx in cluster['indices'])
+                cluster['non_dominated_set'].update(clusters[j]['non_dominated_set'])
+                nodes[i].children.append(i)
+                nodes[i].children.append(j)
+                merged_indices.add(j)
+
+        # Remove merged clusters and reconstruct the clusters list
+        clusters = [cluster for k, cluster in enumerate(clusters) if k not in merged_indices]
+        nodes = [nodes[k] for k, cluster in enumerate(clusters) if k not in merged_indices]
+        centroid_matrix = np.array([cluster['centroid'] for cluster in clusters])
+
+        # Update distance matrix once after all merges
+        distances = cdist(centroid_matrix, centroid_matrix, metric='euclidean')
+        np.fill_diagonal(distances, np.inf)
+
+    return clusters, nodes
 
 
 @acf_register("CauMOACF")
@@ -100,8 +161,19 @@ class CauMOACF:
     def optimize(self, duplicate_manager=None):
         x = np.random.random(size=(10000, self.model.input_dim)) *2 - 1
         Mean, Var = self.model.predict(x)
-        pare, pare_index = find_pareto_front(Mean, return_index=True)
-        clusters = hierarchical_clustering(Mean, pare_index)
+        pareto, pareto_index = find_pareto_front(Mean, return_index=True)
+        # if len(pare_index) == 1:
+        #     return x[pare_index]
+        # else:
+        #     clusters = hierarchical_clustering(Mean, pare_index)
+
+        clusters = hierarchical_clustering(Mean, pareto_index)
+        pareto_second_order, pareto_second_index = find_pareto_front(Mean[:, 1:], return_index=True)
+        new_clusters, relation= hierarchical_clustering_2order(Mean, clusters, pareto_second_index)
+        root = Tree(id=0)
+        [root.add_child(Tree(k)) for k, c in enumerate(new_clusters)]
+        for child in root.children:
+            [child.add_child(Tree(k)) for k in relation[child.id]]
 
 
         return

@@ -1,12 +1,14 @@
-import argparse
-import cProfile
-import logging
-import os
-import sys
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-package_dir = os.path.dirname(current_dir)
-sys.path.insert(0, package_dir)
+import sys
+from pathlib import Path
+
+current_dir = Path(__file__).resolve().parent
+package_dir = current_dir.parent
+sys.path.insert(0, str(package_dir))
+
+import argparse
+import json
+import os
 
 from transopt.Benchmark import construct_test_suits
 from transopt.KnowledgeBase.kb_builder import construct_knowledgebase
@@ -19,17 +21,25 @@ os.environ["OMP_NUM_THREADS"] = "1"
 
 
 def run_experiments(tasks, args):
-    logger = logging.getLogger(__name__)
     kb = construct_knowledgebase(args)
     testsuits = construct_test_suits(tasks, args.seed)
     optimizer = get_optimizer(args)
     data_handler = OptTaskDataHandler(kb, args)
     optimizer.optimize(testsuits, data_handler)
 
+def load_features():
+    features_file = package_dir / "demo" / "comparison" / "features_by_workload_gcc.json"
+    with open(features_file, "r") as f:
+        return json.load(f)
+
+
 if __name__ == "__main__":
+    features = load_features()
+    workload = "cbench-telecom-adpcm-c"
+    
     tasks = {
         # 'DBMS':{'budget': 11, 'time_stamp': 3},
-        "GCC": {"budget": 100, "workloads": ["cbench-telecom-adpcm-c"]},
+        "GCC": {"budget": 100, "workloads": [workload], "knobs": features[workload]["top"]},
         # 'LLVM' : {'budget': 11, 'time_stamp': 3},
         # 'Ackley': {'budget': 11, 'time_stamp': 3, 'params':{'input_dim':1}},
         # 'MPB': {'budget': 110, 'time_stamp': 3},

@@ -6,8 +6,6 @@ package_dir = current_dir.parent.parent
 sys.path.insert(0, str(package_dir))
 
 import argparse
-import cProfile
-import pstats
 import json
 import os
 
@@ -29,15 +27,7 @@ def execute_tasks(tasks, args):
     testsuits = construct_test_suits(tasks, args.seed)
     optimizer = get_optimizer(args)
     data_handler = OptTaskDataHandler(kb, args)
-
-    profiler = cProfile.Profile()
-    profiler.enable()
     optimizer.optimize(testsuits, data_handler)
-    profiler.disable()
-
-    stats = pstats.Stats(profiler)
-    profiler.print_stats(sort='time')
-    stats.dump_stats('profile_results.prof')
 
 
 def split_into_segments(lst, n):
@@ -125,34 +115,6 @@ def main_debug(repeat=1, budget=20, init_number=10):
 
     for optimizer_name in ["SMSEGO"]:
         for workload in workloads:
-            for i in range(repeat):
-                tasks, exp_args = configure_experiment(
-                    workload,
-                    features,
-                    65535 + i,
-                    optimizer_name,
-                    exp_path,
-                    budget,
-                    init_number,
-                )
-                execute_tasks(tasks, exp_args)
-
-
-def main_debug(repeat=1, budget=20, init_number=10):
-    features_file = package_dir / "demo" / "comparison" / "features_by_workload.json"
-    features = load_features(features_file)
-
-    parser = argparse.ArgumentParser(description="Run optimization experiments")
-    parser.add_argument("--split_index", type=int, default=9,
-                        help="Index for splitting the workload segments")
-    args = parser.parse_args()
-
-    workloads = get_workloads(features.keys(), args.split_index)[:1]
-
-    exp_path = Path.cwd() / "experiment_results"
-
-    for workload in workloads:
-        for optimizer_name in ["ParEGO"]:
             for i in range(repeat):
                 tasks, exp_args = configure_experiment(
                     workload,

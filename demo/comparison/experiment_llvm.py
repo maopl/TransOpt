@@ -50,7 +50,7 @@ def load_features(file_path):
 
 
 def configure_experiment(workload, features, seed, optimizer_name, exp_path, budget=20, init_number=10):
-    exp_name = f"gcc_{workload}"
+    exp_name = f"llvm_{workload}"
     args = argparse.Namespace(
         seed=seed,
         optimizer=optimizer_name,
@@ -64,7 +64,7 @@ def configure_experiment(workload, features, seed, optimizer_name, exp_path, bud
         acquisition_func="LCB",
     )
     tasks = {
-        "GCC": {
+        "LLVM": {
             "budget": budget,
             "workloads": [workload],
             "knobs": features[workload]["top"],
@@ -73,7 +73,7 @@ def configure_experiment(workload, features, seed, optimizer_name, exp_path, bud
     return tasks, args
 
 def main(optimizers = [], repeat=5, budget=500, init_number=21):
-    features_file = package_dir / "demo" / "comparison" / "features_by_workload_gcc.json"
+    features_file = package_dir / "demo" / "comparison" / "features_by_workload_llvm.json"
     features = load_features(features_file)
 
     parser = argparse.ArgumentParser(description="Run optimization experiments")
@@ -101,7 +101,7 @@ def main(optimizers = [], repeat=5, budget=500, init_number=21):
 
 
 def main_debug(repeat=1, budget=20, init_number=10):
-    features_file = package_dir / "demo" / "comparison" / "features_by_workload.json"
+    features_file = package_dir / "demo" / "comparison" / "features_by_workload_llvm.json"
     features = load_features(features_file)
 
     parser = argparse.ArgumentParser(description="Run optimization experiments")
@@ -113,7 +113,7 @@ def main_debug(repeat=1, budget=20, init_number=10):
 
     exp_path = Path.cwd() / "experiment_results"
 
-    for optimizer_name in ["SMSEGO"]:
+    for optimizer_name in ["ParEGO", "MoeadEGO","SMSEGO"]:
         for workload in workloads:
             for i in range(repeat):
                 tasks, exp_args = configure_experiment(
@@ -134,4 +134,4 @@ if __name__ == "__main__":
     if debug:
         main_debug(repeat=1, budget=20, init_number=10)
     else:
-        main(["SMSEGO"], repeat=5, budget=500, init_number=21)
+        main(["ParEGO", "MoeadEGO", "SMSEGO"], repeat=5, budget=500, init_number=21)

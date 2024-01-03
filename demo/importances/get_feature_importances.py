@@ -36,7 +36,7 @@ def load_and_prepare_data(file_path, objectives):
     print(f"Removed {len(df_combined) - len(df_input)} duplicates")
 
     for obj in objectives:
-        df_combined = df_combined[df_combined[obj] != 1e5]
+        df_combined = df_combined[df_combined[obj] != 1e10]
     print(f"Loaded {len(df_combined)} data points after removing extreme values")
     return df_combined
 
@@ -290,30 +290,46 @@ if __name__ == "__main__":
         tar = tarfile.open("collected_results.tar.gz")
         tar.extractall()
         tar.close()
-    
+
     # workloads_improved = get_workloads_improved()
 
-    workloads_improved = [
-        "cbench-consumer-tiff2bw",
-        "cbench-security-rijndael",
-        "cbench-security-pgp",
-        "polybench-cholesky",
-        "cbench-telecom-crc32",
-        "polybench-fdtd-apml",
-        "cbench-network-patricia",
-        "cbench-consumer-tiff2rgba",
-        "polybench-symm",
-        "cbench-automotive-susan-e",
-        "cbench-telecom-adpcm-d",
-        "polybench-ludcmp",
-        "polybench-lu",
-        "cbench-consumer-mad",
-        "cbench-automotive-qsort1",
-        "polybench-bicg",
-        "cbench-security-sha",
-        "cbench-consumer-jpeg-d",
-        "cbench-telecom-adpcm-c",
-        "cbench-telecom-gsm",
-    ]
+    # workloads_improved = [
+    #     "cbench-consumer-tiff2bw",
+    #     "cbench-security-rijndael",
+    #     "cbench-security-pgp",
+    #     "polybench-cholesky",
+    #     "cbench-telecom-crc32",
+    #     "polybench-fdtd-apml",
+    #     "cbench-network-patricia",
+    #     "cbench-consumer-tiff2rgba",
+    #     "polybench-symm",
+    #     "cbench-automotive-susan-e",
+    #     "cbench-telecom-adpcm-d",
+    #     "polybench-ludcmp",
+    #     "polybench-lu",
+    #     "cbench-consumer-mad",
+    #     "cbench-automotive-qsort1",
+    #     "polybench-bicg",
+    #     "cbench-security-sha",
+    #     "cbench-consumer-jpeg-d",
+    #     "cbench-telecom-adpcm-c",
+    #     "cbench-telecom-gsm",
+    # ]
 
-    get_features_for_exp(workloads_improved)
+    # get_features_for_exp(workloads_improved)
+    
+
+    # For temp test
+    with open(data_path / "GCC_cbench-consumer-tiff2bw.json", "r") as f:
+        data = json.load(f)
+
+    input_vectors = data["input_vector"]
+    output_vectors = data["output_value"]
+
+    target_objs = ["execution_time", "file_size", "compilation_time"]
+    
+    # Show target objs in each output vector
+    for output_vector in output_vectors:
+        for target_obj in target_objs:
+            print(f"{target_obj}: {output_vector[target_obj]}")
+        print("")

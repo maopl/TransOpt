@@ -37,34 +37,25 @@ class BOBase(OptimizerBase):
     def _get_var_bound(self, space_name)->Dict:
         assert self.design_space is not None
         assert self.search_space is not None
-        bound = {}
         if space_name == 'design':
-            space = self.design_space.config_space
+            return  self.design_bounds
         elif space_name == 'search':
-            space = self.search_space.config_space
+            return self.search_bounds
         else:
             raise NameError('Wrong space name, choose space name from design or search!')
 
-        for var in space:
-            bound[var['name']] = var['domain']
-
-        return bound
 
     def _get_var_type(self, space_name)->Dict:
         assert self.design_space is not None
         assert self.search_space is not None
         var_type = {}
         if space_name == 'design':
-            space = self.design_space.config_space
+            return self.design_type
         elif space_name == 'search':
-            space = self.search_space.config_space
+            return self.search_type
         else:
             raise NameError('Wrong space name, choose space name from design or search!')
 
-        for var in space:
-            var_type[var['name']] = var['type']
-
-        return var_type
 
     def _get_var_name(self, space_name)->List:
         assert self.design_space is not None
@@ -235,17 +226,31 @@ class BOBase(OptimizerBase):
 
         self.design_params = self.design_info['variables']
         self.search_param = {}
+        self.search_bounds = {k:[-1,1] for k, _ in self.design_params.items()}
+        self.design_bounds = {}
+        for k, v in self.design_params.items():
+            if 'CategoricalHyperparameter' == self.design_params[k]['type']:
+                db = [0, len(self.design_params[k]['bounds']) - 1]
+                self.design_bounds[k] = db
+            else:
+                self.design_bounds[k] = v['bounds']
+
+        self.search_type = {k:'continuous' for k, _ in self.design_params.items()}
+        self.design_type = {}
         for k, v in self.design_params.items():
             self.search_param[k] = {'bounds': [-1,1], 'type': 'continuous'}
-
             if self.design_params[k]['type'] == 'UniformFloatHyperparameter':
                 self.design_params[k]['type'] = 'continuous'
+                self.design_type[k] = 'continuous'
             elif self.design_params[k]['type'] == 'UniformIntegerHyperparameter':
                 self.design_params[k]['type'] = 'integer'
+                self.design_type[k] = 'integer'
             elif self.design_params[k]['type'] == 'CategoricalHyperparameter':
                 self.design_params[k]['type'] = 'categorical'
+                self.design_type[k] = 'categorical'
             else:
                 raise NameError('Unknown variable type!')
+
 
     def get_spaceinfo(self, space_name):
         assert self.design_space is not None
@@ -300,6 +305,7 @@ class BOBase(OptimizerBase):
         search_bound_dic = self._get_var_bound('search')
         search_bounds =[]
         design_bound_dic = self._get_var_bound('design')
+
         design_bounds = []
         design_type_dic = self._get_var_type('design')
         design_type = []
@@ -315,7 +321,7 @@ class BOBase(OptimizerBase):
 
         xx = (xx - search_bounds[:, 0]) * (design_bounds[:, 1] - design_bounds[:, 0]) / (search_bounds[:, 1] - search_bounds[:, 0]) + (design_bounds[:, 0])
 
-        int_flag = [idx for idx, i in enumerate(design_type) if i == 'integer' or i == 'categorical']
+        int_flag = [idx for idx, i  in enumerate(design_type) if i == 'integer' or i == 'categorical']
 
 
         configuration_t = {k: np.round(xx[idx]).astype(int) if idx in int_flag else xx[idx] for idx, k in

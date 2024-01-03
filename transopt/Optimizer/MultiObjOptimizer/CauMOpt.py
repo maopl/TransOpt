@@ -14,17 +14,15 @@ def calculate_gini_index(labels):
     return gini
 
 
-def best_feature_by_gini(data, labels):
-    # 初始化最低基尼指数和对应的特征
-    min_gini = 1
-    best_feature = None
+def features_by_gini(data, labels):
+    features_gini = []
 
     # 遍历每个特征
     for feature_idx in range(data.shape[1]):
-        # 获取当前特征下的所有值
         current_feature_values = data[:, feature_idx]
 
         # 假设的分割方式：基于每个值的基尼指数
+        gini_indexes = []
         for split_value in np.unique(current_feature_values):
             left_split = labels[current_feature_values <= split_value]
             right_split = labels[current_feature_values > split_value]
@@ -33,13 +31,13 @@ def best_feature_by_gini(data, labels):
             left_gini = calculate_gini_index(left_split)
             right_gini = calculate_gini_index(right_split)
             weighted_gini = (len(left_split) * left_gini + len(right_split) * right_gini) / len(labels)
+            gini_indexes.append(weighted_gini)
 
-            # 更新最低基尼指数和对应的特征
-            if weighted_gini < min_gini:
-                min_gini = weighted_gini
-                best_feature = feature_idx
+        # 取这个特征下的最小基尼指数
+        min_gini = min(gini_indexes) if gini_indexes else 1  # 防止某个特征下所有值相同
+        features_gini.append((feature_idx, min_gini))
 
-    return best_feature
+    return features_gini
 
 @optimizer_register("CauMO")
 class CauMO(BOBase):
@@ -56,7 +54,7 @@ class CauMO(BOBase):
         if "pop_size" in config:
             self.pop_size = config["pop_size"]
         else:
-            self.pop_size = 30
+            self.pop_size = 10
             self.ini_num = self.pop_size
 
         self.second_space = None
@@ -122,30 +120,53 @@ class CauMO(BOBase):
 
     def create_model(self, X, Y):
         assert self.num_objective is not None
-        K3 = GPy.kern.RBF(input_dim=self.input_dim)
-        obj3_model = GPy.models.GPRegression(X, Y[1][:, np.newaxis], kernel=K3, normalizer=None)
-        # X_vector = ndarray_to_vectors(self._get_var_name('search'), X)
-        # X_design = [self._to_designspace(d) for d in X_vector]
-        # X_nd = vectors_to_ndarray(self._get_var_name('design'), X_design)
-        self.replace_feature = best_feature_by_gini(X, Y[0])
-        X_nd = X.copy()
-        X_nd[:, self.replace_feature] = np.clip(2 * (Y[1] - (-3)) / 6 - 1, -1, 1)
-        K2 = GPy.kern.RBF(input_dim=self.input_dim)
-        obj2_model = GPy.models.GPRegression(X_nd, Y[0][:, np.newaxis], kernel=K2, normalizer=None)
-        obj2_model['.*Gaussian_noise.variance'].constrain_fixed(1.0e-4)
-        obj2_model['.*rbf.variance'].constrain_fixed(1.0)
-        obj3_model['.*Gaussian_noise.variance'].constrain_fixed(1.0e-4)
-        obj3_model['.*rbf.variance'].constrain_fixed(1.0)
+        Kc = GPy.kern.RBF(input_dim=self.input_dim)
+        compile_time_model = GPy.models.GPRegression(X, Y[2][:, np.newaxis], kernel=Kc, normalizer=None)
+        file_size_feature_rank = features_by_gini(X, Y[1])
+        self.file_size_rep_feature = sorted(file_size_feature_rank, key=lambda x: x[1])[0][0]
 
-        self.model_list.append(obj3_model)
-        self.model_list.append(obj2_model)
+        X_file = X.copy()
+        X_file[:, self.file_size_rep_feature] = np.clip(2 * (Y[2] - (-3)) / 6 - 1, -1, 1)
+        Kf = GPy.kern.RBF(input_dim=self.input_dim)
+        file_size_model = GPy.models.GPRegression(X_file, Y[1][:, np.newaxis], kernel=Kf, normalizer=None)
+
+        run_time_feature_rank = features_by_gini(X, Y[0])
+        run_time_feature_rank = sorted(run_time_feature_rank, key=lambda x: x[1])
+        self.st_run_time_rep_feature = run_time_feature_rank[0][0]
+        self.nd_run_time_rep_feature = run_time_feature_rank[1][0]
+        X_rtime = X.copy()
+        X_rtime[:, self.st_run_time_rep_feature] = np.clip(2 * (Y[2] - (-3)) / 6 - 1, -1, 1)
+        X_rtime[:, self.nd_run_time_rep_feature] = np.clip(2 * (Y[1] - (-3)) / 6 - 1, -1, 1)
+        Kr = GPy.kern.RBF(input_dim=self.input_dim)
+        running_time_model = GPy.models.GPRegression(X_rtime, Y[0][:, np.newaxis], kernel=Kr, normalizer=None)
+
+        compile_time_model['.*Gaussian_noise.variance'].constrain_fixed(1.0e-4)
+        compile_time_model['.*rbf.variance'].constrain_fixed(1.0)
+        file_size_model['.*Gaussian_noise.variance'].constrain_fixed(1.0e-4)
+        file_size_model['.*rbf.variance'].constrain_fixed(1.0)
+        running_time_model['.*Gaussian_noise.variance'].constrain_fixed(1.0e-4)
+        running_time_model['.*rbf.variance'].constrain_fixed(1.0)
+
+        self.model_list.append(compile_time_model)
+        self.model_list.append(file_size_model)
+        self.model_list.append(running_time_model)
 
     def set_data(self, X, Y):
-        self.model_list[0].set_XY(X, Y[1])
-        self.replace_feature = best_feature_by_gini(X, Y[0])
-        X_nd = X.copy()
-        X_nd[:, self.replace_feature] = np.clip(2 * (Y[1] - (-3)) / 6 - 1, -1, 1)
-        self.model_list[1].set_XY(X_nd, Y[1])
+        self.model_list[0].set_XY(X, Y[2])
+        file_size_feature_rank = features_by_gini(X, Y[1])
+        self.file_size_rep_feature = sorted(file_size_feature_rank, key=lambda x: x[1])[0][0]
+        X_file = X.copy()
+        X_file[:, self.file_size_rep_feature] = np.clip(2 * (Y[1] - (-3)) / 6 - 1, -1, 1)
+        self.model_list[1].set_XY(X_file, Y[1])
+
+        run_time_feature_rank = features_by_gini(X, Y[0])
+        run_time_feature_rank = sorted(run_time_feature_rank, key=lambda x: x[1])
+        self.st_run_time_rep_feature = run_time_feature_rank[0][0]
+        self.nd_run_time_rep_feature = run_time_feature_rank[1][0]
+        X_rtime = X.copy()
+        X_rtime[:, self.st_run_time_rep_feature] = np.clip(2 * (Y[2] - (-3)) / 6 - 1, -1, 1)
+        X_rtime[:, self.nd_run_time_rep_feature] = np.clip(2 * (Y[1] - (-3)) / 6 - 1, -1, 1)
+        self.model_list[2].set_XY(X_rtime, Y[0])
 
 
     def suggest(self, n_suggestions: Union[None, int] = None) -> List[Dict]:
@@ -179,15 +200,29 @@ class CauMO(BOBase):
         else:
             pred_var = np.zeros((X.shape[0], 0))
 
-        Y_0, Y_0_var = self.model_list[0].predict(X, full_cov=full_cov)
-        X_nd = X.copy()
-        X_nd[:, self.replace_feature] = np.clip(2 * (Y_0 - (-3)) / 6 - 1, -1, 1)
-        Y_1, Y_1_var = self.model_list[1].predict(X_nd)
-        pred_mean = np.append(pred_mean, Y_0)
-        pred_mean = np.append(pred_mean, Y_1)
+        compile_time_mean, compile_time_var = self.model_list[0].predict(X, full_cov=full_cov)
+        X_file = X.copy()
+        X_file[:, self.file_size_rep_feature] = np.clip(2 * (compile_time_mean[:, 0] - (-3)) / 6 - 1, -1, 1)
+        file_size_mean, file_size_var = self.model_list[1].predict(X_file)
 
-        pred_var = np.append(pred_var, Y_0)
-        pred_var = np.append(pred_var, Y_1)
+        X_run = X.copy()
+        X_run[:, self.st_run_time_rep_feature] = np.clip(2 * (compile_time_mean[:, 0] - (-3)) / 6 - 1, -1, 1)
+        X_run[:, self.nd_run_time_rep_feature] = np.clip(2 * (file_size_mean[:, 0] - (-3)) / 6 - 1, -1, 1)
+        run_time_mean, run_time_var = self.model_list[2].predict(X_file)
+
+        pred_mean = np.hstack((pred_mean, run_time_mean, file_size_mean, compile_time_mean))
+
+        if full_cov:
+            pred_var = np.hstack((pred_var, run_time_var, file_size_var, compile_time_var))
+        else:
+            pred_var = np.hstack((pred_var, run_time_var, file_size_var, compile_time_var))
+
+        # pred_mean = np.append(pred_mean, run_time_mean)
+        # pred_mean = np.append(pred_mean, file_size_mean)
+        # pred_mean = np.append(pred_mean, compile_time_mean)
+        # pred_var = np.append(pred_var, run_time_var)
+        # pred_var = np.append(pred_var, file_size_var)
+        # pred_var = np.append(pred_var, compile_time_var)
 
         return pred_mean, pred_var
 

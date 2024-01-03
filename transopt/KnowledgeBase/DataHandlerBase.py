@@ -80,7 +80,6 @@ class DataHandler(abc.ABC, metaclass=abc.ABCMeta):
     def syn_database(self):
         required_keys = ["input_dim", "budget", "seed", "num_objective", "variables"]
 
-        # 检查是否所有必要的键都在space_info字典中
         for key in required_keys:
             if key not in self.dataset["dataset_info"]:
                 raise ValueError(f"Missing key '{key}' in space_info")

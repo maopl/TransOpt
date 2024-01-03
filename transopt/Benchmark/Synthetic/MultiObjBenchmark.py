@@ -7,13 +7,13 @@ import ConfigSpace as CS
 from typing import Union, Dict
 import random
 from transopt.utils.Register import benchmark_register
-from transopt.Benchmark.BenchBase import NonTabularOptBenchmark
+from transopt.Benchmark.BenchBase import NonTabularBenchmark
 
 logger = logging.getLogger("MultiObjBenchmark")
 
 
 @benchmark_register("AckleySphere")
-class AckleySphereOptBenchmark(NonTabularOptBenchmark):
+class AckleySphereOptBenchmark(NonTabularBenchmark):
     def __init__(
         self, task_name, budget, seed, workload = None, task_type="non-tabular", **kwargs
     ):
@@ -45,6 +45,7 @@ class AckleySphereOptBenchmark(NonTabularOptBenchmark):
             seed=seed,
             task_type=task_type,
             budget=budget,
+            workload=workload,
         )
 
     def objective_function(

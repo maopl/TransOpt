@@ -29,7 +29,6 @@ def convert_minimization(Y, obj_type=None):
 
     return Y
 
-
 def find_pareto_front(Y, return_index=False, obj_type=None):
     '''
     Find pareto front (undominated part) of the input performance data.

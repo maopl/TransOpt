@@ -1,7 +1,7 @@
 
 from typing import List, Any, Union, Tuple, Dict, Callable
 
-import transopt.KnowledgeBase.DataSelection
+import archived.DataSelection
 from transopt.KnowledgeBase import KnowledgeBase
 from transopt.KnowledgeBase.DataHandlerBase import DataHandler
 

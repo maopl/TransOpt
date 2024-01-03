@@ -2,7 +2,7 @@ import numpy as np
 import GPy
 from typing import Dict, Union, List
 from transopt.Optimizer.OptimizerBase import BOBase
-from transopt.utils.Data import ndarray_to_vectors
+from transopt.utils.serialization import ndarray_to_vectors
 from transopt.utils.Register import optimizer_register
 from transopt.utils.Register import optimizer_register
 

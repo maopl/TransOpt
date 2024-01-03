@@ -4,6 +4,7 @@ optimizer_registry = {}
 benchmark_registry = {}
 normalizer_registry = {}
 acf_registry = {}
+para_regitry = {}
 
 
 # 注册函数的装饰器
@@ -38,4 +39,12 @@ def acf_register(name):
             raise ValueError(f"Error: '{name}' is already registered.")
         acf_registry[name] = func_or_class
         return func_or_class
+    return decorator
+
+def para_register(name):
+    def decorator(parameter_type):
+        if name in acf_registry:
+            raise ValueError(f"Error: '{name}' is already registered.")
+        acf_registry[name] = parameter_type
+        return parameter_type
     return decorator

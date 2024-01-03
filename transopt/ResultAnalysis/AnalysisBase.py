@@ -1,15 +1,21 @@
 import abc
-from dataclasses import dataclass
-from typing import Dict, Hashable, Tuple, List, Union
-import numpy as np
-from collections import defaultdict
 import json
-from transopt.utils.Data import vectors_to_ndarray, output_to_ndarray
-from transopt.KnowledgeBase.KnowledgeBase import KnowledgeBase
+from collections import defaultdict
+from dataclasses import dataclass
+from typing import Dict, Hashable, List, Tuple, Union
+
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
+
+from transopt.KnowledgeBase import KnowledgeBase
+from transopt.utils.serialization import (convert_np_to_bulidin,
+                                          output_to_ndarray,
+                                          vectors_to_ndarray)
+
+
 @dataclass
-class result():
+class Result():
     """
     Class to store the results of the analysis.
     """
@@ -20,10 +26,9 @@ class result():
         self.best_Y = None
 
 
-
 class AnalysisBase(abc.ABC, metaclass=abc.ABCMeta):
-    def __init__(self, Exper_folder, methods, seeds, tasks, start = 0, end = None):
-        self._Exper_folder = Exper_folder
+    def __init__(self, exper_folder, methods, seeds, tasks, start = 0, end = None):
+        self._exper_folder = exper_folder
         self._methods = methods
         self._seeds = seeds
         self._tasks = tasks
@@ -36,21 +41,21 @@ class AnalysisBase(abc.ABC, metaclass=abc.ABCMeta):
     def read_data_from_kb(self):
         for method in self._methods:
             self.results[method] = defaultdict(dict)
-            for Seed in self._seeds:
-                self.results[method][Seed] = defaultdict(dict)
+            for seed in self._seeds:
+                self.results[method][seed] = defaultdict(dict)
 
-                file_path = '{}/{}/{}_KB.json'.format(self._Exper_folder, method, Seed)
+                file_path = f'{self._exper_folder}/{method}/{seed}_KB.json'
                 database = KnowledgeBase(file_path)
 
                 for dataset_id in database.get_all_dataset_id():
-                    r = result()
                     dataset = database.get_dataset_by_id(dataset_id)
-                    input_vector = dataset['input_vector']
-                    output_value = dataset['output_value']
                     task_name = dataset['name']
                     if task_name.split('_')[0] not in self._tasks:
                         continue
 
+                    input_vector = dataset['input_vector']
+                    output_value = dataset['output_value']
+                    r = Result()
                     r.X = vectors_to_ndarray(dataset['dataset_info']['variable_name'], input_vector)
                     r.Y = output_to_ndarray(output_value)
                     if self._end is not None:
@@ -62,28 +67,20 @@ class AnalysisBase(abc.ABC, metaclass=abc.ABCMeta):
                     best_id = np.argmin(r.Y)
                     r.best_Y = r.Y[best_id]
                     r.best_X = r.X[best_id]
-                    self.results[method][Seed][task_name] = r
+
+                    self.results[method][seed][task_name] = r
                     self._task_names.add(task_name)
 
     def save_results_to_json(self, file_path):
-        # 将 NumPy 数组转换为列表的函数
-        def convert(o):
-            if isinstance(o, np.ndarray):
-                return o.tolist()
-            raise TypeError
-
-        # 将数据转换为 JSON 格式并保存到文件
         with open(file_path, 'w') as f:
-            json.dump(self.results, f, default=convert)
+            json.dump(self.results, f, default=convert_np_to_bulidin)
 
     def load_results_from_json(self, file_path):
-        # 从列表转换回 NumPy 数组的函数
         def convert(dct):
             if 'type' in dct and dct['type'] == 'ndarray':
                 return np.array(dct['value'])
             return dct
 
-        # 从文件加载数据并转换格式
         with open(file_path, 'r') as f:
             self.results = json.load(f, object_hook=convert)
 
@@ -96,6 +93,12 @@ class AnalysisBase(abc.ABC, metaclass=abc.ABCMeta):
         Returns:
             dict: A dictionary of results organized according to the specified order.
         """
+
+        if order is None:
+            order = ["task", "method", "seed"]
+
+        valid_keys = {"task", "method", "seed"}
+        assert len(order) == 3 and set(order) == valid_keys, "Order must be a permutation of 'task', 'method', and 'seed'"
 
         # Retrieve the corresponding category based on the type of the key
         def get_key(key):
@@ -112,13 +115,6 @@ class AnalysisBase(abc.ABC, metaclass=abc.ABCMeta):
             second_original_key = key_list[order.index('seed')]
             third_original_key = key_list[order.index('task')]
             return self.results[first_original_key][second_original_key][third_original_key]
-
-        if order is None:
-            order = ["task", "method", "seed"]
-        else:
-            assert len(order) == 3, "order's length must be 3"
-            assert all(
-                key in order for key in ["task", "method", "seed"]), "order must include 'task', 'method', and 'seed'"
 
         # Define dictionaries for each level of order
         levels = {key: get_key(key) for key in order}

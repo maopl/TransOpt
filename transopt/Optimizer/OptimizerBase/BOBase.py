@@ -10,7 +10,7 @@ from transopt.KnowledgeBase.TaskDataHandler import OptTaskDataHandler
 from transopt.Optimizer.Acquisition.ConstructACF import get_ACF
 from transopt.Optimizer.Acquisition.sequential import Sequential
 from transopt.Optimizer.OptimizerBase import OptimizerBase
-from transopt.utils.Data import (multioutput_to_ndarray, output_to_ndarray,
+from transopt.utils.serialization import (multioutput_to_ndarray, output_to_ndarray,
                                  vectors_to_ndarray)
 from transopt.utils.Visualization import visual_pf
 
@@ -37,34 +37,25 @@ class BOBase(OptimizerBase):
     def _get_var_bound(self, space_name)->Dict:
         assert self.design_space is not None
         assert self.search_space is not None
-        bound = {}
         if space_name == 'design':
-            space = self.design_space.config_space
+            return  self.design_bounds
         elif space_name == 'search':
-            space = self.search_space.config_space
+            return self.search_bounds
         else:
             raise NameError('Wrong space name, choose space name from design or search!')
 
-        for var in space:
-            bound[var['name']] = var['domain']
-
-        return bound
 
     def _get_var_type(self, space_name)->Dict:
         assert self.design_space is not None
         assert self.search_space is not None
         var_type = {}
         if space_name == 'design':
-            space = self.design_space.config_space
+            return self.design_type
         elif space_name == 'search':
-            space = self.search_space.config_space
+            return self.search_type
         else:
             raise NameError('Wrong space name, choose space name from design or search!')
 
-        for var in space:
-            var_type[var['name']] = var['type']
-
-        return var_type
 
     def _get_var_name(self, space_name)->List:
         assert self.design_space is not None
@@ -144,9 +135,9 @@ class BOBase(OptimizerBase):
             if var['type'] == 'UniformFloatHyperparameter':
                 var_dic['type'] = 'continuous'
             elif var['type'] == 'UniformIntegerHyperparameter':
-                var_dic['type'] = 'discrete'
+                var_dic['type'] = 'continuous'
             elif var['type'] == 'CategoricalHyperparameter':
-                var_dic['type'] = 'categorical'
+                var_dic['type'] = 'discrete'
             else:
                 raise NameError('Unknown variable type!')
             space.append(var_dic.copy())
@@ -206,7 +197,6 @@ class BOBase(OptimizerBase):
             if 'type' not in value:
                 raise KeyError(f"'type' is missing for variable '{key}'.")
 
-
         return True
 
 
@@ -224,7 +214,7 @@ class BOBase(OptimizerBase):
         self.budget = design_space_info['budget']
 
         if self.ini_num is None:
-            self.ini_num = 4 * self.input_dim
+            self.ini_num = 11 * self.input_dim - 1
 
         task_design_space = self._set_space(design_space_info)
         self.design_space = GPyOpt.Design_space(space=task_design_space)
@@ -233,6 +223,34 @@ class BOBase(OptimizerBase):
         else:
             task_search_space = self._set_default_search_space()
         self.search_space = GPyOpt.Design_space(space=task_search_space)
+
+        self.design_params = self.design_info['variables']
+        self.search_param = {}
+        self.search_bounds = {k:[-1,1] for k, _ in self.design_params.items()}
+        self.design_bounds = {}
+        for k, v in self.design_params.items():
+            if 'CategoricalHyperparameter' == self.design_params[k]['type']:
+                db = [0, len(self.design_params[k]['bounds']) - 1]
+                self.design_bounds[k] = db
+            else:
+                self.design_bounds[k] = v['bounds']
+
+        self.search_type = {k:'continuous' for k, _ in self.design_params.items()}
+        self.design_type = {}
+        for k, v in self.design_params.items():
+            self.search_param[k] = {'bounds': [-1,1], 'type': 'continuous'}
+            if self.design_params[k]['type'] == 'UniformFloatHyperparameter':
+                self.design_params[k]['type'] = 'continuous'
+                self.design_type[k] = 'continuous'
+            elif self.design_params[k]['type'] == 'UniformIntegerHyperparameter':
+                self.design_params[k]['type'] = 'integer'
+                self.design_type[k] = 'integer'
+            elif self.design_params[k]['type'] == 'CategoricalHyperparameter':
+                self.design_params[k]['type'] = 'categorical'
+                self.design_type[k] = 'categorical'
+            else:
+                raise NameError('Unknown variable type!')
+
 
     def get_spaceinfo(self, space_name):
         assert self.design_space is not None
@@ -243,11 +261,11 @@ class BOBase(OptimizerBase):
         space_info['budget'] = self.budget
         space_info['variables'] = {}
         if space_name == 'design':
-            for var in self.design_space.config_space:
-                space_info['variables'][var['name']] = {'bounds':var['domain'], 'type':var['type']}
+            for k, v in self.design_params.items():
+                space_info['variables'][k] = {'bounds':v['bounds'], 'type':v['type']}
         elif space_name == 'search':
-            for var in self.search_space.config_space:
-                space_info['variables'][var['name']] = {'bounds':var['domain'], 'type':var['type']}
+            for  k, v  in self.search_params.items():
+                space_info['variables'][k] = {'bounds':v['bounds'], 'type':v['type']}
         else:
             raise NameError('Wrong space name, choose space name from design or search!')
 
@@ -275,7 +293,7 @@ class BOBase(OptimizerBase):
         design_bounds = np.array(design_bounds)
         xx = (xx - design_bounds[:, 0]) * (search_bounds[:, 1] - search_bounds[:, 0]) / (design_bounds[:, 1] - design_bounds[:, 0]) + (search_bounds[:, 0])
 
-        int_flag = [idx for idx, i in enumerate(search_type) if i == 'discrete' or i == 'categorical']
+        int_flag = [idx for idx, i in enumerate(search_type) if i == 'integer' or i == 'categorical']
 
         configuration_t = {k: np.round(xx[idx]).astype(int) if idx in int_flag else xx[idx] for idx, k in
                            enumerate(design_bound_dic.keys())}
@@ -287,6 +305,7 @@ class BOBase(OptimizerBase):
         search_bound_dic = self._get_var_bound('search')
         search_bounds =[]
         design_bound_dic = self._get_var_bound('design')
+
         design_bounds = []
         design_type_dic = self._get_var_type('design')
         design_type = []
@@ -302,10 +321,12 @@ class BOBase(OptimizerBase):
 
         xx = (xx - search_bounds[:, 0]) * (design_bounds[:, 1] - design_bounds[:, 0]) / (search_bounds[:, 1] - search_bounds[:, 0]) + (design_bounds[:, 0])
 
-        int_flag = [idx for idx, i in enumerate(design_type) if i == 'discrete' or i == 'categorical']
+        int_flag = [idx for idx, i  in enumerate(design_type) if i == 'integer' or i == 'categorical']
+
 
         configuration_t = {k: np.round(xx[idx]).astype(int) if idx in int_flag else xx[idx] for idx, k in
                            enumerate(design_bound_dic.keys())}
+
         return configuration_t
 
     def transform(self, X: Union[ConfigSpace.Configuration, Dict, List[Union[ConfigSpace.Configuration, Dict]]]) -> Union[Dict, List[Dict]]:
@@ -358,6 +379,7 @@ class BOBase(OptimizerBase):
             self._Y = np.vstack((self._Y, output_to_ndarray(output_value))) if self._Y.size else output_to_ndarray(output_value)
 
     def optimize(self, testsuits, data_handler):
+
         self.set_DataHandler(data_handler)
         while (testsuits.get_unsolved_num()):
             space_info = testsuits.get_cur_space_info()
@@ -371,7 +393,7 @@ class BOBase(OptimizerBase):
                 if self.verbose:
                     self.visualization(testsuits, suggested_sample)
             testsuits.roll()
-
+        
     def set_DataHandler(self, data_handler:OptTaskDataHandler):
         self._data_handler = data_handler
 
@@ -382,7 +404,7 @@ class BOBase(OptimizerBase):
             input_vectors = [input_vectors]
         if isinstance(output_value, Dict):
             output_value = [output_value]
-
+        self.get_spaceinfo('design')
         # Check if the lists are empty and return if they are
         if len(input_vectors) == 0 and len(output_value) == 0:
             return

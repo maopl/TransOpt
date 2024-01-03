@@ -9,7 +9,7 @@ import torch.nn.functional as F
 from typing import Union, Dict
 from torchvision import datasets, transforms
 
-from transopt.Benchmark.BenchBase import NonTabularOptBenchmark
+from transopt.Benchmark.BenchBase import NonTabularBenchmark
 from transopt.utils.Register import benchmark_register
 
 logger = logging.getLogger("ConfigOptBenchmark")
@@ -88,7 +88,7 @@ class ResNet(nn.Module):
 
 
 @benchmark_register("Res")
-class HPOResNet(NonTabularOptBenchmark):
+class HPOResNet(NonTabularBenchmark):
     DATASET_NAME = ["svhn", "cifar10", "cifar100"]
 
     def __init__(self, task_name, budget, seed, task_id, task_type="non-tabular"):

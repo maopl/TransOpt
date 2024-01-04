@@ -1,9 +1,10 @@
 import os
 import sys
+from pathlib import Path
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-package_dir = os.path.dirname(current_dir)
-sys.path.insert(0, package_dir)
+current_dir = Path(__file__).resolve().parent
+package_dir = current_dir.parent.parent
+sys.path.insert(0, str(package_dir))
 
 import argparse
 import datetime
@@ -40,7 +41,7 @@ if __name__ == "__main__":
         "--samples_num",
         type=int,
         help="Number of samples to be collected for each workload",
-        default=6,
+        default=5,
     )
     parser.add_argument(
         "--split_index",
@@ -53,50 +54,6 @@ if __name__ == "__main__":
     samples_num = args.samples_num
 
     available_workloads = CompilerBenchmarkBase.AVAILABLE_WORKLOADS
-    collected_workloads = [
-        "cbench-automotive-susan-c",
-        "cbench-automotive-bitcount",
-        "cbench-security-rijndael",
-        "cbench-consumer-tiff2rgba",
-        "cbench-telecom-adpcm-d",
-        "cbench-consumer-tiff2bw",
-        "cbench-telecom-adpcm-c",
-        "cbench-consumer-tiff2dither",
-        "cbench-telecom-gsm",
-        "cbench-automotive-susan-e",
-        "cbench-security-sha",
-        "cbench-network-patricia",
-        "cbench-telecom-crc32",
-        "cbench-security-pgp",
-        "cbench-consumer-mad",
-        "cbench-automotive-qsort1",
-        "polybench-cholesky",
-        "polybench-trisolv",
-        "polybench-adi",
-        "polybench-symm",
-        "polybench-gesummv",
-        "polybench-gemver",
-        "polybench-durbin",
-        "polybench-atax",
-        "polybench-fdtd-apml",
-        "polybench-jacobi-1d-imper",
-        "polybench-bicg",
-        "polybench-syr2k",
-        "polybench-mvt",
-        "polybench-lu",
-        "polybench-3mm",
-        "cbench-consumer-jpeg-d",
-        "polybench-gramschmidt",
-        "polybench-syrk",
-        "polybench-fdtd-2d",
-        "polybench-seidel-2d",
-        "polybench-medley-floyd-warshall",
-        "polybench-doitgen",
-        "polybench-ludcmp",
-        "cbench-office-stringsearch2",
-        "polybench-2mm",
-    ]
-    available_workloads = list(set(available_workloads) - set(collected_workloads))
 
     split_workloads = split_into_segments(available_workloads, 10)
 
@@ -106,8 +63,8 @@ if __name__ == "__main__":
     workloads = split_workloads[split_index]
 
     tasks = {
-        "GCC": {"budget": samples_num, "workloads": workloads},
-        # "LLVM": {"budget": samples_num, "workloads": workloads},
+        # "GCC": {"budget": samples_num, "workloads": workloads},
+        "LLVM": {"budget": samples_num, "workloads": workloads},
     }
 
     # Get date and set exp name
@@ -117,9 +74,9 @@ if __name__ == "__main__":
     args = argparse.Namespace(
         seed=0,
         optimizer="ParEGO",
-        init_number=2,
+        init_number=5,
         init_method="random",
-        exp_path=f"{package_dir}/../experiment_results",
+        exp_path=f"{package_dir}/experiment_results",
         exp_name=exp_name,
         verbose=True,
         normalize="norm",

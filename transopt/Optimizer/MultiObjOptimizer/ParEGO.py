@@ -46,6 +46,8 @@ class ParEGO(BOBase):
         return self.random_sample(self.ini_num)
 
     def suggest(self, n_suggestions: Union[None, int] = None) -> List[Dict]:
+        return self.random_sample(5)
+        
         if self._X.size == 0:
             suggests = self.initial_sample()
             return suggests

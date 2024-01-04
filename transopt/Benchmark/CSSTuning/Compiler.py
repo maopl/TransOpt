@@ -150,12 +150,7 @@ class LLVMTuning(NonTabularBenchmark):
         all_knobs = self.benchmark.config_space.get_all_details()
         self.config_knob = {k: all_knobs[k] for k in knobs} if knobs else all_knobs
 
-        super(LLVMTuning, self).__init__(
-            task_name=task_name,
-            seed=seed,
-            task_type=task_type,
-            budget=budget,
-        )
+        super().__init__(task_name=task_name, workload=self.workload, seed=seed, task_type=task_type, budget=budget)
         np.random.seed(seed)
 
     def objective_function(

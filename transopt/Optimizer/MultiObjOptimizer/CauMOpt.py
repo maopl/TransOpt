@@ -152,12 +152,12 @@ class CauMO(BOBase):
         self.model_list.append(running_time_model)
 
     def set_data(self, X, Y):
-        self.model_list[0].set_XY(X, Y[2])
+        self.model_list[0].set_XY(X, Y[2][:, np.newaxis])
         file_size_feature_rank = features_by_gini(X, Y[1])
         self.file_size_rep_feature = sorted(file_size_feature_rank, key=lambda x: x[1])[0][0]
         X_file = X.copy()
         X_file[:, self.file_size_rep_feature] = np.clip(2 * (Y[1] - (-3)) / 6 - 1, -1, 1)
-        self.model_list[1].set_XY(X_file, Y[1])
+        self.model_list[1].set_XY(X_file, Y[1][:, np.newaxis])
 
         run_time_feature_rank = features_by_gini(X, Y[0])
         run_time_feature_rank = sorted(run_time_feature_rank, key=lambda x: x[1])
@@ -166,7 +166,7 @@ class CauMO(BOBase):
         X_rtime = X.copy()
         X_rtime[:, self.st_run_time_rep_feature] = np.clip(2 * (Y[2] - (-3)) / 6 - 1, -1, 1)
         X_rtime[:, self.nd_run_time_rep_feature] = np.clip(2 * (Y[1] - (-3)) / 6 - 1, -1, 1)
-        self.model_list[2].set_XY(X_rtime, Y[0])
+        self.model_list[2].set_XY(X_rtime, Y[0][:, np.newaxis])
 
 
     def suggest(self, n_suggestions: Union[None, int] = None) -> List[Dict]:

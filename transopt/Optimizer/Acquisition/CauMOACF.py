@@ -273,7 +273,7 @@ class CauMOACF:
         candidate_ucb = candidate.ucb
         candidate_idx = candidate.nondominants_3.pop()
         candidate_point = x[candidate_idx]
-        return candidate_point, candidate_ucb
+        return np.array([candidate_point]), candidate_ucb
 
 
 

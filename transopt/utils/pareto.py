@@ -39,10 +39,23 @@ def find_pareto_front(Y, return_index=False, obj_type=None):
 
     sorted_indices = np.argsort(Y.T[0])
     pareto_indices = []
+    
+    dominated = np.zeros(len(Y), dtype=bool)  # Keep track of dominated points
+
+    # for i, idx in enumerate(sorted_indices):
+    #     if dominated[idx]:  # Skip if already dominated
+    #         continue
+    #     # Find all points that are not dominated by idx
+    #     non_dominated = ~np.all(Y[sorted_indices[i+1:]] <= Y[idx], axis=1) | np.any(Y[sorted_indices[i+1:]] < Y[idx], axis=1)
+    #     pareto_indices.append(idx)
+    #     # Update dominated points
+    #     dominated[sorted_indices[i+1:]] = ~non_dominated
+    
     for idx in sorted_indices:
         # check domination relationship
         if not (np.logical_and((Y <= Y[idx]).all(axis=1), (Y < Y[idx]).any(axis=1))).any():
             pareto_indices.append(idx)
+    
     pareto_front = Y[pareto_indices].copy()
 
     if return_index:

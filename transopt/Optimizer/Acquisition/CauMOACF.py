@@ -1,6 +1,5 @@
-import heapq
+import cProfile
 
-import GPy
 import numpy as np
 import scipy.optimize as opt
 from GPyOpt.optimization.acquisition_optimizer import AcquisitionOptimizer
@@ -12,9 +11,11 @@ from sklearn.metrics import pairwise_distances
 
 from transopt.Optimizer.Acquisition.ACF import AcquisitionBase
 from transopt.utils.hypervolume import calc_hypervolume
+from transopt.utils.Normalization import normalize
 from transopt.utils.pareto import find_pareto_front
 from transopt.utils.Register import acf_register
-from transopt.utils.Normalization import normalize
+from transopt.utils.profile import profile_function
+
 
 class Tree:
     def __init__(self, secondary_nodes, evaluated_points):
@@ -246,14 +247,10 @@ class CauMOACF:
         else:
             self.threshold = 0
 
-        self.members = None
-        self.centroid = None
-
-
-
+    @profile_function('optimize_profile.prof')
     def optimize(self, duplicate_manager=None):
         np.random.seed(0)
-        x = np.random.random(size=(10000, self.model.input_dim)) *2 - 1
+        x = np.random.random(size=(3000, self.model.input_dim)) *2 - 1
         mean, _ = self.model.predict(x)
         
         _, pareto_index = find_pareto_front(mean, return_index=True)

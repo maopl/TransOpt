@@ -29,7 +29,7 @@ def convert_minimization(Y, obj_type=None):
 
     return Y
 
-def find_pareto_front(Y, return_index=False, obj_type=None):
+def find_pareto_front(Y, return_index=False, obj_type=None, eps=1e-8):
     '''
     Find pareto front (undominated part) of the input performance data.
     '''
@@ -39,30 +39,17 @@ def find_pareto_front(Y, return_index=False, obj_type=None):
 
     sorted_indices = np.argsort(Y.T[0])
     pareto_indices = []
-    
-    dominated = np.zeros(len(Y), dtype=bool)  # Keep track of dominated points
-
-    # for i, idx in enumerate(sorted_indices):
-    #     if dominated[idx]:  # Skip if already dominated
-    #         continue
-    #     # Find all points that are not dominated by idx
-    #     non_dominated = ~np.all(Y[sorted_indices[i+1:]] <= Y[idx], axis=1) | np.any(Y[sorted_indices[i+1:]] < Y[idx], axis=1)
-    #     pareto_indices.append(idx)
-    #     # Update dominated points
-    #     dominated[sorted_indices[i+1:]] = ~non_dominated
-    
     for idx in sorted_indices:
         # check domination relationship
-        if not (np.logical_and((Y <= Y[idx]).all(axis=1), (Y < Y[idx]).any(axis=1))).any():
+        if not (np.logical_and((Y[idx] - Y > -eps).all(axis=1), (Y[idx] - Y > eps).any(axis=1))).any():
             pareto_indices.append(idx)
-    
-    pareto_front = Y[pareto_indices].copy()
+    pareto_front = np.atleast_2d(Y[pareto_indices].copy())
 
     if return_index:
         return pareto_front, pareto_indices
     else:
         return pareto_front
-
+    
 
 def check_pareto(Y, obj_type=None):
     '''

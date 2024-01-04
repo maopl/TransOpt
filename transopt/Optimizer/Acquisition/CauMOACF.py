@@ -269,7 +269,7 @@ class CauMOACF:
         evaluated_points = normalize(self.model._Y.T)
         root = create_cluster_tree(higher_clusters, evaluated_points)
 
-        candidate = root.get_candidate().nondominants_3[0]
+        candidate = list(root.get_candidate().nondominants_3)[0]
         return candidate
 
 

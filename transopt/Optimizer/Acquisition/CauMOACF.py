@@ -232,7 +232,6 @@ def create_cluster_tree(secondary_clusters, evaluated_points):
         
 @acf_register("CauMOACF")
 class CauMOACF:
-
     def __init__(self, model, space, optimizer, config):
         self.optimizer = optimizer
         self.model = model
@@ -249,7 +248,6 @@ class CauMOACF:
 
     @profile_function('optimize_profile.prof')
     def optimize(self, duplicate_manager=None):
-        np.random.seed(0)
         x = np.random.random(size=(3000, self.model.input_dim)) *2 - 1
         mean, _ = self.model.predict(x)
         

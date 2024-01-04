@@ -83,7 +83,7 @@ def main(optimizers = [], repeat=5, budget=500, init_number=21):
 
     workloads = get_workloads(features.keys(), args.split_index)
 
-    exp_path = Path.cwd() / "experiment_results"
+    exp_path = package_dir / "experiment_results"
 
     for optimizer_name in optimizers:
         for workload in workloads:
@@ -101,7 +101,7 @@ def main(optimizers = [], repeat=5, budget=500, init_number=21):
 
 
 def main_debug(repeat=1, budget=20, init_number=10):
-    features_file = package_dir / "demo" / "comparison" / "features_by_workload.json"
+    features_file = package_dir / "demo" / "comparison" / "features_by_workload_gcc.json"
     features = load_features(features_file)
 
     parser = argparse.ArgumentParser(description="Run optimization experiments")
@@ -111,9 +111,9 @@ def main_debug(repeat=1, budget=20, init_number=10):
 
     workloads = get_workloads(features.keys(), args.split_index)[:1]
 
-    exp_path = Path.cwd() / "experiment_results"
+    exp_path = package_dir / "experiment_results"
 
-    for optimizer_name in ["SMSEGO"]:
+    for optimizer_name in ["CauMO"]:
         for workload in workloads:
             for i in range(repeat):
                 tasks, exp_args = configure_experiment(
@@ -134,4 +134,4 @@ if __name__ == "__main__":
     if debug:
         main_debug(repeat=1, budget=20, init_number=10)
     else:
-        main(["SMSEGO"], repeat=5, budget=500, init_number=21)
+        main(["CauMO"], repeat=5, budget=500, init_number=10)

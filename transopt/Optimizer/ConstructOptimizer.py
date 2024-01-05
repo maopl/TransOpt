@@ -15,12 +15,12 @@ def get_optimizer(args):
         'verbose': args.verbose,
         'optimizer_name': args.optimizer,
         'save_path': args.exp_path,
+        'pop_size': args.pop_size,
     }
 
     if optimizer_class is not None:
         optimizer = optimizer_class(config=config)
     else:
-        # 处理任务名称不在注册表中的情况
         print(f"Optimizer '{args.optimizer}' not found in the registry.")
         raise NameError
     return optimizer

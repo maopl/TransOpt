@@ -44,7 +44,8 @@ def get_workloads(workloads, split_index, total_splits=10):
     return segments[split_index]
 
 
-def load_features(file_path):
+def load_features():
+    file_path = package_dir / "demo" / "comparison" / "features_by_workload_gcc.json"
     with open(file_path, "r") as f:
         return json.load(f)
 
@@ -56,6 +57,7 @@ def configure_experiment(workload, features, seed, optimizer_name, exp_path, bud
         optimizer=optimizer_name,
         budget=budget,
         init_number=init_number,
+        pop_size=init_number,
         init_method="random",
         exp_path=exp_path,
         exp_name=exp_name,
@@ -73,8 +75,7 @@ def configure_experiment(workload, features, seed, optimizer_name, exp_path, bud
     return tasks, args
 
 def main(optimizers = [], repeat=5, budget=500, init_number=21):
-    features_file = package_dir / "demo" / "comparison" / "features_by_workload_gcc.json"
-    features = load_features(features_file)
+    features = load_features()
 
     parser = argparse.ArgumentParser(description="Run optimization experiments")
     parser.add_argument("--split_index", type=int, default=0,
@@ -101,8 +102,7 @@ def main(optimizers = [], repeat=5, budget=500, init_number=21):
 
 
 def main_debug(repeat=1, budget=20, init_number=10):
-    features_file = package_dir / "demo" / "comparison" / "features_by_workload_gcc.json"
-    features = load_features(features_file)
+    features = load_features()
 
     parser = argparse.ArgumentParser(description="Run optimization experiments")
     parser.add_argument("--split_index", type=int, default=9,
@@ -129,9 +129,9 @@ def main_debug(repeat=1, budget=20, init_number=10):
 
 
 if __name__ == "__main__":
-    # debug = True
-    debug = False
+    debug = True
+    # debug = False
     if debug:
-        main_debug(repeat=1, budget=20, init_number=10)
+        main_debug(repeat=1, budget=40, init_number=21)
     else:
-        main(["CauMO"], repeat=5, budget=500, init_number=10)
+        main(["CauMO"], repeat=5, budget=500, init_number=21)

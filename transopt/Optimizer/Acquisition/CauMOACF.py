@@ -249,7 +249,8 @@ class CauMOACF:
     @profile_function('optimize_profile.prof')
     def optimize(self, duplicate_manager=None):
         x = np.random.random(size=(3000, self.model.input_dim)) *2 - 1
-        mean, _ = self.model.predict(x)
+        mean, var = self.model.predict(x)
+        mean = mean - 0.1 * var
         
         _, pareto_index = find_pareto_front(mean, return_index=True)
         # if len(pare_index) == 1:

@@ -45,21 +45,12 @@ class CauMO(BOBase):
         super(CauMO, self).__init__(config=config)
 
         self.init_method = "Random"
-
-        if "verbose" in config:
-            self.verbose = config["verbose"]
-        else:
-            self.verbose = True
-
-        if "pop_size" in config:
-            self.pop_size = config["pop_size"]
-        else:
-            self.pop_size = 10
-            self.ini_num = self.pop_size
+        self.verbose = config.get("verbose", True)
+        self.pop_size = config.get("pop_size", 10)
+        self.ini_num = self.pop_size
 
         self.second_space = None
         self.third_space = None
-
 
         self.model = []
         self.acf = "CauMOACF"

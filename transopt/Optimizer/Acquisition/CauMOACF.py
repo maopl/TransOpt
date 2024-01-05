@@ -246,7 +246,7 @@ class CauMOACF:
         else:
             self.threshold = 0
 
-    @profile_function('optimize_profile.prof')
+    # @profile_function('optimize_profile.prof')
     def optimize(self, duplicate_manager=None):
         x = np.random.random(size=(3000, self.model.input_dim)) *2 - 1
         mean, var = self.model.predict(x)

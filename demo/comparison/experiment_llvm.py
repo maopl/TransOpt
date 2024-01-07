@@ -134,4 +134,4 @@ if __name__ == "__main__":
     if debug:
         main_debug(repeat=1, budget=20, init_number=10)
     else:
-        main(["ParEGO", "MoeadEGO", "SMSEGO"], repeat=5, budget=500, init_number=21)
+        main(["ParEGO", "MoeadEGO", "SMSEGO", "CauMO"], repeat=5, budget=500, init_number=21)

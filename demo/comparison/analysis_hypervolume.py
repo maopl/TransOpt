@@ -14,10 +14,9 @@ from transopt.utils.pareto import calc_hypervolume, find_pareto_front
 from transopt.utils.plot import plot3D
 
 results_path = package_path / "experiment_results"
-gcc_results = results_path / "gcc_archive"
+gcc_results = results_path / "gcc_archive_new"
 
 algorithm_list = ["ParEGO", "SMSEGO", "MoeadEGO", "CauMO"]
-# algorithm_list = ["SMSEGO"]
 objectives = ["execution_time", "file_size", "compilation_time"]
 seed_list = [65535, 65536, 65537, 65538, 65539]
 
@@ -54,7 +53,9 @@ def collect_all_data(workload):
     all_data = []
     for algorithm in algorithm_list:
         for seed in seed_list:
-            result_file = gcc_results / f"gcc_{workload}" / algorithm / f"{seed}_KB.json"
+            result_file = (
+                gcc_results / f"gcc_{workload}" / algorithm / f"{seed}_KB.json"
+            )
             df = load_and_prepare_data(result_file, objectives)
             all_data.append(df[objectives].values)
     all_data = np.vstack(all_data)
@@ -63,10 +64,12 @@ def collect_all_data(workload):
     return all_data, global_mean, global_std
 
 
-def calculate_mean_hypervolume(algorithm, workload, global_stats1, global_stats2, normalization_type='min-max'):
+def calculate_mean_hypervolume(
+    algorithm, workload, global_stats1, global_stats2, normalization_type="min-max"
+):
     """
     Calculate mean hypervolume for a given algorithm across all seeds.
-    
+
     Parameters:
     global_stats1: Global mean or min of all objectives (depending on normalization_type)
     global_stats2: Global std or max of all objectives (depending on normalization_type)
@@ -77,18 +80,22 @@ def calculate_mean_hypervolume(algorithm, workload, global_stats1, global_stats2
         result_file = gcc_results / f"gcc_{workload}" / algorithm / f"{seed}_KB.json"
         df = load_and_prepare_data(result_file, objectives)
 
-        if normalization_type == 'mean':
+        if normalization_type == "mean":
             # Apply mean normalization
             normalized_df = (df[objectives] - global_stats1) / global_stats2
-        elif normalization_type == 'min-max':
+        elif normalization_type == "min-max":
             # Apply min-max normalization
-            normalized_df = (df[objectives] - global_stats1) / (global_stats2 - global_stats1)
+            normalized_df = (df[objectives] - global_stats1) / (
+                global_stats2 - global_stats1
+            )
         else:
-            raise ValueError("Unsupported normalization type. Choose 'mean' or 'min-max'.")
+            raise ValueError(
+                "Unsupported normalization type. Choose 'mean' or 'min-max'."
+            )
 
         pareto_front = find_pareto_front(normalized_df.values)
         hypervolume = calc_hypervolume(pareto_front, np.ones(len(objectives)))
-
+        # print(f"{algorithm} {seed} {hypervolume}")
         hypervolume_list.append(hypervolume)
 
     return np.mean(hypervolume_list)
@@ -102,38 +109,30 @@ def load_workloads():
 
 if __name__ == "__main__":
     workloads = load_workloads()
-    # jpeg-d miss moead, sha miss moead seed 65539, delete them
-    workloads -= {"cbench-consumer-jpeg-d", "cbench-security-sha"} 
+    # jpeg-d miss moead
+    workloads -= {"cbench-consumer-jpeg-d"}
 
-    workloads = [
-        "cbench-security-pgp", 
-        "polybench-cholesky",
-        "cbench-consumer-tiff2rgba",
-        "cbench-network-patricia",
-        "cbench-automotive-susan-e",
-        "polybench-symm",
-        "cbench-consumer-mad",
-        "polybench-lu"
-    ]
-    
     for workload in workloads:
         print(workload)
-        all_data, global_mean, global_std  = collect_all_data(workload)
+        all_data, global_mean, global_std = collect_all_data(workload)
         global_max = all_data.max(axis=0)
         global_min = all_data.min(axis=0)
-        
+
         hv_list = []
         for algorithm in algorithm_list:
-            # mean_hypervolume = calculate_mean_hypervolume(algorithm, workload, global_min, global_max, normalization_type='min-max')
-            mean_hypervolume = calculate_mean_hypervolume(algorithm, workload, global_mean, global_std, normalization_type='mean')
+            mean_hypervolume = calculate_mean_hypervolume(
+                algorithm,
+                workload,
+                global_min,
+                global_max,
+                normalization_type="min-max",
+            )
+            # mean_hypervolume = calculate_mean_hypervolume(algorithm, workload, global_mean, global_std, normalization_type='mean')
             # print(f"{algorithm} {mean_hypervolume}")
             hv_list.append((algorithm, mean_hypervolume))
-        
+
         # Sort by hypervolume
         hv_list.sort(key=lambda x: x[1], reverse=True)
-        
-        print(hv_list) 
+
+        print(hv_list)
         print()
-        
-    # Plot pareto front
-    # plot3D(pareto_front[:, 0], pareto_front[:, 1], pareto_front[:, 2], show=True)

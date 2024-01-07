@@ -5,12 +5,13 @@ current_path = Path(__file__).resolve().parent
 package_path = current_path.parent.parent
 sys.path.insert(0, str(package_path))
 
-import os
 import json
+import os
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -83,7 +84,7 @@ def dynamic_plot(workload, algorithm, seed):
     df = load_and_prepare_data(result_file)
     
     # Normalize data (Min-Max normalization)
-    df_normalized = (df - global_min) / (global_max - global_min)
+    df_normalized = (df[objectives] - global_min) / (global_max - global_min)
      
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -120,6 +121,87 @@ def dynamic_plot(workload, algorithm, seed):
     gif_path = package_path / "demo" / "comparison" / "gifs" / f"{algorithm}_{workload}_{seed}.gif"
     ani.save(gif_path, writer='imagemagick')
     plt.close(fig)  # Close the plot to free memory
+
+
+def dynamic_plot_html(workload, algorithm, seed):
+    """
+    Dynamically plot the three objectives for a given workload and algorithm for a specific seed using Plotly.
+    """
+    # Collect all data to understand the range
+    all_data, global_mean, global_std = collect_all_data(workload)
+    global_min = np.min(all_data, axis=0)
+    global_max = np.max(all_data, axis=0)
+   
+    # Load data for the specific seed
+    result_file = gcc_results_path / f"gcc_{workload}" / algorithm / f"{seed}_KB.json"
+    df = load_and_prepare_data(result_file)
+    
+    # Normalize data (Min-Max normalization)
+    df_normalized = (df[objectives] - global_min) / (global_max - global_min)
+    df_normalized = df_normalized[:20]
+    
+    # Create traces for previous and current points
+    trace1 = go.Scatter3d(x=[], y=[], z=[], mode='markers', marker=dict(size=5, color='blue'))
+    trace2 = go.Scatter3d(x=[], y=[], z=[], mode='markers', marker=dict(size=5, color='red'))
+
+    # Combine traces into a data list
+    data = [trace1, trace2]
+
+    # Create the layout of the plot
+    layout = go.Layout(
+        title=f"Dynamic Plot for {workload} - {algorithm} - Seed {seed}",
+        scene=dict(
+            xaxis_title=objectives[0],
+            yaxis_title=objectives[1],
+            zaxis_title=objectives[2]
+        )
+    )
+
+    # Create the figure
+    fig = go.Figure(data=data, layout=layout)
+
+    # Create frames for the animation
+    frames = []
+    for t in range(len(df)):
+        frame = go.Frame(
+            data=[
+                go.Scatter3d(
+                    x=df_normalized.iloc[:t+1][objectives[0]].values,
+                    y=df_normalized.iloc[:t+1][objectives[1]].values,
+                    z=df_normalized.iloc[:t+1][objectives[2]].values,
+                    mode='markers',
+                    marker=dict(size=5, color='blue')
+                ),
+                go.Scatter3d(
+                    x=df_normalized.iloc[t:t+1][objectives[0]].values,
+                    y=df_normalized.iloc[t:t+1][objectives[1]].values,
+                    z=df_normalized.iloc[t:t+1][objectives[2]].values,
+                    mode='markers',
+                    marker=dict(size=5, color='red')
+                )
+            ]
+        )
+        frames.append(frame)
+
+    fig.frames = frames
+
+    # Add a slider and play/pause button to control the animation
+    sliders = [dict(steps=[dict(method='animate', args=[[f'name{t}'],
+                                                       dict(mode='immediate',
+                                                       frame=dict(duration=300, redraw=True),
+                                                       transition=dict(duration=0))],
+                                  label=f'{t}') for t in range(len(df))], 
+                    transition=dict(duration=0),
+                    x=0, 
+                    y=0, 
+                    currentvalue=dict(font=dict(size=12), prefix='Point: ', visible=True),
+                    len=1.0)]
+
+    fig.update_layout(sliders=sliders)
+
+    # Save the plot to HTML file
+    html_path = package_path / "demo" / "comparison" / "htmls" / f"dynamic_{algorithm}_{workload}_{seed}.html"
+    fig.write_html(str(html_path))
 
 
 def save_individual_frames(workload, algorithm, seed):
@@ -159,41 +241,50 @@ def load_workloads():
     with open(file_path, "r") as f:
         return json.load(f).keys()
 
+
 def plot_pareto_front(workload):
     df = load_and_prepare_data(gcc_samples_path / f"GCC_{workload}.json")
     df_normalized = (df - df.min()) / (df.max() - df.min())
-    pareto_front, pareto_indices = find_pareto_front(df_normalized[objectives].values, return_index=True)
+    _, pareto_indices = find_pareto_front(df_normalized[objectives].values, return_index=True)
     
-    # Create a 3D scatter plot
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.set_title(f"Pareto Front for {workload}")
-    ax.set_xlabel(objectives[0])
-    ax.set_ylabel(objectives[1])
-    ax.set_zlabel(objectives[2])
-    
-    # Scatter plot for Pareto front
+    # Retrieve Pareto points
     pareto_points = df_normalized.iloc[pareto_indices][objectives]
-    # pareto_points = df_normalized[objectives]
     
-    # Convert Series to NumPy array before plotting
-    x_values = pareto_points[objectives[0]].values
-    y_values = pareto_points[objectives[1]].values
-    z_values = pareto_points[objectives[2]].values
+    # Create a 3D scatter plot using plotly
+    fig = go.Figure(data=[go.Scatter3d(
+        x=pareto_points[objectives[0]],
+        y=pareto_points[objectives[1]],
+        z=pareto_points[objectives[2]],
+        mode='markers',
+        marker=dict(
+            size=5,
+            color='blue',  # set color to blue
+            opacity=0.8
+        )
+    )])
 
-    ax.scatter(x_values, y_values, z_values, c='b', marker='o')
+    # Update the layout
+    fig.update_layout(
+        title=f"Pareto Front for {workload}",
+        scene=dict(
+            xaxis_title=objectives[0],
+            yaxis_title=objectives[1],
+            zaxis_title=objectives[2]
+        )
+    )
 
-    # ax.plot(x_values, y_values, z_values, color='b')
-    
-    # Save the plot as a file
-    file_path = package_path / "demo" / "comparison" / "pngs" / f"pareto_front_{workload}.png"
-    plt.savefig(file_path)
-    plt.close(fig)  # Close the plot to free memory
+    # Define the path for HTML file
+    html_path = package_path / "demo" / "comparison" / "htmls"
+    # Ensure the directory exists
+    html_path.mkdir(parents=True, exist_ok=True)
+
+    # Save the plot as an HTML file
+    fig.write_html(str(html_path / f"pareto_front_{workload}.html"))
+
     
 def plot_all(workload):
     df = load_and_prepare_data(gcc_samples_path / f"GCC_{workload}.json")
     df_normalized = (df - df.min()) / (df.max() - df.min())
-    pareto_front, pareto_indices = find_pareto_front(df_normalized[objectives].values, return_index=True)
     
     # Create a 3D scatter plot
     fig = plt.figure()
@@ -204,18 +295,15 @@ def plot_all(workload):
     ax.set_zlabel(objectives[2])
     
     # Scatter plot for Pareto front
-    # pareto_points = df_normalized.iloc[pareto_indices][objectives]
-    pareto_points = df_normalized[objectives]
+    points = df_normalized[objectives]
     
     # Convert Series to NumPy array before plotting
-    x_values = pareto_points[objectives[0]].values
-    y_values = pareto_points[objectives[1]].values
-    z_values = pareto_points[objectives[2]].values
+    x_values = points[objectives[0]].values
+    y_values = points[objectives[1]].values
+    z_values = points[objectives[2]].values
 
     ax.scatter(x_values, y_values, z_values, c='b', marker='o')
 
-    # ax.plot(x_values, y_values, z_values, color='b')
-    
     # Save the plot as a file
     file_path = package_path / "demo" / "comparison" / "pngs" / f"all_{workload}.png"
     plt.savefig(file_path)
@@ -227,24 +315,28 @@ if __name__ == "__main__":
     workloads -= {"cbench-consumer-jpeg-d", "cbench-security-sha"} 
 
     workloads = [
+        "cbench-consumer-tiff2bw",
+        "cbench-security-rijndael",
+        
         "cbench-security-pgp", 
         "polybench-cholesky",
         "cbench-consumer-tiff2rgba",
         "cbench-network-patricia",
-        "cbench-automotive-susan-e",
-        "polybench-symm",
+        # "cbench-automotive-susan-e",
+        # "polybench-symm",
         "cbench-consumer-mad",
         "polybench-lu"
     ]
     
     seed = 65535  # Example seed
-    for workload in workloads:
-        plot_all(workload)
-        plot_pareto_front(workload)
+    
+    # Plot sampling results
+    # for workload in workloads:
+    #     # plot_all(workload)
+    #     plot_pareto_front(workload)
     
     for algorithm in ["CauMO"]:
-
-
-        pass 
-        # dynamic_plot(workload, algorithm, objectives, seed)
+        dynamic_plot_html("cbench-consumer-tiff2bw", algorithm, seed)
+        # for workload in workloads:
+            # dynamic_plot(workload, algorithm, seed)
         # save_individual_frames(workload, algorithm, objectives, seed)

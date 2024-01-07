@@ -111,9 +111,10 @@ def main_debug(repeat=1, budget=20, init_number=10):
 
     workloads = get_workloads(features.keys(), args.split_index)[:1]
 
+    workloads = ["cbench-consumer-jpeg-d"]
     exp_path = package_dir / "experiment_results"
 
-    for optimizer_name in ["CauMO"]:
+    for optimizer_name in ["MoeadEGO"]:
         for workload in workloads:
             for i in range(repeat):
                 tasks, exp_args = configure_experiment(
@@ -129,9 +130,9 @@ def main_debug(repeat=1, budget=20, init_number=10):
 
 
 if __name__ == "__main__":
-    # debug = True
+    debug = True
     debug = False
     if debug:
-        main_debug(repeat=1, budget=40, init_number=21)
+        main_debug(repeat=5, budget=500, init_number=10)
     else:
         main(["CauMO"], repeat=5, budget=500, init_number=21)

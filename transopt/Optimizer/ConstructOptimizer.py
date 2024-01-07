@@ -15,8 +15,10 @@ def get_optimizer(args):
         'verbose': args.verbose,
         'optimizer_name': args.optimizer,
         'save_path': args.exp_path,
-        'pop_size': args.pop_size,
     }
+
+    if hasattr(args, "pop_size"):
+        config["pop_size"] = args.pop_size
 
     if optimizer_class is not None:
         optimizer = optimizer_class(config=config)

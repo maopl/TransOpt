@@ -109,8 +109,9 @@ def load_workloads():
 
 if __name__ == "__main__":
     workloads = load_workloads()
-    # jpeg-d miss moead
-    workloads -= {"cbench-consumer-jpeg-d"}
+
+    workloads = list(workloads)
+    workloads.sort()
 
     for workload in workloads:
         print(workload)

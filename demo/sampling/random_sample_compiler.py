@@ -41,7 +41,7 @@ if __name__ == "__main__":
         "--samples_num",
         type=int,
         help="Number of samples to be collected for each workload",
-        default=5,
+        default=1000,
     )
     parser.add_argument(
         "--split_index",
@@ -54,8 +54,9 @@ if __name__ == "__main__":
     samples_num = args.samples_num
 
     available_workloads = CompilerBenchmarkBase.AVAILABLE_WORKLOADS
+    available_workloads = ["cbench-security-pgp"]
 
-    split_workloads = split_into_segments(available_workloads, 10)
+    split_workloads = split_into_segments(available_workloads, 14)
 
     if split_index >= len(split_workloads):
         raise IndexError("split index out of range")

@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+current_dir = Path(__file__).resolve().parent
+package_dir = current_dir.parent.parent
+sys.path.insert(0, str(package_dir))
+
 import json
 import os
 import tarfile
@@ -12,7 +19,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeRegressor
 
-data_path = Path(__file__).parent.absolute() / "collected_results" 
+# data_path = package_dir / "experiment_results" / "gcc_samples"
+data_path = package_dir / "experiment_results" / "llvm_samples"
 
 
 def load_and_prepare_data(file_path, objectives):
@@ -29,14 +37,14 @@ def load_and_prepare_data(file_path, objectives):
 
     df_output = pd.DataFrame(output_vectors)[objectives]
     df_combined = pd.concat([df_input, df_output], axis=1)
-    print(f"Loaded {len(df_combined)} data points")
+    # print(f"Loaded {len(df_combined)} data points")
 
     df_combined = df_combined.drop_duplicates(subset=df_input.columns.tolist())
-    print(f"Removed {len(df_combined) - len(df_input)} duplicates")
+    # print(f"Removed {len(df_combined) - len(df_input)} duplicates")
 
-    for obj in objectives:
-        df_combined = df_combined[df_combined[obj] != 1e10]
-    print(f"Loaded {len(df_combined)} data points after removing extreme values")
+    # for obj in objectives:
+    #     df_combined = df_combined[df_combined[obj] != 1e10]
+    # print(f"Loaded {len(df_combined)} data points after removing extreme values")
     return df_combined
 
 
@@ -155,7 +163,7 @@ def get_workloads_improved():
     iterations = 5
     workloads_improved = []
     for file in data_path.glob("*.json"):
-        workload = file.name.split(".")[0][4:]
+        workload = file.name.split(".")[0][5:]
         print("==================================================")
         print(workload)
         print("==================================================")
@@ -224,7 +232,8 @@ def get_features_for_exp(workloads, repetitions=5):
         print("==================================================")
         print(workload)
         print("==================================================")
-        data_file = data_path / f"GCC_{workload}.json"
+        # data_file = data_path / f"GCC_{workload}.json"
+        data_file = data_path / f"LLVM_{workload}.json"
         features_by_workload[workload] = {}
 
         # Calculate feature importances for each objective
@@ -284,53 +293,40 @@ def get_features_for_exp(workloads, repetitions=5):
 
 
 if __name__ == "__main__":
-    os.chdir(Path(__file__).parent.absolute())
-
-    if not data_path.exists():
-        print("Data directory not found. Untarring data...")
-        tar = tarfile.open("collected_results.tar.gz")
-        tar.extractall()
-        tar.close()
-
     # workloads_improved = get_workloads_improved()
 
     # workloads_improved = [
-    #     "cbench-consumer-tiff2bw",
-    #     "cbench-security-rijndael",
-    #     "cbench-security-pgp",
-    #     "polybench-cholesky",
+    #     "cbench-security-sha",
     #     "cbench-telecom-crc32",
-    #     "polybench-fdtd-apml",
     #     "cbench-network-patricia",
+    #     "cbench-office-stringsearch2",
+    #     "cbench-bzip2",
+    #     "cbench-security-rijndael",
+    #     "cbench-automotive-bitcount",
+    #     "cbench-consumer-tiff2bw",
+    #     "cbench-security-pgp",
     #     "cbench-consumer-tiff2rgba",
-    #     "polybench-symm",
     #     "cbench-automotive-susan-e",
     #     "cbench-telecom-adpcm-d",
-    #     "polybench-ludcmp",
-    #     "polybench-lu",
-    #     "cbench-consumer-mad",
-    #     "cbench-automotive-qsort1",
-    #     "polybench-bicg",
-    #     "cbench-security-sha",
-    #     "cbench-consumer-jpeg-d",
     #     "cbench-telecom-adpcm-c",
     #     "cbench-telecom-gsm",
     # ]
-
-    # get_features_for_exp(workloads_improved)
     
+    workloads_improved = [
+        "cbench-consumer-tiff2bw",
+        "cbench-security-rijndael",
+        # "cbench-security-pgp",
+        "cbench-telecom-crc32",
+        "cbench-network-patricia",
+        "cbench-consumer-tiff2rgba",
+        "cbench-automotive-susan-e",
+        "cbench-telecom-adpcm-d",
+        # "cbench-consumer-mad",
+        "cbench-automotive-qsort1",
+        "cbench-security-sha",
+        # "cbench-consumer-jpeg-d",
+        "cbench-telecom-adpcm-c",
+        "cbench-telecom-gsm",
+    ]
 
-    # For temp test
-    with open(data_path / "GCC_cbench-consumer-tiff2bw.json", "r") as f:
-        data = json.load(f)
-
-    input_vectors = data["input_vector"]
-    output_vectors = data["output_value"]
-
-    target_objs = ["execution_time", "file_size", "compilation_time"]
-    
-    # Show target objs in each output vector
-    for output_vector in output_vectors:
-        for target_obj in target_objs:
-            print(f"{target_obj}: {output_vector[target_obj]}")
-        print("")
+    get_features_for_exp(workloads_improved)

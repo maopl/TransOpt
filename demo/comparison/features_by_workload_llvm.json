@@ -1,0 +1,402 @@
+{
+    "cbench-consumer-tiff2bw": {
+        "common": [
+            "sroa",
+            "instcombine",
+            "loop-vectorize",
+            "licm",
+            "gvn",
+            "mem2reg",
+            "jump-threading",
+            "loop-rotate"
+        ],
+        "top": [
+            "sroa",
+            "instcombine",
+            "loop-vectorize",
+            "licm",
+            "gvn",
+            "mem2reg",
+            "jump-threading",
+            "loop-rotate",
+            "slp-vectorizer",
+            "early-cse-memssa",
+            "loop-unroll",
+            "alignment-from-assumptions",
+            "function-attrs",
+            "postdomtree",
+            "prune-eh",
+            "openmp-opt-cgscc",
+            "scoped-noalias-aa",
+            "correlated-propagation",
+            "lazy-block-freq",
+            "strip-dead-prototypes"
+        ]
+    },
+    "cbench-security-rijndael": {
+        "common": [
+            "deadargelim",
+            "called-value-propagation",
+            "vector-combine",
+            "sroa",
+            "instcombine",
+            "slp-vectorizer",
+            "loop-unroll",
+            "globalopt",
+            "branch-prob",
+            "simplifycfg",
+            "memoryssa",
+            "loop-vectorize",
+            "gvn",
+            "aggressive-instcombine",
+            "loop-rotate"
+        ],
+        "top": [
+            "deadargelim",
+            "called-value-propagation",
+            "vector-combine",
+            "sroa",
+            "instcombine",
+            "slp-vectorizer",
+            "loop-unroll",
+            "globalopt",
+            "branch-prob",
+            "simplifycfg",
+            "memoryssa",
+            "loop-vectorize",
+            "gvn",
+            "aggressive-instcombine",
+            "loop-rotate",
+            "loop-simplifycfg",
+            "function-attrs",
+            "always-inline",
+            "licm",
+            "scoped-noalias-aa"
+        ]
+    },
+    "cbench-telecom-crc32": {
+        "common": [
+            "gvn",
+            "memdep",
+            "indvars",
+            "loop-rotate"
+        ],
+        "top": [
+            "gvn",
+            "memdep",
+            "indvars",
+            "loop-rotate",
+            "globalopt",
+            "globaldce",
+            "instcombine",
+            "mem2reg",
+            "reassociate",
+            "sroa",
+            "licm",
+            "branch-prob",
+            "loop-simplifycfg",
+            "loops",
+            "loop-sink",
+            "block-freq",
+            "loop-accesses",
+            "callsite-splitting",
+            "demanded-bits",
+            "inferattrs"
+        ]
+    },
+    "cbench-bzip2": {
+        "common": [
+            "instcombine",
+            "sroa",
+            "loop-unroll",
+            "early-cse-memssa",
+            "licm",
+            "gvn",
+            "mem2reg",
+            "loop-rotate"
+        ],
+        "top": [
+            "instcombine",
+            "sroa",
+            "loop-unroll",
+            "early-cse-memssa",
+            "licm",
+            "gvn",
+            "mem2reg",
+            "loop-rotate",
+            "loop-vectorize",
+            "slp-vectorizer",
+            "early-cse",
+            "indvars",
+            "jump-threading",
+            "scoped-noalias-aa",
+            "dse",
+            "loop-accesses",
+            "lazy-block-freq",
+            "loop-instsimplify",
+            "memcpyopt",
+            "vector-combine"
+        ]
+    },
+    "cbench-office-stringsearch2": {
+        "common": [
+            "instcombine"
+        ],
+        "top": [
+            "instcombine",
+            "reassociate",
+            "licm",
+            "globalopt",
+            "ipsccp",
+            "function-attrs",
+            "inferattrs",
+            "early-cse",
+            "gvn",
+            "simplifycfg",
+            "phi-values",
+            "early-cse-memssa",
+            "loop-rotate",
+            "mem2reg",
+            "sroa",
+            "callsite-splitting",
+            "libcalls-shrinkwrap",
+            "rpo-function-attrs",
+            "inject-tli-mappings",
+            "loop-load-elim"
+        ]
+    },
+    "cbench-network-patricia": {
+        "common": [
+            "instcombine"
+        ],
+        "top": [
+            "instcombine",
+            "gvn",
+            "ipsccp",
+            "globalopt",
+            "aggressive-instcombine",
+            "lazy-branch-prob",
+            "licm",
+            "sroa",
+            "mem2reg",
+            "loop-vectorize",
+            "simplifycfg",
+            "loop-rotate",
+            "jump-threading",
+            "function-attrs",
+            "called-value-propagation",
+            "early-cse-memssa",
+            "dse",
+            "indvars",
+            "postdomtree",
+            "loop-deletion"
+        ]
+    },
+    "cbench-consumer-tiff2rgba": {
+        "common": [
+            "instcombine",
+            "sroa",
+            "early-cse-memssa",
+            "licm",
+            "gvn",
+            "mem2reg",
+            "loop-rotate"
+        ],
+        "top": [
+            "instcombine",
+            "sroa",
+            "early-cse-memssa",
+            "licm",
+            "gvn",
+            "mem2reg",
+            "loop-rotate",
+            "slp-vectorizer",
+            "loop-vectorize",
+            "loop-unroll",
+            "early-cse",
+            "indvars",
+            "dse",
+            "globalopt",
+            "jump-threading",
+            "loop-distribute",
+            "memoryssa",
+            "loop-accesses",
+            "prune-eh",
+            "aggressive-instcombine"
+        ]
+    },
+    "cbench-automotive-susan-e": {
+        "common": [
+            "instcombine",
+            "sroa",
+            "loop-unroll",
+            "early-cse-memssa",
+            "licm",
+            "gvn",
+            "mem2reg",
+            "early-cse",
+            "loop-rotate"
+        ],
+        "top": [
+            "instcombine",
+            "sroa",
+            "loop-unroll",
+            "early-cse-memssa",
+            "licm",
+            "gvn",
+            "mem2reg",
+            "early-cse",
+            "loop-rotate",
+            "slp-vectorizer",
+            "simplifycfg",
+            "loop-vectorize",
+            "tbaa",
+            "tailcallelim",
+            "function-attrs",
+            "reassociate",
+            "instsimplify",
+            "always-inline",
+            "float2int",
+            "dse"
+        ]
+    },
+    "cbench-telecom-adpcm-d": {
+        "common": [
+            "callsite-splitting",
+            "instcombine"
+        ],
+        "top": [
+            "callsite-splitting",
+            "instcombine",
+            "globalopt",
+            "mem2reg",
+            "gvn",
+            "simplifycfg",
+            "licm",
+            "sroa",
+            "loop-unroll",
+            "loop-rotate",
+            "loop-distribute",
+            "indvars",
+            "prune-eh",
+            "early-cse-memssa",
+            "ipsccp",
+            "scoped-noalias-aa",
+            "alignment-from-assumptions",
+            "jump-threading",
+            "globals-aa",
+            "rpo-function-attrs"
+        ]
+    },
+    "cbench-automotive-qsort1": {
+        "common": [
+            "block-freq",
+            "instcombine"
+        ],
+        "top": [
+            "block-freq",
+            "instcombine",
+            "globalopt",
+            "ipsccp",
+            "gvn",
+            "licm",
+            "sroa",
+            "loop-rotate",
+            "mem2reg",
+            "indvars",
+            "loop-vectorize",
+            "function-attrs",
+            "loop-unroll",
+            "sccp",
+            "early-cse-memssa",
+            "always-inline",
+            "lazy-block-freq",
+            "strip-dead-prototypes",
+            "callsite-splitting",
+            "domtree"
+        ]
+    },
+    "cbench-security-sha": {
+        "common": [
+            "div-rem-pairs",
+            "correlated-propagation",
+            "instcombine"
+        ],
+        "top": [
+            "div-rem-pairs",
+            "correlated-propagation",
+            "instcombine",
+            "globalopt",
+            "gvn",
+            "sroa",
+            "licm",
+            "ipsccp",
+            "mem2reg",
+            "loop-rotate",
+            "early-cse-memssa",
+            "block-freq",
+            "function-attrs",
+            "indvars",
+            "strip-dead-prototypes",
+            "loop-unroll",
+            "lcssa",
+            "loop-simplifycfg",
+            "slp-vectorizer",
+            "loop-vectorize"
+        ]
+    },
+    "cbench-telecom-adpcm-c": {
+        "common": [],
+        "top": [
+            "globalopt",
+            "gvn",
+            "mem2reg",
+            "strip-dead-prototypes",
+            "simplifycfg",
+            "licm",
+            "elim-avail-extern",
+            "memcpyopt",
+            "lazy-block-freq",
+            "loop-instsimplify",
+            "prune-eh",
+            "sroa",
+            "instcombine",
+            "reassociate",
+            "globaldce",
+            "loop-rotate",
+            "libcalls-shrinkwrap",
+            "correlated-propagation",
+            "loop-vectorize",
+            "ipsccp"
+        ]
+    },
+    "cbench-telecom-gsm": {
+        "common": [
+            "gvn",
+            "jump-threading",
+            "instcombine"
+        ],
+        "top": [
+            "gvn",
+            "jump-threading",
+            "instcombine",
+            "sroa",
+            "mem2reg",
+            "licm",
+            "inject-tli-mappings",
+            "early-cse-memssa",
+            "loop-unroll",
+            "loop-vectorize",
+            "transform-warning",
+            "libcalls-shrinkwrap",
+            "adce",
+            "rpo-function-attrs",
+            "loop-deletion",
+            "callsite-splitting",
+            "globalopt",
+            "loop-rotate",
+            "simple-loop-unswitch",
+            "speculative-execution"
+        ]
+    }
+}

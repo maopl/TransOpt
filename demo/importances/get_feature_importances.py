@@ -44,7 +44,7 @@ def load_and_prepare_data(file_path, objectives):
 
     # for obj in objectives:
     #     df_combined = df_combined[df_combined[obj] != 1e10]
-    # print(f"Loaded {len(df_combined)} data points after removing extreme values")
+    print(f"Loaded {len(df_combined)} data points after removing extreme values")
     return df_combined
 
 
@@ -304,7 +304,7 @@ if __name__ == "__main__":
     #     "cbench-security-rijndael",
     #     "cbench-automotive-bitcount",
     #     "cbench-consumer-tiff2bw",
-    #     "cbench-security-pgp",
+    #     "cbench-security-pgp",  // Error compiled with LLVM
     #     "cbench-consumer-tiff2rgba",
     #     "cbench-automotive-susan-e",
     #     "cbench-telecom-adpcm-d",
@@ -315,13 +315,13 @@ if __name__ == "__main__":
     workloads_improved = [
         "cbench-consumer-tiff2bw",
         "cbench-security-rijndael",
-        # "cbench-security-pgp",
         "cbench-telecom-crc32",
+        "cbench-bzip2",
+        "cbench-office-stringsearch2",
         "cbench-network-patricia",
         "cbench-consumer-tiff2rgba",
         "cbench-automotive-susan-e",
         "cbench-telecom-adpcm-d",
-        # "cbench-consumer-mad",
         "cbench-automotive-qsort1",
         "cbench-security-sha",
         # "cbench-consumer-jpeg-d",

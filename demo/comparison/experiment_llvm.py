@@ -129,8 +129,8 @@ def main_debug(repeat=1, budget=20, init_number=10):
 
 
 if __name__ == "__main__":
-    debug = True
-    # debug = False
+    # debug = True
+    debug = False
     if debug:
         main_debug(repeat=1, budget=20, init_number=11)
     else:

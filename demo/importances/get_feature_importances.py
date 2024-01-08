@@ -324,9 +324,9 @@ if __name__ == "__main__":
         "cbench-telecom-adpcm-d",
         "cbench-automotive-qsort1",
         "cbench-security-sha",
-        # "cbench-consumer-jpeg-d",
         "cbench-telecom-adpcm-c",
         "cbench-telecom-gsm",
+        "cbench-consumer-jpeg-d",
     ]
 
     get_features_for_exp(workloads_improved)

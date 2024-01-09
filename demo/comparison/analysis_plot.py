@@ -18,9 +18,11 @@ from mpl_toolkits.mplot3d import Axes3D
 from transopt.utils.pareto import calc_hypervolume, find_pareto_front
 from transopt.utils.plot import plot3D
 
+target = "llvm"
 results_path = package_path / "experiment_results"
-gcc_results_path = results_path / "gcc_archive"
+gcc_results_path = results_path / "gcc_archive_new"
 gcc_samples_path = results_path / "gcc_samples"
+llvm_results = results_path / "llvm_archive"
 
 algorithm_list = ["ParEGO", "SMSEGO", "MoeadEGO", "CauMO"]
 # algorithm_list = ["SMSEGO"]
@@ -56,13 +58,19 @@ def load_and_prepare_data(file_path):
     # print()
     return df_combined
 
+def load_data(workload, algorithm, seed):
+    if target == "llvm":
+        result_file = llvm_results / f"llvm_{workload}" / algorithm / f"{seed}_KB.json"
+    else:
+        result_file = gcc_results_path / f"gcc_{workload}" / algorithm / f"{seed}_KB.json"
+    df = load_and_prepare_data(result_file)
+    return df
 
 def collect_all_data(workload):
     all_data = []
     for algorithm in algorithm_list:
         for seed in seed_list:
-            result_file = gcc_results_path / f"gcc_{workload}" / algorithm / f"{seed}_KB.json"
-            df = load_and_prepare_data(result_file)
+            df = load_data(workload, algorithm, seed)
             all_data.append(df[objectives].values)
     all_data = np.vstack(all_data)
     global_mean = all_data.mean(axis=0)
@@ -80,8 +88,7 @@ def dynamic_plot(workload, algorithm, seed):
     global_max = np.max(all_data, axis=0)
    
     # Load data for the specific seed
-    result_file = gcc_results_path / f"gcc_{workload}" / algorithm / f"{seed}_KB.json"
-    df = load_and_prepare_data(result_file)
+    df = load_data(workload, algorithm, seed)
     
     # Normalize data (Min-Max normalization)
     df_normalized = (df[objectives] - global_min) / (global_max - global_min)
@@ -118,7 +125,7 @@ def dynamic_plot(workload, algorithm, seed):
     ani = FuncAnimation(fig, update, frames=frames, blit=False, repeat=False)
     
     # Save the plot to a file
-    gif_path = package_path / "demo" / "comparison" / "gifs" / f"{algorithm}_{workload}_{seed}.gif"
+    gif_path = package_path / "demo" / "comparison" / "gifs" / f"{target}_{algorithm}_{workload}_{seed}.gif"
     ani.save(gif_path, writer='imagemagick')
     plt.close(fig)  # Close the plot to free memory
 
@@ -133,12 +140,14 @@ def dynamic_plot_html(workload, algorithm, seed):
     global_max = np.max(all_data, axis=0)
    
     # Load data for the specific seed
-    result_file = gcc_results_path / f"gcc_{workload}" / algorithm / f"{seed}_KB.json"
-    df = load_and_prepare_data(result_file)
+    df = load_data(workload, algorithm, seed)
     
     # Normalize data (Min-Max normalization)
     df_normalized = (df[objectives] - global_min) / (global_max - global_min)
-    df_normalized = df_normalized[:20]
+    df_normalized = df_normalized
+
+    pareto_front, pareto_front_index = find_pareto_front(df_normalized.values, return_index=True)
+    df_normalized = df_normalized.iloc[pareto_front_index]
     
     # Create traces for previous and current points
     trace1 = go.Scatter3d(x=[], y=[], z=[], mode='markers', marker=dict(size=5, color='blue'))
@@ -151,12 +160,12 @@ def dynamic_plot_html(workload, algorithm, seed):
     layout = go.Layout(
         title=f"Dynamic Plot for {workload} - {algorithm} - Seed {seed}",
         scene=dict(
-            xaxis_title=objectives[0],
-            yaxis_title=objectives[1],
-            zaxis_title=objectives[2]
+            xaxis=dict(title=objectives[0], range=[0, 1]),
+            yaxis=dict(title=objectives[1], range=[0, 1]),
+            zaxis=dict(title=objectives[2], range=[0, 1])
         )
     )
-
+    
     # Create the figure
     fig = go.Figure(data=data, layout=layout)
 
@@ -184,23 +193,36 @@ def dynamic_plot_html(workload, algorithm, seed):
         frames.append(frame)
 
     fig.frames = frames
+   
+    prev_frame_button = dict(
+        args=[None, {"frame": {"duration": 0, "redraw": False}, "mode": "immediate", "transition": {"duration": 0}}],
+        label='Previous',
+        method='animate'
+    )
 
-    # Add a slider and play/pause button to control the animation
-    sliders = [dict(steps=[dict(method='animate', args=[[f'name{t}'],
-                                                       dict(mode='immediate',
-                                                       frame=dict(duration=300, redraw=True),
-                                                       transition=dict(duration=0))],
-                                  label=f'{t}') for t in range(len(df))], 
-                    transition=dict(duration=0),
-                    x=0, 
-                    y=0, 
-                    currentvalue=dict(font=dict(size=12), prefix='Point: ', visible=True),
-                    len=1.0)]
+    next_frame_button = dict(
+        args=[None, {"frame": {"duration": 0, "redraw": False}, "mode": "immediate", "transition": {"duration": 0}}],
+        label='Next',
+        method='animate'
+    )
 
-    fig.update_layout(sliders=sliders)
+    fig.update_layout(
+        updatemenus=[dict(
+            type='buttons',
+            showactive=False,
+            y=0,
+            x=1.05,
+            xanchor='right',
+            yanchor='top',
+            pad=dict(t=0, r=10),
+            buttons=[prev_frame_button, next_frame_button]
+        )]
+    )
+ 
+    # fig.update_layout(sliders=sliders)
 
     # Save the plot to HTML file
-    html_path = package_path / "demo" / "comparison" / "htmls" / f"dynamic_{algorithm}_{workload}_{seed}.html"
+    html_path = package_path / "demo" / "comparison" / "htmls" / f"dynamic_{target}_{algorithm}_{workload}_{seed}.html"
     fig.write_html(str(html_path))
 
 
@@ -209,8 +231,7 @@ def save_individual_frames(workload, algorithm, seed):
     Save each frame of the three objectives as a separate plot for a given workload, algorithm, and seed.
     """
     # Load data for the specific seed
-    result_file = gcc_results_path / f"gcc_{workload}" / algorithm / f"{seed}_KB.json"
-    df = load_and_prepare_data(result_file)
+    df = load_data(workload, algorithm, seed)
 
     # Ensure the directory for saving frames exists
     frames_dir = package_path / "demo" / "comparison" / "frames" / f"{algorithm}_{workload}_{seed}"
@@ -237,7 +258,7 @@ def save_individual_frames(workload, algorithm, seed):
         
 
 def load_workloads():
-    file_path = package_path / "demo" / "comparison" / "features_by_workload_gcc.json"
+    file_path = package_path / "demo" / "comparison" / f"features_by_workload_{target}.json"
     with open(file_path, "r") as f:
         return json.load(f).keys()
 
@@ -311,21 +332,25 @@ def plot_all(workload):
 
 if __name__ == "__main__":
     workloads = load_workloads()
-    # jpeg-d miss moead, sha miss moead seed 65539, delete them
-    workloads -= {"cbench-consumer-jpeg-d", "cbench-security-sha"} 
-
-    workloads = [
-        "cbench-consumer-tiff2bw",
-        "cbench-security-rijndael",
+ 
+    # workloads = [
+    #     "cbench-consumer-tiff2bw",
+    #     "cbench-security-rijndael",
         
-        "cbench-security-pgp", 
-        "polybench-cholesky",
-        "cbench-consumer-tiff2rgba",
-        "cbench-network-patricia",
-        # "cbench-automotive-susan-e",
-        # "polybench-symm",
-        "cbench-consumer-mad",
-        "polybench-lu"
+    #     "cbench-security-pgp", 
+    #     "polybench-cholesky",
+    #     "cbench-consumer-tiff2rgba",
+    #     "cbench-network-patricia",
+    #     # "cbench-automotive-susan-e",
+    #     # "polybench-symm",
+    #     "cbench-consumer-mad",
+    #     "polybench-lu"
+    # ]
+    
+    workloads = [
+        "cbench-security-sha",
+        "cbench-telecom-adpcm-c",
+        ""
     ]
     
     seed = 65535  # Example seed
@@ -335,8 +360,9 @@ if __name__ == "__main__":
     #     # plot_all(workload)
     #     plot_pareto_front(workload)
     
-    for algorithm in ["CauMO"]:
-        dynamic_plot_html("cbench-consumer-tiff2bw", algorithm, seed)
-        # for workload in workloads:
+    for algorithm in algorithm_list:
+        # dynamic_plot_html("cbench-consumer-tiff2bw", algorithm, seed)
+        for workload in workloads:
+            dynamic_plot_html(workload, algorithm, seed)
             # dynamic_plot(workload, algorithm, seed)
         # save_individual_frames(workload, algorithm, objectives, seed)

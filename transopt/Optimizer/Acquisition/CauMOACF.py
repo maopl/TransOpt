@@ -250,7 +250,7 @@ class CauMOACF:
     def optimize(self, duplicate_manager=None):
         x = np.random.random(size=(3000, self.model.input_dim)) *2 - 1
         mean, var = self.model.predict(x)
-        mean = mean - 0.1 * var
+        # mean = mean - 0.1 * var
         
         _, pareto_index = find_pareto_front(mean, return_index=True)
         # if len(pare_index) == 1:

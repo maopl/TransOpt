@@ -13,8 +13,11 @@ import pandas as pd
 from transopt.utils.pareto import calc_hypervolume, find_pareto_front
 from transopt.utils.plot import plot3D
 
+target = "llvm"
+
 results_path = package_path / "experiment_results"
 gcc_results = results_path / "gcc_archive_new"
+llvm_results = results_path / "llvm_archive"
 
 algorithm_list = ["ParEGO", "SMSEGO", "MoeadEGO", "CauMO"]
 objectives = ["execution_time", "file_size", "compilation_time"]
@@ -48,15 +51,19 @@ def load_and_prepare_data(file_path, objectives):
     # print()
     return df_combined
 
+def load_data(workload, algorithm, seed):
+    if target == "llvm":
+        result_file = llvm_results / f"llvm_{workload}" / algorithm / f"{seed}_KB.json"
+    else:
+        result_file = gcc_results / f"gcc_{workload}" / algorithm / f"{seed}_KB.json"
+    df = load_and_prepare_data(result_file, objectives)
+    return df
 
 def collect_all_data(workload):
     all_data = []
     for algorithm in algorithm_list:
         for seed in seed_list:
-            result_file = (
-                gcc_results / f"gcc_{workload}" / algorithm / f"{seed}_KB.json"
-            )
-            df = load_and_prepare_data(result_file, objectives)
+            df = load_data(workload, algorithm, seed)
             all_data.append(df[objectives].values)
     all_data = np.vstack(all_data)
     global_mean = all_data.mean(axis=0)
@@ -77,8 +84,7 @@ def calculate_mean_hypervolume(
     """
     hypervolume_list = []
     for seed in seed_list:
-        result_file = gcc_results / f"gcc_{workload}" / algorithm / f"{seed}_KB.json"
-        df = load_and_prepare_data(result_file, objectives)
+        df = load_data(workload, algorithm, seed)
 
         if normalization_type == "mean":
             # Apply mean normalization
@@ -102,7 +108,7 @@ def calculate_mean_hypervolume(
 
 
 def load_workloads():
-    file_path = package_path / "demo" / "comparison" / "features_by_workload_gcc.json"
+    file_path = package_path / "demo" / "comparison" / f"features_by_workload_{target}.json"
     with open(file_path, "r") as f:
         return json.load(f).keys()
 
@@ -112,6 +118,13 @@ if __name__ == "__main__":
 
     workloads = list(workloads)
     workloads.sort()
+    
+    workloads = [
+        "cbench-security-sha",
+        "cbench-telecom-adpcm-c",
+        "cbench-consumer-tiff2bw",
+        "cbench-office-stringsearch2"
+    ]
 
     for workload in workloads:
         print(workload)

@@ -336,20 +336,20 @@ if __name__ == "__main__":
     
     # LLVM
     workloads_improved = [
-        'cbench-security-sha',
-        'cbench-security-rijndael',
-        'cbench-office-stringsearch2',
-        'cbench-telecom-adpcm-d',
-        'cbench-telecom-adpcm-c',
-        'cbench-consumer-jpeg-d',
-        'cbench-consumer-tiff2bw',
-        'cbench-bzip2',
-        'cbench-network-patricia',
-        'cbench-consumer-tiff2rgba',
-        'cbench-automotive-susan-e',
-        'cbench-automotive-qsort1',
-        'cbench-telecom-gsm',
-        'cbench-automotive-bitcount'
+        "cbench-telecom-gsm",
+        "cbench-automotive-qsort1",
+        "cbench-automotive-susan-e",
+        "cbench-consumer-tiff2rgba",
+        "cbench-network-patricia",
+        "cbench-automotive-bitcount",
+        "cbench-bzip2",
+        "cbench-consumer-tiff2bw",
+        "cbench-consumer-jpeg-d",
+        "cbench-telecom-adpcm-c",
+        "cbench-telecom-adpcm-d",
+        "cbench-office-stringsearch2",
+        "cbench-security-rijndael",
+        "cbench-security-sha",
     ]
-
+    
     get_features_for_exp(workloads_improved)

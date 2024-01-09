@@ -19,8 +19,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeRegressor
 
-data_path = package_dir / "experiment_results" / "gcc_samples"
-# data_path = package_dir / "experiment_results" / "llvm_samples"
+# data_path = package_dir / "experiment_results" / "gcc_samples"
+data_path = package_dir / "experiment_results" / "llvm_samples"
 
 
 def load_and_prepare_data(file_path, objectives):
@@ -232,8 +232,8 @@ def get_features_for_exp(workloads, repetitions=5):
         print("==================================================")
         print(workload)
         print("==================================================")
-        data_file = data_path / f"GCC_{workload}.json"
-        # data_file = data_path / f"LLVM_{workload}.json"
+        # data_file = data_path / f"GCC_{workload}.json"
+        data_file = data_path / f"LLVM_{workload}.json"
         features_by_workload[workload] = {}
 
         # Calculate feature importances for each objective
@@ -313,43 +313,43 @@ if __name__ == "__main__":
     # ]
 
     # GCC
-    workloads_improved = [
-        "cbench-automotive-qsort1",
-        "cbench-automotive-susan-e",
-        "cbench-consumer-jpeg-d",
-        "cbench-consumer-tiff2rgba",
-        "cbench-security-pgp",
-        "cbench-security-rijndael",
-        "cbench-security-sha",
-        "cbench-telecom-adpcm-c",
-        "cbench-telecom-adpcm-d",
-        "cbench-telecom-gsm",
-        
-        "cbench-consumer-tiff2bw",
-        "cbench-consumer-mad",
-        "cbench-network-patricia",
-        "cbench-telecom-crc32"
-        
-        # "cbench-bzip2",
-        # "cbench-office-stringsearch2",
-    ]
-    
-    # LLVM
     # workloads_improved = [
-    #     "cbench-consumer-tiff2bw",
-    #     "cbench-security-rijndael",
-    #     "cbench-telecom-crc32",
-    #     "cbench-bzip2",
-    #     "cbench-office-stringsearch2",
-    #     "cbench-network-patricia",
-    #     "cbench-consumer-tiff2rgba",
-    #     "cbench-automotive-susan-e",
-    #     "cbench-telecom-adpcm-d",
     #     "cbench-automotive-qsort1",
+    #     "cbench-automotive-susan-e",
+    #     "cbench-consumer-jpeg-d",
+    #     "cbench-consumer-tiff2rgba",
+    #     "cbench-security-pgp",
+    #     "cbench-security-rijndael",
     #     "cbench-security-sha",
     #     "cbench-telecom-adpcm-c",
+    #     "cbench-telecom-adpcm-d",
     #     "cbench-telecom-gsm",
-    #     "cbench-consumer-jpeg-d",
+        
+    #     "cbench-consumer-tiff2bw",
+    #     "cbench-consumer-mad",
+    #     "cbench-network-patricia",
+    #     "cbench-telecom-crc32"
+        
+    #     # "cbench-bzip2",
+    #     # "cbench-office-stringsearch2",
     # ]
+    
+    # LLVM
+    workloads_improved = [
+        'cbench-security-sha',
+        'cbench-security-rijndael',
+        'cbench-office-stringsearch2',
+        'cbench-telecom-adpcm-d',
+        'cbench-telecom-adpcm-c',
+        'cbench-consumer-jpeg-d',
+        'cbench-consumer-tiff2bw',
+        'cbench-bzip2',
+        'cbench-network-patricia',
+        'cbench-consumer-tiff2rgba',
+        'cbench-automotive-susan-e',
+        'cbench-automotive-qsort1',
+        'cbench-telecom-gsm',
+        'cbench-automotive-bitcount'
+    ]
 
     get_features_for_exp(workloads_improved)

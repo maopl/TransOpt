@@ -120,6 +120,7 @@ if __name__ == "__main__":
     workloads.sort()
     
     workloads = [
+        "cbench-network-patricia",
         "cbench-security-sha",
         "cbench-telecom-adpcm-c",
         "cbench-consumer-tiff2bw",

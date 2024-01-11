@@ -120,11 +120,15 @@ if __name__ == "__main__":
     workloads.sort()
     
     workloads = [
+        "cbench-automotive-qsort1",
+        "cbench-automotive-susan-e",
         "cbench-network-patricia",
+        "cbench-automotive-bitcount",
+        "cbench-bzip2",
+        "cbench-telecom-adpcm-d",
+        "cbench-office-stringsearch2",
+        "cbench-security-rijndael",
         "cbench-security-sha",
-        "cbench-telecom-adpcm-c",
-        "cbench-consumer-tiff2bw",
-        "cbench-office-stringsearch2"
     ]
 
     for workload in workloads:

@@ -45,7 +45,7 @@ def get_workloads(workloads, split_index, total_splits=10):
 
 
 def load_features():
-    file_path = package_dir / "demo" / "comparison" / "features_by_workload_gcc.json"
+    file_path = package_dir / "demo" / "comparison" / "features_by_workload_gcc_extra.json"
     with open(file_path, "r") as f:
         return json.load(f)
 
@@ -82,7 +82,25 @@ def main(optimizers = [], repeat=5, budget=500, init_number=21):
                         help="Index for splitting the workload segments")
     args = parser.parse_args()
 
-    workloads = get_workloads(features.keys(), args.split_index)
+    available_workloads = [
+        "polybench-3mm",
+        "cbench-automotive-susan-c",
+        "cbench-consumer-tiff2dither",
+        "cbench-automotive-bitcount",
+        "polybench-2mm",
+        "polybench-adi",
+        "cbench-office-stringsearch2",
+        "polybench-fdtd-2d",
+        "polybench-atax",
+        "polybench-doitgen",
+        "polybench-durbin",
+        "polybench-fdtd-apml",
+        "polybench-gemver",
+        "polybench-gesummv",      
+    ]
+    # available_workloads = features.keys()
+    
+    workloads = get_workloads(available_workloads, args.split_index)
 
     exp_path = package_dir / "experiment_results"
 
@@ -135,4 +153,4 @@ if __name__ == "__main__":
     if debug:
         main_debug(repeat=5, budget=500, init_number=10)
     else:
-        main(["CauMO"], repeat=5, budget=500, init_number=21)
+        main(["ParEGO", "SMSEGO", "MoeadEGO", "CauMO"], repeat=5, budget=500, init_number=21)

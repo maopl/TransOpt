@@ -54,7 +54,17 @@ if __name__ == "__main__":
     samples_num = args.samples_num
 
     available_workloads = CompilerBenchmarkBase.AVAILABLE_WORKLOADS
-    available_workloads = ["cbench-security-pgp"]
+    available_workloads = [
+        "polybench-jacobi-2d-imper",
+        "polybench-dynprog",
+        "polybench-medley-reg-detect",
+        "polybench-trmm",
+        "polybench-gemm",
+        "cbench-automotive-susan-s",
+        "cbench-network-dijkstra",
+        "cbench-consumer-jpeg-c",
+        "cbench-bzip2",
+    ]
 
     split_workloads = split_into_segments(available_workloads, 14)
 
@@ -64,8 +74,8 @@ if __name__ == "__main__":
     workloads = split_workloads[split_index]
 
     tasks = {
-        # "GCC": {"budget": samples_num, "workloads": workloads},
-        "LLVM": {"budget": samples_num, "workloads": workloads},
+        "GCC": {"budget": samples_num, "workloads": workloads},
+        # "LLVM": {"budget": samples_num, "workloads": workloads},
     }
 
     # Get date and set exp name

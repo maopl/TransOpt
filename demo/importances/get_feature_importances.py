@@ -19,6 +19,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeRegressor
 
+from csstuning.compiler.compiler_benchmark import GCCBenchmark
+
 data_path = package_dir / "experiment_results" / "gcc_samples"
 # data_path = package_dir / "experiment_results" / "llvm_samples"
 
@@ -160,10 +162,16 @@ def get_workloads_improved():
     """
     Returns a list of workloads that improved when including objectives.
     """
-    iterations = 5
+    iterations = 1
     workloads_improved = []
+    
+    
+    workloads_sampled = []
+    
     for file in data_path.glob("*.json"):
-        workload = file.name.split(".")[0][5:]
+        workload = file.name.split(".")[0][4:]
+        
+        workloads_sampled.append(workload)
         print("==================================================")
         print(workload)
         print("==================================================")
@@ -179,6 +187,8 @@ def get_workloads_improved():
             # Repeat the experiment for 'excluding objectives'
             print("CART with top 20 features, excluding objectives")
             df_combined = load_and_prepare_data(file, objectives=["execution_time"])
+            
+        
             important_features = calculate_feature_importances(
                 df_combined, "execution_time"
             )
@@ -210,6 +220,8 @@ def get_workloads_improved():
             nrmse_including_list.append(nrmse_including)
             print("\n")
 
+
+        
         # Calculate average or median NRMSE for both configurations
         avg_nrmse_excluding = np.mean(nrmse_excluding_list)
         avg_nrmse_including = np.mean(nrmse_including_list)
@@ -293,7 +305,7 @@ def get_features_for_exp(workloads, repetitions=5):
 
 
 if __name__ == "__main__":
-    # workloads_improved = get_workloads_improved()
+    workloads_improved = get_workloads_improved()
 
     # workloads_improved = [
     #     "cbench-security-sha",
@@ -377,4 +389,4 @@ if __name__ == "__main__":
         "cbench-security-sha",
     ]
     
-    get_features_for_exp(workloads_gcc_extra)
+    # get_features_for_exp(workloads_gcc_extra)

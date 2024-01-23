@@ -36,7 +36,7 @@ def split_into_segments(lst, n):
     return [lst[i * k + min(i, m) : (i + 1) * k + min(i + 1, m)] for i in range(n)]
 
 
-def get_workloads(workloads, split_index, total_splits=14):
+def get_workloads(workloads, split_index, total_splits=10):
     segments = split_into_segments(workloads, total_splits)
     if split_index >= len(segments):
         raise IndexError("split index out of range")

@@ -41,7 +41,7 @@ if __name__ == "__main__":
         "--samples_num",
         type=int,
         help="Number of samples to be collected for each workload",
-        default=1000,
+        default=5000,
     )
     parser.add_argument(
         "--split_index",
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         "cbench-bzip2",
     ]
 
-    split_workloads = split_into_segments(available_workloads, 14)
+    split_workloads = split_into_segments(available_workloads, 10)
 
     if split_index >= len(split_workloads):
         raise IndexError("split index out of range")

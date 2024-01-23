@@ -1,6 +1,10 @@
-current_dir = os.path.dirname(os.path.abspath(__file__))
-package_dir = os.path.dirname(current_dir)
-sys.path.insert(0, package_dir)
+import os
+import sys
+from pathlib import Path
+
+current_dir = Path(__file__).resolve().parent
+package_dir = current_dir.parent.parent
+sys.path.insert(0, str(package_dir))
 
 import argparse
 import datetime
@@ -36,7 +40,7 @@ def split_into_segments(lst, n):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--samples_num", type=int, help="Number of samples to be collected for each workload", default=6
+        "--samples_num", type=int, help="Number of samples to be collected for each workload", default=10
     )
     parser.add_argument(
         "--split_index", type=int, help="Index for splitting the workload segments", default=0
@@ -64,9 +68,9 @@ if __name__ == "__main__":
     args = argparse.Namespace(
         seed=0,
         optimizer="ParEGO",
-        init_number=2,
+        init_number=10,
         init_method="random",
-        exp_path=f"{package_dir}/../experiment_results",
+        exp_path=f"{package_dir}/experiment_results",
         exp_name=exp_name,
         verbose=True,
         normalize="norm",

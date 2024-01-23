@@ -75,6 +75,7 @@ class GCCTuning(NonTabularBenchmark):
             return results
             
         except:
+            end_time = time.time()
             error_results = {
                 "avrg_exec_time": float(ERROR_VALUE),
                 "file_size": float(ERROR_VALUE),

@@ -56,6 +56,7 @@ class DBMSTuning(NonTabularBenchmark):
             }
             
         except:
+            end_time = time.time()
             return {
                 "function_value_1": ERROR_VALUE,
                 "function_value_2": ERROR_VALUE,

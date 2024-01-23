@@ -16,19 +16,11 @@ class DBMSTuning(NonTabularBenchmark):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", workload=None, **kwargs
     ):
-        if workload is None:
-            workload = MySQLBenchmark.AVAILABLE_WORKLOADS[0]
-
-        self.benchmark_name = workload
-        self.benchmark = MySQLBenchmark(workload=self.benchmark_name)
+        self.workload = workload if workload is not None else MySQLBenchmark.AVAILABLE_WORKLOADS[0]
+        self.benchmark = MySQLBenchmark(workload=self.workload)
         self.config_knob = self.benchmark.get_config_space()
-        super(DBMSTuning, self).__init__(
-            task_name=task_name,
-            seed=seed,
-            task_type=task_type,
-            budget=budget,
-            task_id=task_id,
-        )
+        
+        super().__init__(task_name=task_name, workload=self.workload, seed=seed, task_type=task_type, budget=budget)
         np.random.seed(seed)
 
     def objective_function(

@@ -23,6 +23,7 @@ results_path = package_path / "experiment_results"
 gcc_results_path = results_path / "gcc_archive_new"
 gcc_samples_path = results_path / "gcc_samples"
 llvm_results = results_path / "llvm_archive"
+llvm_samples_path = results_path / "llvm_samples"
 
 algorithm_list = ["ParEGO", "SMSEGO", "MoeadEGO", "CauMO"]
 # algorithm_list = ["SMSEGO"]
@@ -263,8 +264,9 @@ def load_workloads():
         return json.load(f).keys()
 
 
-def plot_pareto_front(workload):
-    df = load_and_prepare_data(gcc_samples_path / f"GCC_{workload}.json")
+def plot_pareto_front_html(workload):
+    # df = load_and_prepare_data(gcc_samples_path / f"GCC_{workload}.json")
+    df = load_and_prepare_data(llvm_samples_path / f"LLVM_{workload}.json")
     df_normalized = (df - df.min()) / (df.max() - df.min())
     _, pareto_indices = find_pareto_front(df_normalized[objectives].values, return_index=True)
     
@@ -300,17 +302,51 @@ def plot_pareto_front(workload):
     html_path.mkdir(parents=True, exist_ok=True)
 
     # Save the plot as an HTML file
-    fig.write_html(str(html_path / f"pareto_front_{workload}.html"))
+    fig.write_html(str(html_path / f"{target}_pareto_front_{workload}.html"))
 
-    
-def plot_all(workload):
-    df = load_and_prepare_data(gcc_samples_path / f"GCC_{workload}.json")
+
+def plot_pareto_front(workload):
+    # df = load_and_prepare_data(gcc_samples_path / f"GCC_{workload}.json")
+    df = load_and_prepare_data(llvm_samples_path / f"LLVM_{workload}.json")
     df_normalized = (df - df.min()) / (df.max() - df.min())
+    _, pareto_indices = find_pareto_front(df_normalized[objectives].values, return_index=True)
+    
+    # Retrieve Pareto points
+    points = df_normalized.iloc[pareto_indices][objectives]
     
     # Create a 3D scatter plot
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.set_title(f"Pareto Front for {workload}")
+    ax.set_xlabel(objectives[0])
+    ax.set_ylabel(objectives[1])
+    ax.set_zlabel(objectives[2])
+    
+    # # Scatter plot for Pareto front
+    # points = df_normalized[objectives]
+    
+    # Convert Series to NumPy array before plotting
+    x_values = points[objectives[0]].values
+    y_values = points[objectives[1]].values
+    z_values = points[objectives[2]].values
+
+    ax.scatter(x_values, y_values, z_values, c='b', marker='o')
+
+    # Save the plot as a file
+    file_path = package_path / "demo" / "comparison" / "pngs" / f"{target}_pf_{workload}.png"
+    plt.savefig(file_path)
+    plt.close(fig)  # Close the plot to free memory
+    
+    
+def plot_all(workload):
+    df = load_and_prepare_data(llvm_samples_path / f"LLVM_{workload}.json")
+    # df = load_and_prepare_data(gcc_samples_path / f"GCC_{workload}.json")
+    df_normalized = (df - df.min()) / (df.max() - df.min())
+    
+    # Create a 3D scatter plot
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.set_title(f"All samples for {workload}")
     ax.set_xlabel(objectives[0])
     ax.set_ylabel(objectives[1])
     ax.set_zlabel(objectives[2])
@@ -326,7 +362,7 @@ def plot_all(workload):
     ax.scatter(x_values, y_values, z_values, c='b', marker='o')
 
     # Save the plot as a file
-    file_path = package_path / "demo" / "comparison" / "pngs" / f"all_{workload}.png"
+    file_path = package_path / "demo" / "comparison" / "pngs" / f"{target}_all_{workload}.png"
     plt.savefig(file_path)
     plt.close(fig)  # Close the plot to free memory
 
@@ -347,22 +383,40 @@ if __name__ == "__main__":
     #     "polybench-lu"
     # ]
     
-    workloads = [
-        "cbench-security-sha",
-        "cbench-telecom-adpcm-c",
-        ""
-    ]
+    # workloads = [
+    #     "cbench-security-sha",
+    #     "cbench-telecom-adpcm-c",
+    #     ""
+    # ]
     
+    # LLVM
+    workloads_improved = [
+        "cbench-telecom-gsm",
+        "cbench-automotive-qsort1",
+        "cbench-automotive-susan-e",
+        "cbench-consumer-tiff2rgba",
+        "cbench-network-patricia",
+        "cbench-automotive-bitcount",
+        "cbench-bzip2",
+        "cbench-consumer-tiff2bw",
+        "cbench-consumer-jpeg-d",
+        "cbench-telecom-adpcm-c",
+        "cbench-telecom-adpcm-d",
+        "cbench-office-stringsearch2",
+        "cbench-security-rijndael",
+        "cbench-security-sha",
+    ]
+        
     seed = 65535  # Example seed
     
     # Plot sampling results
-    # for workload in workloads:
-    #     # plot_all(workload)
-    #     plot_pareto_front(workload)
+    for workload in workloads:
+        plot_all(workload)
+        plot_pareto_front(workload)
     
-    for algorithm in algorithm_list:
-        # dynamic_plot_html("cbench-consumer-tiff2bw", algorithm, seed)
-        for workload in workloads:
-            dynamic_plot_html(workload, algorithm, seed)
+    # for algorithm in algorithm_list:
+    #     # dynamic_plot_html("cbench-consumer-tiff2bw", algorithm, seed)
+    #     for workload in workloads:
+    #         dynamic_plot_html(workload, algorithm, seed)
             # dynamic_plot(workload, algorithm, seed)
         # save_individual_frames(workload, algorithm, objectives, seed)

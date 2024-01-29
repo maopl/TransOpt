@@ -1,12 +1,23 @@
-import os
+import json
 import sqlite3
-import sys
-from collections.abc import Iterable
-from multiprocessing import Event, Lock, Manager, Process, Queue
+import pandas as pd
+from multiprocessing import Manager, Process, Queue
 
 import numpy as np
 
 from transopt.utils.path import get_library_path
+
+'''
+Descriptions of the reserved database tables.
+'''
+table_descriptions = {
+
+    '_config': '''
+        name varchar(50) not null,
+        config text not null
+        ''',
+
+}
 
 
 def database_daemon(data_path, task_queue, result_queue, stop_event):
@@ -36,6 +47,14 @@ class Database:
         self.lock = manager.Lock()
 
         self.start_daemon()
+
+        # reserved tables
+        self.reserved_tables = list(table_descriptions.keys())
+
+        # reserved tables
+        for name, desc in table_descriptions.items():
+            if not self.check_table_exist(name):
+                self.execute(f'CREATE TABLE "{name}" ({desc})')
 
     """
     connection
@@ -108,7 +127,7 @@ class Database:
         table_list = self.execute(
             "SELECT name FROM sqlite_master WHERE type='table'", fetchall=True
         )
-        return [table[0] for table in table_list if table[0]]
+        return [table[0] for table in table_list if table[0] not in self.reserved_tables]
 
     def check_table_exist(self, name):
         """Check if a certain database table exists."""
@@ -119,7 +138,7 @@ class Database:
         )
         return table_exists is not None
 
-    def create_table(self, name, dataset_info):
+    def create_table(self, name, problem_cfg, overwrite=False):
         """
         Create and initialize a database table based on problem configuration.
 
@@ -131,42 +150,126 @@ class Database:
             Configuration for the table schema.
         """
         if self.check_table_exist(name):
-            raise Exception(f"Table {name} already exists")
+            if overwrite:
+                self.remove_table(name)
+            else:
+                raise Exception(f"Table {name} already exists")
 
-        variables = dataset_info["variables"]
-        objectives = dataset_info["objectives"]
-
+        variables = problem_cfg.get("variables", {})
+        objectives = problem_cfg.get("objectives", {})
+        fidelity = problem_cfg.get("fidelity", {})
+    
         var_type_map = {
             "continuous": "float",
+            "logarithmic": "float",
             "integer": "int",
             "categorical": "varchar(50)",
             # 'binary': 'boolean',
         }
 
-        description = ['status varchar(20) not null default "unevaluated"']
+        # description = ['status varchar(20) not null default "unevaluated"']
+        description = []
+        index_columns = []
 
         for var_name, var_info in variables.items():
-            description.append(
-                f'"{var_name}" {var_type_map[var_info["type"]]} not null'
-            )
-
+            description.append(f'"{var_name}" {var_type_map[var_info["type"]]} not null')
+            index_columns.append(var_name)
+       
         for obj_name in objectives:
             description.append(f'"{obj_name}" float')
+        
+        for fid_name, fid_info in fidelity.items():
+            description.append(f'"{fid_name}" {var_type_map[fid_info["type"]]} not null')
+            index_columns.append(fid_name)
 
         description += [
-            "pareto boolean",
+            "batch int default -1",
+            "error boolean default 0",
+            # "pareto boolean",
             # "batch int not null",
             # "order int default -1",
-            "hypervolume float",
+            # "hypervolume float",
         ]
 
+        # Create the table
         self.execute(f'CREATE TABLE "{name}" ({",".join(description)})')
+
+        # Create a combined index for variables and fidelity columns
+        if index_columns:
+            index_columns_string = ', '.join([f'"{column}"' for column in index_columns])
+            self.execute(f'CREATE INDEX "idx_{name}_vars_fids" ON "{name}" ({index_columns_string})')
+        
+        self.create_or_update_config(name, problem_cfg) 
 
     def remove_table(self, name):
         if not self.check_table_exist(name):
             raise Exception(f"Table {name} does not exist")
 
         self.execute(f'DROP TABLE IF EXISTS "{name}"')
+
+    '''
+    config
+    '''
+
+    def create_or_update_config(self, name, problem_cfg):
+        """
+        Create or update a configuration entry in the _config table for a given table.
+        """
+        # Serialize problem_cfg into JSON format
+        config_json = json.dumps(problem_cfg)
+
+        # Check if the configuration already exists
+        if self.query_config(name) is not None:
+            # Update the existing configuration
+            self.execute(
+                "UPDATE _config SET config = ? WHERE name = ?",
+                (config_json, name)
+            )
+        else:
+            # Insert a new configuration
+            self.execute(
+                "INSERT INTO _config (name, config) VALUES (?, ?)",
+                (name, config_json)
+            )
+        
+    def query_config(self, name):
+        config_json = self.execute(
+            "SELECT config FROM _config WHERE name=?",
+            params=(name,),
+            fetchone=True
+        )
+        
+        if config_json is None:
+            return None
+        else:
+            return json.loads(config_json[0])
+
+    def query_dataset_info(self, name):
+        """
+        Query the dataset information of a given table.
+        """
+        config = self.query_config(name)
+   
+        if config is None:
+            return None
+        
+        data_number = self.get_num_row(name)
+        dataset_info = {
+            "var_names": config["var_names"],
+            "var_num": config["var_num"],
+            "variables": config["variables"],
+            
+            "obj_names": config["obj_names"],
+            "obj_num": config["obj_num"],
+            "objectives": config["objectives"],
+            
+            "fidelity_names": config["fidelity_names"],
+            "fidelity_num": config["fidelity_num"],
+            "fidelity": config["fidelity"],
+            
+            "data_number": data_number,
+        }
+        return dataset_info 
 
     """
     basic operations
@@ -175,172 +278,170 @@ class Database:
     def commit(self):
         self.execute("COMMIT")
 
-    def insert_data(self, table, columns, data):
+    def insert_data(self, table, data: dict or list or pd.DataFrame or np.ndarray) -> list:
         """
-        Insert single-row data to the database.
+        Insert single-row or multiple-row data into the database.
 
         Parameters
         ----------
         table: str
-            Name of the database table to insert.
-        column: str/list
-            Column name(s) of the table to insert.
-        data: list/np.ndarray
-            Data to insert.
-
-        Returns
-        -------
-        int
-            Row number of the inserted data.
-        """
-
-        if type(data) == np.ndarray:
-            data = data.tolist()
-
-        if columns is None:
-            query = f'INSERT INTO "{table}" VALUES ({",".join(["?"] * len(data))})'
-        elif type(columns) == str:
-            query = f'INSERT INTO "{table}" ("{columns}") VALUES (?)'
-        elif isinstance(columns, list):
-            column_str = ",".join([f'"{col}"' for col in columns])
-            query = f'INSERT INTO "{table}" ({column_str}) VALUES ({",".join(["?"] * len(data))})'
-        else:
-            raise ValueError("Column parameter must be a string or list of strings")
-
-        self.execute(query, data)
-        self.commit()  # Ensure the data is committed if not auto-committed
-
-        rowid = self.get_num_row(table)
-        return rowid
-
-    def insert_multiple_data(self, table, columns, data_list):
-        """
-        Insert multiple rows of data to the database.
-
-        Parameters
-        ----------
-        table : str
-            Name of the database table to insert.
-        columns : list
-            Column names of the table to insert.
-        data_list : list of lists/np.ndarray
-            Data to insert, each inner list is a row.
+            Name of the database table to insert into.
+        data: dict, list, pd.DataFrame, or np.ndarray
+            Data to insert. If a dictionary, it represents a single row of data
+            where keys are column names and values are data values. If a list,
+            each element represents a row (as a list or dict). If a DataFrame or
+            np.ndarray, each row represents a row to be inserted.
 
         Returns
         -------
         list
-            Row numbers of the inserted data.
+            List of row numbers of the inse
+        
         """
-        if type(data_list) == np.ndarray:
-            data_list = data_list.tolist()
+        if isinstance(data, dict):
+            # Single row insertion from dict
+            columns = list(data.keys())
+            values = [list(data.values())]
+        elif isinstance(data, list):
+            # Multiple row insertion from list of dicts or lists
+            if all(isinstance(row, dict) for row in data):
+                columns = list(data[0].keys())
+                values = [list(row.values()) for row in data]
+            elif all(isinstance(row, list) for row in data):
+                columns = None
+                values = data
+            else:
+                raise ValueError("All rows in data_list must be of the same type (all dicts or all lists)")
+        elif isinstance(data, (pd.DataFrame, np.ndarray)):
+            # Convert DataFrame or ndarray to list of lists for insertion
+            values = data.tolist() if isinstance(data, np.ndarray) else data.values.tolist()
+            columns = data.columns.tolist() if isinstance(data, pd.DataFrame) else None
+        else:
+            raise ValueError("Data parameter must be a dictionary, list, pandas DataFrame, or numpy ndarray")
 
-        if columns is None:
-            query = (
-                f'INSERT INTO "{table}" VALUES ({",".join(["?"] * len(data_list[0]))})'
-            )
-        elif type(columns) == str:
-            query = f'INSERT INTO "{table}" ("{columns}") VALUES (?)'
-        elif isinstance(columns, list):
+        if columns:
             column_str = ",".join([f'"{col}"' for col in columns])
-            query = f'INSERT INTO "{table}" ({column_str}) VALUES ({",".join(["?"] * len(data_list[0]))})'
+            value_placeholders = ",".join(["?"] * len(columns))
         else:
-            raise ValueError("Column parameter must be a string or list of strings")
-
-        self.executemany(query, data_list)
+            column_str = ""
+            value_placeholders = ",".join(["?"] * len(values[0]))
+        
+        query = f'INSERT INTO "{table}" ({column_str}) VALUES ({value_placeholders})'
+        self.executemany(query, values)
         self.commit()
 
+        # Get the rowids of the inserted rows
         n_row = self.get_num_row(table)
-        return list(range(n_row - len(data_list) + 1, n_row + 1))
+        len_data = len(data) if isinstance(data, list) else len(values)
+        return list(range(n_row - len_data + 1, n_row + 1))
 
-    def _get_rowid_condition(self, rowid):
-        if rowid is None:
+    def _get_conditions(self, rowid=None, conditions=None):
+        """
+        Construct SQL conditions for a query based on rowid and additional conditions.
+
+        Parameters
+        ----------
+        rowid: int/list
+            Row number(s) of the table to query (if None then no rowid condition is added).
+        conditions: dict
+            Additional conditions for querying (key: column name, value: column value).
+
+        Returns
+        -------
+        str
+            SQL condition string.
+        """
+        from collections.abc import Iterable
+
+        conditions_list = []
+
+        # Handling rowid conditions
+        if rowid is not None:
+            if isinstance(rowid, Iterable) and not isinstance(rowid, str):
+                rowid_condition = f'rowid IN ({",".join([str(r) for r in rowid])})'
+                conditions_list.append(rowid_condition)
+            else:
+                conditions_list.append(f"rowid = {rowid}")
+
+        # Handling additional conditions
+        if conditions:
+            for column, value in conditions.items():
+                if isinstance(value, str):
+                    value_str = f"'{value}'"  # Strings need to be quoted
+                else:
+                    value_str = str(value)
+                condition_str = f'"{column}" = {value_str}'
+                conditions_list.append(condition_str)
+
+        # Combine all conditions with 'AND'
+        if conditions_list:
+            return " WHERE " + " AND ".join(conditions_list)
+        else:
             return ""
-        elif isinstance(rowid, Iterable):
-            return f' WHERE rowid IN ({",".join([str(r) for r in rowid])})'
-        else:
-            return f" WHERE rowid = {rowid}"
-
-    def update_data(self, table, columns, data, rowid: int):
+    
+    def update_data(self, table, data, rowid=None, conditions=None):
         """
-        Update single-row data in the database.
+        Update single-row or multiple-row data in the database.
 
         Parameters
         ----------
         table: str
             Name of the database table to update.
-        columns: str/list
-            Column name(s) of the table to update.
-        data: list/np.ndarray
-            Data to update.
-        rowid: int
-            Row number of the table to update.
+        data: dict or list of dicts
+            Data to update. If a dictionary, it represents a single row of data
+            where keys are column names and values are data values.
+            If a list, each dictionary in the list represents a row to be updated.
+        rowid: int/list
+            Row number(s) of the table to update. If None, conditions are used.
+        conditions: dict
+            Additional conditions for updating (key: column name, value: column value).
         """
-        if type(data) == np.ndarray:
-            data = data.tolist()
+        if isinstance(data, dict):
+            data = [data]
 
-        if type(columns) == str:
-            query = f'UPDATE "{table}" SET "{columns}" = ?'
-        else:
-            column_str = ",".join([f'"{col}" = ?' for col in columns])
-            query = f'UPDATE "{table}" SET {column_str}'
+        update_values = []
+        for row in data:
+            columns = list(row.keys())
+            values = list(row.values())
+            set_clause = ", ".join([f'"{col}" = ?' for col in columns])
+            query = f'UPDATE "{table}" SET {set_clause}'
 
-        condition = self._get_rowid_condition(rowid)
-        query += condition
+            if rowid:
+                query += f' WHERE rowid = ?'
+                values.append(rowid)
+            elif conditions:
+                condition_str = " AND ".join([f'"{k}" = ?' for k in conditions.keys()])
+                query += f' WHERE {condition_str}'
+                values.extend(conditions.values())
+            else:
+                raise ValueError("Either rowid or conditions must be provided")
 
-        self.execute(query, data)
+            update_values.append(values)
+
+        self.executemany(query, update_values)
         self.commit()
-
-    def update_multiple_data(self, table, columns, data_list, rowid_list):
+    
+    def delete_data(self, table, rowid=None, conditions=None):
         """
-        Update multiple rows of data in the database.
-
-        Parameters
-        ----------
-        table : str
-            Name of the database table to update.
-        columns : str/list
-            Column names of the table to update.
-        data_list : list of lists/np.ndarray
-            Data to update, each inner list is a row.
-        rowid_list : list of ints
-            Row numbers of the table to update.
-        """
-        if type(data_list) == np.ndarray:
-            data_list = data_list.tolist()
-
-        if len(rowid_list) != len(data_list):
-            raise ValueError("rowid_list must be provided and match the length of data_list.")
-
-        if type(columns) == str:
-            query = f'UPDATE "{table}" SET "{columns}" = ? WHERE rowid = ?'
-        else:
-            column_str = ",".join([f'"{col}" = ?' for col in columns])
-            query = f'UPDATE "{table}" SET {column_str} WHERE rowid = ?'
-
-        combined_data = [data + [rowid] for data, rowid in zip(data_list, rowid_list)]
-
-        self.executemany(query, combined_data)
-        self.commit()
-
-    def delete_data(self, table, rowid: int):
-        """
-        Delete single-row data in the database.
+        Delete single-row or multiple-row data in the database.
 
         Parameters
         ----------
         table: str
-            Name of the database table to delete.
-        rowid: int
-            Row number of the table to delete.
+            Name of the database table to delete from.
+        rowid: int/list
+            Row number(s) of the table to delete. If None, conditions are used.
+        conditions: dict
+            Additional conditions for deleting (key: column name, value: column value).
         """
         query = f'DELETE FROM "{table}"'
-        condition = self._get_rowid_condition(rowid)
+        condition = self._get_conditions(rowid=rowid, conditions=conditions)
         query += condition
 
         self.execute(query)
         self.commit()
-
-    def select_data(self, table, columns=None, rowid=None):
+    
+    def select_data(self, table, columns=None, rowid=None, conditions=None) -> list:
         """
         Select data in the database.
 
@@ -352,28 +453,32 @@ class Database:
             Column name(s) of the table to query (if None then select all columns).
         rowid: int/list
             Row number(s) of the table to query (if None then select all rows).
+        conditions: dict
+            Additional conditions for querying (key: column name, value: column value).
 
         Returns
         -------
-        list
-            Selected data.
+        list of dicts
+            Selected data, each row as a dictionary with column names as keys.
         """
         if columns is None:
             query = f'SELECT * FROM "{table}"'
-        elif type(columns) == str:
+            columns = self.get_column_names(table)
+        elif isinstance(columns, str):
             query = f'SELECT "{columns}" FROM "{table}"'
+            columns = [columns]
         else:
             column_str = ",".join([f'"{col}"' for col in columns])
             query = f'SELECT {column_str} FROM "{table}"'
 
-        condition = self._get_rowid_condition(rowid)
+        condition = self._get_conditions(rowid=rowid, conditions=conditions)
         query += condition
 
         # Convert each tuple in the results to a list
         results = self.execute(query, fetchall=True)
-        results = [list(row) for row in results]
+        result_dicts = [dict(zip(columns, row)) for row in results]
 
-        return results
+        return result_dicts
 
     def get_num_row(self, table):
         query = f'SELECT COUNT(*) FROM "{table}"'

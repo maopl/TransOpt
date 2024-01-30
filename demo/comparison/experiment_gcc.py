@@ -44,7 +44,8 @@ def get_workloads(workloads, split_index, total_splits=10):
     return segments[split_index]
 
 
-def load_features(file_path):
+def load_features():
+    file_path = package_dir / "demo" / "comparison" / "features_by_workload_gcc_extra.json"
     with open(file_path, "r") as f:
         return json.load(f)
 
@@ -56,6 +57,7 @@ def configure_experiment(workload, features, seed, optimizer_name, exp_path, bud
         optimizer=optimizer_name,
         budget=budget,
         init_number=init_number,
+        pop_size=init_number,
         init_method="random",
         exp_path=exp_path,
         exp_name=exp_name,
@@ -73,17 +75,34 @@ def configure_experiment(workload, features, seed, optimizer_name, exp_path, bud
     return tasks, args
 
 def main(optimizers = [], repeat=5, budget=500, init_number=21):
-    features_file = package_dir / "demo" / "comparison" / "features_by_workload_gcc.json"
-    features = load_features(features_file)
+    features = load_features()
 
     parser = argparse.ArgumentParser(description="Run optimization experiments")
     parser.add_argument("--split_index", type=int, default=0,
                         help="Index for splitting the workload segments")
     args = parser.parse_args()
 
-    workloads = get_workloads(features.keys(), args.split_index)
+    available_workloads = [
+        "polybench-3mm",
+        "cbench-automotive-susan-c",
+        "cbench-consumer-tiff2dither",
+        "cbench-automotive-bitcount",
+        "polybench-2mm",
+        "polybench-adi",
+        "cbench-office-stringsearch2",
+        "polybench-fdtd-2d",
+        "polybench-atax",
+        "polybench-doitgen",
+        "polybench-durbin",
+        "polybench-fdtd-apml",
+        "polybench-gemver",
+        "polybench-gesummv",      
+    ]
+    # available_workloads = features.keys()
+    
+    workloads = get_workloads(available_workloads, args.split_index)
 
-    exp_path = Path.cwd() / "experiment_results"
+    exp_path = package_dir / "experiment_results"
 
     for optimizer_name in optimizers:
         for workload in workloads:
@@ -101,8 +120,7 @@ def main(optimizers = [], repeat=5, budget=500, init_number=21):
 
 
 def main_debug(repeat=1, budget=20, init_number=10):
-    features_file = package_dir / "demo" / "comparison" / "features_by_workload.json"
-    features = load_features(features_file)
+    features = load_features()
 
     parser = argparse.ArgumentParser(description="Run optimization experiments")
     parser.add_argument("--split_index", type=int, default=9,
@@ -111,9 +129,10 @@ def main_debug(repeat=1, budget=20, init_number=10):
 
     workloads = get_workloads(features.keys(), args.split_index)[:1]
 
-    exp_path = Path.cwd() / "experiment_results"
+    workloads = ["cbench-consumer-jpeg-d"]
+    exp_path = package_dir / "experiment_results"
 
-    for optimizer_name in ["SMSEGO"]:
+    for optimizer_name in ["MoeadEGO"]:
         for workload in workloads:
             for i in range(repeat):
                 tasks, exp_args = configure_experiment(
@@ -129,9 +148,9 @@ def main_debug(repeat=1, budget=20, init_number=10):
 
 
 if __name__ == "__main__":
-    # debug = True
+    debug = True
     debug = False
     if debug:
-        main_debug(repeat=1, budget=20, init_number=10)
+        main_debug(repeat=5, budget=500, init_number=10)
     else:
-        main(["SMSEGO"], repeat=5, budget=500, init_number=21)
+        main(["ParEGO", "SMSEGO", "MoeadEGO", "CauMO"], repeat=5, budget=500, init_number=21)

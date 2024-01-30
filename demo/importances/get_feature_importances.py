@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+current_dir = Path(__file__).resolve().parent
+package_dir = current_dir.parent.parent
+sys.path.insert(0, str(package_dir))
+
 import json
 import os
 import tarfile
@@ -12,7 +19,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeRegressor
 
-data_path = Path(__file__).parent.absolute() / "collected_results" 
+from csstuning.compiler.compiler_benchmark import GCCBenchmark
+
+data_path = package_dir / "experiment_results" / "gcc_samples"
+# data_path = package_dir / "experiment_results" / "llvm_samples"
 
 
 def load_and_prepare_data(file_path, objectives):
@@ -29,13 +39,13 @@ def load_and_prepare_data(file_path, objectives):
 
     df_output = pd.DataFrame(output_vectors)[objectives]
     df_combined = pd.concat([df_input, df_output], axis=1)
-    print(f"Loaded {len(df_combined)} data points")
+    # print(f"Loaded {len(df_combined)} data points")
 
     df_combined = df_combined.drop_duplicates(subset=df_input.columns.tolist())
-    print(f"Removed {len(df_combined) - len(df_input)} duplicates")
+    # print(f"Removed {len(df_combined) - len(df_input)} duplicates")
 
-    for obj in objectives:
-        df_combined = df_combined[df_combined[obj] != 1e10]
+    # for obj in objectives:
+    #     df_combined = df_combined[df_combined[obj] != 1e10]
     print(f"Loaded {len(df_combined)} data points after removing extreme values")
     return df_combined
 
@@ -152,10 +162,16 @@ def get_workloads_improved():
     """
     Returns a list of workloads that improved when including objectives.
     """
-    iterations = 5
+    iterations = 1
     workloads_improved = []
+    
+    
+    workloads_sampled = []
+    
     for file in data_path.glob("*.json"):
         workload = file.name.split(".")[0][4:]
+        
+        workloads_sampled.append(workload)
         print("==================================================")
         print(workload)
         print("==================================================")
@@ -171,6 +187,8 @@ def get_workloads_improved():
             # Repeat the experiment for 'excluding objectives'
             print("CART with top 20 features, excluding objectives")
             df_combined = load_and_prepare_data(file, objectives=["execution_time"])
+            
+        
             important_features = calculate_feature_importances(
                 df_combined, "execution_time"
             )
@@ -202,6 +220,8 @@ def get_workloads_improved():
             nrmse_including_list.append(nrmse_including)
             print("\n")
 
+
+        
         # Calculate average or median NRMSE for both configurations
         avg_nrmse_excluding = np.mean(nrmse_excluding_list)
         avg_nrmse_including = np.mean(nrmse_including_list)
@@ -225,6 +245,7 @@ def get_features_for_exp(workloads, repetitions=5):
         print(workload)
         print("==================================================")
         data_file = data_path / f"GCC_{workload}.json"
+        # data_file = data_path / f"LLVM_{workload}.json"
         features_by_workload[workload] = {}
 
         # Calculate feature importances for each objective
@@ -284,53 +305,88 @@ def get_features_for_exp(workloads, repetitions=5):
 
 
 if __name__ == "__main__":
-    os.chdir(Path(__file__).parent.absolute())
-
-    if not data_path.exists():
-        print("Data directory not found. Untarring data...")
-        tar = tarfile.open("collected_results.tar.gz")
-        tar.extractall()
-        tar.close()
-
-    # workloads_improved = get_workloads_improved()
+    workloads_improved = get_workloads_improved()
 
     # workloads_improved = [
-    #     "cbench-consumer-tiff2bw",
-    #     "cbench-security-rijndael",
-    #     "cbench-security-pgp",
-    #     "polybench-cholesky",
+    #     "cbench-security-sha",
     #     "cbench-telecom-crc32",
-    #     "polybench-fdtd-apml",
     #     "cbench-network-patricia",
+    #     "cbench-office-stringsearch2",
+    #     "cbench-bzip2",
+    #     "cbench-security-rijndael",
+    #     "cbench-automotive-bitcount",
+    #     "cbench-consumer-tiff2bw",
+    #     "cbench-security-pgp",  // Error compiled with LLVM
     #     "cbench-consumer-tiff2rgba",
-    #     "polybench-symm",
     #     "cbench-automotive-susan-e",
     #     "cbench-telecom-adpcm-d",
-    #     "polybench-ludcmp",
-    #     "polybench-lu",
-    #     "cbench-consumer-mad",
-    #     "cbench-automotive-qsort1",
-    #     "polybench-bicg",
-    #     "cbench-security-sha",
-    #     "cbench-consumer-jpeg-d",
     #     "cbench-telecom-adpcm-c",
     #     "cbench-telecom-gsm",
     # ]
 
-    # get_features_for_exp(workloads_improved)
+    # GCC
+    workloads_improved = [
+        "cbench-consumer-tiff2rgba",
+        "cbench-security-rijndael",
+        "cbench-security-pgp",
+        "cbench-automotive-qsort1",
+        "cbench-automotive-susan-e",
+        "cbench-consumer-jpeg-d",
+        "cbench-security-sha",
+        "cbench-telecom-adpcm-c",
+        "cbench-telecom-adpcm-d",
+        "cbench-telecom-gsm",
+        
+        "cbench-telecom-crc32",
+        "cbench-consumer-tiff2bw",
+        "cbench-consumer-mad",
+        "cbench-network-patricia",
+
+        # "polybench-cholesky",
+        # "polybench-fdtd-apml",
+        # "polybench-symm",
+        # "polybench-ludcmp",
+        # "polybench-lu",
+        # "polybench-bicg",
+        
+        
+        # "cbench-bzip2",
+        # "cbench-office-stringsearch2",
+    ]
     
-
-    # For temp test
-    with open(data_path / "GCC_cbench-consumer-tiff2bw.json", "r") as f:
-        data = json.load(f)
-
-    input_vectors = data["input_vector"]
-    output_vectors = data["output_value"]
-
-    target_objs = ["execution_time", "file_size", "compilation_time"]
+    workloads_gcc_extra = [
+        "polybench-3mm",
+        "cbench-automotive-susan-c",
+        "cbench-consumer-tiff2dither",
+        "cbench-automotive-bitcount",
+        "polybench-2mm",
+        "polybench-adi",
+        "cbench-office-stringsearch2",
+        "polybench-fdtd-2d",
+        "polybench-atax",
+        "polybench-doitgen",
+        "polybench-durbin",
+        "polybench-fdtd-apml",
+        "polybench-gemver",
+        "polybench-gesummv",      
+    ]
     
-    # Show target objs in each output vector
-    for output_vector in output_vectors:
-        for target_obj in target_objs:
-            print(f"{target_obj}: {output_vector[target_obj]}")
-        print("")
+    # LLVM
+    workloads_improved = [
+        "cbench-telecom-gsm",
+        "cbench-automotive-qsort1",
+        "cbench-automotive-susan-e",
+        "cbench-consumer-tiff2rgba",
+        "cbench-network-patricia",
+        "cbench-automotive-bitcount",
+        "cbench-bzip2",
+        "cbench-consumer-tiff2bw",
+        "cbench-consumer-jpeg-d",
+        "cbench-telecom-adpcm-c",
+        "cbench-telecom-adpcm-d",
+        "cbench-office-stringsearch2",
+        "cbench-security-rijndael",
+        "cbench-security-sha",
+    ]
+    
+    # get_features_for_exp(workloads_gcc_extra)

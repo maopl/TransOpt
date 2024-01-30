@@ -97,4 +97,10 @@ cython_debug/
 *.log
 experiment_results/
 collected_results/
+demo/comparison/frames/
+demo/comparison/gifs/
+demo/comparison/pngs/
+demo/comparison/htmls/
+demo/draw/
+demo/importances/pngs/
 ```

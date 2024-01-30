@@ -19,26 +19,15 @@ class MoeadEGO(BOBase):
         super(MoeadEGO, self).__init__(config=config)
 
         self.init_method = "Random"
-
-        if "verbose" in config:
-            self.verbose = config["verbose"]
-        else:
-            self.verbose = True
-
-        if "n_weight" in config:
-            self.n_weight = config["n_weight"]
-        else:
-            self.n_weight = 10
-
-        if "pop_size" in config:
-            self.pop_size = config["pop_size"]
-        else:
-            self.pop_size = self.n_weight
-            self.ini_num = self.pop_size
+        self.verbose = config.get("verbose", True)
+        self.n_weight = config.get("n_weight", 10)
+        self.pop_size = config.get("pop_size", self.n_weight)
 
         if self.pop_size > self.n_weight:
             self.pop_size = self.n_weight
 
+        self.ini_num = self.pop_size
+        
         self.model = []
         self.acf = "MOEADEGO"
         self.weight = None

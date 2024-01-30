@@ -10,25 +10,18 @@ from csstuning.dbms.dbms_benchmark import MySQLBenchmark
 from transopt.Benchmark.BenchBase import NonTabularBenchmark
 from transopt.utils.Register import benchmark_register
 
+ERROR_VALUE = 1e10
 
 @benchmark_register("DBMS")
 class DBMSTuning(NonTabularBenchmark):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", workload=None, **kwargs
     ):
-        if workload is None:
-            workload = MySQLBenchmark.AVAILABLE_WORKLOADS[0]
-
-        self.benchmark_name = workload
-        self.benchmark = MySQLBenchmark(workload=self.benchmark_name)
+        self.workload = workload if workload is not None else MySQLBenchmark.AVAILABLE_WORKLOADS[0]
+        self.benchmark = MySQLBenchmark(workload=self.workload)
         self.config_knob = self.benchmark.get_config_space()
-        super(DBMSTuning, self).__init__(
-            task_name=task_name,
-            seed=seed,
-            task_type=task_type,
-            budget=budget,
-            task_id=task_id,
-        )
+        
+        super().__init__(task_name=task_name, workload=self.workload, seed=seed, task_type=task_type, budget=budget)
         np.random.seed(seed)
 
     def objective_function(
@@ -49,17 +42,32 @@ class DBMSTuning(NonTabularBenchmark):
                     c[k] = int(np.floor(np.exp2(v) + self.min_value[k]))
                     configuration[k] = int(configuration[k])
 
-        start_time = time.time()
-        performance = self.benchmark.run(c)
-        end_time = time.time()
-        return {
-            "function_value_1": float(performance["throughput"]),
-            "function_value_2": float(performance["latency"] * 10e-3),
-            "latency": float(performance["latency"] * 10e-3),
-            "throughput": float(performance["throughput"]),
-            "cost": float(end_time - start_time),
-            "info": {"fidelity": fidelity},
-        }
+        try:
+            start_time = time.time()
+            performance = self.benchmark.run(c)
+            end_time = time.time()
+            return {
+                "function_value_1": -float(performance["throughput"]),
+                "function_value_2": float(performance["latency"] * 10e-3),
+                "latency": float(performance["latency"] * 10e-3),
+                "throughput": -float(performance["throughput"]),
+                "cost": float(end_time - start_time),
+                "info": {"fidelity": fidelity},
+            }
+            
+        except:
+            end_time = time.time()
+            return {
+                "function_value_1": ERROR_VALUE,
+                "function_value_2": ERROR_VALUE,
+                "latency": ERROR_VALUE,
+                "throughput": ERROR_VALUE,
+                "cost": float(end_time - start_time),
+                "info": {"fidelity": fidelity},
+            }
+            
+            
+            
 
     def get_configuration_space(
         self, seed: Union[int, None] = None

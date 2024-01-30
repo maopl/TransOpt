@@ -17,10 +17,12 @@ def get_optimizer(args):
         'save_path': args.exp_path,
     }
 
+    if hasattr(args, "pop_size"):
+        config["pop_size"] = args.pop_size
+
     if optimizer_class is not None:
         optimizer = optimizer_class(config=config)
     else:
-        # 处理任务名称不在注册表中的情况
         print(f"Optimizer '{args.optimizer}' not found in the registry.")
         raise NameError
     return optimizer

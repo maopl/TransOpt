@@ -105,7 +105,7 @@ def main_debug(repeat=1, budget=20, init_number=10):
     features = load_features(features_file)
 
     parser = argparse.ArgumentParser(description="Run optimization experiments")
-    parser.add_argument("--split_index", type=int, default=9,
+    parser.add_argument("--split_index", type=int, default=0,
                         help="Index for splitting the workload segments")
     args = parser.parse_args()
 
@@ -113,7 +113,7 @@ def main_debug(repeat=1, budget=20, init_number=10):
 
     exp_path = Path.cwd() / "experiment_results"
 
-    for optimizer_name in ["ParEGO", "MoeadEGO","SMSEGO"]:
+    for optimizer_name in ["MoeadEGO"]:
         for workload in workloads:
             for i in range(repeat):
                 tasks, exp_args = configure_experiment(
@@ -132,6 +132,6 @@ if __name__ == "__main__":
     # debug = True
     debug = False
     if debug:
-        main_debug(repeat=1, budget=20, init_number=10)
+        main_debug(repeat=1, budget=20, init_number=11)
     else:
-        main(["ParEGO", "MoeadEGO", "SMSEGO"], repeat=5, budget=500, init_number=21)
+        main(["ParEGO", "MoeadEGO", "SMSEGO", "CauMO"], repeat=5, budget=500, init_number=21)

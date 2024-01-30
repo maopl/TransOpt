@@ -41,7 +41,7 @@ if __name__ == "__main__":
         "--samples_num",
         type=int,
         help="Number of samples to be collected for each workload",
-        default=5,
+        default=5000,
     )
     parser.add_argument(
         "--split_index",
@@ -54,6 +54,17 @@ if __name__ == "__main__":
     samples_num = args.samples_num
 
     available_workloads = CompilerBenchmarkBase.AVAILABLE_WORKLOADS
+    # available_workloads = [
+    #     "polybench-jacobi-2d-imper",
+    #     "polybench-dynprog",
+    #     "polybench-medley-reg-detect",
+    #     "polybench-trmm",
+    #     "polybench-gemm",
+    #     "cbench-automotive-susan-s",
+    #     "cbench-network-dijkstra",
+    #     "cbench-consumer-jpeg-c",
+    #     "cbench-bzip2",
+    # ]
 
     split_workloads = split_into_segments(available_workloads, 10)
 
@@ -74,7 +85,7 @@ if __name__ == "__main__":
     args = argparse.Namespace(
         seed=0,
         optimizer="ParEGO",
-        init_number=5,
+        init_number=100,
         init_method="random",
         exp_path=f"{package_dir}/experiment_results",
         exp_name=exp_name,

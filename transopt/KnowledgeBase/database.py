@@ -161,7 +161,6 @@ class Database:
     
         var_type_map = {
             "continuous": "float",
-            "logarithmic": "float",
             "integer": "int",
             "categorical": "varchar(50)",
             # 'binary': 'boolean',
@@ -441,7 +440,7 @@ class Database:
         self.execute(query)
         self.commit()
     
-    def select_data(self, table, columns=None, rowid=None, conditions=None) -> list:
+    def select_data(self, table, columns=None, rowid=None, conditions=None, as_dataframe=False) -> list:
         """
         Select data in the database.
 
@@ -455,6 +454,8 @@ class Database:
             Row number(s) of the table to query (if None then select all rows).
         conditions: dict
             Additional conditions for querying (key: column name, value: column value).
+        as_dataframe: bool
+            If True, return the result as a pandas DataFrame.
 
         Returns
         -------
@@ -476,9 +477,10 @@ class Database:
 
         # Convert each tuple in the results to a list
         results = self.execute(query, fetchall=True)
-        result_dicts = [dict(zip(columns, row)) for row in results]
-
-        return result_dicts
+        if as_dataframe:
+            return pd.DataFrame(results, columns=columns)
+        else:
+            return [dict(zip(columns, row)) for row in results]
 
     def get_num_row(self, table):
         query = f'SELECT COUNT(*) FROM "{table}"'

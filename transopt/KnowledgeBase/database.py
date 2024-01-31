@@ -155,9 +155,9 @@ class Database:
             else:
                 raise Exception(f"Table {name} already exists")
 
-        variables = problem_cfg.get("variables", {})
-        objectives = problem_cfg.get("objectives", {})
-        fidelity = problem_cfg.get("fidelity", {})
+        variables = problem_cfg.get("variables", [])
+        objectives = problem_cfg.get("objectives", [])
+        fidelities = problem_cfg.get("fidelities", [])
     
         var_type_map = {
             "continuous": "float",
@@ -170,16 +170,16 @@ class Database:
         description = []
         index_columns = []
 
-        for var_name, var_info in variables.items():
-            description.append(f'"{var_name}" {var_type_map[var_info["type"]]} not null')
-            index_columns.append(var_name)
-       
-        for obj_name in objectives:
-            description.append(f'"{obj_name}" float')
+        for var_info in variables:
+            description.append(f'"{var_info["name"]}" {var_type_map[var_info["type"]]} not null')
+            index_columns.append(var_info["name"])
+
+        for obj_info in objectives:
+            description.append(f'"{obj_info["name"]}" float')
         
-        for fid_name, fid_info in fidelity.items():
-            description.append(f'"{fid_name}" {var_type_map[fid_info["type"]]} not null')
-            index_columns.append(fid_name)
+        for fid_info in fidelities:
+            description.append(f'"{fid_info["name"]}" {var_type_map[fid_info["type"]]} not null')
+            index_columns.append(fid_info["name"]) 
 
         description += [
             "batch int default -1",
@@ -251,22 +251,24 @@ class Database:
    
         if config is None:
             return None
+
+        variables = config["variables"]
+        objectives = config["objectives"]
+        fidelities = config["fidelities"]
         
-        data_number = self.get_num_row(name)
+        data_num = self.get_num_row(name)
+        
         dataset_info = {
-            "var_names": config["var_names"],
-            "var_num": config["var_num"],
-            "variables": config["variables"],
+            "var_num": len(variables),
+            "variables": variables,
             
-            "obj_names": config["obj_names"],
-            "obj_num": config["obj_num"],
-            "objectives": config["objectives"],
+            "obj_num": len(objectives),
+            "objectives": objectives,
             
-            "fidelity_names": config["fidelity_names"],
-            "fidelity_num": config["fidelity_num"],
-            "fidelity": config["fidelity"],
+            "fidelities_num": len(fidelities),
+            "fidelities": fidelities,
             
-            "data_number": data_number,
+            "data_number": data_num,
         }
         return dataset_info 
 

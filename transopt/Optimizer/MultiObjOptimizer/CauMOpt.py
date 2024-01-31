@@ -7,6 +7,10 @@ from transopt.utils.Register import optimizer_register
 from transopt.utils.Normalization import get_normalizer
 from transopt.utils.serialization import ndarray_to_vectors,vectors_to_ndarray
 
+from sklearn.ensemble import ExtraTreesRegressor
+
+
+
 def calculate_gini_index(labels):
     _, counts = np.unique(labels, return_counts=True)
     probabilities = counts / counts.sum()
@@ -41,7 +45,7 @@ def features_by_gini(data, labels):
 
 @optimizer_register("CauMO")
 class CauMO(BOBase):
-    def __init__(self, config: Dict, **kwargs):
+    def __init__(self, config: Dict, rate_oversampling = 4, seed = 0, **kwargs):
         super(CauMO, self).__init__(config=config)
 
         self.init_method = "Random"
@@ -54,6 +58,10 @@ class CauMO(BOBase):
 
         self.model = []
         self.acf = "CauMOACF"
+
+        self.rate_oversampling = rate_oversampling
+        self.num_duplicates = int(rate_oversampling * 4.0)
+        self.seed = seed
 
     def initial_sample(self):
         return self.random_sample(self.ini_num)
@@ -98,28 +106,52 @@ class CauMO(BOBase):
         if len(self.model_list) == 0:
             self.create_model(X, Y_norm)
         else:
-            self.set_data(X, Y_norm)
+            # self.set_data(X, Y_norm)
+            self.fit_data(X, Y_norm)
+        # try:
+        #     for i in range(len(self.model_list)):
+        #         self.model_list[i].optimize_restarts(
+        #             num_restarts=1, verbose=self.verbose, robust=True
+        #         )
+        # except np.linalg.linalg.LinAlgError as e:
+        #     # break
+        #     print("Error: np.linalg.linalg.LinAlgError")
 
-        try:
-            for i in range(len(self.model_list)):
-                self.model_list[i].optimize_restarts(
-                    num_restarts=1, verbose=self.verbose, robust=True
-                )
-        except np.linalg.linalg.LinAlgError as e:
-            # break
-            print("Error: np.linalg.linalg.LinAlgError")
-
+        self.Y_Norm = None
     def create_model(self, X, Y):
         assert self.num_objective is not None
-        Kc = GPy.kern.RBF(input_dim=self.input_dim)
-        compile_time_model = GPy.models.GPRegression(X, Y[2][:, np.newaxis], kernel=Kc, normalizer=None)
+
+        compile_time_model = ExtraTreesRegressor(
+         n_estimators=200,
+         max_features='sqrt',
+         bootstrap=True,
+         random_state=self.seed,
+         max_samples = self.rate_oversampling / self.num_duplicates,
+        )
+        compile_time_model.fit(X, Y[2][:, np.newaxis])
+
+        # Kc = GPy.kern.RBF(input_dim=self.input_dim)
+        # compile_time_model = GPy.models.GPRegression(X, Y[2][:, np.newaxis], kernel=Kc, normalizer=None)
+
+
         file_size_feature_rank = features_by_gini(X, Y[1])
         self.file_size_rep_feature = sorted(file_size_feature_rank, key=lambda x: x[1])[0][0]
 
         X_file = X.copy()
         X_file[:, self.file_size_rep_feature] = np.clip(2 * (Y[2] - (-3)) / 6 - 1, -1, 1)
-        Kf = GPy.kern.RBF(input_dim=self.input_dim)
-        file_size_model = GPy.models.GPRegression(X_file, Y[1][:, np.newaxis], kernel=Kf, normalizer=None)
+
+        file_size_model = ExtraTreesRegressor(
+         n_estimators=200,
+         max_features='sqrt',
+         bootstrap=True,
+         random_state=self.seed,
+         max_samples = self.rate_oversampling / self.num_duplicates,
+        )
+
+        file_size_model.fit(X_file, Y[1][:, np.newaxis])
+
+        # Kf = GPy.kern.RBF(input_dim=self.input_dim)
+        # file_size_model = GPy.models.GPRegression(X_file, Y[1][:, np.newaxis], kernel=Kf, normalizer=None)
 
         run_time_feature_rank = features_by_gini(X, Y[0])
         run_time_feature_rank = sorted(run_time_feature_rank, key=lambda x: x[1])
@@ -128,15 +160,23 @@ class CauMO(BOBase):
         X_rtime = X.copy()
         X_rtime[:, self.st_run_time_rep_feature] = np.clip(2 * (Y[2] - (-3)) / 6 - 1, -1, 1)
         X_rtime[:, self.nd_run_time_rep_feature] = np.clip(2 * (Y[1] - (-3)) / 6 - 1, -1, 1)
-        Kr = GPy.kern.RBF(input_dim=self.input_dim)
-        running_time_model = GPy.models.GPRegression(X_rtime, Y[0][:, np.newaxis], kernel=Kr, normalizer=None)
+        # Kr = GPy.kern.RBF(input_dim=self.input_dim)
+        # running_time_model = GPy.models.GPRegression(X_rtime, Y[0][:, np.newaxis], kernel=Kr, normalizer=None)
+        running_time_model = ExtraTreesRegressor(
+         n_estimators=200,
+         max_features='sqrt',
+         bootstrap=True,
+         random_state=self.seed,
+         max_samples = self.rate_oversampling / self.num_duplicates,
+        )
+        running_time_model.fit(X_rtime, Y[0][:, np.newaxis])
 
-        compile_time_model['.*Gaussian_noise.variance'].constrain_fixed(1.0e-4)
-        compile_time_model['.*rbf.variance'].constrain_fixed(1.0)
-        file_size_model['.*Gaussian_noise.variance'].constrain_fixed(1.0e-4)
-        file_size_model['.*rbf.variance'].constrain_fixed(1.0)
-        running_time_model['.*Gaussian_noise.variance'].constrain_fixed(1.0e-4)
-        running_time_model['.*rbf.variance'].constrain_fixed(1.0)
+        # compile_time_model['.*Gaussian_noise.variance'].constrain_fixed(1.0e-4)
+        # compile_time_model['.*rbf.variance'].constrain_fixed(1.0)
+        # file_size_model['.*Gaussian_noise.variance'].constrain_fixed(1.0e-4)
+        # file_size_model['.*rbf.variance'].constrain_fixed(1.0)
+        # running_time_model['.*Gaussian_noise.variance'].constrain_fixed(1.0e-4)
+        # running_time_model['.*rbf.variance'].constrain_fixed(1.0)
 
         self.model_list.append(compile_time_model)
         self.model_list.append(file_size_model)
@@ -158,6 +198,24 @@ class CauMO(BOBase):
         X_rtime[:, self.st_run_time_rep_feature] = np.clip(2 * (Y[2] - (-3)) / 6 - 1, -1, 1)
         X_rtime[:, self.nd_run_time_rep_feature] = np.clip(2 * (Y[1] - (-3)) / 6 - 1, -1, 1)
         self.model_list[2].set_XY(X_rtime, Y[0][:, np.newaxis])
+
+
+    def fit_data(self, X, Y):
+        self.model_list[0].fit(X, Y[2][:, np.newaxis])
+        file_size_feature_rank = features_by_gini(X, Y[1])
+        self.file_size_rep_feature = sorted(file_size_feature_rank, key=lambda x: x[1])[0][0]
+        X_file = X.copy()
+        X_file[:, self.file_size_rep_feature] = np.clip(2 * (Y[1] - (-3)) / 6 - 1, -1, 1)
+        self.model_list[1].fit(X_file, Y[1][:, np.newaxis])
+
+        run_time_feature_rank = features_by_gini(X, Y[0])
+        run_time_feature_rank = sorted(run_time_feature_rank, key=lambda x: x[1])
+        self.st_run_time_rep_feature = run_time_feature_rank[0][0]
+        self.nd_run_time_rep_feature = run_time_feature_rank[1][0]
+        X_rtime = X.copy()
+        X_rtime[:, self.st_run_time_rep_feature] = np.clip(2 * (Y[2] - (-3)) / 6 - 1, -1, 1)
+        X_rtime[:, self.nd_run_time_rep_feature] = np.clip(2 * (Y[1] - (-3)) / 6 - 1, -1, 1)
+        self.model_list[2].fit(X_rtime, Y[0][:, np.newaxis])
 
 
     def suggest(self, n_suggestions: Union[None, int] = None) -> List[Dict]:
@@ -183,23 +241,32 @@ class CauMO(BOBase):
 
             return design_suggested_sample
 
+    def observe(self, input_vectors: Union[List[Dict], Dict], output_value: Union[List[Dict], Dict]) -> None:
+        super().observe(input_vectors, output_value)
+
+
+        if "normalize" in self.config:
+            self.normalizer = get_normalizer(self.config["normalize"])
+
+        self.Y_Norm = np.array([self.normalizer(y) for y in self._Y])
     def predict(self, X, full_cov=False):
-        # X_copy = np.array([X])
+
         pred_mean = np.zeros((X.shape[0], 0))
         if full_cov:
             pred_var = np.zeros((0, X.shape[0], X.shape[0]))
         else:
             pred_var = np.zeros((X.shape[0], 0))
 
-        compile_time_mean, compile_time_var = self.model_list[0].predict(X, full_cov=full_cov)
+        # compile_time_mean, compile_time_var = self.model_list[0].predict(X, full_cov=full_cov)
+        compile_time_mean, compile_time_var = self.raw_predict(X, self.model_list[0])
         X_file = X.copy()
         X_file[:, self.file_size_rep_feature] = np.clip(2 * (compile_time_mean[:, 0] - (-3)) / 6 - 1, -1, 1)
-        file_size_mean, file_size_var = self.model_list[1].predict(X_file)
+        file_size_mean, file_size_var = self.raw_predict(X_file, self.model_list[1])
 
         X_run = X.copy()
         X_run[:, self.st_run_time_rep_feature] = np.clip(2 * (compile_time_mean[:, 0] - (-3)) / 6 - 1, -1, 1)
         X_run[:, self.nd_run_time_rep_feature] = np.clip(2 * (file_size_mean[:, 0] - (-3)) / 6 - 1, -1, 1)
-        run_time_mean, run_time_var = self.model_list[2].predict(X_file)
+        run_time_mean, run_time_var = self.raw_predict(X_run, self.model_list[2])
 
         pred_mean = np.hstack((pred_mean, run_time_mean, file_size_mean, compile_time_mean))
 
@@ -217,7 +284,32 @@ class CauMO(BOBase):
 
         return pred_mean, pred_var
 
+    def raw_predict(self, X, model):
+        _X_test = X.copy()
 
+        mu = model.predict(_X_test)
+        cov = self.raw_predict_var(_X_test, model, mu)
+        return mu[:,np.newaxis], cov[:,np.newaxis]
+
+    def raw_predict_var(self, X, trees,  predictions, min_variance=0.1):
+        std = np.zeros(len(X))
+        for tree in trees:
+            var_tree = tree.tree_.impurity[tree.apply(X)]
+
+            # This rounding off is done in accordance with the
+            # adjustment done in section 4.3.3
+            # of http://arxiv.org/pdf/1211.0906v2.pdf to account
+            # for cases such as leaves with 1 sample in which there
+            # is zero variance.
+            var_tree[var_tree < min_variance] = min_variance
+            mean_tree = tree.predict(X)
+            std += var_tree + mean_tree ** 2
+
+        std /= len(trees)
+        std -= predictions ** 2.0
+        std[std < 0.0] = 0.0
+        std = std ** 0.5
+        return std
     def model_reset(self):
         self.model_list = []
         self.kernel_list = []

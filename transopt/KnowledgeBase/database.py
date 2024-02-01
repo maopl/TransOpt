@@ -161,7 +161,9 @@ class Database:
     
         var_type_map = {
             "continuous": "float",
+            "log_continuous": "float",
             "integer": "int",
+            "int_exponent": "int",
             "categorical": "varchar(50)",
             # 'binary': 'boolean',
         }

@@ -1,54 +1,32 @@
 import pandas as pd
 import numpy  as np
-from abc import ABC, abstractmethod
 
-class Param(ABC):
+
+class BaseParameter:
     def __init__(self, param_info):
+        """ Base class for parameters in the design space. """
         self.param_info = param_info
-        self.name       = param_info['name']
-        pass
+        self.name = param_info['name']
+        self.type = param_info['type']
 
-    @abstractmethod
     def sample(self, num = 1) -> pd.DataFrame:
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
-    def transform(self, x : np.array) -> np.array:
-        pass
+    def transform(self, x):
+        raise NotImplementedError
 
-    @abstractmethod
-    def inverse_transform(self, x : np.array) -> np.array:
-        pass
+    def inverse_transform(self, x):
+        raise NotImplementedError
 
     @property
-    @abstractmethod
-    def is_numeric(self) -> bool:
-        pass
-
-    @property
-    @abstractmethod
-    def is_discrete(self) -> bool:
-        """
-        Integer and categorical variable
-        """
-        pass
-
-    @property
-    @abstractmethod
     def is_discrete_after_transform(self) -> bool:
-        pass
+        """ If the parameter is discrete in the optimization space. """
+        raise NotImplementedError
 
     @property
-    def is_categorical(self) -> bool:
-        return not self.is_numeric
-
-
-    @property
-    @abstractmethod
     def opt_lb(self) -> float:
-        pass
+        raise NotImplementedError
 
     @property
-    @abstractmethod
     def opt_ub(self) -> float:
-        pass
+        raise NotImplementedError

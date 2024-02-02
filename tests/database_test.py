@@ -17,23 +17,20 @@ class TestDatabase(unittest.TestCase):
         self.db = Database("test_database.db")
         self.table_name = "test_table"
         self.dataset_info = {
-            "var_names": ["x1", "x2"],
-            "var_num": 2,
-            "variables": {
-                "x1": {"type": "continuous", "range": [-5.12, 5.12], "default": 0.0},
-                "x2": {"type": "continuous", "range": [-5.12, 5.12], "default": 0.0},
-            },
+            "variables": [
+                {"name": "x1", "type": "continuous", "range": [-5.12, 5.12], "default": 0.0},
+                {"name": "x2", "type": "continuous", "range": [-5.12, 5.12], "default": 0.0},
+            ],
             
-            "obj_names": ["y1", "y2"],
-            "obj_num": 2,
-            "objectives": {"y1": {"type": "minimize"}, "y2": {"type": "maximize"}},
+            "objectives": [
+                {"name": "y1", "type": "minimize"},
+                {"name": "y2", "type": "maximize"},
+            ],
 
-            "fidelity_names": ["f1", "f2"],
-            "fidelity_num": 2,
-            "fidelity": {
-                "f1": {"type": "continuous", "range": [0, 1], "default": 0.0},
-                "f2": {"type": "continuous", "range": [0, 1], "default": 0.0},
-            },
+            "fidelities": [
+                {"name": "f1", "type": "continuous", "range": [0, 1], "default": 0.0},
+                {"name": "f2", "type": "continuous", "range": [0, 1], "default": 0.0},
+            ]
         }
 
         # Table creation

@@ -12,20 +12,31 @@ import os
 
 from transopt.Benchmark import construct_test_suits
 from transopt.KnowledgeBase.kb_builder import construct_knowledgebase
-from transopt.KnowledgeBase.TaskDataHandler import OptTaskDataHandler
+from transopt.KnowledgeBase.TransferDataHandler import TransferDataHandler
 from transopt.Optimizer.ConstructOptimizer import get_optimizer
+from transopt.KnowledgeBase.database import Database
 
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["NUMEXPR_NUM_THREADS"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"
 
-
-def run_experiments(tasks, args):
-    kb = construct_knowledgebase(args)
-    testsuits = construct_test_suits(tasks, args.seed)
+def run_experiments(tasks):
+    # kb = construct_knowledgebase()
+    kb = Database()
+    testsuits = construct_test_suits(tasks, 0)
     optimizer = get_optimizer(args)
-    data_handler = OptTaskDataHandler(kb, args)
-    optimizer.optimize(testsuits, data_handler)
+    data_handler = TransferDataHandler(kb, args)
+    task_num = testsuits.get_tasks_num()
+    while testsuits.get_unsolved_num():
+        optimizer.optimize(testsuits, data_handler)
+
+
+# def run_experiments(tasks, args):
+#     kb = construct_knowledgebase(args)
+#     testsuits = construct_test_suits(tasks, args.seed)
+#     optimizer = get_optimizer(args)
+#     data_handler = OptTaskDataHandler(kb, args)
+#     optimizer.optimize(testsuits, data_handler)
 
 def load_features():
     features_file = package_dir / "demo" / "comparison" / "features_by_workload_gcc.json"
@@ -39,9 +50,9 @@ if __name__ == "__main__":
     
     tasks = {
         # 'DBMS':{'budget': 11, 'time_stamp': 3},
-        "GCC": {"budget": 100, "workloads": [workload], "knobs": features[workload]["top"]},
+        # "GCC": {"budget": 100, "workloads": [workload], "knobs": features[workload]["top"]},
         # 'LLVM' : {'budget': 11, 'time_stamp': 3},
-        # 'Ackley': {'budget': 11, 'time_stamp': 3, 'params':{'input_dim':1}},
+        'Ackley': {'budget': 11, "workloads": [1,2,3], 'params':{'input_dim':2}},
         # 'MPB': {'budget': 110, 'time_stamp': 3},
         # 'Griewank': {'budget': 11, 'time_stamp': 3,  'params':{'input_dim':2}},
         # "AckleySphere": {"budget": 1000, "workloads":[1,2,3], "params": {"input_dim": 2}},
@@ -62,7 +73,7 @@ if __name__ == "__main__":
     )  # 实验名称，保存在experiments中
     parser.add_argument("-s", "--seed", type=int, default=100)  # 设置随机种子，与迭代次数相关
     parser.add_argument(
-        "-m", "--optimizer", type=str, default="CauMO"
+        "-m", "--optimizer", type=str, default="BO"
     )  # 设置method:WS,MT,INC
     parser.add_argument("-v", "--verbose", type=bool, default=True)
     parser.add_argument("-norm", "--normalize", type=str, default="norm")
@@ -73,4 +84,5 @@ if __name__ == "__main__":
     )  # 控制BO的acquisition function
     args = parser.parse_args()
 
-    run_experiments(tasks, args)
+
+    run_experiments(tasks)

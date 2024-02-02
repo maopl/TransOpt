@@ -1632,7 +1632,7 @@ class mpbOptBenchmark(NonTabularBenchmark):
 @benchmark_register("Ackley")
 class AckleyOptBenchmark(NonTabularBenchmark):
     def __init__(
-        self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
+        self, task_name, budget, seed, workload, task_type="non-tabular", **kwargs
     ):
         assert "params" in kwargs
         parameters = kwargs["params"]
@@ -1659,7 +1659,7 @@ class AckleyOptBenchmark(NonTabularBenchmark):
         super(AckleyOptBenchmark, self).__init__(
             task_name=task_name,
             seed=seed,
-            task_id=task_id,
+            workload=workload,
             task_type=task_type,
             budget=budget,
         )
@@ -1735,8 +1735,7 @@ class AckleyOptBenchmark(NonTabularBenchmark):
         return fidel_space
 
     def get_meta_information(self) -> Dict:
-        print(1)
-        return {}
+        return {'number_objective':1}
 
 
 @benchmark_register("Ellipsoid")

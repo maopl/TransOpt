@@ -7,7 +7,7 @@ from transopt.Optimizer.OptimizerBase import OptimizerBase
 import GPyOpt
 from transopt.utils.serialization import vectors_to_ndarray, output_to_ndarray
 from transopt.utils.Visualization import visual_oned, visual_contour
-from transopt.KnowledgeBase.TaskDataHandler import OptTaskDataHandler
+from transopt.KnowledgeBase.TransferDataHandler import OptTaskDataHandler
 
 
 

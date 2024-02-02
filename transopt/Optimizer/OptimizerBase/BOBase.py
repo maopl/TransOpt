@@ -6,7 +6,7 @@ import ConfigSpace
 import GPyOpt
 import numpy as np
 
-from transopt.KnowledgeBase.TaskDataHandler import OptTaskDataHandler
+from transopt.KnowledgeBase.TransferDataHandler import OptTaskDataHandler
 from transopt.Optimizer.Acquisition.ConstructACF import get_ACF
 from transopt.Optimizer.Acquisition.sequential import Sequential
 from transopt.Optimizer.OptimizerBase import OptimizerBase

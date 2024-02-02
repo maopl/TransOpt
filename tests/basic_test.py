@@ -10,7 +10,7 @@ sys.path.insert(0, package_dir)
 from transopt.Benchmark.construct_test_suits import get_testsuits
 from transopt.Optimizer.ConstructOptimizer import get_optimizer
 from transopt.KnowledgeBase.kb_builder import construct_knowledgebase
-from transopt.KnowledgeBase.TaskDataHandler import OptTaskDataHandler
+from transopt.KnowledgeBase.TransferDataHandler import OptTaskDataHandler
 
 
 class TestTransOptInstallation(unittest.TestCase):

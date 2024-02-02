@@ -14,7 +14,7 @@ from csstuning.compiler.compiler_benchmark import CompilerBenchmarkBase
 
 from transopt.Benchmark import construct_test_suits
 from transopt.KnowledgeBase.kb_builder import construct_knowledgebase
-from transopt.KnowledgeBase.TaskDataHandler import OptTaskDataHandler
+from transopt.KnowledgeBase.TransferDataHandler import OptTaskDataHandler
 from transopt.Optimizer.ConstructOptimizer import get_optimizer
 
 os.environ["MKL_NUM_THREADS"] = "1"

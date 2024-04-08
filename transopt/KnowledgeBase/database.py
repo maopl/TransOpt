@@ -444,7 +444,7 @@ class Database:
         self.execute(query)
         self.commit()
     
-    def select_data(self, table, columns=None, rowid=None, conditions=None, as_dataframe=False) -> list:
+    def select_data(self, table, columns=None, rowid=None, conditions=None, as_dataframe=False) -> list or pd.DataFrame:
         """
         Select data in the database.
 

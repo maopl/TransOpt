@@ -21,8 +21,9 @@ from sklearn.tree import DecisionTreeRegressor
 
 from csstuning.compiler.compiler_benchmark import GCCBenchmark
 
-data_path = package_dir / "experiment_results" / "gcc_samples"
-# data_path = package_dir / "experiment_results" / "llvm_samples"
+# data_path = package_dir / "experiment_results" / "gcc_samples"
+# data_path = package_dir / "experiment_results" / "gcc_samples"
+data_path = package_dir / "experiment_results" / "dbms_sampling"
 
 
 def load_and_prepare_data(file_path, objectives):
@@ -46,7 +47,7 @@ def load_and_prepare_data(file_path, objectives):
 
     # for obj in objectives:
     #     df_combined = df_combined[df_combined[obj] != 1e10]
-    print(f"Loaded {len(df_combined)} data points after removing extreme values")
+    # print(f"Loaded {len(df_combined)} data points after removing extreme values")
     return df_combined
 
 
@@ -120,9 +121,18 @@ def find_common_features(importances_list):
         top_features = df.sort_values(by="Importance", ascending=False).head(20)
         # Add the set of top 20 feature names to the list
         top_feature_sets.append(set(top_features["Feature"]))
+        
+        # print importances
+        print("Top 20 Features:")
+        print(top_features)
 
     # Find intersection of all top feature sets
     common_features = set.intersection(*top_feature_sets)
+  
+    # # print feature and importances
+    # print("Common Features:")
+    # print(df[df["Feature"].isin(common_features)])
+    
     return list(common_features)
 
 
@@ -244,7 +254,8 @@ def get_features_for_exp(workloads, repetitions=5):
         print("==================================================")
         print(workload)
         print("==================================================")
-        data_file = data_path / f"GCC_{workload}.json"
+        data_file = data_path / f"DBMS_{workload}.json"
+        # data_file = data_path / f"GCC_{workload}.json"
         # data_file = data_path / f"LLVM_{workload}.json"
         features_by_workload[workload] = {}
 
@@ -252,48 +263,63 @@ def get_features_for_exp(workloads, repetitions=5):
         importances_et_all, importances_ct_all, importances_fs_all = [], [], []
         for _ in range(repetitions):
             # Repeat the experiment and append the results
+            # df_combined = load_and_prepare_data(
+            #     data_file, objectives=["execution_time"]
+            # )
+            # importances_et_all.append(
+            #     calculate_feature_importances(df_combined, "execution_time")
+            # )
+
+            # df_combined = load_and_prepare_data(
+            #     data_file, objectives=["compilation_time"]
+            # )
+            # importances_ct_all.append(
+            #     calculate_feature_importances(df_combined, "compilation_time")
+            # )
+
+            # df_combined = load_and_prepare_data(data_file, objectives=["file_size"])
+            # importances_fs_all.append(
+            #     calculate_feature_importances(df_combined, "file_size")
+            # )
+
             df_combined = load_and_prepare_data(
-                data_file, objectives=["execution_time"]
+                data_file, objectives=["throughput"]
             )
             importances_et_all.append(
-                calculate_feature_importances(df_combined, "execution_time")
+                calculate_feature_importances(df_combined, "throughput")
             )
 
             df_combined = load_and_prepare_data(
-                data_file, objectives=["compilation_time"]
+                data_file, objectives=["latency"]
             )
             importances_ct_all.append(
-                calculate_feature_importances(df_combined, "compilation_time")
+                calculate_feature_importances(df_combined, "latency")
             )
 
-            df_combined = load_and_prepare_data(data_file, objectives=["file_size"])
-            importances_fs_all.append(
-                calculate_feature_importances(df_combined, "file_size")
-            )
 
         # Aggregate the importances from all repetitions
         importances_et = aggregate_importances(importances_et_all)
         importances_ct = aggregate_importances(importances_ct_all)
-        importances_fs = aggregate_importances(importances_fs_all)
+        # importances_fs = aggregate_importances(importances_fs_all)
 
         # Find common features across all objectives
         common_features = find_common_features(
-            [importances_et, importances_ct, importances_fs]
+            [importances_et, importances_ct]
         )
-        print("Top 20 Features (Common):")
-        print(common_features)
+        # print("Top 20 Features (Common):")
+        # print(common_features)
         features_by_workload[workload]["common"] = common_features
 
         # Combine and rank features by total importance across all objectives
         combined_ranked = combine_and_rank_features(
-            [importances_et, importances_ct, importances_fs]
+            [importances_et, importances_ct]
         )
-
+    
         # Get top combined features, ensuring we have 20 total
         top_features = get_top_combined_features(common_features, combined_ranked)
 
-        print("Top 20 Features (Common + Supplemented):")
-        print(top_features)
+        # print("Top 20 Features (Common + Supplemented):")
+        # print(top_features)
         features_by_workload[workload]["top"] = top_features
 
         # Write feature importances to file
@@ -301,11 +327,11 @@ def get_features_for_exp(workloads, repetitions=5):
     with open("features_by_workload.json", "w") as fp:
         json.dump(features_by_workload, fp, indent=4)
 
-    print("Features by workload written to features_by_workload.json")
+    # print("Features by workload written to features_by_workload.json")
 
 
 if __name__ == "__main__":
-    workloads_improved = get_workloads_improved()
+    # workloads_improved = get_workloads_improved()
 
     # workloads_improved = [
     #     "cbench-security-sha",
@@ -388,5 +414,13 @@ if __name__ == "__main__":
         "cbench-security-rijndael",
         "cbench-security-sha",
     ]
-    
-    # get_features_for_exp(workloads_gcc_extra)
+   
+    workloads_dbms = [
+        "sibench",
+        "smallbank",
+        "tatp",
+        "tpcc",
+        "twitter",
+        "voter"
+    ] 
+    get_features_for_exp(workloads_dbms)

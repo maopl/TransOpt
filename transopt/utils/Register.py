@@ -18,7 +18,8 @@ def optimizer_register(name):
 def benchmark_register(name):
     def decorator(func_or_class):
         if name in benchmark_registry:
-            raise ValueError(f"Error: '{name}' is already registered.")
+            # raise ValueError(f"Error: '{name}' is already registered.")
+            pass
         benchmark_registry[name] = func_or_class
         return func_or_class
     return decorator

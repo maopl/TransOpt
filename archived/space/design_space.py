@@ -1,8 +1,12 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 import transopt.Space
-from transopt.utils.Register import para_registry
+import 
+
+class SearchSpace:
+    def __init__(self, design_space):
+
 
 class DesignSpace:
     def __init__(self):
@@ -30,19 +34,24 @@ class DesignSpace:
         assert len(self.para_names) == len(set(self.para_names)), "Duplicated parameter names found"
         return self
 
-    def sample(self, num_samples=1):
-        samples = np.column_stack([self.paras[name].sample(num_samples) for name in self.para_names])
-        return pd.DataFrame(samples, columns=self.para_names)
-
-    def transform(self, data: pd.DataFrame):
+    def transform(self, data: pd.DataFrame, as_df=False):
         transformed_data = np.zeros_like(data.values, dtype=float)
         for i, name in enumerate(self.para_names):
             transformed_data[:, i] = self.paras[name].transform(data.iloc[:, i].to_numpy())
-        return transformed_data
+            
+        if as_df:
+            return pd.DataFrame(transformed_data, columns=self.para_names)
+        else:
+            return transformed_data
 
-    def inverse_transform(self, data: np.ndarray):
+    def inverse_transform(self, data: np.ndarray, as_df=True):
         inverse_transformed_data = {}
         for i, name in enumerate(self.para_names):
             inverse_transformed_data[name] = self.paras[name].inverse_transform(data[:, i])
-        return pd.DataFrame(inverse_transformed_data)
-    
+            
+        if as_df:
+            return pd.DataFrame(inverse_transformed_data)
+        else:
+            return inverse_transformed_data
+        
+     

@@ -7,7 +7,7 @@ from typing import Union, Dict, List
 from transopt.Benchmark.BenchBase import NonTabularBenchmark
 from transopt.Benchmark.BenchBase.TabularBenchmark import TabularBenchmark
 from transopt.remote import ExperimentClient
-from transopt.KnowledgeBase.TransferDataHandler import OptTaskDataHandler
+from transopt.KnowledgeBase.DataHandlerBase import DataHandler
 
 logger = logging.getLogger("TransferOptBenchmark")
 

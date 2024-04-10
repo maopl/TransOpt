@@ -41,8 +41,8 @@ class Message(BaseModel):
 class OpenAIChat:
     # model: str = "gpt-4"
     model: str = "gpt-3.5-turbo"
-    api_key: str = "sb-d53c4d600988c650965ca46db99e8a9d3cb5921520a14f8b"
-    base_url: str = "https://api.openai-sb.com/v1"
+    api_key: str = "sk-eGYDsI7kGLAVM9bs2585D337E51b48FbA30d88B0Fa8a1571"
+    base_url: str = "https://aihubmix.com/v1"
     history: List[Message]
 
     def __init__(self, client_kwargs: Optional[Dict[str, Any]] = None):

@@ -42,13 +42,6 @@ def main():
     print("\nAssistant's Response:\n")
     print(response_content)
 
-    # Attempt to parse the assistant's response content into structured information
-    # structured_info = parse_response(response_content)
-    
-    # yaml_output = yaml.dump(structured_info, sort_keys=False, allow_unicode=True)
-    # print("\nGenerated YAML Configuration:")
-    # print(yaml_output)
-
     while True:
         refine = input("\nPlease refine your configuration or type 'exit' to quit:\n")
         if refine.lower() == 'exit':
@@ -60,11 +53,6 @@ def main():
         
         print("\nAssistant's Response:\n")
         print(response_content)
-        # structured_info = parse_response(response_content)
-        
-        # yaml_output = yaml.dump(structured_info, sort_keys=False, allow_unicode=True)
-        # print("\nGenerated YAML Configuration:")
-        # print(yaml_output)
 
 
 if __name__ == "__main__":

@@ -25,8 +25,8 @@ def augmentation_register(name):
 
 
 class DataHandler(abc.ABC, metaclass=abc.ABCMeta):
-    # AUX_DATA_SELEC = {}
-    # AUX_DATA_AUG = {}
+    AUX_DATA_SELEC = {}
+    AUX_DATA_AUG = {}
 
     def __init__(self, db: Database, args):
         self.db = db

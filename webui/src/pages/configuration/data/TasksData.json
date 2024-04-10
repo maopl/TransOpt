@@ -1,0 +1,23 @@
+[
+    {
+        "name": "Task1",
+        "anyDim": true,
+        "dim": [],
+        "obj": [1,2,3],
+        "fidelity": [2]
+    },
+    {
+        "name": "Task2",
+        "anyDim": false,
+        "dim": [5],
+        "obj": [1],
+        "fidelity": [1,2,3]
+    },
+    {
+        "name": "Task3",
+        "anyDim": false,
+        "dim": [2,5,10],
+        "obj": [1,2,3],
+        "fidelity": [4,5,6]
+    }
+]

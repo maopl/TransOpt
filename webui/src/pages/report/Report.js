@@ -10,6 +10,40 @@ import Radar from "./charts/Radar";
 import Scatter from "./charts/Scatter";
 import Bar from "./charts/Bar";
 
+const handleTaskClick = () => {
+  console.log('Task 1 button clicked');
+
+  const messageToSend = {
+    paremeter: 'task_button',
+  };
+
+  fetch('http://localhost:5000/api/task_button', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(messageToSend),
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    } 
+    // TODO
+    return response.json();
+  })
+  .then(data => {
+    console.log('Message from back-end:', data);
+    // TODO
+  })
+  .catch((error) => {
+    console.error('Error sending message:', error);
+    // TODO:
+  });
+
+
+};
+
+
 class Report extends React.Component {
   state = {
     initEchartsOptions: {
@@ -17,7 +51,16 @@ class Report extends React.Component {
     },
   };
 
-  render() {
+  render() { 
+    // If first time rendering, then render the default task
+    // If not, then render the task that was clicked
+    if (this.state.task === undefined) {
+      // TODO: ask for task list from back-end
+
+
+      // Set the default task as the first task in the list
+    }
+
     return (
       <div className={s.root}>
         <h1 className="page-title">
@@ -36,13 +79,13 @@ class Report extends React.Component {
                     }
                     collapse
                   >
-                  <Button className={s.btn}>
+                  <Button className={s.btn} onClick={handleTaskClick}> 
                       Task 1
                   </Button>
-                  <Button className={s.btn}>
+                  <Button className={s.btn} onClick={handleTaskClick}>
                       Task 2
                   </Button>
-                  <Button className={s.btn}>
+                  <Button className={s.btn} onClick={handleTaskClick}>
                       Task 3
                   </Button>
                   </Widget>

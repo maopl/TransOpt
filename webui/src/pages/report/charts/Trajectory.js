@@ -6,7 +6,11 @@ import my_theme from './my_theme.json';
 
 echarts.registerTheme('my_theme', my_theme.theme)
 
-function Trajectory() {
+function Trajectory(task_num) {
+
+  
+
+
   var base = -data.reduce(function (min, val) {
       return Math.floor(Math.min(min, val.l));
   }, Infinity);

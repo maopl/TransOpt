@@ -223,7 +223,7 @@ class Report extends React.Component {
                           }
                           collapse
                         >
-                          <Trajectory data={this.state.TrajectoryData}/>
+                          <Trajectory TrajectoryData={this.state.TrajectoryData}/>
                         </Widget>
                       </Col>
                     </Row>

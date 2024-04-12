@@ -1,0 +1,17 @@
+[
+    {
+        "name":"Task1",
+        "data":["Dataset 1", "Dataset 2"],
+        "algorithm":["BO","MTBO"]
+    },
+    {
+        "name":"Task2",
+        "data":["Dataset 3", "Dataset 4"],
+        "algorithm":["BO"]
+    },
+    {
+        "name":"Task3",
+        "data":["Dataset 5", "Dataset 6"],
+        "algorithm":["MTBO"]
+    }
+]

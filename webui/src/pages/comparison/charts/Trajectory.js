@@ -1,114 +1,70 @@
-import React, { useState } from 'react';
-import * as echarts from 'echarts';
-import ReactECharts from 'echarts-for-react';
-import data from './data/TrajectoryData.json';
-import my_theme from './my_theme.json';
+import React, { Component } from 'react';
+import {
+  Chart,
+  Area,
+  Line,
+  Tooltip,
+  View,
+} from 'bizcharts';
 
-echarts.registerTheme('my_theme', my_theme.theme)
-
-function Trajectory({data}) {
-  var base = -data.reduce(function (min, val) {
-      return Math.floor(Math.min(min, val.l));
-  }, Infinity);
-
-  const option = {
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: {
-        type: 'cross',
-        animation: false,
-        label: {
-          backgroundColor: '#ccc',
-          borderColor: '#aaa',
-          borderWidth: 1,
-          shadowBlur: 0,
-          shadowOffsetX: 0,
-          shadowOffsetY: 0,
-          color: '#222'
-        }
-      },
-    },
-    grid: {
-      left: '3%',
-      right: '4%',
-      bottom: '3%',
-      containLabel: true
-    },
-    toolbox:{
-      feature: {
-          saveAsImage: {}
-      }
-    },
-    xAxis: {
-      type: 'category',
-      data: data.map(function (item) {
-        return item.FEs;
-      }),
-      axisLabel: {
-      },
-      axisLine: {
-        lineStyle: {
-          color: 'white'
-        }
-      },
-      boundaryGap: false
-    },
-    yAxis: {
-      axisLine: {
-        lineStyle: {
-          color: 'white'
-        }
-      },
-      splitNumber: 3
-    },
-    series: [
-      {
-        name: 'L',
-        type: 'line',
-        data: data.map(function (item) {
-          return item.l + base;
-        }),
-        lineStyle: {
-          opacity: 0
-        },
-        stack: 'confidence-band',
-        symbol: 'none'
-      },
-      {
-        name: 'U',
-        type: 'line',
-        data: data.map(function (item) {
-          return item.u - item.l;
-        }),
-        lineStyle: {
-          opacity: 0
-        },
-        areaStyle: {
-          color: '#2EC7C980'
-        },
-        stack: 'confidence-band',
-        symbol: 'none'
-      },
-      {
-        name: "BO",
-        type: 'line',
-        data: data.map(function (item) {
-          return item.value + base;
-        }),
-        itemStyle: {
-          color: '#2EC7C9'
-        },
-        showSymbol: false
-      }
-    ]
-  };
-
-  
-  return <ReactECharts
-    option={option}
-    style={{ height: 400 }}
-    theme={"my_theme"}
-  />;
+const scale = {
+  y: { 
+    sync: true,
+    nice: true,
+  },
+  FEs: {
+    type: 'linear',
+    nice: true,
+  },
 };
+
+const color = [
+  "#2ec7c9",
+  "#b6a2de",
+  "#5ab1ef",
+  "#ffb980",
+  "#d87a80",
+  "#8d98b3",
+  "#e5cf0d",
+  "#97b552",
+  "#95706d",
+  "#dc69aa",
+  "#07a2a4",
+  "#9a7fd1",
+  "#588dd5",
+  "#f5994e",
+  "#c05050",
+  "#59678c",
+  "#c9ab00",
+  "#7eb00a",
+  "#6f5553",
+  "#c14089"
+]
+
+class Trajectory extends Component {
+  constructor(props) {
+    super(props);
+  }
+  
+  render() {
+    const { TrajectoryData } = this.props
+
+    return (
+      <Chart id="chart" scale={scale} height={400} autoFit>
+        <Tooltip shared />
+        {TrajectoryData.map((item, index) => (
+          <div>
+            <View key={index} data={item.average} scale={{ y: { alias: `${item.name}` } }}>
+              <Line position="FEs*y" color={color[index]} />
+            </View>
+            <View key={index} data={item.uncertainty} scale={{ y: { alias: `${item.name}-uncertainty` } }}>
+              <Area position="FEs*y" color={color[index]} shape="smooth" />
+            </View>
+          </div>
+        ))}
+      </Chart>
+    );
+  }
+}
 
 export default Trajectory;

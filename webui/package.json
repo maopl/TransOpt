@@ -68,6 +68,7 @@
     "antd": "^5.16.1",
     "apexcharts": "^3.48.0",
     "awesome-bootstrap-checkbox": "^1.0.1",
+    "bizcharts": "^4.1.23",
     "bootstrap": "^4.6.2",
     "classnames": "^2.5.1",
     "echarts": "^5.5.0",

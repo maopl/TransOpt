@@ -6,12 +6,12 @@ import my_theme from './my_theme.json';
 
 echarts.registerTheme('my_theme', my_theme.theme)
 
-function Trajectory() {
+function Trajectory({data}) {
   var base = -data.reduce(function (min, val) {
       return Math.floor(Math.min(min, val.l));
   }, Infinity);
 
-  const DEFAULT_OPTION = {
+  const option = {
     tooltip: {
       trigger: 'axis',
       axisPointer: {
@@ -27,26 +27,12 @@ function Trajectory() {
           color: '#222'
         }
       },
-      formatter: function (params) {
-        return (
-          params[2].name +
-          '<br />' +
-          ((params[2].value - base) * 100).toFixed(1) +
-          '%'
-        );
-      }
     },
     grid: {
       left: '3%',
       right: '4%',
       bottom: '3%',
       containLabel: true
-    },
-    legend: {
-      data: ["BO"],
-      textStyle: {
-        color: '#ffffff'
-      }
     },
     toolbox:{
       feature: {
@@ -59,12 +45,6 @@ function Trajectory() {
         return item.FEs;
       }),
       axisLabel: {
-        formatter: function (value, idx) {
-          var date = new Date(value);
-          return idx === 0
-            ? value
-            : [date.getMonth() + 1, date.getDate()].join('-');
-        }
       },
       axisLine: {
         lineStyle: {
@@ -74,18 +54,6 @@ function Trajectory() {
       boundaryGap: false
     },
     yAxis: {
-      axisLabel: {
-        formatter: function (val) {
-          return (val - base) * 100 + '%';
-        }
-      },
-      axisPointer: {
-        label: {
-          formatter: function (params) {
-            return ((params.value - base) * 100).toFixed(1) + '%';
-          }
-        }
-      },
       axisLine: {
         lineStyle: {
           color: 'white'
@@ -135,7 +103,6 @@ function Trajectory() {
     ]
   };
 
-  const [option, setOption] = useState(DEFAULT_OPTION);
   
   return <ReactECharts
     option={option}

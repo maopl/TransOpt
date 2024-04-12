@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import * as echarts from 'echarts';
 import ReactECharts from 'echarts-for-react';
-import BarData from './data/BarData.json';
 import my_theme from './my_theme.json';
 
 echarts.registerTheme('my_theme', my_theme.theme)
 
-let seriesArr = [];
-let Xlabel = [];
-BarData.map((item, index) => {
+
+function Bar({BarData}) {
+//   console.log("BarData:", BarData)
+  let seriesArr = [];
+  let Xlabel = [];
+  BarData.map((item, index) => {
     Xlabel.push(item.name)
     let obj = {};
     obj.name = item.name;
@@ -17,17 +19,15 @@ BarData.map((item, index) => {
     obj.barGap = "-100%";
     obj.data = [];
     for (var i = 0; i <= index; i++) {
-        if (i != index) {
+        if (i !== index) {
             obj.data.push(0);
         } else {
             obj.data.push(item.value);
         }
     }
     seriesArr.push(obj);
-}
-)
-
-function Bar() {
+  }
+  )
   const option = {
     // option
     legend: {

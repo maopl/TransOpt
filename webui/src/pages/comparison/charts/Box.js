@@ -6,18 +6,25 @@ import my_theme from './my_theme.json';
 
 echarts.registerTheme('my_theme', my_theme.theme)
 
-function Box() {
+function Box({BoxData}) {
+  console.log("BoxData:",BoxData)
+  const dataLabel = Object.keys(BoxData)
+  const data = Object.values(BoxData)
+
   const option = {
     // option
       dataset: [
         {
           // prettier-ignore
-          source: BoxData
+          source: data
         },
         {
           transform: {
             type: 'boxplot',
-            config: { itemNameFormatter: 'expr {value}' }
+            config: { itemNameFormatter: function(value){
+              // console.log("value:",value.value)
+              return dataLabel[value.value]
+            } }
           }
         },
         {
@@ -61,7 +68,6 @@ function Box() {
         axisLabel:{
             color: '#ffffff'
         },
-        min: 500,
       },
       series: [
         {

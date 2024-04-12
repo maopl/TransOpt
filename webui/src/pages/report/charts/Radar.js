@@ -1,20 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import * as echarts from 'echarts';
 import ReactECharts from 'echarts-for-react';
-import RadarData from './data/RadarData.json';
 import theme from './my_theme.json';
 
 echarts.registerTheme('my_theme', theme.theme)
 
-function Radar() {
+function Radar({RadarData}) {
   const option = {
-    // option
-    // legend: {
-    //   data: ['Allocated Budget'],
-    //   textStyle: {
-    //     color: '#ffffff'
-    //   }
-    // },
     radar: {
       // shape: 'circle',
       indicator: RadarData.indicator

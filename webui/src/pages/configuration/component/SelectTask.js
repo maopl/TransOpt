@@ -1,7 +1,4 @@
 import React, { useState } from "react";
-// import './Select.css';
-
-import data from '../data/TasksData.json'
 
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import {
@@ -9,12 +6,9 @@ import {
     Form,
     Input,
     Space, 
-    Select
+    Select,
+    Modal,
 } from "antd";
-
-const onFinish = (values) => {
-    console.log('Received values of form:', values);
-  };
 
 const filterOption = (input, option) =>
   (option?.value ?? '').toLowerCase().includes(input.toLowerCase());
@@ -47,7 +41,7 @@ function SelectDim({anyDim, dim, name, restField}) {
   }
 }
 
-function ATask({key, name, restField, remove}) {
+function ATask({key, name, restField, remove, data}) {
     const [selectedTask, setSelectedTask] = useState(data[0])
     
     function handleNameChange(value) {
@@ -98,35 +92,70 @@ function ATask({key, name, restField, remove}) {
     )
 }
 
-function SelectTask() {
-    return (
-        <Form
-          name="dynamic_form_nest_item"
-          onFinish={onFinish}
-          style={{ width:"100%" }}
-          autoComplete="off"
-        >
-          <Form.List name="Tasks">
-            {(fields, { add, remove }) => (
-              <>
-                {fields.map(({ key, name, ...restField }) => (
-                  <ATask key={key} name={name} restField={restField} remove={remove} />
-                ))}
-                <Form.Item>
-                  <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />} style={{width:"120px"}}>
-                    Add Task
-                  </Button>
-                </Form.Item>
-                <Form.Item>
-                  <Button type="primary" htmlType="submit" style={{width:"120px"}}>
-                    Submit
-                  </Button>
-                </Form.Item>
-              </>
-            )}
-          </Form.List>
-        </Form>
-    )
+function SelectTask({data}) {
+  const onFinish = (values) => {
+    // 构造要发送到后端的数据
+    const messageToSend = values.Tasks.map(task => ({
+      name: task.name,
+      dim: parseInt(task.dim),
+      obj: task.obj,
+      fidelity: task.fidelity,
+    }));
+    console.log('Request data:', messageToSend);
+    // 向后端发送请求...
+    fetch('http://localhost:5000/api/configuration/select_task', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(messageToSend),
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        } 
+        return response.json();
+      })
+      .then(succeed => {
+        console.log('Message from back-end:', succeed);
+        Modal.success({
+          title: 'Tasks List',
+          content: 'Submit successfully!'
+        })
+      })
+      .catch((error) => {
+        console.error('Error sending message:', error);
+      });
+  };
+
+  return (
+    <Form
+      name="dynamic_form_nest_item"
+      onFinish={onFinish}
+      style={{ width:"100%" }}
+      autoComplete="off"
+    >
+      <Form.List name="Tasks">
+        {(fields, { add, remove }) => (
+          <>
+            {fields.map(({ key, name, ...restField }) => (
+              <ATask key={key} name={name} restField={restField} remove={remove} data={data} />
+            ))}
+            <Form.Item>
+              <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />} style={{width:"120px"}}>
+                Add Task
+              </Button>
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit" style={{width:"120px"}}>
+                Submit
+              </Button>
+            </Form.Item>
+          </>
+        )}
+      </Form.List>
+    </Form>
+  )
 }
 
 export default SelectTask;

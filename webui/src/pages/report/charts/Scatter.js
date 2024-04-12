@@ -1,13 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import * as echarts from 'echarts';
 import ReactECharts from 'echarts-for-react';
-import ScatterData from './data/ScatterData.json';
 import my_theme from './my_theme.json';
-import { keys } from 'highcharts';
 
 echarts.registerTheme('my_theme', my_theme.theme)
 
-function Scatter() {
+function Scatter({ScatterData}) {
   const convertToseries = Object.keys(ScatterData).map(key=>({
     name: key,
     data: ScatterData[key],

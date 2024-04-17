@@ -1,0 +1,40 @@
+{
+    "TasksData":[
+        {
+            "name": "Task1",
+            "anyDim": true,
+            "dim": [],
+            "obj": [1,2,3],
+            "fidelity": [2]
+        },
+        {
+            "name": "Task2",
+            "anyDim": false,
+            "dim": [5],
+            "obj": [1],
+            "fidelity": [1,2,3]
+        },
+        {
+            "name": "Task3",
+            "anyDim": false,
+            "dim": [2,5,10],
+            "obj": [1,2,3],
+            "fidelity": [4,5,6]
+        }
+    ],
+    "AlgorithmsData":
+    [
+        {
+            "name":"Algorithm1",
+            "default":"Parameter1=1, Parameter2=2"
+        },
+        {
+            "name":"Algorithm2",
+            "default":"Parameter3=3, Parameter4=4"
+        },
+        {
+            "name":"Algorithm3",
+            "default":"Parameter5=5, Parameter6=6"
+        }
+    ]
+}

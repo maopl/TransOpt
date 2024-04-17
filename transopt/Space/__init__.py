@@ -1,4 +1,0 @@
-from transopt.Space.param import BaseParameter
-from transopt.Space.integer_param import IntegerParameter
-from transopt.Space.categorical_param import CategoricalParameter
-from transopt.Space.continuous_param import ContinuousParameter

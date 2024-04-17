@@ -1,0 +1,70 @@
+@import '../../styles/app';
+.root {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  @media (max-width: breakpoint-max(sm)) {
+    margin-bottom: 50px;
+  }
+
+  ul > li > a {
+    padding: 0.5rem 12px;
+    @media(max-width: 580px) {
+      padding: 0.5rem 6px;
+    }
+  }
+}
+
+.Header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-items: center;
+}
+
+.divider {
+  display: block;
+  width: 1px;
+  margin: 10px 14px;
+  background: $icon-color;
+}
+
+.logo {
+  margin: 20px 0 10px;
+  font-size: 35px;
+  width: 100%;
+  font-weight: $font-weight-normal;
+  text-align: center;
+  
+  a {
+    color: $icon-color;
+    padding: 0 5px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+}
+
+.navbar {
+  display: flex;
+  justify-content: center;
+}
+
+.nav {
+  padding-bottom: 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 180px;
+  justify-content: center;
+
+  li > a > span {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+  } 
+}
+
+.menuIcon {
+  fill: $icon-color;
+}

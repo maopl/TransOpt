@@ -104,22 +104,19 @@ def generate_grid_plot(dcor_values_dict):
     workloads = list(dcor_values_dict.keys())
     objective_pairs = list(dcor_values_dict[workloads[0]].keys())
 
-    dcor_matrix = np.zeros((len(objective_pairs), len(workloads)))
+    dcor_matrix = np.zeros((len(workloads), len(objective_pairs)))
 
     for i, workload in enumerate(workloads):
         for j, pair in enumerate(objective_pairs):
-            dcor_matrix[j, i] = dcor_values_dict[workload].get(pair, 0)
+            dcor_matrix[i, j] = dcor_values_dict[workload].get(pair, 0)
 
     plt.figure(figsize=(12, 10))  # Increase the height of the heatmap
 
-    # color_sequence = ["#f0f9e8", "#ccebc5", "#a8ddb5", "#7bccc4", "#43a2ca", "#0868ac"]
-    # color_sequence = ["#fef0d9", "#fdd49e", "#fdbb84", "#fc8d59", "#e34a33", "#b30000"]
     color_sequence = ["#edf8fb", "#ccece6", "#99d8c9", "#66c2a4", "#2ca25f", "#006d2c"]
-    # color_sequence = ["#f1eef6", "#d0d1e6", "#a6bddb", "#74a9cf", "#2b8cbe", "#045a8d"]
 
     cmap = mcolors.LinearSegmentedColormap.from_list("mycmap", color_sequence)
     
-    plt.imshow(dcor_matrix, cmap=cmr.ocean_r, interpolation="nearest")
+    plt.imshow(dcor_matrix, cmap=cmr.fusion_r, interpolation="nearest")
     colorbar =plt.colorbar(shrink=0.57)  # Reduce the size of the colorbar
     
     # set font size of colorbar
@@ -127,12 +124,12 @@ def generate_grid_plot(dcor_values_dict):
 
     objective_pairs_short = ['ET-CS', 'ET-CT', 'CS-CT']
 
-    plt.yticks(range(len(objective_pairs)), objective_pairs_short, fontsize=18)
-    plt.xticks(range(len(workloads)), ['1', '2', '3', '4', '5'], fontsize=18)
-    # plt.title("Distance Correlation Heatmap")
+    plt.yticks(range(len(workloads)), workloads, fontsize=18)  # Adjust labels as needed
+    plt.xticks(range(len(objective_pairs)), ['ET-CS', 'ET-CT', 'CS-CT'], rotation=45, fontsize=18)  # Rotation for better label visibility
+    
+    # plt.yticks(range(len(objective_pairs)), objective_pairs_short, fontsize=18)
+    # plt.xticks(range(len(workloads)), ['1', '2', '3', '4', '5'], fontsize=18)
 
-    plt.savefig(pngs_path / f"heatmap.eps", format="eps", dpi=300, bbox_inches="tight")
-    plt.savefig(pngs_path / f"heatmap.tiff", format="tiff", dpi=300, bbox_inches="tight")
     plt.savefig(pngs_path / f"heatmap.pdf", format="pdf", bbox_inches="tight")
 
 

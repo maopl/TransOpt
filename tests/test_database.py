@@ -9,7 +9,7 @@ sys.path.insert(0, str(package_dir))
 
 import numpy as np
 import pandas as pd
-from transopt.KnowledgeBase.database import Database
+from transopt.datamanager.database import Database
 
 
 class TestDatabase(unittest.TestCase):

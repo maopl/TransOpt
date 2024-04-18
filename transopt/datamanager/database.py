@@ -1,9 +1,10 @@
 import json
 import sqlite3
-import pandas as pd
 from multiprocessing import Manager, Process, Queue
+from typing import Union
 
 import numpy as np
+import pandas as pd
 
 from transopt.utils.path import get_library_path
 
@@ -258,19 +259,19 @@ class Database:
         objectives = config["objectives"]
         fidelities = config["fidelities"]
         
-        data_num = self.get_num_row(name)
+        num_rows = self.get_num_row(name)
         
         dataset_info = {
-            "var_num": len(variables),
+            "num_variables": len(variables),
             "variables": variables,
             
-            "obj_num": len(objectives),
+            "num_objectives": len(objectives),
             "objectives": objectives,
             
-            "fidelities_num": len(fidelities),
+            "num_fidelities": len(fidelities),
             "fidelities": fidelities,
             
-            "data_number": data_num,
+            "data_number": num_rows,
         }
         return dataset_info 
 
@@ -281,7 +282,8 @@ class Database:
     def commit(self):
         self.execute("COMMIT")
 
-    def insert_data(self, table, data: dict or list or pd.DataFrame or np.ndarray) -> list:
+
+    def insert_data(self, table, data: Union[dict, list, pd.DataFrame, np.ndarray]) -> list:
         """
         Insert single-row or multiple-row data into the database.
 
@@ -444,7 +446,7 @@ class Database:
         self.execute(query)
         self.commit()
     
-    def select_data(self, table, columns=None, rowid=None, conditions=None, as_dataframe=False) -> list or pd.DataFrame:
+    def select_data(self, table, columns=None, rowid=None, conditions=None, as_dataframe=False) -> Union[list, pd.DataFrame]:
         """
         Select data in the database.
 

@@ -1,7 +1,7 @@
 import abc
 from typing import List, Any, Union, Tuple, Dict
 
-from transopt.KnowledgeBase.database import Database
+from transopt.KnowledgeBase.datamanager.database import Database
 
 
 def selector_register(name):

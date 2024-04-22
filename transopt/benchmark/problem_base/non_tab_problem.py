@@ -103,3 +103,18 @@ class NonTabularProblem(ProblemBase):
     def get_lock_state(self) -> bool:
         return self.lock_flag
 
+    def get_configuration_bound(self):
+        configuration_bound = {}
+        for k, v in self.configuration_space.items():
+            if type(v) is ConfigSpace.CategoricalHyperparameter:
+                configuration_bound[k] = [0, len(v.choices) - 1]
+            else:
+                configuration_bound[k] = [v.lower, v.upper]
+
+        return configuration_bound
+
+    def get_configuration_type(self):
+        configuration_type = {}
+        for k, v in self.configuration_space.items():
+            configuration_type[k] = type(v).__name__
+        return configuration_type

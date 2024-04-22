@@ -11,23 +11,26 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import plotly.graph_objects as go
+# import plotly.graph_objects as go
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D
 
 from transopt.utils.pareto import calc_hypervolume, find_pareto_front
 from transopt.utils.plot import plot3D
 
-target = "llvm"
+target = "gcc"
 results_path = package_path / "experiment_results"
-gcc_results_path = results_path / "gcc_archive_new"
+gcc_results_path = results_path / "gcc_comparsion"
 gcc_samples_path = results_path / "gcc_samples"
-llvm_results = results_path / "llvm_archive"
+llvm_results = results_path / "llvm_comparsion"
 llvm_samples_path = results_path / "llvm_samples"
+
+dbms_samples_path = results_path / "dbms_samples"
 
 algorithm_list = ["ParEGO", "SMSEGO", "MoeadEGO", "CauMO"]
 # algorithm_list = ["SMSEGO"]
-objectives = ["execution_time", "file_size", "compilation_time"]
+# objectives = ["execution_time", "file_size", "compilation_time"]
+objectives = ["latency", "throughput"]
 seed_list = [65535, 65536, 65537, 65538, 65539]
 
 
@@ -48,15 +51,15 @@ def load_and_prepare_data(file_path):
 
     df_output = pd.DataFrame(output_vectors)[objectives]
     df_combined = pd.concat([df_input, df_output], axis=1)
-    # print(f"Loaded {len(df_combined)} data points")
+    print(f"Loaded {len(df_combined)} data points")
 
     df_combined = df_combined.drop_duplicates(subset=df_input.columns.tolist())
 
     for obj in objectives:
         df_combined = df_combined[df_combined[obj] != 1e10]
 
-    # print(f"Loaded {len(df_combined)} data points, removed {len(df_input) - len(df_combined)} duplicates")
-    # print()
+    print(f"Loaded {len(df_combined)} data points, removed {len(df_input) - len(df_combined)} duplicates")
+    print()
     return df_combined
 
 def load_data(workload, algorithm, seed):
@@ -131,7 +134,7 @@ def dynamic_plot(workload, algorithm, seed):
     plt.close(fig)  # Close the plot to free memory
 
 
-def dynamic_plot_html(workload, algorithm, seed):
+# def dynamic_plot_html(workload, algorithm, seed):
     """
     Dynamically plot the three objectives for a given workload and algorithm for a specific seed using Plotly.
     """
@@ -264,7 +267,7 @@ def load_workloads():
         return json.load(f).keys()
 
 
-def plot_pareto_front_html(workload):
+# def plot_pareto_front_html(workload):
     # df = load_and_prepare_data(gcc_samples_path / f"GCC_{workload}.json")
     df = load_and_prepare_data(llvm_samples_path / f"LLVM_{workload}.json")
     df_normalized = (df - df.min()) / (df.max() - df.min())
@@ -307,7 +310,8 @@ def plot_pareto_front_html(workload):
 
 def plot_pareto_front(workload):
     # df = load_and_prepare_data(gcc_samples_path / f"GCC_{workload}.json")
-    df = load_and_prepare_data(llvm_samples_path / f"LLVM_{workload}.json")
+    # df = load_and_prepare_data(llvm_samples_path / f"LLVM_{workload}.json")
+    df = load_data(workload, "ParEGO", 65535)
     df_normalized = (df - df.min()) / (df.max() - df.min())
     _, pareto_indices = find_pareto_front(df_normalized[objectives].values, return_index=True)
     
@@ -338,10 +342,13 @@ def plot_pareto_front(workload):
     plt.close(fig)  # Close the plot to free memory
     
     
-def plot_all(workload):
-    df = load_and_prepare_data(llvm_samples_path / f"LLVM_{workload}.json")
+def plot_all(workload, algorithm=""):
+    # df = load_and_prepare_data(llvm_samples_path / f"LLVM_{workload}.json")
     # df = load_and_prepare_data(gcc_samples_path / f"GCC_{workload}.json")
+    # df = load_data(workload, algorithm, 65535)
+    df = load_and_prepare_data(dbms_samples_path / f"DBMS_{workload}.json")
     df_normalized = (df - df.min()) / (df.max() - df.min())
+    df_normalized = df
     
     # Create a 3D scatter plot
     fig = plt.figure()
@@ -362,12 +369,42 @@ def plot_all(workload):
     ax.scatter(x_values, y_values, z_values, c='b', marker='o')
 
     # Save the plot as a file
-    file_path = package_path / "demo" / "comparison" / "pngs" / f"{target}_all_{workload}.png"
+    file_path = package_path / "demo" / "comparison" / "pngs" / f"{target}_{workload}.png"
+    plt.savefig(file_path)
+    plt.close(fig)  # Close the plot to free memory
+    
+# 2D plot all
+def plot_all_2d(workload, algorithm=""):
+    # df = load_and_prepare_data(llvm_samples_path / f"LLVM_{workload}.json")
+    # df = load_and_prepare_data(gcc_samples_path / f"GCC_{workload}.json")
+    # df = load_data(workload, algorithm, 65535)
+    df = load_and_prepare_data(dbms_samples_path / f"DBMS_{workload}.json")
+    df_normalized = (df - df.min()) / (df.max() - df.min())
+    df_normalized = df
+    
+    # Create a 2D scatter plot
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.set_title(f"All samples for {workload}")
+    ax.set_xlabel(objectives[0])
+    ax.set_ylabel(objectives[1])
+    
+    # Scatter plot for Pareto front
+    points = df_normalized[objectives]
+    
+    # Convert Series to NumPy array before plotting
+    x_values = points[objectives[0]].values
+    y_values = points[objectives[1]].values
+
+    ax.scatter(x_values, y_values, c='b', marker='o')
+
+    # Save the plot as a file
+    file_path = package_path / "demo" / "comparison" / "pngs" / f"{target}_{workload}.png"
     plt.savefig(file_path)
     plt.close(fig)  # Close the plot to free memory
 
 if __name__ == "__main__":
-    workloads = load_workloads()
+    # workloads = load_workloads()
  
     # workloads = [
     #     "cbench-consumer-tiff2bw",
@@ -396,23 +433,29 @@ if __name__ == "__main__":
         "cbench-automotive-susan-e",
         "cbench-consumer-tiff2rgba",
         "cbench-network-patricia",
-        "cbench-automotive-bitcount",
-        "cbench-bzip2",
         "cbench-consumer-tiff2bw",
         "cbench-consumer-jpeg-d",
         "cbench-telecom-adpcm-c",
-        "cbench-telecom-adpcm-d",
-        "cbench-office-stringsearch2",
         "cbench-security-rijndael",
         "cbench-security-sha",
     ]
         
+        
+    workloads_mysql = [
+        "sibench",
+        "smallbank",
+        "voter",
+        "tatp",
+        "tpcc",
+        "twitter",
+    ]
     seed = 65535  # Example seed
     
     # Plot sampling results
-    for workload in workloads:
-        plot_all(workload)
-        plot_pareto_front(workload)
+    for workload in workloads_mysql:
+        # for algorithm in algorithm_list:
+        plot_all_2d(workload)
+        # plot_pareto_front(workload)
     
     # for algorithm in algorithm_list:
     #     # dynamic_plot_html("cbench-consumer-tiff2bw", algorithm, seed)

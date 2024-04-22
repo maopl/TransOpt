@@ -19,10 +19,31 @@ class SearchSpace:
 
         self.ranges = copy.deepcopy(self.original_ranges)
 
+
+    def get_hyperparameter_names(self):
+        return list(self._variables.keys())
+    
+    
+    def get_active_hyperparameters(self):
+        return self._variables
+    
+    
     def map_to_design_space(self, values: np.ndarray) -> dict:
+        """
+        Maps the given values from the search space to the design space.
+
+        Args:
+            values (np.ndarray): The values to be mapped from the search space. Must be a 1D NumPy array.
+
+        Returns:
+            dict: A dictionary containing the mapped values in the design space.
+
+        Raises:
+            ValueError: If the `values` parameter is not a 1D NumPy array.
+        """
         if not isinstance(values, np.ndarray) or values.ndim != 1:
             raise ValueError("values must be a 1D NumPy array.")
-        
+
         values_dict = {}
         for i, name in enumerate(self.variables_order):
             variable = self._variables[name]
@@ -31,6 +52,15 @@ class SearchSpace:
         return values_dict
     
     def map_from_design_space(self, values_dict: dict) -> np.ndarray:
+        """
+        Maps values from the design space to the search space.
+
+        Args:
+            values_dict (dict): A dictionary containing variable names as keys and their corresponding values.
+
+        Returns:
+            np.ndarray: An array of mapped values in the search space.
+        """
         values_array = np.zeros(len(self.variables_order))
         for i, name in enumerate(self.variables_order):
             variable = self._variables[name]
@@ -39,14 +69,24 @@ class SearchSpace:
         return values_array
 
     def update_range(self, name, new_range: tuple):
-        if name in self._variables:
-            # Check if the new range is valid
-            ori_range = self.original_ranges[name]
-            if new_range[0] < ori_range[0] or new_range[1] > ori_range[1]:
-                raise ValueError(
-                    f"New range {new_range} is out of the original range {ori_range}."
-                )
-            
-            self.ranges[name] = new_range
-        else:
-            raise ValueError(f"Variable '{name}' not found in search space.")
+            """
+            Update the range of a variable in the search space.
+
+            Args:
+                name (str): The name of the variable.
+                new_range (tuple): The new range for the variable.
+
+            Raises:
+                ValueError: If the variable is not found in the search space or if the new range is out of the original range.
+            """
+            if name in self._variables:
+                # Check if the new range is valid
+                ori_range = self.original_ranges[name]
+                if new_range[0] < ori_range[0] or new_range[1] > ori_range[1]:
+                    raise ValueError(
+                        f"New range {new_range} is out of the original range {ori_range}."
+                    )
+                
+                self.ranges[name] = new_range
+            else:
+                raise ValueError(f"Variable '{name}' not found in search space.")

@@ -1,0 +1,14 @@
+[
+    {
+        "name":"Algorithm1",
+        "default":"Parameter1=1, Parameter2=2"
+    },
+    {
+        "name":"Algorithm2",
+        "default":"Parameter3=3, Parameter4=4"
+    },
+    {
+        "name":"Algorithm3",
+        "default":"Parameter5=5, Parameter6=6"
+    }
+]

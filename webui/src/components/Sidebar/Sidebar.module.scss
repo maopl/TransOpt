@@ -1,0 +1,56 @@
+@import '../../styles/app';
+
+.root {
+  width: $sidebar-width-open;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  overflow-y: auto;
+  background-color: $sidebar-bg-color;
+  background: transparent;
+  color: $sidebar-color;
+  margin-left: 15px;
+  transition: height 1s;
+  transform: translateX(-$sidebar-width-open);
+
+  @media print {
+    display: none;
+  }
+}
+
+.logo {
+  margin: 20px 0 55px;
+  font-size: 18px;
+  width: 100%;
+  font-weight: $font-weight-normal;
+  text-align: center;
+  text-transform: uppercase;
+
+  a {
+    color: $icon-color;
+    padding: 0 5px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+}
+
+.nav {
+  padding-bottom: 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  li > a > span {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+  } 
+
+}
+
+.menuIcon {
+  fill: $icon-color;
+}

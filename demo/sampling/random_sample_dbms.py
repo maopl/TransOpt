@@ -14,7 +14,7 @@ import sys
 import numpy as np
 from csstuning.dbms.dbms_benchmark import MySQLBenchmark
 
-from transopt.Benchmark import construct_test_suits
+from transopt.benchmark import construct_test_suits
 from transopt.KnowledgeBase.kb_builder import construct_knowledgebase
 from transopt.KnowledgeBase.TransferDataHandler import OptTaskDataHandler
 from transopt.Optimizer.ConstructOptimizer import get_optimizer

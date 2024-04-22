@@ -20,7 +20,6 @@ class SearchSpace:
         self.ranges = copy.deepcopy(self.original_ranges)
 
     def map_to_design_space(self, values: np.ndarray) -> dict:
-        """将NumPy数组映射回设计空间的字典形式。"""
         if not isinstance(values, np.ndarray) or values.ndim != 1:
             raise ValueError("values must be a 1D NumPy array.")
         
@@ -32,7 +31,6 @@ class SearchSpace:
         return values_dict
     
     def map_from_design_space(self, values_dict: dict) -> np.ndarray:
-        """将设计空间的字典形式映射为NumPy数组。"""
         values_array = np.zeros(len(self.variables_order))
         for i, name in enumerate(self.variables_order):
             variable = self._variables[name]
@@ -41,7 +39,6 @@ class SearchSpace:
         return values_array
 
     def update_range(self, name, new_range: tuple):
-        """更新变量的搜索范围"""
         if name in self._variables:
             # Check if the new range is valid
             ori_range = self.original_ranges[name]

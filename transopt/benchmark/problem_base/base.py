@@ -47,41 +47,6 @@ class ProblemBase(abc.ABC, metaclass=abc.ABCMeta):
     ) -> Dict:
         raise NotImplementedError
 
-    @abc.abstractmethod
-    def objective_function(
-        self,
-        configuration: Dict,
-        fidelity: Dict = None,
-        seed: Union[np.random.RandomState, int, None] = None,
-        **kwargs,
-    ) -> Dict:
-        """
-        Objective function.
-
-        Override this function to provide your benchmark function. This
-        function will be called by one of the evaluate functions. For
-        flexibility you have to return a dictionary with the only mandatory
-        key being `function_value`, the objective function value for the
-        `configuration` which was passed. By convention, all benchmarks are
-        minimization problems.
-
-        Parameters
-        ----------
-        configuration : Dict
-        fidelity: Dict, None
-            Fidelity parameters, check get_fidelity_space(). Uses default (max) value if None.
-        seed : np.random.RandomState, int, None
-            It might be useful to pass a `rng` argument to the function call to
-            bypass the default "seed" generator. Only using the default random
-            state (`self.rng`) could lead to an overfitting towards the
-            `self.rng`'s seed.
-
-        Returns
-        -------
-        Dict
-            Must contain at least the key `function_value` and `cost`.
-        """
-        raise NotImplementedError()
 
     @staticmethod
     def check_parameters(wrapped_function):
@@ -137,7 +102,7 @@ class ProblemBase(abc.ABC, metaclass=abc.ABCMeta):
     @staticmethod
     def _check_and_cast_configuration(
         configuration: Dict,
-        configuration_space: DesignSpace,
+        configuration_space: SearchSpace,
     ) -> Dict:
         """Helper-function to evaluate the given configuration.
         Cast it to a ConfigSpace.Configuration and evaluate if it violates its boundaries.
@@ -150,12 +115,8 @@ class ProblemBase(abc.ABC, metaclass=abc.ABCMeta):
             cases that inactive parameters are not present in the input-configuration.
         """
 
-        if isinstance(configuration, dict):
-            configuration = ConfigSpace.Configuration(
-                configuration_space, configuration, allow_inactive_with_values=True
-            )
-        elif isinstance(configuration, ConfigSpace.Configuration):
-            configuration = configuration
+        if isinstance(configuration, Dict):
+            pass
         else:
             raise TypeError(
                 f"Configuration has to be from type List, np.ndarray, dict, or "
@@ -236,7 +197,7 @@ class ProblemBase(abc.ABC, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def get_configuration_space(
         self, seed: Union[int, None] = None
-    ) -> DesignSpace:
+    ) -> SearchSpace:
         """Defines the configuration space for each benchmark.
         Parameters
         ----------
@@ -253,7 +214,7 @@ class ProblemBase(abc.ABC, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def get_fidelity_space(
         self, seed: Union[int, None] = None
-    ) -> DesignSpace:
+    ) -> FidelitySpace:
         """Defines the available fidelity parameters as a "fidelity space" for each benchmark.
         Parameters
         ----------

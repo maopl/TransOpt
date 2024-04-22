@@ -19,6 +19,15 @@ class SearchSpace:
 
         self.ranges = copy.deepcopy(self.original_ranges)
 
+
+    def get_hyperparameter_names(self):
+        return list(self._variables.keys())
+    
+    
+    def get_active_hyperparameters(self):
+        return self._variables
+    
+    
     def map_to_design_space(self, values: np.ndarray) -> dict:
         """
         Maps the given values from the search space to the design space.

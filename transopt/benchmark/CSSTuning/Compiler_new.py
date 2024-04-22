@@ -13,14 +13,14 @@ import numpy as np
 import pandas as pd
 from csstuning.compiler.compiler_benchmark import GCCBenchmark, LLVMBenchmark
 
-from transopt.Benchmark.BenchBase import NonTabularBenchmark
+from transopt.benchmark.problem_base import NonTabularProblem
 from transopt.space import DesignSpace
 from transopt.utils.Register import benchmark_register
 
 
 
 @benchmark_register("GCC")
-class GCCTuning(NonTabularBenchmark):
+class GCCTuning(NonTabularProblem):
     ERROR_VALUE = 1e10
     
     def __init__(

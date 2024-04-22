@@ -12,7 +12,7 @@ import datetime
 import numpy as np
 from csstuning.compiler.compiler_benchmark import CompilerBenchmarkBase
 
-from transopt.Benchmark import construct_test_suits
+from transopt.benchmark import construct_test_suits
 from transopt.KnowledgeBase.kb_builder import construct_knowledgebase
 from transopt.KnowledgeBase.TransferDataHandler import OptTaskDataHandler
 from transopt.Optimizer.ConstructOptimizer import get_optimizer

@@ -3,16 +3,17 @@
 import abc
 import functools
 import logging
-import ConfigSpace
+from transopt.space.search_space import SearchSpace 
+from transopt.space.fidelity_space import FidelitySpace 
 import numpy as np
 from typing import Union, Dict
 
 from ConfigSpace.util import deactivate_inactive_hyperparameters
 
-logger = logging.getLogger("AbstractBenchmark")
+logger = logging.getLogger("AbstractProblem")
 
 
-class BenchmarkBase(abc.ABC, metaclass=abc.ABCMeta):
+class ProblemBase(abc.ABC, metaclass=abc.ABCMeta):
     def __init__(self, seed: Union[int, np.random.RandomState, None] = None, **kwargs):
         """
         Interface for benchmarks.
@@ -39,8 +40,8 @@ class BenchmarkBase(abc.ABC, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def f(
         self,
-        configuration: Union[ConfigSpace.Configuration, Dict],
-        fidelity: Union[Dict, ConfigSpace.Configuration, None] = None,
+        configuration: Dict,
+        fidelity: Dict = None,
         seed: Union[np.random.RandomState, int, None] = None,
         **kwargs,
     ) -> Dict:
@@ -49,8 +50,8 @@ class BenchmarkBase(abc.ABC, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def objective_function(
         self,
-        configuration: Union[ConfigSpace.Configuration, Dict],
-        fidelity: Union[Dict, ConfigSpace.Configuration, None] = None,
+        configuration: Dict,
+        fidelity: Dict = None,
         seed: Union[np.random.RandomState, int, None] = None,
         **kwargs,
     ) -> Dict:
@@ -109,17 +110,17 @@ class BenchmarkBase(abc.ABC, metaclass=abc.ABCMeta):
         )
         def wrapper(
             self,
-            configuration: Union[ConfigSpace.Configuration, Dict],
-            fidelity: Union[Dict, ConfigSpace.Configuration, None] = None,
+            configuration: Dict,
+            fidelity: Dict = None,
             **kwargs,
         ):
-            configuration = BenchmarkBase._check_and_cast_configuration(
+            configuration = ProblemBase._check_and_cast_configuration(
                 configuration, self.configuration_space
             )
 
             # Second, evaluate the given fidelities.
             # Sanity check that there are no fidelities in **kwargs
-            fidelity = BenchmarkBase._check_and_cast_fidelity(
+            fidelity = ProblemBase._check_and_cast_fidelity(
                 fidelity, self.fidelity_space, **kwargs
             )
 
@@ -135,9 +136,9 @@ class BenchmarkBase(abc.ABC, metaclass=abc.ABCMeta):
 
     @staticmethod
     def _check_and_cast_configuration(
-        configuration: Union[Dict, ConfigSpace.Configuration],
-        configuration_space: ConfigSpace.ConfigurationSpace,
-    ) -> ConfigSpace.Configuration:
+        configuration: Dict,
+        configuration_space: DesignSpace,
+    ) -> Dict:
         """Helper-function to evaluate the given configuration.
         Cast it to a ConfigSpace.Configuration and evaluate if it violates its boundaries.
 
@@ -180,10 +181,10 @@ class BenchmarkBase(abc.ABC, metaclass=abc.ABCMeta):
 
     @staticmethod
     def _check_and_cast_fidelity(
-        fidelity: Union[dict, ConfigSpace.Configuration, None],
-        fidelity_space: ConfigSpace.ConfigurationSpace,
+        fidelity: Dict,
+        fidelity_space: FidelitySpace,
         **kwargs,
-    ) -> ConfigSpace.Configuration:
+    ) -> Dict:
         """Helper-function to evaluate the given fidelity object.
         Similar to the checking and casting from above, we validate the fidelity object. To do so, we cast it to a
         ConfigSpace.Configuration object.
@@ -235,7 +236,7 @@ class BenchmarkBase(abc.ABC, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def get_configuration_space(
         self, seed: Union[int, None] = None
-    ) -> ConfigSpace.ConfigurationSpace:
+    ) -> DesignSpace:
         """Defines the configuration space for each benchmark.
         Parameters
         ----------
@@ -252,7 +253,7 @@ class BenchmarkBase(abc.ABC, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def get_fidelity_space(
         self, seed: Union[int, None] = None
-    ) -> ConfigSpace.ConfigurationSpace:
+    ) -> DesignSpace:
         """Defines the available fidelity parameters as a "fidelity space" for each benchmark.
         Parameters
         ----------

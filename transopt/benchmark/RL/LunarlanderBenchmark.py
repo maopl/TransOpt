@@ -8,7 +8,7 @@ from scipy.stats import pearsonr, spearmanr
 from gplearn.genetic import SymbolicRegressor
 from typing import Union, Dict
 
-from transopt.Benchmark.BenchBase import NonTabularBenchmark
+from transopt.benchmark.problem_base import NonTabularProblem
 from transopt.utils.Register import benchmark_register
 
 
@@ -224,7 +224,7 @@ def vanilla_heuristic(s, is_continuous=False):
 
 
 @benchmark_register("Lunar")
-class LunarlanderBenchmark(NonTabularBenchmark):
+class LunarlanderBenchmark(NonTabularProblem):
     """
     DixonPrice function
 

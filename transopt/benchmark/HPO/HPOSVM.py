@@ -12,15 +12,15 @@ from sklearn.metrics import accuracy_score, make_scorer
 from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
 
 from transopt.utils.openml_data_manager import OpenMLHoldoutDataManager
-from transopt.Benchmark.BenchBase import BenchmarkBase
-from transopt.Benchmark.BenchBase import NonTabularBenchmark
+from transopt.benchmark.problem_base import ProblemBase
+from transopt.benchmark.problem_base import NonTabularProblem
 from transopt.utils.Register import benchmark_register
 
 logger = logging.getLogger('SVMBenchmark')
 
 
 @benchmark_register('SVM')
-class SupportVectorMachine(NonTabularBenchmark):
+class SupportVectorMachine(NonTabularProblem):
     """
     Hyperparameter optimization task to optimize the regularization
     parameter C and the kernel parameter gamma of a support vector machine.
@@ -92,7 +92,7 @@ class SupportVectorMachine(NonTabularBenchmark):
         random_state.shuffle(self.train_idx)
 
     # pylint: disable=arguments-differ
-    @BenchmarkBase.check_parameters
+    @ProblemBase.check_parameters
     def objective_function(self, configuration: Union[CS.Configuration, Dict],
                            fidelity: Union[CS.Configuration, Dict, None] = None,
                            shuffle: bool = False,
@@ -154,7 +154,7 @@ class SupportVectorMachine(NonTabularBenchmark):
                          'fidelity': fidelity}}
 
     # pylint: disable=arguments-differ
-    @BenchmarkBase.check_parameters
+    @ProblemBase.check_parameters
     def objective_function_test(self, configuration: Union[CS.Configuration, Dict],
                                 fidelity: Union[CS.Configuration, Dict, None] = None,
                                 shuffle: bool = False,

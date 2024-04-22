@@ -1,16 +1,16 @@
 from pathlib import Path
 from transopt.utils.Register import benchmark_registry
-from transopt.Benchmark.BenchBase.TabularBenchmark import TabularBenchmark
+from benchmark.problem_base.tab_problem import TabularProblem
 from transopt.utils import  check
-from transopt.Benchmark.BenchBase import (
-    TransferOptBenchmark,
+from transopt.benchmark.problem_base import (
+    TransferProblem,
     RemoteTransferOptBenchmark,
 )
 
 
 def construct_test_suits(
     tasks: dict = None, seed: int = 0, remote: bool = False, server_url: str = None
-) -> TransferOptBenchmark:
+) -> TransferProblem:
     tasks = tasks or {}
 
     if remote:
@@ -18,7 +18,7 @@ def construct_test_suits(
             raise ValueError("Server URL must be provided for remote testing.")
         test_suits = RemoteTransferOptBenchmark(server_url, seed)
     else:
-        test_suits = TransferOptBenchmark(seed)
+        test_suits = TransferProblem(seed)
 
     for task_name, task_params in tasks.items():
         budget = task_params["budget"]
@@ -35,7 +35,7 @@ def construct_test_suits(
             else:
                 space_info = None
             for workload in workloads:
-                problem = TabularBenchmark(task_name, budget=budget, path=data_path, workload=workload,
+                problem = TabularProblem(task_name, budget=budget, path=data_path, workload=workload,
                                               task_type='tabular', seed=seed, bounds = None, space_info = space_info)
                 test_suits.add_task(problem)
         else:

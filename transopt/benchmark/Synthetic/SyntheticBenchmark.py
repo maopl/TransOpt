@@ -9,13 +9,13 @@ import ConfigSpace as CS
 from typing import Union, Dict
 
 from transopt.utils.Register import benchmark_register, benchmark_registry
-from transopt.Benchmark.BenchBase.NonTabularBenchmark import NonTabularBenchmark
+from benchmark.problem_base.non_tab_problem import NonTabularProblem
 
 logger = logging.getLogger("SyntheticBenchmark")
 
 
 @benchmark_register("Sphere")
-class SphereOptBenchmark(NonTabularBenchmark):
+class SphereOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -118,7 +118,7 @@ class SphereOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("Rastrigin")
-class RastriginOptBenchmark(NonTabularBenchmark):
+class RastriginOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -222,7 +222,7 @@ class RastriginOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("Schwefel")
-class SchwefelOptBenchmark(NonTabularBenchmark):
+class SchwefelOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -327,7 +327,7 @@ class SchwefelOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("LevyR")
-class LevyROptBenchmark(NonTabularBenchmark):
+class LevyROptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -439,7 +439,7 @@ class LevyROptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("Griewank")
-class GriewankOptBenchmark(NonTabularBenchmark):
+class GriewankOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -545,7 +545,7 @@ class GriewankOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("Rosenbrock")
-class RosenbrockOptBenchmark(NonTabularBenchmark):
+class RosenbrockOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -651,7 +651,7 @@ class RosenbrockOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("DropwaveR")
-class DropwaveROptBenchmark(NonTabularBenchmark):
+class DropwaveROptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -759,7 +759,7 @@ class DropwaveROptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("Langermann")
-class LangermannOptBenchmark(NonTabularBenchmark):
+class LangermannOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -870,7 +870,7 @@ class LangermannOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("RotatedHyperEllipsoid")
-class RotatedHyperEllipsoidOptBenchmark(NonTabularBenchmark):
+class RotatedHyperEllipsoidOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -974,7 +974,7 @@ class RotatedHyperEllipsoidOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("SumOfDifferentPowers")
-class SumOfDifferentPowersOptBenchmark(NonTabularBenchmark):
+class SumOfDifferentPowersOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -1079,7 +1079,7 @@ class SumOfDifferentPowersOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("StyblinskiTang")
-class StyblinskiTangOptBenchmark(NonTabularBenchmark):
+class StyblinskiTangOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -1182,7 +1182,7 @@ class StyblinskiTangOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("Powell")
-class PowellOptBenchmark(NonTabularBenchmark):
+class PowellOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -1292,7 +1292,7 @@ class PowellOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("DixonPrice")
-class DixonPriceOptBenchmark(NonTabularBenchmark):
+class DixonPriceOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -1404,7 +1404,7 @@ class DixonPriceOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("cp")
-class cpOptBenchmark(NonTabularBenchmark):
+class cpOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -1516,7 +1516,7 @@ class cpOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("mpb")
-class mpbOptBenchmark(NonTabularBenchmark):
+class mpbOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -1630,7 +1630,7 @@ class mpbOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("Ackley")
-class AckleyOptBenchmark(NonTabularBenchmark):
+class AckleyOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, workload, task_type="non-tabular", **kwargs
     ):
@@ -1739,7 +1739,7 @@ class AckleyOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("Ellipsoid")
-class EllipsoidOptBenchmark(NonTabularBenchmark):
+class EllipsoidOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -1849,7 +1849,7 @@ class EllipsoidOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("Discus")
-class DiscusOptBenchmark(NonTabularBenchmark):
+class DiscusOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -1958,7 +1958,7 @@ class DiscusOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("BentCigar")
-class BentCigarOptBenchmark(NonTabularBenchmark):
+class BentCigarOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -2067,7 +2067,7 @@ class BentCigarOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("SharpRidge")
-class SharpRidgeOptBenchmark(NonTabularBenchmark):
+class SharpRidgeOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -2181,7 +2181,7 @@ class SharpRidgeOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("GriewankRosenbrock")
-class GriewankRosenbrockOptBenchmark(NonTabularBenchmark):
+class GriewankRosenbrockOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):
@@ -2291,7 +2291,7 @@ class GriewankRosenbrockOptBenchmark(NonTabularBenchmark):
 
 
 @benchmark_register("Katsuura")
-class KatsuuraOptBenchmark(NonTabularBenchmark):
+class KatsuuraOptBenchmark(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
     ):

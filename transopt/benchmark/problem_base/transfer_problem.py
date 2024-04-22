@@ -4,15 +4,15 @@ import logging
 import numpy as np
 from typing import Union, Dict, List
 
-from transopt.Benchmark.BenchBase import NonTabularBenchmark
-from transopt.Benchmark.BenchBase.TabularBenchmark import TabularBenchmark
+from transopt.benchmark.problem_base import NonTabularProblem
+from benchmark.problem_base.tab_problem import TabularProblem
 from transopt.remote import ExperimentClient
 from transopt.KnowledgeBase.DataHandlerBase import DataHandler
 
-logger = logging.getLogger("TransferOptBenchmark")
+logger = logging.getLogger("TransferProblem")
 
 
-class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
+class TransferProblem(abc.ABC, metaclass=abc.ABCMeta):
     def __init__(self, seed: Union[int, np.random.RandomState, None] = None, **kwargs):
         self.seed = seed
         self.tasks = []
@@ -23,8 +23,8 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
         self,
         insert_id: int,
         task: Union[
-            NonTabularBenchmark,
-            TabularBenchmark,
+            NonTabularProblem,
+            TabularProblem,
         ],
     ):
         num_tasks = len(self.tasks)
@@ -36,8 +36,8 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
     def add_task(
         self,
         task: Union[
-            NonTabularBenchmark,
-            TabularBenchmark,
+            NonTabularProblem,
+            TabularProblem,
         ],
     ):
         num_tasks = len(self.tasks)
@@ -106,9 +106,9 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
         return self.tasks[self.__id].get_lock_state()
 
     def get_task_type(self):
-        if isinstance(self.tasks[self.__id], TabularBenchmark):
+        if isinstance(self.tasks[self.__id], TabularProblem):
             return "tabular"
-        elif isinstance(self.tasks[self.__id], NonTabularBenchmark):
+        elif isinstance(self.tasks[self.__id], NonTabularProblem):
             return "non-tabular"
         else:
             logger.error("Unknown task type.")
@@ -139,23 +139,23 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
 
     ###Methods only for tabular data###
     def get_dataset_size(self):
-        assert isinstance(self.tasks[self.__id], TabularBenchmark)
+        assert isinstance(self.tasks[self.__id], TabularProblem)
         return self.tasks[self.__id].get_dataset_size()
 
     def get_var_by_idx(self, idx):
-        assert isinstance(self.tasks[self.__id], TabularBenchmark)
+        assert isinstance(self.tasks[self.__id], TabularProblem)
         return self.tasks[self.__id].get_var_by_idx(idx)
 
     def get_idx_by_var(self, vectors):
-        assert isinstance(self.tasks[self.__id], TabularBenchmark)
+        assert isinstance(self.tasks[self.__id], TabularProblem)
         return self.tasks[self.__id].get_idx_by_var(vectors)
 
     def get_unobserved_vars(self):
-        assert isinstance(self.tasks[self.__id], TabularBenchmark)
+        assert isinstance(self.tasks[self.__id], TabularProblem)
         return self.tasks[self.__id].get_unobserved_vars()
 
     def get_unobserved_idxs(self):
-        assert isinstance(self.tasks[self.__id], TabularBenchmark)
+        assert isinstance(self.tasks[self.__id], TabularProblem)
         return self.tasks[self.__id].get_unobserved_idxs()
 
     def add_query_num(self):
@@ -217,7 +217,7 @@ class TransferOptBenchmark(abc.ABC, metaclass=abc.ABCMeta):
             raise TypeError(f"Unrecognized task type.")
 
 
-class RemoteTransferOptBenchmark(TransferOptBenchmark):
+class RemoteTransferOptBenchmark(TransferProblem):
     def __init__(
         self, server_url, seed: Union[int, np.random.RandomState, None] = None, **kwargs
     ):
@@ -228,7 +228,7 @@ class RemoteTransferOptBenchmark(TransferOptBenchmark):
     def add_task_to_id(
         self,
         insert_id: int,
-        task: NonTabularBenchmark | TabularBenchmark,
+        task: NonTabularProblem | TabularProblem,
         task_params,
     ):
         assert insert_id < len(self.tasks) + 1

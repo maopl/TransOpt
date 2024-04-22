@@ -7,14 +7,14 @@ from pathlib import Path
 from typing import Union, Dict, Tuple
 from csstuning.compiler.compiler_benchmark import GCCBenchmark, LLVMBenchmark
 
-from transopt.Benchmark.BenchBase import NonTabularBenchmark
+from transopt.benchmark.problem_base import NonTabularProblem
 from transopt.utils.Register import benchmark_register
 
 ERROR_VALUE = 1e10
 
 
 @benchmark_register("GCC")
-class GCCTuning(NonTabularBenchmark):
+class GCCTuning(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_type="non-tabular", workload=None, knobs=None, **kwargs
     ):
@@ -139,7 +139,7 @@ class GCCTuning(NonTabularBenchmark):
 
 
 @benchmark_register("LLVM")
-class LLVMTuning(NonTabularBenchmark):
+class LLVMTuning(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, task_type="non-tabular", workload=None, knobs=None, **kwargs
     ):

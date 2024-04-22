@@ -2,17 +2,17 @@
 import os
 import json
 import logging
-import ConfigSpace
 import numpy as np
 from typing import Union, Dict, List
 from urllib.parse import urlparse
 from pathlib import Path
-from transopt.Benchmark.BenchBase import BenchmarkBase
+from transopt.space import DesignSpace
+from transopt.benchmark.problem_base import ProblemBase
 from transopt.utils.Read import read_file
-logger = logging.getLogger("NonTabularBenchmark")
+logger = logging.getLogger("NonTabularProblem")
 
 
-class NonTabularBenchmark(BenchmarkBase):
+class NonTabularProblem(ProblemBase):
     def __init__(
         self,
         task_name: str,
@@ -28,7 +28,7 @@ class NonTabularBenchmark(BenchmarkBase):
         self.workload = workload
         self.lock_flag = False
 
-        super(NonTabularBenchmark, self).__init__(seed, **kwargs)
+        super(NonTabularProblem, self).__init__(seed, **kwargs)
         self.var_range = self.get_configuration_bound()
         self.var_type = self.get_configuration_type()
         self.input_dim = len(self.configuration_space.keys())

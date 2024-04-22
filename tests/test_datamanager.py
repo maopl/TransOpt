@@ -3,7 +3,7 @@ import random
 import unittest
 from unittest.mock import MagicMock
 
-from datamanager.manager import DataManager
+from transopt.datamanager.manager import DataManager
 
 
 file_path = __file__.replace('test_datamanager.py', 'test_data.json')

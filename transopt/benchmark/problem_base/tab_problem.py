@@ -7,15 +7,15 @@ from typing import Union, Dict, List
 from urllib.parse import urlparse
 import pandas as pds
 from pathlib import Path
-from transopt.Benchmark.BenchBase.Base import BenchmarkBase
+from benchmark.problem_base.base import ProblemBase
 from transopt.utils.Read import read_file
 from transopt.utils.encoding import target_encoding, multitarget_encoding
 
-logger = logging.getLogger("TabularBenchmark")
+logger = logging.getLogger("TabularProblem")
 
 
 
-class TabularBenchmark(BenchmarkBase):
+class TabularProblem(ProblemBase):
     def __init__(
             self,
             task_name: str,
@@ -129,7 +129,7 @@ class TabularBenchmark(BenchmarkBase):
         else:
             raise ValueError("Unknown path type, only accept url or file path")
 
-        super(TabularBenchmark, self).__init__(seed, **kwargs)
+        super(TabularProblem, self).__init__(seed, **kwargs)
         self.var_range = self.get_configuration_bound()
         self.var_type = self.get_configuration_type()
         self.unqueried_data = data

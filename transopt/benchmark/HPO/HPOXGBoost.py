@@ -13,7 +13,7 @@ from sklearn.metrics import accuracy_score, make_scorer
 from sklearn.preprocessing import OneHotEncoder
 
 from transopt.utils.openml_data_manager import OpenMLHoldoutDataManager
-from transopt.Benchmark.BenchBase import BenchmarkBase, NonTabularBenchmark
+from transopt.benchmark.problem_base import ProblemBase, NonTabularProblem
 from transopt.utils.Register import benchmark_register
 
 
@@ -22,7 +22,7 @@ logger = logging.getLogger('XGBBenchmark')
 
 
 @benchmark_register('XGB')
-class XGBoostBenchmark(NonTabularBenchmark):
+class XGBoostBenchmark(NonTabularProblem):
     task_lists = [167149, 167152, 126029, 167178, 167177]
     def __init__(self, task_name:str, budget:int, task_type='non-tabular',task_id: Union[int, None] = None, n_threads: int = 1,
                  seed: Union[np.random.RandomState, int, None] = None):
@@ -98,7 +98,7 @@ class XGBoostBenchmark(NonTabularBenchmark):
         random_state.shuffle(self.train_idx)
 
     # pylint: disable=arguments-differ
-    @BenchmarkBase.check_parameters
+    @ProblemBase.check_parameters
     def objective_function(self, configuration: Union[CS.Configuration, Dict],
                            fidelity: Union[CS.Configuration, Dict, None] = None,
                            shuffle: bool = False,
@@ -154,7 +154,7 @@ class XGBoostBenchmark(NonTabularBenchmark):
                 }
 
     # pylint: disable=arguments-differ
-    @BenchmarkBase.check_parameters
+    @ProblemBase.check_parameters
     def objective_function_test(self, configuration: Union[CS.Configuration, Dict],
                                 fidelity: Union[CS.Configuration, Dict, None] = None,
                                 shuffle: bool = False,

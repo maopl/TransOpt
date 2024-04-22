@@ -36,6 +36,10 @@ class ProblemBase(abc.ABC, metaclass=abc.ABCMeta):
         self.seed = seed
         self.configuration_space = self.get_configuration_space(self.seed)
         self.fidelity_space = self.get_fidelity_space(self.seed)
+        seed.objective_info = self.get_objectives(self.seed)
+        
+        self.input_dim = len(self.configuration_space.keys())
+        self.num_objective = len(self.objective_info)
 
     @abc.abstractmethod
     def f(
@@ -226,6 +230,23 @@ class ProblemBase(abc.ABC, metaclass=abc.ABCMeta):
             A valid configuration space for the benchmark's fidelity parameters
         """
         raise NotImplementedError()
+    
+    @abc.abstractmethod
+    def get_objectives(
+        self, seed: Union[int, None] = None
+    ) -> list:
+        """Defines the available fidelity parameters as a "fidelity space" for each benchmark.
+        Parameters
+        ----------
+        seed: int, None
+            Seed for the fidelity space.
+        Returns
+        -------
+        ConfigSpace.ConfigurationSpace
+            A valid configuration space for the benchmark's fidelity parameters
+        """
+        raise NotImplementedError()
+    
 
     @staticmethod
     @abc.abstractmethod

@@ -23,7 +23,8 @@ class SearchSpace:
     def get_hyperparameter_names(self):
         return list(self._variables.keys())
     
-    
+    def get_hyperparameter_types(self):
+        return {name:self._variables[name].type for name in self._variables}
     
     
     def map_to_design_space(self, values: np.ndarray) -> dict:

@@ -5,11 +5,13 @@ import math
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
-import ConfigSpace as CS
 from typing import Union, Dict
-
+from transopt.space.variable import *
 from transopt.utils.Register import benchmark_register, benchmark_registry
 from benchmark.problem_base.non_tab_problem import NonTabularProblem
+from transopt.space.search_space import SearchSpace
+from transopt.space.fidelity_space import FidelitySpace
+
 
 logger = logging.getLogger("SyntheticBenchmark")
 
@@ -1630,7 +1632,7 @@ class mpbOptBenchmark(NonTabularProblem):
 
 
 @benchmark_register("Ackley")
-class AckleyOptBenchmark(NonTabularProblem):
+class Ackley(NonTabularProblem):
     def __init__(
         self, task_name, budget, seed, workload, task_type="non-tabular", **kwargs
     ):
@@ -1656,7 +1658,7 @@ class AckleyOptBenchmark(NonTabularProblem):
         self.b = np.array([0.2], dtype=self.dtype)
         self.c = np.array([0.3 * math.pi], dtype=self.dtype)
 
-        super(AckleyOptBenchmark, self).__init__(
+        super(Ackley, self).__init__(
             task_name=task_name,
             seed=seed,
             workload=workload,
@@ -1664,10 +1666,10 @@ class AckleyOptBenchmark(NonTabularProblem):
             budget=budget,
         )
 
-    def objective_function(
+    def objective_funfction(
         self,
-        configuration: Union[CS.Configuration, Dict],
-        fidelity: Union[Dict, CS.Configuration, None] = None,
+        configuration: Dict,
+        fidelity: Dict = None,
         seed: Union[np.random.RandomState, int, None] = None,
         **kwargs,
     ) -> Dict:
@@ -1682,60 +1684,34 @@ class AckleyOptBenchmark(NonTabularProblem):
         part1 = -a * np.exp(-b / math.sqrt(d) * np.linalg.norm(X, axis=-1))
         part2 = -(np.exp(np.mean(np.cos(c * X), axis=-1)))
         y = part1 + part2 + a + math.e
-        # y +=  self.noise(n)
 
-        return {"function_value": float(y), "info": {"fidelity": fidelity}}
+        return {self.objective_info[0]: float(y), "info": {"fidelity": fidelity}}
 
     def get_configuration_space(
         self, seed: Union[int, None] = None
-    ) -> CS.ConfigurationSpace:
-        """
-        Creates a ConfigSpace.ConfigurationSpace containing all parameters for
-        the XGBoost Model
+    ) -> SearchSpace:
+        
+        variables =  [Continuous(f'x{i}', (-32.768, 32.768)) for i in range(self.input_dim)]
+        
+        ss = SearchSpace(variables)
 
-        Parameters
-        ----------
-        seed : int, None
-            Fixing the seed for the ConfigSpace.ConfigurationSpace
+        return ss
 
-        Returns
-        -------
-        ConfigSpace.ConfigurationSpace
-        """
-        seed = seed if seed is not None else np.random.randint(1, 100000)
-        cs = CS.ConfigurationSpace(seed=seed)
-        cs.add_hyperparameters(
-            [
-                CS.UniformFloatHyperparameter(f"x{i}", lower=-32.768, upper=32.768)
-                for i in range(self.input_dim)
-            ]
-        )
-
-        return cs
 
     def get_fidelity_space(
         self, seed: Union[int, None] = None
-    ) -> CS.ConfigurationSpace:
-        """
-        Creates a ConfigSpace.ConfigurationSpace containing all fidelity parameters for
-        the XGBoost Benchmark
+    ) -> FidelitySpace:
+                
 
-        Parameters
-        ----------
-        seed : int, None
-            Fixing the seed for the ConfigSpace.ConfigurationSpace
+        return FidelitySpace([])
 
-        Returns
-        -------
-        ConfigSpace.ConfigurationSpace
-        """
-        seed = seed if seed is not None else np.random.randint(1, 100000)
-        fidel_space = CS.ConfigurationSpace(seed=seed)
 
-        return fidel_space
+    def get_objectives(self) -> list:
+        
+        return ['f1']
 
     def get_meta_information(self) -> Dict:
-        return {'number_objective':1}
+        return {}
 
 
 @benchmark_register("Ellipsoid")
@@ -2513,29 +2489,7 @@ if __name__ == "__main__":
         "cp"
     ]
 
-    if Dim == 1:
-        plot_true_function(
-            obj_fun_list,
-            Dim,
-            np.float64,
-            "../../experiments/plot_problem",
-            plot_type="1D",
-        )
-    elif Dim == 2:
-        plot_true_function(
-            obj_fun_list,
-            Dim,
-            np.float64,
-            "../../experiments/plot_problem",
-            plot_type="2D",
-        )
-        plot_true_function(
-            obj_fun_list,
-            Dim,
-            np.float64,
-            "../../experiments/plot_problem",
-            plot_type="3D",
-        )
+
 
     # from transopt.Benchmark.BenchBase.TransferOptBenchmark import TransferOptBenchmark
     #

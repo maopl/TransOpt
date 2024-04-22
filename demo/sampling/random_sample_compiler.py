@@ -12,7 +12,7 @@ import datetime
 import numpy as np
 from csstuning.compiler.compiler_benchmark import CompilerBenchmarkBase
 
-from transopt.benchmark import construct_test_suits
+from transopt.benchmark import instantiate_problems
 from transopt.KnowledgeBase.kb_builder import construct_knowledgebase
 from transopt.KnowledgeBase.TransferDataHandler import OptTaskDataHandler
 from transopt.Optimizer.ConstructOptimizer import get_optimizer
@@ -24,7 +24,7 @@ os.environ["OMP_NUM_THREADS"] = "1"
 
 def run_experiments(tasks, args):
     kb = construct_knowledgebase(args)
-    testsuits = construct_test_suits(tasks, args.seed)
+    testsuits = instantiate_problems(tasks, args.seed)
     optimizer = get_optimizer(args)
     data_handler = OptTaskDataHandler(kb, args)
     optimizer.optimize(testsuits, data_handler)

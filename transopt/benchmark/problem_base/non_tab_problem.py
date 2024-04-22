@@ -5,9 +5,7 @@ import logging
 import numpy as np
 from typing import Union, Dict, List
 from pathlib import Path
-from transopt.space.search_space import SearchSpace
 from transopt.benchmark.problem_base import ProblemBase
-from transopt.utils.Read import read_file
 logger = logging.getLogger("NonTabularProblem")
 
 
@@ -29,19 +27,6 @@ class NonTabularProblem(ProblemBase):
 
         super(NonTabularProblem, self).__init__(seed, **kwargs)
 
-    def f(
-        self,
-        configuration: Dict,
-        fidelity: Dict = None,
-        **kwargs,
-    ) -> Dict:
-        results = self.objective_function(
-            configuration=configuration,
-            fidelity=fidelity,
-            seed=self.seed,
-            kwargs=kwargs,
-        )
-        return results
 
     def get_budget(self) -> int:
         """Provides the function evaluations number about the benchmark.

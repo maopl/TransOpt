@@ -8,7 +8,7 @@ from transopt.benchmark.problem_base import (
 )
 
 
-def construct_test_suits(
+def InstantiateProblems(
     tasks: dict = None, seed: int = 0, remote: bool = False, server_url: str = None
 ) -> TransferProblem:
     tasks = tasks or {}
@@ -16,9 +16,9 @@ def construct_test_suits(
     if remote:
         if server_url is None:
             raise ValueError("Server URL must be provided for remote testing.")
-        test_suits = RemoteTransferOptBenchmark(server_url, seed)
+        transfer_problems = RemoteTransferOptBenchmark(server_url, seed)
     else:
-        test_suits = TransferProblem(seed)
+        transfer_problems = TransferProblem(seed)
 
     for task_name, task_params in tasks.items():
         budget = task_params["budget"]
@@ -37,7 +37,7 @@ def construct_test_suits(
             for workload in workloads:
                 problem = TabularProblem(task_name, budget=budget, path=data_path, workload=workload,
                                               task_type='tabular', seed=seed, bounds = None, space_info = space_info)
-                test_suits.add_task(problem)
+                transfer_problems.add_task(problem)
         else:
             benchmark_cls = benchmark_registry.get(task_name)
             if benchmark_cls is None:
@@ -53,6 +53,6 @@ def construct_test_suits(
                     knobs=konbs,
                     params=params,
                 )
-                test_suits.add_task(problem)
+                transfer_problems.add_task(problem)
 
-    return test_suits
+    return transfer_problems

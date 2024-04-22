@@ -7,12 +7,11 @@ from typing import Union, Dict, List
 from transopt.benchmark.problem_base import NonTabularProblem
 from benchmark.problem_base.tab_problem import TabularProblem
 from transopt.remote import ExperimentClient
-from transopt.KnowledgeBase.DataHandlerBase import DataHandler
 
 logger = logging.getLogger("TransferProblem")
 
 
-class TransferProblem(abc.ABC, metaclass=abc.ABCMeta):
+class TransferProblem:
     def __init__(self, seed: Union[int, np.random.RandomState, None] = None, **kwargs):
         self.seed = seed
         self.tasks = []

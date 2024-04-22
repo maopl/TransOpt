@@ -23,7 +23,7 @@ from transopt.benchmark.Synthetic.SyntheticBenchmark import (
     DixonPriceOptBenchmark,
     cpOptBenchmark,
     mpbOptBenchmark,
-    AckleyOptBenchmark,
+    Ackley,
     EllipsoidOptBenchmark,
     DiscusOptBenchmark,
     BentCigarOptBenchmark,
@@ -32,4 +32,4 @@ from transopt.benchmark.Synthetic.SyntheticBenchmark import (
     KatsuuraOptBenchmark,
 )
 
-from transopt.benchmark.construct_test_suits import construct_test_suits
+from benchmark.instantiate_problems import instantiate_problems

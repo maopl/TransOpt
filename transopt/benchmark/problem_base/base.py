@@ -36,7 +36,7 @@ class ProblemBase(abc.ABC, metaclass=abc.ABCMeta):
         self.seed = seed
         self.configuration_space = self.get_configuration_space(self.seed)
         self.fidelity_space = self.get_fidelity_space(self.seed)
-        seed.objective_info = self.get_objectives(self.seed)
+        self.objective_info = self.get_objectives(self.seed)
         
         self.input_dim = len(self.configuration_space.keys())
         self.num_objective = len(self.objective_info)

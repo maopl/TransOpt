@@ -28,11 +28,8 @@ class TabularProblem(ProblemBase):
             **kwargs,
     ):
 
+        super(TabularProblem, self).__init__(task_name= task_name, task_type=task_type, budget=budget,workload=workload, seed=seed, **kwargs)
         self.path = path
-        self.task_name = task_name
-        self.task_type = task_type
-        self.budget = budget
-        self.workload = workload
 
         parsed = urlparse(path)
         if parsed.scheme and parsed.netloc:
@@ -129,7 +126,7 @@ class TabularProblem(ProblemBase):
         else:
             raise ValueError("Unknown path type, only accept url or file path")
 
-        super(TabularProblem, self).__init__(seed, **kwargs)
+        
         self.var_range = self.get_configuration_bound()
         self.var_type = self.get_configuration_type()
         self.unqueried_data = data

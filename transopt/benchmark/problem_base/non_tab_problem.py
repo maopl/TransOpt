@@ -4,9 +4,8 @@ import json
 import logging
 import numpy as np
 from typing import Union, Dict, List
-from urllib.parse import urlparse
 from pathlib import Path
-from transopt.space import DesignSpace
+from transopt.space.search_space import SearchSpace
 from transopt.benchmark.problem_base import ProblemBase
 from transopt.utils.Read import read_file
 logger = logging.getLogger("NonTabularProblem")
@@ -36,8 +35,8 @@ class NonTabularProblem(ProblemBase):
 
     def f(
         self,
-        configuration: Union[ConfigSpace.Configuration, Dict],
-        fidelity: Union[Dict, ConfigSpace.Configuration, None] = None,
+        configuration: Dict,
+        fidelity: Dict = None,
         **kwargs,
     ) -> Dict:
         results = self.objective_function(
@@ -47,22 +46,6 @@ class NonTabularProblem(ProblemBase):
             kwargs=kwargs,
         )
         return results
-
-    def get_configuration_bound(self):
-        configuration_bound = {}
-        for k, v in self.configuration_space.items():
-            if type(v) is ConfigSpace.CategoricalHyperparameter:
-                configuration_bound[k] = [0, len(v.choices) - 1]
-            else:
-                configuration_bound[k] = [v.lower, v.upper]
-
-        return configuration_bound
-
-    def get_configuration_type(self):
-        configuration_type = {}
-        for k, v in self.configuration_space.items():
-            configuration_type[k] = type(v).__name__
-        return configuration_type
 
     def get_budget(self) -> int:
         """Provides the function evaluations number about the benchmark.

@@ -24,8 +24,6 @@ class SearchSpace:
         return list(self._variables.keys())
     
     
-    def get_active_hyperparameters(self):
-        return self._variables
     
     
     def map_to_design_space(self, values: np.ndarray) -> dict:

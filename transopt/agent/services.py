@@ -47,3 +47,71 @@ class Services:
         import transopt.optimizer.sampler
         import transopt.optimizer.refiner
         
+    def get_modules(self):        
+        basic_info = {}
+        tasks_info = []
+        selector_info = [{"name": 'default'}]
+        model_info = [{"name": 'default'}]
+        sampler_info = [{"name": 'default'}]
+        acf_info = [{"name": 'default'}]
+        pretrain_info = [{"name": 'default'}]
+        refiner_info = [{"name": 'default'}]
+        
+        # tasks information
+        task_names = problem_registry.list_names()
+        for name in task_names:
+            if problem_registry[name].get_problem_type() == "synthetic":
+                task_info = {
+                    "name": name,
+                    "anyDim": True,
+                    "dim": [],
+                    "obj": [1],
+                    "fidelity": [],
+                }
+            else:
+                obj_num = problem_registry[name].get_objectives()
+                dim = len(problem_registry[name].get_configuration_space().keys())
+                task_info = {
+                    "name": name,
+                    "anyDim": False,
+                    "dim": [dim],
+                    "obj": [obj_num],
+                    "fidelity": [],
+                }
+            tasks_info.append(task_info)
+        basic_info["TasksData"] = tasks_info
+        
+        sampler_names = sampler_registry.list_names()
+        for name in sampler_names:
+            sampler_info.append({"name": name})
+        basic_info["Sampler"] = sampler_info
+        
+        
+        refiner_names = space_refine_registry.list_names()
+        for name in refiner_names:
+            refiner_info.append({"name": name})
+        basic_info["SpaceRefiner"] = refiner_info
+        
+        pretrain_names = pretrain_registry.list_names()
+        for name in pretrain_names:
+            pretrain_info.append({"name": name})
+        basic_info["Pretrain"] = pretrain_info
+        
+        model_names = model_registry.list_names()
+        for name in model_names:
+            model_info.append({"name": name})
+        basic_info["Model"] = model_info
+        
+        acf_names = acf_registry.list_names()
+        for name in acf_names:
+            acf_info.append({"name": name})
+        basic_info["ACF"] = acf_info
+        
+        selector_names = selector_registry.list_names()
+        for name in selector_names:
+            selector_info.append({"name": name})
+        basic_info["DataSelector"] = selector_info
+        
+        return basic_info
+        
+        

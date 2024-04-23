@@ -36,6 +36,7 @@ model_registry = Registry()
 acf_registry = Registry()
 problem_registry = Registry()
 statistic_registry = Registry()
+selector_registry = Registry()
 
 # 示例使用
 # print(sampler_registry.list_names())

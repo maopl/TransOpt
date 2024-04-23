@@ -1,4 +1,4 @@
-from agent.registry import pretrain_register
+from transopt.agent.registry import pretrain_register
 from transopt.optimizer.pretrain.pretrain_base import PretrainBase
 
 

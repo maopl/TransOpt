@@ -1,40 +1,16 @@
-# Copyright (c) 2021 Robert Bosch GmbH
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published
-# by the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import copy
 import numpy as np
 from typing import Dict, Hashable, Union, Sequence, Tuple, List
-from agent.registry import model_register
+
 from GPy.kern import RBF
 
 import GPy
 
-@model_register('MHGP')
-class MHGP():
-    """Stack of Gaussian processes.
-
-    Transfer Learning model based on [Golovin et al: Google Vizier: A Service for
-    Black-Box Optimization](https://dl.acm.org/doi/abs/10.1145/3097983.3098043).
-    Given a list of source data sets, the
-    transfer to the target data set is done by training a separate GP for each data set
-    whose prior mean function is the posterior mean function of the previous GP in the
-    stack.
-    """
+class ModelBase():
 
     def __init__(self, n_features: int):
-        """Initialize the Method.
+        """Initialize the Model.
 
         Args:
             n_features: Number of input parameters of the data.
@@ -225,15 +201,3 @@ class MHGP():
             mu += mu_
 
         return mu
-
-    # def predict_posterior_covariance(self, x1: InputData, x2: InputData) -> np.ndarray:
-    #     """Posterior covariance between two inputs.
-    #
-    #     Args:
-    #         x1: First input to be queried. `shape = (n_points_1, n_features)`
-    #         x2: Second input to be queried. `shape = (n_points_2, n_features)`
-    #
-    #     Returns:
-    #         Posterior covariance at `(x1, x2)`. `shape = (n_points_1, n_points_2)`
-    #     """
-    #     return self.target_gp.predict_posterior_covariance(x1, x2)

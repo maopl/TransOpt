@@ -7,13 +7,13 @@ import GPyOpt
 import numpy as np
 
 from optimizer.acquisition_function.get_acf import get_acf
-from sampler.get_sampler import get_sampler
-
+from optimizer.sampler.get_sampler import get_sampler
+from optimizer.refiner.get_refiner import get_refiner
+from optimizer.model.get_model import get_model
+from optimizer.pretrain.get_pretrain import get_pretrain
 
 from optimizer.acquisition_function.sequential import Sequential
 from optimizer.optimizer_base.base import OptimizerBase
-
-from transopt.utils.Visualization import visual_pf
 
 
 class BOBase(OptimizerBase):
@@ -31,10 +31,21 @@ class BOBase(OptimizerBase):
         self.ini_num = None
         
         assert 'refiner' in self.config
-        SpaceRefiner = get_refiner(self.config['refiner'])
+        self.SpaceRefiner = get_refiner(self.config['refiner'])
         
         assert 'sampler' in self.config
-        Sampler = get_sampler(self.config['sampler'])
+        self.Sampler = get_sampler(self.config['sampler'])
+        
+        assert 'acf' in self.config
+        self.ACF = get_acf(self.config['acf'])
+        
+        assert 'pretrain' in self.config
+        self.Pretrain = get_pretrain(self.config['pretrain'])
+        
+        assert 'model' in self.config
+        self.Model = get_model(self.config['model'])
+        
+        
         
     
     def optimize(self, testsuits, data_handler):

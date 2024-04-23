@@ -158,11 +158,8 @@ class Configuration extends React.Component {
                   collapse
                 >
                   <SearchData set_dataset={this.set_dataset}/>
-                  <h3 className="mt-5">
-                    <span className="fw-semi-bold">Choose</span>
-                  </h3>
                   <p>
-                    There are some discription.There are some discription.There are some discription.There are some discription.
+                    Choose the datasets you want to use in the experiment.
                   </p>
                   <SelectData data={this.state.DatasetData}/>
                 </Widget>

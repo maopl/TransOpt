@@ -7,7 +7,6 @@ import {
     Select,
     ConfigProvider,
     Modal,
-    Space,
 } from "antd";
 
 function SelectAlgorithm({SearchSpace, Sample, PreTrain, Train, Acf, DataSelector}) {
@@ -108,6 +107,7 @@ function SelectAlgorithm({SearchSpace, Sample, PreTrain, Train, Acf, DataSelecto
             style={{width:"100%"}}
             autoComplete="off"
         >
+          <div style={{ overflowY: 'auto', maxHeight: '200px' }}>
           <div>
               <h5 style={{color:"#f4f4f599"}}>
                 <span className="fw-semi-bold">Search space</span>
@@ -118,7 +118,7 @@ function SelectAlgorithm({SearchSpace, Sample, PreTrain, Train, Acf, DataSelecto
               name={'SearchSpace'}
               style={{ marginRight: 8 , width: 150}}
             >
-              <Select
+              <Select 
                 placeholder="name"
                 value={selectedSearchSpace.name}
                 options={SearchSpace.map(item => ({ value: item.name }))}
@@ -257,8 +257,9 @@ function SelectAlgorithm({SearchSpace, Sample, PreTrain, Train, Acf, DataSelecto
               <Input placeholder="Parameters" value={selectedDataSelector.default} />
             </Form.Item>
           </div>
+          </div>
 
-          <Form.Item>
+          <Form.Item style={{marginTop:10}}>
             <Button type="primary" htmlType="submit" style={{width:"120px"}}>
               Submit
             </Button>

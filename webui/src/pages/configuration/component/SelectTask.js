@@ -155,10 +155,12 @@ function SelectTask({data}) {
       <Form.List name="Tasks">
         {(fields, { add, remove }) => (
           <>
+            <div style={{ overflowY: 'auto', maxHeight: '150px' }}>
             {fields.map(({ key, name, ...restField }) => (
               <ATask key={key} name={name} restField={restField} remove={remove} data={data} />
             ))}
-            <Form.Item>
+            </div>
+            <Form.Item style={{marginTop:10}}>
               <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />} style={{width:"120px"}}>
                 Add Task
               </Button>

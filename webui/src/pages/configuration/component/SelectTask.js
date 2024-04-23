@@ -85,6 +85,18 @@ function ATask({key, name, restField, remove, data}) {
            </Form.Item>
            <Form.Item
              {...restField}
+             name={[name, 'seed']}
+           >
+             <Input placeholder="seed" style={{width:"80px"}} />
+           </Form.Item>
+           <Form.Item
+             {...restField}
+             name={[name, 'workload']}
+           >
+             <Input placeholder="workload" style={{width:"80px"}} />
+           </Form.Item>
+           <Form.Item
+             {...restField}
              name={[name, 'budget_type']}
            >
              <Select
@@ -100,7 +112,7 @@ function ATask({key, name, restField, remove, data}) {
              {...restField}
              name={[name, 'budget']}
            >
-             <Input placeholder="budget" style={{width:"100px"}} />
+             <Input placeholder="budget" style={{width:"80px"}} />
            </Form.Item>
            <MinusCircleOutlined style={{color: 'white'}} onClick={() => remove(name)} />
         </Space>

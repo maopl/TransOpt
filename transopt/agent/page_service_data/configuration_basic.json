@@ -25,6 +25,10 @@
     "SearchSpace":
     [
         {
+            "name":"default",
+            "default":""
+        },
+        {
             "name":"ss1",
             "default":"Parameter1=1, Parameter2=2"
         },
@@ -38,7 +42,11 @@
         }
     ],
     "Sample":
-    [
+    [  
+        {
+            "name":"default",
+            "default":""
+        },
         {
             "name":"sample1",
             "default":"Parameter1=1, Parameter2=2"
@@ -55,6 +63,10 @@
     "PreTrain":
     [
         {
+            "name":"default",
+            "default":""
+        },
+        {
             "name":"pre-train1",
             "default":"Parameter1=1, Parameter2=2"
         },
@@ -69,6 +81,10 @@
     ],
     "Train":
     [
+        {
+            "name":"default",
+            "default":""
+        },
         {
             "name":"train1",
             "default":"Parameter1=1, Parameter2=2"
@@ -85,6 +101,10 @@
     "Acf":
     [
         {
+            "name":"default",
+            "default":""
+        },
+        {
             "name":"acf1",
             "default":"Parameter1=1, Parameter2=2"
         },
@@ -99,6 +119,10 @@
     ],
     "DataSelector":
     [
+        {
+            "name":"default",
+            "default":""
+        },
         {
             "name":"data-selector1",
             "default":"Parameter1=1, Parameter2=2"

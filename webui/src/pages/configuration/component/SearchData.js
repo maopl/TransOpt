@@ -7,6 +7,9 @@ import {
     InputNumber,
     Slider,
     Space,
+    Input,
+    Form,
+    ConfigProvider,
 } from "antd";
 
 function DecimalStep({ name, inputValue, onChange }) {
@@ -37,21 +40,18 @@ function DecimalStep({ name, inputValue, onChange }) {
     </Row>
   );
 };
-
 function SearchData({set_dataset}) {
   const [values, setValues] = useState({
-    name: 0,
-    dim: 0,
-    obj: 0,
-    fidelityName: 0,
-    fidelity: 0,
+    task_name: "",
+    num_variables: 0,
+    variables_name: "",
+    num_objectives: 0,
   });
 
-  const handleInputChange = (name, value) => {
-    setValues({ ...values, [name]: value });
-  };
+  const [form] = Form.useForm()
 
-  const handleSearch = () => {
+
+  const onFinish = (values) => {
     const messageToSend = values;
     console.log('Request data:', messageToSend);
     // 向后端发送请求...
@@ -79,14 +79,57 @@ function SearchData({set_dataset}) {
   }
 
   return(
-    <Space style={{ width: '100%' }} direction="vertical">
-      <DecimalStep name="name :" inputValue={values.name} onChange={(value) => handleInputChange('name', value)} />
-      <DecimalStep name="dim :" inputValue={values.dim} onChange={(value) => handleInputChange('dim', value)} />
-      <DecimalStep name="obj :" inputValue={values.obj} onChange={(value) => handleInputChange('obj', value)} />
-      <DecimalStep name="fidelity name :" inputValue={values.fidelityName} onChange={(value) => handleInputChange('fidelityName', value)} />
-      <DecimalStep name="fidelity :" inputValue={values.fidelity} onChange={(value) => handleInputChange('fidelity', value)} />
-    <Button onClick={handleSearch}>Search</Button>
-    </Space>
+    <ConfigProvider
+      theme={{
+        components: {
+          Input: {
+            addonBg:"white"
+          },
+        },
+      }}  
+    >
+    <Form
+      name="SearchData"
+      form={form}
+      onFinish={onFinish}
+      style={{width:"100%"}}
+      autoComplete="off"
+    >
+      <Space className="space" style={{ display: 'flex'}} align="baseline">
+        <Form.Item
+          name="task_name"
+          style={{flexGrow: 1}}
+        >
+          <Input addonBefore={"Task Name"}/>
+        </Form.Item>
+        <Form.Item
+          name="num_variables"
+          style={{flexGrow: 1}}
+        >
+          <Input addonBefore={"Num of Variables"}/>
+        </Form.Item>
+      </Space>
+      <Space className="space" style={{ display: 'flex'}} align="baseline">
+        <Form.Item
+          name="variables_name"
+          style={{flexGrow: 1}}
+        >
+          <Input addonBefore={"Variables Name"}/>
+        </Form.Item>
+        <Form.Item
+          name="num_objectives"
+          style={{flexGrow: 1}}
+        >
+          <Input addonBefore={"Num of Objectives"}/>
+        </Form.Item>
+      </Space>
+      <Form.Item>
+        <Button type="primary" htmlType="submit" style={{width:"120px"}}>
+          Search
+        </Button>
+      </Form.Item>
+    </Form>
+    </ConfigProvider>
   )
 }
 

@@ -59,7 +59,7 @@ function SelectData({data}) {
             },
           }}        
         >
-          <div>
+          <div style={{ overflowY: 'auto', maxHeight: '150px' }}>
             <Checkbox indeterminate={indeterminate} onChange={onCheckAllChange} checked={checkAll}>
                 Check all
             </Checkbox>

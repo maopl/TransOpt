@@ -4,7 +4,7 @@
 from GPyOpt.acquisitions.base import AcquisitionBase
 from transopt.agent.registry import acf_register
 
-@acf_register('LCB')
+@acf_register.register('LCB')
 class AcquisitionLCB(AcquisitionBase):
     """
     GP-Lower Confidence Bound acquisition function with constant exploration weight.

@@ -103,7 +103,7 @@ def compute_ranking_loss(
     return rank_loss
 
 
-@model_register('EnsembleGP')
+@model_register.register('EnsembleGP')
 class RGPE(Model):
     def __init__(
             self,

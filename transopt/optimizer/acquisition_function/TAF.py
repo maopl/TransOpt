@@ -7,7 +7,7 @@ import numpy as np
 from transopt_external.transfergpbo.models import InputData, TaskData
 from agent.registry import acf_register
 
-@acf_register('TAF_P')
+@acf_register.register('TAF_P')
 class AcquisitionTAF_POE(AcquisitionBase):
     """
     General template to create a new GPyOPt acquisition function
@@ -74,7 +74,7 @@ class AcquisitionTAF_POE(AcquisitionBase):
         raise NotImplementedError()
 
 
-@acf_register('TAF_M')
+@acf_register.register('TAF_M')
 class AcquisitionTAF_M(AcquisitionBase):
     """
     General template to create a new GPyOPt acquisition function

@@ -17,7 +17,7 @@ def opt_wrapper(args):
     kwargs = args[1]
     return m.optimize(**kwargs)
 
-@model_register('GP')
+@model_register.register('GP')
 class PriorGP(GP):
     def __init__(self,  X, Y, kernel, likelihood=None, mean_function=None, inference_method=None, name='MPGP', Y_metadata=None, noise_var=1., normalizer=False):
         if kernel is None:

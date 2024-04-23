@@ -4,7 +4,7 @@
 from GPyOpt.acquisitions.base import AcquisitionBase
 from agent.registry import acf_register
 
-@acf_register('ConformalLCB')
+@acf_register.register('ConformalLCB')
 class ConformalLCB(AcquisitionBase):
     """
     GP-Lower Confidence Bound acquisition function with constant exploration weight.

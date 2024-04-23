@@ -9,7 +9,7 @@ from agent.registry import acf_register
 from transopt.utils.hypervolume import calc_hypervolume
 
 
-@acf_register("SMSEGO")
+@acf_register.register("SMSEGO")
 class SMSEGO:
     def __init__(self, model, space, optimizer, config):
         self.optimizer = optimizer

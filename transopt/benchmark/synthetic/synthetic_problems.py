@@ -16,7 +16,7 @@ from transopt.space.fidelity_space import FidelitySpace
 logger = logging.getLogger("SyntheticBenchmark")
 
 
-# @problem_register("Sphere")
+# @problem_register.register("Sphere")
 # class SphereOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -104,7 +104,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 #         return {}
 
 
-# @problem_register("Rastrigin")
+# @problem_register.register("Rastrigin")
 # class RastriginOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -208,7 +208,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 #         return {}
 
 
-# @problem_register("Schwefel")
+# @problem_register.register("Schwefel")
 # class SchwefelOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -313,7 +313,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 #         return {}
 
 
-# @problem_register("LevyR")
+# @problem_register.register("LevyR")
 # class LevyROptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -425,7 +425,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 #         return {}
 
 
-# @problem_register("Griewank")
+# @problem_register.register("Griewank")
 # class GriewankOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -531,7 +531,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 #         return {}
 
 
-# @problem_register("Rosenbrock")
+# @problem_register.register("Rosenbrock")
 # class RosenbrockOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -637,7 +637,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 #         return {}
 
 
-# @problem_register("DropwaveR")
+# @problem_register.register("DropwaveR")
 # class DropwaveROptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -745,7 +745,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 #         return {}
 
 
-# @problem_register("Langermann")
+# @problem_register.register("Langermann")
 # class LangermannOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -856,7 +856,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 #         return {}
 
 
-# @problem_register("RotatedHyperEllipsoid")
+# @problem_register.register("RotatedHyperEllipsoid")
 # class RotatedHyperEllipsoidOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -960,7 +960,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 #         return {}
 
 
-# @problem_register("SumOfDifferentPowers")
+# @problem_register.register("SumOfDifferentPowers")
 # class SumOfDifferentPowersOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -1065,7 +1065,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 #         return {}
 
 
-# @problem_register("StyblinskiTang")
+# @problem_register.register("StyblinskiTang")
 # class StyblinskiTangOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -1168,7 +1168,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 #         return {}
 
 
-# @problem_register("Powell")
+# @problem_register.register("Powell")
 # class PowellOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -1278,7 +1278,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 #         return {}
 
 
-# @problem_register("DixonPrice")
+# @problem_register.register("DixonPrice")
 # class DixonPriceOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -1390,7 +1390,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 #         return {}
 
 
-# @problem_register("cp")
+# @problem_register.register("cp")
 # class cpOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -1502,7 +1502,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 #         return {}
 
 
-# @problem_register("mpb")
+# @problem_register.register("mpb")
 # class mpbOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -1616,7 +1616,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 #         return {}
 
 
-@problem_register("Ackley")
+@problem_register.register("Ackley")
 class Ackley(SyntheticProblemBase):
     def __init__(
         self, task_name, budget, seed, workload, **kwargs
@@ -1694,7 +1694,7 @@ class Ackley(SyntheticProblemBase):
         return {}
     
     
-# @problem_register("Ellipsoid")
+# @problem_register.register("Ellipsoid")
 # class EllipsoidOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -1804,7 +1804,7 @@ class Ackley(SyntheticProblemBase):
 #         return {}
 
 
-# @problem_register("Discus")
+# @problem_register.register("Discus")
 # class DiscusOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -1913,7 +1913,7 @@ class Ackley(SyntheticProblemBase):
 #         return {}
 
 
-# @problem_register("BentCigar")
+# @problem_register.register("BentCigar")
 # class BentCigarOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -2022,7 +2022,7 @@ class Ackley(SyntheticProblemBase):
 #         return {}
 
 
-# @problem_register("SharpRidge")
+# @problem_register.register("SharpRidge")
 # class SharpRidgeOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -2136,7 +2136,7 @@ class Ackley(SyntheticProblemBase):
 #         return {}
 
 
-# @problem_register("GriewankRosenbrock")
+# @problem_register.register("GriewankRosenbrock")
 # class GriewankRosenbrockOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
@@ -2246,7 +2246,7 @@ class Ackley(SyntheticProblemBase):
 #         return {}
 
 
-# @problem_register("Katsuura")
+# @problem_register.register("Katsuura")
 # class KatsuuraOptBenchmark(SyntheticProblemBase):
 #     def __init__(
 #         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs

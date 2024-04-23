@@ -230,7 +230,7 @@ def create_cluster_tree(secondary_clusters, evaluated_points):
     return Tree(secondary_nodes, evaluated_points)
         
         
-@acf_register("CauMOACF")
+@acf_register.register("CauMOACF")
 class CauMOACF:
     def __init__(self, model, space, optimizer, config):
         self.optimizer = optimizer

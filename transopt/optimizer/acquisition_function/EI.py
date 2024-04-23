@@ -6,7 +6,7 @@ from GPyOpt.util.general import get_quantiles
 
 from transopt.agent.registry import acf_register
 
-@acf_register('EI')
+@acf_register.register('EI')
 class AcquisitionEI(AcquisitionBase):
     """
     General template to create a new GPyOPt acquisition function

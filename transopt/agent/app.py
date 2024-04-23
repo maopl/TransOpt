@@ -97,12 +97,12 @@ def configuration_basic_information():
 
     print(user_input)
 
-    task_names = list(g_problem_registry.keys())
+    task_names = problem_register.list_names()
     task_data = []
     algoprithm_data = []
 
     for name in task_names:
-        if g_problem_registry[name].get_problem_type() == "synthetic":
+        if problem_register[name].get_problem_type() == "synthetic":
             task_info = {
                 "name": name,
                 "anyDim": True,
@@ -111,8 +111,8 @@ def configuration_basic_information():
                 "fidelity": [],
             }
         else:
-            obj_num = g_problem_registry[name].get_objectives()
-            dim = len(g_problem_registry[name].get_configuration_space().keys())
+            obj_num = problem_register[name].get_objectives()
+            dim = len(problem_register[name].get_configuration_space().keys())
             task_info = {
                 "name": name,
                 "anyDim": False,

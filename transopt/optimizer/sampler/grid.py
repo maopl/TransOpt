@@ -2,7 +2,7 @@ import numpy as np
 from sampler.sampler_base import Sampler
 from agent.registry import sampler_register
 
-@sampler_register("grid")
+@sampler_register.register("grid")
 class GridSampler(Sampler):
     def generate_grid_for_variable(self, var_range, is_discrete, steps):
         if is_discrete:

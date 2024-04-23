@@ -3,7 +3,7 @@ import numpy as np
 from transopt.optimizer.sampler.sampler_base import Sampler
 from transopt.agent.registry import sampler_register
 
-@sampler_register("random")
+@sampler_register.register("random")
 class RandomSampler(Sampler):
     def sample(self, search_space, n_samples=1, metadata = None):
         samples = np.zeros((n_samples, len(search_space.variables_order)))

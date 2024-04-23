@@ -1,74 +1,42 @@
-# regirstry for optimizer, 
-g_space_refiner_registry = {}
-g_sampler_registry = {}
-g_pretrain_registry = {}
-g_model_registry = {}
-g_acf_registry = {}
+class Registry:
+    def __init__(self):
+        self._registry = {}
 
+    def register(self, name=None, cls=None, **kwargs):
+        if cls is None:
+            def wrapper(cls):
+                return self.register(name, cls, **kwargs)
+            return wrapper
+        
+        if name is None:
+            name = cls.__name__
 
-#registry for benchmark
-g_problem_registry = {}
-g_statistic_registry = {}
-
-
-
-
-def space_refine_register(name):
-    def decorator(func_or_class):
-        if name in g_space_refiner_registry:
+        if name in self._registry:
             raise ValueError(f"Error: '{name}' is already registered.")
-        g_space_refiner_registry[name] = func_or_class
-        return func_or_class
-    return decorator
+        
+        self._registry[name] = {'cls': cls, **kwargs}
+        return cls
 
+    def get(self, name):
+        return self._registry[name]['cls']
 
+    def list_names(self):
+        return list(self._registry.keys())
 
-def sampler_register(name):
-    def decorator(func_or_class):
-        if name in g_sampler_registry:
-            raise ValueError(f"Error: '{name}' is already registered.")
-        g_sampler_registry[name] = func_or_class
-        return func_or_class
-    return decorator
+    def __getitem__(self, item):
+        return self.get(item)
 
-def pretrain_register(name):
-    def decorator(func_or_class):
-        if name in g_pretrain_registry:
-            raise ValueError(f"Error: '{name}' is already registered.")
-        g_pretrain_registry[name] = func_or_class
-        return func_or_class
-    return decorator
+    def __contains__(self, item):
+        return item in self._registry
 
-def model_register(name):
-    def decorator(func_or_class):
-        if name in g_model_registry:
-            raise ValueError(f"Error: '{name}' is already registered.")
-        g_model_registry[name] = func_or_class
-        return func_or_class
-    return decorator
+space_refine_register = Registry()
+sampler_register = Registry()
+pretrain_register = Registry()
+model_register = Registry()
+acf_register = Registry()
+problem_register = Registry()
+statistic_register = Registry()
 
-def acf_register(name):
-    def decorator(func_or_class):
-        if name in g_acf_registry:
-            raise ValueError(f"Error: '{name}' is already registered.")
-        g_acf_registry[name] = func_or_class
-        return func_or_class
-    return decorator
-
-def problem_register(name):
-    def decorator(func_or_class):
-        if name in g_problem_registry:
-            raise ValueError(f"Error: '{name}' is already registered.")
-        g_problem_registry[name] = func_or_class
-        return func_or_class
-    return decorator
-
-
-def statistic_register(name):
-    def decorator(func_or_class):
-        if name in g_statistic_registry:
-            raise ValueError(f"Error: '{name}' is already registered.")
-        g_statistic_registry[name] = func_or_class
-        return func_or_class
-    return decorator
-
+# 示例使用
+# print(sampler_registry.list_names())
+# print(optimizer_registry["GeneticAlgorithm"].__doc__)

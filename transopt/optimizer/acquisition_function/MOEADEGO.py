@@ -10,7 +10,7 @@ from transopt.utils.hypervolume import calc_hypervolume
 from GPyOpt.optimization.acquisition_optimizer import AcquisitionOptimizer
 
 
-@acf_register("MOEADEGO")
+@acf_register.register("MOEADEGO")
 class MOEADEGO:
     def __init__(self, model, space, optimizer, config):
         self.optimizer = optimizer

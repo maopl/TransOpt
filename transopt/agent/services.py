@@ -1,4 +1,4 @@
-from agent.registry import *
+from transopt.agent.registry import *
 
 
 from transopt.agent.chat.openai_connector import (

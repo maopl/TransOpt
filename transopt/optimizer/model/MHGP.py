@@ -21,7 +21,7 @@ from GPy.kern import RBF
 
 import GPy
 
-@model_register('MHGP')
+@model_register.register('MHGP')
 class MHGP():
     """Stack of Gaussian processes.
 

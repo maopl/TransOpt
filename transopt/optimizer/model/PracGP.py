@@ -102,7 +102,7 @@ def compute_ranking_loss(
     return rank_loss
 
 
-@model_register('PracGP')
+@model_register.register('PracGP')
 class PracGP(Model):
     def __init__(
             self,

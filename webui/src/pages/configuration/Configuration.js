@@ -24,11 +24,11 @@ class Configuration extends React.Component {
     super(props);
     this.state = {
       TasksData: [],
-      SearchSpace: [],
-      Sample: [],
-      PreTrain: [],
-      Train: [],
-      Acf: [],
+      SpaceRefiner: [],
+      Sampler: [],
+      Pretrain: [],
+      Model: [],
+      ACF: [],
       DataSelector: [],
       DatasetData: []
     };
@@ -90,11 +90,11 @@ class Configuration extends React.Component {
       .then(data => {
         console.log('Message from back-end:', data);
         this.setState({ TasksData: data.TasksData,
-                        SearchSpace: data.SearchSpace,
-                        Sample: data.Sample,
-                        PreTrain: data.PreTrain,
-                        Train: data.Train,
-                        Acf: data.Acf,
+                        SpaceRefiner: data.SpaceRefiner,
+                        Sampler: data.Sampler,
+                        Pretrain: data.Pretrain,
+                        Model: data.Model,
+                        ACF: data.ACF,
                         DataSelector: data.DataSelector,
                       });
       })
@@ -139,11 +139,11 @@ class Configuration extends React.Component {
                   }
                   collapse
                 >
-                  <SelectPlugins SearchSpace={this.state.SearchSpace}
-                                    Sample={this.state.Sample}
-                                    PreTrain={this.state.PreTrain}
-                                    Train={this.state.Train}
-                                    Acf={this.state.Acf}
+                  <SelectPlugins SpaceRefiner={this.state.SpaceRefiner}
+                                    Sampler={this.state.Sampler}
+                                    Pretrain={this.state.Pretrain}
+                                    Model={this.state.Model}
+                                    ACF={this.state.ACF}
                                     DataSelector={this.state.DataSelector}
                   />
                 </Widget>

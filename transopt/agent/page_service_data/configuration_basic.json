@@ -22,118 +22,94 @@
             "fidelity": [4,5,6]
         }
     ],
-    "SearchSpace":
+    "SpaceRefiner":
     [
         {
-            "name":"default",
-            "default":""
+            "name":"default"
         },
         {
-            "name":"ss1",
-            "default":"Parameter1=1, Parameter2=2"
+            "name":"ss1"
         },
         {
-            "name":"ss2",
-            "default":"Parameter3=3, Parameter4=4"
+            "name":"ss2"
         },
         {
-            "name":"ss3",
-            "default":"Parameter5=5, Parameter6=6"
+            "name":"ss3"
         }
     ],
-    "Sample":
+    "Sampler":
     [  
         {
-            "name":"default",
-            "default":""
+            "name":"default"
         },
         {
-            "name":"sample1",
-            "default":"Parameter1=1, Parameter2=2"
+            "name":"sampler1"
         },
         {
-            "name":"sample2",
-            "default":"Parameter3=3, Parameter4=4"
+            "name":"sampler2"
         },
         {
-            "name":"sample3",
-            "default":"Parameter5=5, Parameter6=6"
+            "name":"sampler3"
         }
     ],
-    "PreTrain":
+    "Pretrain":
     [
         {
-            "name":"default",
-            "default":""
+            "name":"default"
         },
         {
-            "name":"pre-train1",
-            "default":"Parameter1=1, Parameter2=2"
+            "name":"pre-train1"
         },
         {
-            "name":"pre-train2",
-            "default":"Parameter3=3, Parameter4=4"
+            "name":"pre-train2"
         },
         {
-            "name":"pre-train3",
-            "default":"Parameter5=5, Parameter6=6"
+            "name":"pre-train3"
         }
     ],
-    "Train":
+    "Model":
     [
         {
-            "name":"default",
-            "default":""
+            "name":"default"
         },
         {
-            "name":"train1",
-            "default":"Parameter1=1, Parameter2=2"
+            "name":"model1"
         },
         {
-            "name":"train2",
-            "default":"Parameter3=3, Parameter4=4"
+            "name":"model2"
         },
         {
-            "name":"train3",
-            "default":"Parameter5=5, Parameter6=6"
+            "name":"model3"
         }
     ],
-    "Acf":
+    "ACF":
     [
         {
-            "name":"default",
-            "default":""
+            "name":"default"
         },
         {
-            "name":"acf1",
-            "default":"Parameter1=1, Parameter2=2"
+            "name":"acf1"
         },
         {
-            "name":"acf2",
-            "default":"Parameter3=3, Parameter4=4"
+            "name":"acf2"
         },
         {
-            "name":"acf3",
-            "default":"Parameter5=5, Parameter6=6"
+            "name":"acf3"
         }
     ],
     "DataSelector":
     [
         {
-            "name":"default",
-            "default":""
+            "name":"default"
         },
         {
-            "name":"data-selector1",
-            "default":"Parameter1=1, Parameter2=2"
+            "name":"data-selector1"
         },
         {
-            "name":"data-selector2",
-            "default":"Parameter3=3, Parameter4=4"
+            "name":"data-selector2"
         },
         {
-            "name":"data-selector3",
-            "default":"Parameter5=5, Parameter6=6"
+            "name":"data-selector3"
         }
     ]
 }

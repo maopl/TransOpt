@@ -9,7 +9,7 @@ from transopt.agent.chat.openai_connector import (
 from transopt.agent.config import Config
 from transopt.agent.config import RunningConfig
 from transopt.datamanager.manager import DataManager
-
+from transopt.benchmark.instantiate_problems import InstantiateProblems
 
 class Services:
     def __init__(self):
@@ -121,15 +121,28 @@ class Services:
         self.data_manager.load_dataset(dataset_name)
     
     def receive_tasks(self, tasks_info):
-        print(tasks_info)
         tasks = {}
         for task in tasks_info:
+            workloads = [int(item) for item in task['workloads'].split(',')]
             tasks[task["name"]] = {'budget_type': task["budget_type"],'budget': int(task['budget']), 
-                                   'workloads': task['workloads'], 'params':{'input_dim':task["dim"]}}
-
+                                   'workloads': workloads, 'params':{'input_dim':int(task["dim"])}}
 
         self.running_config.set_tasks(tasks)
         return
     
-    def run_optimize(self):
-        pass
+    def receive_optimizer(self, optimizer_info):
+        print(optimizer_info)
+        optimizer = {}
+
+
+        self.running_config.set_tasks(optimizer_info)
+        return
+    
+    def receive_metadata(self, metadata_info):
+        print(metadata_info)
+
+        self.running_config.set_metadata(metadata_info)
+        return
+    
+    def run_optimize(self, seed):
+        task_set = InstantiateProblems(self.running_config.tasks)

@@ -9,11 +9,17 @@ class Config:
 
 class RunningConfig:
     def __init__(self):
-        self.tasks = []
-
+        self.tasks = None
+        self.optimizer = None
+        self.metadata = None
         
         
     def set_tasks(self, tasks):
-        pass
+        self.tasks = tasks
+        
+    def set_optimizer(self, optimizer):
+        self.optimizer = optimizer
 
+    def set_metadata(self, metadata):
+        self.optimizer = metadata
 

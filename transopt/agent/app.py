@@ -75,10 +75,10 @@ def configuration_recieve_tasks():
 
 @app.route("/api/configuration/select_algorithm", methods=["POST"])
 def configuration_recieve_algorithm():
-    data = request.json
+    optimizer_info = request.json
     # 从前端得到选择的算法及其parameters
-    print(data)
 
+    services.receive_optimizer(optimizer_info)
     # 接收的格式如下
     # {'name': 'Algorithm1', 'parameters': 'Parameter1=1, Parameter2=2'}
 
@@ -106,7 +106,7 @@ def configuration_basic_information():
 
 @app.route("/api/configuration/dataset", methods=["POST"])
 def configuration_dataset():
-    data = request.json
+    metadata_info = request.json
     # 从前端得到选择的dataset，并开始实验
     print(data)
     
@@ -143,10 +143,10 @@ def configuration_search_dataset():
 
 @app.route("/api/configuration/run", methods=["POST"])
 def configuration_run():
-    data = request.json
+    run_info = request.json
     # 从前端得到开始实验的信息
 
-    services.run_optimize()
+    services.run_optimize(seed = run_info['seed'])
     # 返回处理后的响应给前端
     return {"succeed": True}, 200
 

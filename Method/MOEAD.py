@@ -8,7 +8,7 @@ from pymoo.algorithms.moo.moead import MOEAD as MOEADAlgo
 from pymoo.util.nds.non_dominated_sorting import NonDominatedSorting
 from pymoo.optimize import minimize
 
-from transopt.utils.sampling import lhs
+from optimizer.sampler import lhs_BAK
 from transopt.utils.pareto import find_pareto_front
 from autooed.mobo.solver.base import Solver
 
@@ -58,7 +58,7 @@ class MOEAD(Solver):
 
         # initialize population
         if len(X) < self.pop_size:
-            X = np.vstack([X, lhs(X.shape[1], self.pop_size - len(X))])
+            X = np.vstack([X, lhs_BAK(X.shape[1], self.pop_size - len(X))])
         elif len(X) > self.pop_size:
             sorted_indices = NonDominatedSorting().do(Y)
             X = X[sorted_indices[:self.pop_size]]

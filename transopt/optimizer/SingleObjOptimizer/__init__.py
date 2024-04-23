@@ -4,5 +4,5 @@ from transopt.optimizer.SingleObjOptimizer.MetaLearningOptimizer import MetaBOOp
 from transopt.optimizer.SingleObjOptimizer.MultitaskOptimizer import MultitaskBO
 from transopt.optimizer.SingleObjOptimizer.RGPEOptimizer import RGPEOptimizer
 from transopt.optimizer.SingleObjOptimizer.TPEOptimizer import TPEOptimizer
-from transopt.optimizer.SingleObjOptimizer.VanillaBO import VanillaBO
+from optimizer.SingleObjOptimizer.TLBO import VanillaBO
 from transopt.optimizer.SingleObjOptimizer.VizerOptimizer import Vizer

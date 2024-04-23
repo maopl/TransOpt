@@ -16,10 +16,10 @@ class OptimizerBase(abc.ABC, metaclass=abc.ABCMeta):
         config : dict-like of dict-like
             Configuration of the optimization variables. See API description.
         """
-        self.api_config = config
-        self.verbose = config['verbose']
-        self.optimizer_name = config['optimizer_name']
-        self.exp_path = config['save_path']
+        self.config = config
+        # self.verbose = config['verbose']
+        # self.optimizer_name = config['optimizer_name']
+        # self.exp_path = config['save_path']
 
 
 
@@ -54,8 +54,4 @@ class OptimizerBase(abc.ABC, metaclass=abc.ABCMeta):
         y : array-like, shape (n,)
             Corresponding values where objective has been evaluated
         """
-        pass
-
-    @abc.abstractmethod
-    def optimize(self, testsuits, data_handler):
         pass

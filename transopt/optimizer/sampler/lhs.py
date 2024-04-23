@@ -1,11 +1,12 @@
 import numpy as np
 from scipy.stats import qmc
 
-from .sampler import Sampler
+from sampler.sampler_base import Sampler
+from agent.registry import sampler_register
 
-
+@sampler_register("lhs")
 class LatinHypercubeSampler(Sampler):
-    def sample(self, search_space, n_samples=10):
+    def sample(self, search_space, n_samples=10, metadata = None):
         d = len(search_space.variables_order)
         sampler = qmc.LatinHypercube(d=d)
         sample_points = sampler.random(n=n_samples)

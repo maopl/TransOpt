@@ -1,8 +1,8 @@
 import numpy as np
+from sampler.sampler_base import Sampler
+from agent.registry import sampler_register
 
-from .sampler import Sampler
-
-
+@sampler_register("grid")
 class GridSampler(Sampler):
     def generate_grid_for_variable(self, var_range, is_discrete, steps):
         if is_discrete:
@@ -17,7 +17,7 @@ class GridSampler(Sampler):
         else:
             return np.linspace(var_range[0], var_range[1], num=steps)
 
-    def sample(self, search_space, steps=5):
+    def sample(self, search_space, steps=5, metadata=None):
         """
         生成采样点。
         :param search_space: 搜索空间对象。

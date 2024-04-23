@@ -1,10 +1,11 @@
 import numpy as np
 
-from .sampler import Sampler
+from sampler.sampler_base import Sampler
+from agent.registry import sampler_register
 
-
+@sampler_register("random")
 class RandomSampler(Sampler):
-    def sample(self, search_space, n_samples=1):
+    def sample(self, search_space, n_samples=1, metadata = None):
         samples = np.zeros((n_samples, len(search_space.variables_order)))
         for i, name in enumerate(search_space.variables_order):
             var_range = search_space.ranges[name]

@@ -1,6 +1,6 @@
 # regirstry for optimizer, 
-g_space_define_registry = {}
-g_initializer_registry = {}
+g_space_refiner_registry = {}
+g_sampler_registry = {}
 g_pretrain_registry = {}
 g_model_registry = {}
 g_acf_registry = {}
@@ -13,21 +13,21 @@ g_statistic_registry = {}
 
 
 
-def space_define_register(name):
+def space_refine_register(name):
     def decorator(func_or_class):
-        if name in g_space_define_registry:
+        if name in g_space_refiner_registry:
             raise ValueError(f"Error: '{name}' is already registered.")
-        g_space_define_registry[name] = func_or_class
+        g_space_refiner_registry[name] = func_or_class
         return func_or_class
     return decorator
 
 
 
-def initializer_register(name):
+def sampler_register(name):
     def decorator(func_or_class):
-        if name in g_initializer_registry:
+        if name in g_sampler_registry:
             raise ValueError(f"Error: '{name}' is already registered.")
-        g_initializer_registry[name] = func_or_class
+        g_sampler_registry[name] = func_or_class
         return func_or_class
     return decorator
 

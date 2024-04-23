@@ -5,7 +5,7 @@ from pymoo.algorithms.moo.nsga2 import NSGA2
 from agent.registry import acf_registry
 
 
-def get_ACF(acf_name, model, search_space, config, tabular=False):
+def get_acf(acf_name, model, search_space, config, tabular=False):
     """Create the optimizer object."""
     acf_class = acf_registry.get(acf_name)
     acquisition_optimizer = GPyOpt.optimization.AcquisitionOptimizer(search_space)

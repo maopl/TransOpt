@@ -5,7 +5,7 @@ from GPy import util
 from paramz import ObsAr
 
 from GPy.inference.latent_function_inference import expectation_propagation
-from transopt.optimizer.OptimizerBase import OptimizerBase
+from transopt.optimizer.optimizer_base import OptimizerBase
 # from Model.HyperBO import hyperbo
 
 from transopt_external.transfergpbo import models

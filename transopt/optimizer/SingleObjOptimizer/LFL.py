@@ -1,10 +1,10 @@
 import numpy as np
 import GPy
 from paramz import ObsAr
-from transopt.optimizer.acquisition_function.ConstructACF import get_ACF
+from optimizer.acquisition_function.get_acf import get_ACF
 from transopt.optimizer.acquisition_function.sequential import Sequential
 from typing import Dict, Union, List
-from transopt.optimizer.OptimizerBase import BOBase
+from transopt.optimizer.optimizer_base import BOBase
 from transopt.utils.serialization import ndarray_to_vectors
 from agent.registry import optimizer_register
 from transopt.utils.Kernel import construct_multi_objective_kernel

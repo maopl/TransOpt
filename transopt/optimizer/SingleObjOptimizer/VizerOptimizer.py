@@ -5,7 +5,7 @@ from agent.registry import optimizer_register
 from transopt.utils.Normalization import get_normalizer
 from transopt.optimizer.model.MHGP import MHGP
 from typing import Dict, Union, List, Tuple
-from transopt.optimizer.OptimizerBase import BOBase
+from transopt.optimizer.optimizer_base import BOBase
 
 
 @optimizer_register('vizer')

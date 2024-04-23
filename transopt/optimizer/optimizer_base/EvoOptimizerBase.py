@@ -3,11 +3,10 @@ import numpy as np
 import ConfigSpace
 import math
 from typing import Union, Dict, List
-from transopt.optimizer.OptimizerBase import OptimizerBase
+from transopt.optimizer.optimizer_base import OptimizerBase
 import GPyOpt
 from transopt.utils.serialization import vectors_to_ndarray, output_to_ndarray
 from transopt.utils.Visualization import visual_oned, visual_contour
-from transopt.KnowledgeBase.TransferDataHandler import OptTaskDataHandler
 
 
 

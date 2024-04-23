@@ -4,7 +4,7 @@ from pymoo.core.problem import Problem
 from pymoo.algorithms.soo.nonconvex.ga import GA
 from typing import Dict, Union, List
 
-from transopt.optimizer.OptimizerBase import BOBase
+from transopt.optimizer.optimizer_base import BOBase
 from transopt.utils.serialization import vectors_to_ndarray, output_to_ndarray
 from transopt.utils.serialization import ndarray_to_vectors
 from agent.registry import optimizer_register

@@ -2,7 +2,7 @@
 from typing import List, Any, Union, Tuple, Dict, Callable
 
 import archived.DataSelection
-from transopt.KnowledgeBase.database import Database
+from transopt.KnowledgeBase.datamanager.database import Database
 from transopt.KnowledgeBase.DataHandlerBase import DataHandler
 
 class TransferDataHandler(DataHandler):

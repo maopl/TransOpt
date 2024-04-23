@@ -7,7 +7,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 package_dir = os.path.dirname(current_dir)
 sys.path.insert(0, package_dir)
 
-from transopt.Benchmark.construct_test_suits import get_testsuits
+from benchmark.instantiate_problems import get_testsuits
 from transopt.Optimizer.ConstructOptimizer import get_optimizer
 from transopt.KnowledgeBase.kb_builder import construct_knowledgebase
 from transopt.KnowledgeBase.TransferDataHandler import OptTaskDataHandler

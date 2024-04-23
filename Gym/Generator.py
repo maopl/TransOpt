@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 # from transopt.Benchmark.Synthetic.SyntheticBenchmark import Select_synthetic_fun
-from transopt.Benchmark.RL.LunarlanderBenchmark import LunarlanderBenchmark
+from transopt.benchmark.RL.LunarlanderBenchmark import LunarlanderBenchmark
 from sklearn.preprocessing import power_transform
 from transopt.utils.Normalization import Normalize
-from transopt.Benchmark.HPOB.HpobBench import HPOb
+from transopt.benchmark.HPOB.HpobBench import HPOb
 from sklearn.mixture import GaussianMixture
 from scipy.stats import pearsonr, spearmanr
 from sklearn.cluster import KMeans

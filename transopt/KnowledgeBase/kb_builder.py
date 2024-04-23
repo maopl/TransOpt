@@ -1,5 +1,5 @@
 from pathlib import Path
-from transopt.KnowledgeBase.database import Database
+from transopt.KnowledgeBase.datamanager.database import Database
 
 def construct_knowledgebase():
     # exp_folder = Path(args.exp_path) / args.exp_name

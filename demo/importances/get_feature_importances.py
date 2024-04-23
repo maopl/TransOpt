@@ -19,7 +19,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeRegressor
 
-from csstuning.compiler.compiler_benchmark import GCCBenchmark
+# from csstuning.compiler.compiler_benchmark import GCCBenchmark
 
 # data_path = package_dir / "experiment_results" / "gcc_samples"
 # data_path = package_dir / "experiment_results" / "gcc_samples"

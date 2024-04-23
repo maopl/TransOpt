@@ -88,7 +88,9 @@ class Configuration extends React.Component {
                     List-<span className="fw-semi-bold">Task</span>
                   </h3>
                   <p>
-                    There are some discription.There are some discription.There are some discription.There are some discription.
+                  Click "Add Task" to select an optimization task, and then choose the name, dimensions, number of objectives, fidelity, and budget for the task. 
+                  The budget can be specified in two forms: (1) evaluation count, for example, "1000", or (2) evaluation time, for example, "1d2h3m4s". 
+                  Click "-" to delete the added task. Once the selection is complete, click the "Submit" button.
                   </p>
                   <SelectTask data={TasksData}/>
                 </Widget>

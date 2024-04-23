@@ -85,12 +85,6 @@ function ATask({key, name, restField, remove, data}) {
            </Form.Item>
            <Form.Item
              {...restField}
-             name={[name, 'seed']}
-           >
-             <Input placeholder="seed" style={{width:"80px"}} />
-           </Form.Item>
-           <Form.Item
-             {...restField}
              name={[name, 'workloads']}
            >
              <Input placeholder="workloads" style={{width:"80px"}} />
@@ -127,7 +121,6 @@ function SelectTask({data}) {
       dim: parseInt(task.dim),
       obj: task.obj,
       fidelity: task.fidelity,
-      seed: task.seed,
       workloads: task.workloads,
       budget_type: task.budget_type,
       budget: task.budget,

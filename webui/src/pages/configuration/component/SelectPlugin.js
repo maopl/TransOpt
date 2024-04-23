@@ -11,54 +11,6 @@ import {
 
 function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelector}) {
     const [form] = Form.useForm()
-    
-    // const [selectedSpaceRefiner, setSpaceRefiner] = useState(SpaceRefiner[0])
-    // function handleSSNameChange(value) {
-    //     // console.log(`selected ${value}`);
-    //     const spacerefiner = SpaceRefiner.find(spacerefiner => spacerefiner.name === value)
-    //     setSpaceRefiner(spacerefiner)
-    //     form.setFieldValue('SearchSpaceParameters', spacerefiner.default)
-    // }
-
-    // const [selectedSampler, setSampler] = useState(Sampler[0])
-    // function handleSamplerNameChange(value) {
-    //     // console.log(`selected ${value}`);
-    //     const sample = Sample.find(sample => sample.name === value)
-    //     setSampler(sample)
-    //     form.setFieldValue('SampleParameters', sample.default)
-    // }
-
-    // const [selectedPreTrain, setPreTrain] = useState(PreTrain[0])
-    // function handlePreTrainNameChange(value) {
-    //     // console.log(`selected ${value}`);
-    //     const pretrain = PreTrain.find(pretrain => pretrain.name === value)
-    //     setPreTrain(pretrain)
-    //     form.setFieldValue('PreTrainParameters', pretrain.default)
-    // }
-
-    // const [selectedTrain, setTrain] = useState(Train[0])
-    // function handleTrainNameChange(value) {
-    //     // console.log(`selected ${value}`);
-    //     const train = Train.find(train => train.name === value)
-    //     setTrain(train)
-    //     form.setFieldValue('TrainParameters', train.default)
-    // }
-
-    // const [selectedAcf, setAcf] = useState(Acf[0])
-    // function handleAcfNameChange(value) {
-    //     // console.log(`selected ${value}`);
-    //     const acf = Acf.find(acf => acf.name === value)
-    //     setAcf(acf)
-    //     form.setFieldValue('AcfParameters', acf.default)
-    // }
-
-    // const [selectedDataSelector, setDataSelector] = useState(DataSelector[0])
-    // function handleDataSelectorNameChange(value) {
-    //     // console.log(`selected ${value}`);
-    //     const dataselector = DataSelector.find(dataselector => dataselector.name === value)
-    //     setDataSelector(dataselector)
-    //     form.setFieldValue('DataSelectorParameters', dataselector.default)
-    // }
 
     const onFinish = (values) => {
         // 构造要发送到后端的数据

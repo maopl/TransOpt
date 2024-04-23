@@ -3,6 +3,7 @@ import {
   Row,
   Col,
 } from "reactstrap";
+import { Button, Modal } from "antd";
 
 import s from "./Configuration.module.scss"
 
@@ -31,6 +32,36 @@ class Configuration extends React.Component {
   set_dataset = (datasets) => {
     console.log(datasets)
     this.setState({ DatasetData: datasets })
+  }
+
+  handelRunClick = () => {
+    const messageToSend = {
+      message: 'run the experiment',
+    };
+    console.log(messageToSend)
+    fetch('http://localhost:5000/api/configuration/run', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(messageToSend),
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      } 
+      return response.json();
+    })
+    .then(succeed => {
+      console.log('Message from back-end:', succeed);
+      Modal.success({
+        title: 'Infor',
+        content: 'Run successfully!'
+      })
+    })
+    .catch((error) => {
+      console.error('Error sending message:', error);
+    });
   }
 
   render() {
@@ -138,6 +169,26 @@ class Configuration extends React.Component {
                   <SelectData data={this.state.DatasetData}/>
                 </Widget>
               </Col>
+              <Col lg={12} sm={12}>
+                <Widget
+                  title={
+                    <h5>
+                      4. <span className="fw-semi-bold">Run</span>
+                    </h5>
+                  }
+                  collapse
+                >
+                  <h3>
+                    <span className="fw-semi-bold">Run the Experiment</span>
+                  </h3>
+                  <p>
+                    Click the "run" button to start the experiment.
+                  </p>
+                  <Button type="primary" htmlType="submit" style={{width:"120px"}} onClick={this.handelRunClick}>
+                    Run
+                  </Button>
+                </Widget>
+              </Col>
             </Row>
             </Col>
             <Col lg={6} sm={4}>
@@ -154,7 +205,6 @@ class Configuration extends React.Component {
               </Widget>
             </Col>
           </Row>
-          
         </div>
       );
     }

@@ -6,7 +6,8 @@ import {
     Input,
     Select,
     ConfigProvider,
-    Modal,  
+    Modal,
+    Space,
 } from "antd";
 
 function SelectAlgorithm({data}) {
@@ -68,27 +69,83 @@ function SelectAlgorithm({data}) {
             style={{width:"100%"}}
             autoComplete="off"
         >
+          <div>
+              <h5 style={{color:"#f4f4f599"}}>
+                <span className="fw-semi-bold">Search space</span>
+              </h5>
+          </div>
+          <div style={{ display: 'flex', marginBottom: 8, alignItems: 'baseline' }}>
             <Form.Item
-                name={'name'}
-                rules={[{ required: true, message: 'Missing name'}]}
+              name={'search_space'}
+              style={{ marginRight: 8 , width: 150}}
             >
-                <Select
+              <Select
                 placeholder="name"
                 value={selectedAlgorithm.name}
                 options={data.map(item => ({ value: item.name }))}
                 onChange={handleNameChange}
-                />
+              />
             </Form.Item>
             <Form.Item
-                name={'parameters'}
+              name={'ss_parameters'}
+              style={{ flex: 1 }}
             >
-                <Input placeholder="Parameters" value={selectedAlgorithm.default} addonBefore={"Parameters"} style={{addonBg:'#ffffff'}}/>
+              <Input placeholder="Parameters" value={selectedAlgorithm.default} />
             </Form.Item>
-            <Form.Item>
-              <Button type="primary" htmlType="submit" style={{width:"120px"}}>
-                Submit
-              </Button>
+          </div>
+          <div>
+              <h5 style={{color:"#f4f4f599"}}>
+                <span className="fw-semi-bold">Sample initial set</span>
+              </h5>
+          </div>
+          <div style={{ display: 'flex', marginBottom: 8, alignItems: 'baseline' }}>
+            <Form.Item
+              name={'sample'}
+              style={{ marginRight: 8 , width: 150}}
+            >
+              <Select
+                placeholder="name"
+                value={selectedAlgorithm.name}
+                options={data.map(item => ({ value: item.name }))}
+                onChange={handleNameChange}
+              />
             </Form.Item>
+            <Form.Item
+              name={'sample_parameters'}
+              style={{ flex: 1 }}
+            >
+              <Input placeholder="Parameters" value={selectedAlgorithm.default} />
+            </Form.Item>
+          </div>
+          <div>
+              <h5 style={{color:"#f4f4f599"}}>
+                <span className="fw-semi-bold">Pre-train model</span>
+              </h5>
+          </div>
+          <div style={{ display: 'flex', marginBottom: 8, alignItems: 'baseline' }}>
+            <Form.Item
+              name={'pre_train_model'}
+              style={{ marginRight: 8 , width: 150}}
+            >
+              <Select
+                placeholder="name"
+                value={selectedAlgorithm.name}
+                options={data.map(item => ({ value: item.name }))}
+                onChange={handleNameChange}
+              />
+            </Form.Item>
+            <Form.Item
+              name={'pre_train_parameters'}
+              style={{ flex: 1 }}
+            >
+              <Input placeholder="Parameters" value={selectedAlgorithm.default} />
+            </Form.Item>
+          </div>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" style={{width:"120px"}}>
+              Submit
+            </Button>
+          </Form.Item>
         </Form>
         </ConfigProvider>
     )

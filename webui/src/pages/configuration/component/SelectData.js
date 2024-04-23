@@ -24,7 +24,7 @@ function SelectData({data}) {
         return item;
       });
       console.log(messageToSend)
-      fetch('http://localhost:5000/api/configuration/begin', {
+      fetch('http://localhost:5000/api/configuration/dataset', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -59,11 +59,17 @@ function SelectData({data}) {
             },
           }}        
         >
+          <div>
             <Checkbox indeterminate={indeterminate} onChange={onCheckAllChange} checked={checkAll}>
                 Check all
             </Checkbox>
             <CheckboxGroup options={data} value={checkedList} onChange={onChange}/>
-            <Button onClick={handelClick}>Begin</Button>
+          </div>
+          <div style={{marginTop:"20px"}}>
+            <Button type="primary" htmlType="submit" style={{width:"120px"}} onClick={handelClick}>
+              Submit
+            </Button>
+          </div>
         </ConfigProvider>
     )
 }

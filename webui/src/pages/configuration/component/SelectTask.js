@@ -87,7 +87,7 @@ function ATask({key, name, restField, remove, data}) {
              {...restField}
              name={[name, 'budget']}
            >
-             <Input placeholder="budget" style={{width:"70px"}} />
+             <Input placeholder="budget" style={{width:"100px"}} />
            </Form.Item>
            <MinusCircleOutlined style={{color: 'white'}} onClick={() => remove(name)} />
         </Space>

@@ -135,7 +135,7 @@ class Services:
         optimizer = {}
 
 
-        self.running_config.set_tasks(optimizer_info)
+        self.running_config.set_optimizer(optimizer_info)
         return
     
     def receive_metadata(self, metadata_info):

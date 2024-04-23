@@ -1,4 +1,4 @@
-from agent.registry import g_space_refiner_registry
+from transopt.agent.registry import g_space_refiner_registry
 
 
 

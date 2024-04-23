@@ -1,4 +1,4 @@
-from agent.registry import g_pretrain_registry
+from transopt.agent.registry import g_pretrain_registry
 
 
 

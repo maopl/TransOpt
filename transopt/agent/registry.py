@@ -10,9 +10,6 @@ g_acf_registry = {}
 g_problem_registry = {}
 g_statistic_registry = {}
 
-
-
-
 def space_refine_register(name):
     def decorator(func_or_class):
         if name in g_space_refiner_registry:

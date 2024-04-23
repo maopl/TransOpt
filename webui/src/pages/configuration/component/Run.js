@@ -52,20 +52,22 @@ function Run() {
             autoComplete="off"
         >
             <div style={{ overflowY: 'auto', maxHeight: '150px' }}>
-                <Form.Item name="Seeds">
-                    <Input placeholder="Pretrain" />
-                </Form.Item>
-                <Form.Item name="Remote">
-                    <Select
-                     placeholder="Remote"
-                     options={[ {value: "True"},
-                                {value: "False"},
-                   ]}
-                    />
-                </Form.Item>
-                <Form.Item name="ServerURL">
-                    <Input placeholder="ServerURL" />
-                </Form.Item>
+                <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                    <Form.Item name="Seeds" style={{marginRight:10}}>
+                        <Input placeholder="Pretrain" />
+                    </Form.Item>
+                    <Form.Item name="Remote" style={{marginRight:10}}>
+                        <Select
+                        placeholder="Remote"
+                        options={[ {value: "True"},
+                                    {value: "False"},
+                    ]}
+                        />
+                    </Form.Item>
+                    <Form.Item name="ServerURL">
+                        <Input placeholder="ServerURL" />
+                    </Form.Item>
+                </div>
             </div>
             <Form.Item>
             <Button type="primary" htmlType="submit" style={{width:"120px"}}>

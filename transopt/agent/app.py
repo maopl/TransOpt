@@ -144,6 +144,7 @@ def configuration_search_dataset():
 @app.route("/api/configuration/run", methods=["POST"])
 def configuration_run():
     run_info = request.json
+    print(run_info)
     # 从前端得到开始实验的信息
 
     services.run_optimize(seeds_info = run_info['Seeds'])

@@ -149,8 +149,8 @@ def configuration_search_dataset():
 def configuration_run():
     data = request.json
     # 从前端得到开始实验的信息
-    print(data.message)
 
+    services.run_optimize()
     # 返回处理后的响应给前端
     return {"succeed": True}, 200
 

@@ -19,6 +19,7 @@ class Services:
         self.prompt = get_prompt()
         self.is_first_msg = True
         self.initialize_modules()
+        se
 
     def chat(self, user_input):
         system_message = Message(role="system", content=self.prompt)
@@ -30,14 +31,7 @@ class Services:
             response_content = self.openai_chat.get_response([user_message])
         
         return response_content
-        
-    def search_dataset(self, dataset_name, dataset_info):
-        return list(self.data_manager.get_similar_datasets(dataset_name, dataset_info))
     
-    
-    
-    def run_optimize(self):
-        pass
     
     def initialize_modules(self):
         import transopt.benchmark.synthetic
@@ -114,4 +108,13 @@ class Services:
         
         return basic_info
         
-        
+    def search_dataset(self, dataset_name, dataset_info):
+        return list(self.data_manager.get_similar_datasets(dataset_name, dataset_info))
+    
+    
+    def submit_dataset(self, dataset_name):
+        self.data_manager.load_dataset(dataset_name)
+    
+    
+    def run_optimize(self):
+        pass

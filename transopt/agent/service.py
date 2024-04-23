@@ -185,14 +185,23 @@ def configuration_basic_information():
     return jsonify(data), 200
 
 
-@app.route('/api/configuration/begin', methods=['POST'])
-def configuration_begin():  
+@app.route('/api/configuration/dataset', methods=['POST'])
+def configuration_dataset():  
     data = request.json
     # 从前端得到选择的dataset，并开始实验
     print(data)
 
     # 接收的格式如下
     # ['dataset1', 'dataset2', 'dataset3', 'dataset4']
+
+    # 返回处理后的响应给前端
+    return {"succeed":True}, 200
+
+@app.route('/api/configuration/run', methods=['POST'])
+def configuration_run():  
+    data = request.json
+    # 从前端得到开始实验的信息
+    print(data.message)
 
     # 返回处理后的响应给前端
     return {"succeed":True}, 200

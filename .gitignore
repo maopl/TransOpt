@@ -104,3 +104,5 @@ demo/comparison/htmls/
 demo/draw/
 demo/importances/pngs/
 ```
+
+**/__pycache__/

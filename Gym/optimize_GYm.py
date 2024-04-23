@@ -6,8 +6,8 @@ import os
 
 from transopt.utils.Normalization  import Normalize
 from transopt.utils.Initialization import InitData
-from transopt.Optimizer import RestartOptimizer
-from transopt.Optimizer import construct_acf
+from transopt.optimizer import RestartOptimizer
+from transopt.optimizer import construct_acf
 from transopt.utils import Prior
 
 

@@ -6,9 +6,9 @@ import os
 from transopt.utils.Normalization import Norm_pt
 from transopt.utils.Initialization import InitData
 from transopt.utils import Prior
-from Optimizer import MixOptimizer
+from optimizer import MixOptimizer
 
-from Optimizer import construct_acf
+from optimizer import construct_acf
 
 from transopt.KnowledgeBase.Task_recognition import reco_Tree
 from transopt.KnowledgeBase.Knowledge_selection import  Source_selec

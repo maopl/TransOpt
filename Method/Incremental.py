@@ -6,8 +6,8 @@ import os
 
 from transopt.utils.Normalization  import Normalize
 from transopt.utils.Initialization import InitData
-from Optimizer import IncrementalOptimizer
-from Optimizer import construct_acf
+from optimizer import IncrementalOptimizer
+from optimizer import construct_acf
 
 import Visualization.Visual_landscape as visual
 

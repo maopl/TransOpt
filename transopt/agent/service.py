@@ -10,7 +10,7 @@ from flask_cors import CORS
 from log import logger
 from openai_connector import Message, OpenAIChat
 import benchmark
-
+# import optimizer
 from agent.registry import *
 
 # Assuming OpenAIChat, Message, get_prompt, parse_response are defined correctly
@@ -133,8 +133,9 @@ def configuration_search_dataset():
     # 从前端得到dataset的搜索条件
     print(data)
 
+    # task_name , numb_variables, variables_name, num_objectives
     # 接收的格式如下
-    # {'name': 0.27, 'dim': 0.62, 'obj': 0.25, 'fidelityName': 0.71, 'fidelity': 0.19}
+    # {'name': 0.27, 'dim': 0.62, 'obj': 0.25, 'fidelityName': 0.71, 'variables_name': 'learning_rate, epochs, aa'}
 
 
     data = [
@@ -181,11 +182,11 @@ def configuration_basic_information():
         task_data.append(task_info)
 
     # 发送Tasks数据给前端
-    # current_directory = os.path.dirname(__file__)
-    # json_file_path = os.path.join(current_directory, 'page_service_data', 'configuration_basic.json')
-    # with open(json_file_path, 'r') as file:
-    #     data = json.load(file)
-    return jsonify(task_data), 200
+    current_directory = os.path.dirname(__file__)
+    json_file_path = os.path.join(current_directory, 'page_service_data', 'configuration_basic.json')
+    with open(json_file_path, 'r') as file:
+        data = json.load(file)
+    return jsonify(data), 200
 
 
 @app.route('/api/configuration/dataset', methods=['POST'])

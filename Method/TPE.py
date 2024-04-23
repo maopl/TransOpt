@@ -2,7 +2,7 @@ import numpy as np
 import os
 
 from transopt.utils.Initialization import InitData
-from Optimizer import TPEOptimizer
+from optimizer import TPEOptimizer
 import ConfigSpace as CS
 import ConfigSpace.hyperparameters as CSH
 

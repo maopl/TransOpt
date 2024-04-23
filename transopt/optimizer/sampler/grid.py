@@ -1,8 +1,8 @@
 import numpy as np
 from sampler.sampler_base import Sampler
-from agent.registry import sampler_register
+from agent.registry import sampler_registry
 
-@sampler_register.register("grid")
+@sampler_registry.register("grid")
 class GridSampler(Sampler):
     def generate_grid_for_variable(self, var_range, is_discrete, steps):
         if is_discrete:

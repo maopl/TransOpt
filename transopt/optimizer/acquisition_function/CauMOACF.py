@@ -13,7 +13,7 @@ from transopt.optimizer.acquisition_function.ACF import AcquisitionBase
 from transopt.utils.hypervolume import calc_hypervolume
 from transopt.utils.Normalization import normalize
 from transopt.utils.pareto import find_pareto_front
-from agent.registry import acf_register
+from agent.registry import acf_registry
 from transopt.utils.profile import profile_function
 
 
@@ -230,7 +230,7 @@ def create_cluster_tree(secondary_clusters, evaluated_points):
     return Tree(secondary_nodes, evaluated_points)
         
         
-@acf_register.register("CauMOACF")
+@acf_registry.register("CauMOACF")
 class CauMOACF:
     def __init__(self, model, space, optimizer, config):
         self.optimizer = optimizer

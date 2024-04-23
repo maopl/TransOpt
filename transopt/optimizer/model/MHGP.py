@@ -16,12 +16,12 @@
 import copy
 import numpy as np
 from typing import Dict, Hashable, Union, Sequence, Tuple, List
-from agent.registry import model_register
+from agent.registry import model_registry
 from GPy.kern import RBF
 
 import GPy
 
-@model_register.register('MHGP')
+@model_registry.register('MHGP')
 class MHGP():
     """Stack of Gaussian processes.
 

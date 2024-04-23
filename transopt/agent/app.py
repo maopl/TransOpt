@@ -95,31 +95,7 @@ def configuration_basic_information():
     user_input = data.get("paremeter", "")
 
     print(user_input)
-
-    task_names = problem_register.list_names()
-    task_data = []
-    algoprithm_data = []
-
-    for name in task_names:
-        if problem_register[name].get_problem_type() == "synthetic":
-            task_info = {
-                "name": name,
-                "anyDim": True,
-                "dim": [],
-                "obj": [1],
-                "fidelity": [],
-            }
-        else:
-            obj_num = problem_register[name].get_objectives()
-            dim = len(problem_register[name].get_configuration_space().keys())
-            task_info = {
-                "name": name,
-                "anyDim": False,
-                "dim": [dim],
-                "obj": [obj_num],
-                "fidelity": [],
-            }
-        task_data.append(task_info)
+    task_data = services.get_modules()
 
     # 发送Tasks数据给前端
     current_directory = os.path.dirname(__file__)

@@ -2,9 +2,9 @@
 # Licensed under the BSD 3-clause license (see LICENSE.txt)
 
 from GPyOpt.acquisitions.base import AcquisitionBase
-from transopt.agent.registry import acf_register
+from transopt.agent.registry import acf_registry
 
-@acf_register.register('LCB')
+@acf_registry.register('LCB')
 class AcquisitionLCB(AcquisitionBase):
     """
     GP-Lower Confidence Bound acquisition function with constant exploration weight.

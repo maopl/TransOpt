@@ -2,9 +2,9 @@ import numpy as np
 from scipy.stats import qmc
 
 from transopt.optimizer.sampler.sampler_base import Sampler
-from transopt.agent.registry import sampler_register
+from transopt.agent.registry import sampler_registry
 
-@sampler_register.register("sobol")
+@sampler_registry.register("sobol")
 class SobolSampler(Sampler):
     def sample(self, search_space, n_samples=10, metadata = None):
         d = len(search_space.variables_order)

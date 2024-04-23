@@ -6,7 +6,7 @@ from GPy.kern import Kern
 from GPy.kern import RBF
 from transopt_external.transfergpbo.models import InputData, TaskData, Model, GPBO
 import sobol_seq
-from agent.registry import model_register
+from agent.registry import model_registry
 
 
 def roll_col(X: np.ndarray, shift: int) -> np.ndarray:

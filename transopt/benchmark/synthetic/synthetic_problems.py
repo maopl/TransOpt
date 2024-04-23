@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Union, Dict
 from transopt.space.variable import *
-from transopt.agent.registry import problem_register
+from transopt.agent.registry import problem_registry
 from transopt.benchmark.problem_base.synthetic_problem_base import SyntheticProblemBase
 from transopt.space.search_space import SearchSpace
 from transopt.space.fidelity_space import FidelitySpace
@@ -1616,7 +1616,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 #         return {}
 
 
-@problem_register.register("Ackley")
+@problem_registry.register("Ackley")
 class Ackley(SyntheticProblemBase):
     def __init__(
         self, task_name, budget, seed, workload, **kwargs

@@ -1,5 +1,3 @@
-""" Base-class of all benchmarks """
-
 import abc
 import logging
 
@@ -9,11 +7,17 @@ from transopt.space.fidelity_space import FidelitySpace
 import numpy as np
 from typing import Union, Dict
 
-logger = logging.getLogger("AbstractProblem")
 
 
-class ProblemBase(abc.ABC):
-    def __init__(self, seed: Union[int, np.random.RandomState, None] = None, **kwargs):
+class SyntheticProblemBase:
+    def __init__(
+        self,
+        task_name: str,
+        budget: int,
+        workload,
+        seed: Union[int, np.random.RandomState, None] = None,
+        **kwargs,
+    ):
         """
         Interface for benchmarks.
 
@@ -37,6 +41,11 @@ class ProblemBase(abc.ABC):
         self.objective_info = self.get_objectives()
         self.problem_type = self.get_problem_type()
         self.configuration_space = self.get_configuration_space()
+        
+        self.task_name = task_name
+        self.budget = budget
+        self.workload = workload
+        self.lock_flag = False
         
         self.input_dim = len(self.configuration_space.keys())
         self.num_objective = len(self.objective_info)
@@ -90,7 +99,7 @@ class ProblemBase(abc.ABC):
 
     
     @abc.abstractmethod
-    def get_dyn_configuration_space() -> SearchSpace:
+    def get_configuration_space(self) -> SearchSpace:
         """Defines the configuration space for each benchmark.
         Parameters
         ----------
@@ -101,37 +110,6 @@ class ProblemBase(abc.ABC):
         -------
         ConfigSpace.ConfigurationSpace
             A valid configuration space for the benchmark's parameters
-        """
-        raise NotImplementedError()
-    
-    @staticmethod
-    @abc.abstractmethod
-    def get_configuration_space() -> SearchSpace:
-        """Defines the configuration space for each benchmark.
-        Parameters
-        ----------
-        seed: int, None
-            Seed for the configuration space.
-
-        Returns
-        -------
-        ConfigSpace.ConfigurationSpace
-            A valid configuration space for the benchmark's parameters
-        """
-        raise NotImplementedError()
-
-    @staticmethod
-    @abc.abstractmethod
-    def get_fidelity_space() -> FidelitySpace:
-        """Defines the available fidelity parameters as a "fidelity space" for each benchmark.
-        Parameters
-        ----------
-        seed: int, None
-            Seed for the fidelity space.
-        Returns
-        -------
-        ConfigSpace.ConfigurationSpace
-            A valid configuration space for the benchmark's fidelity parameters
         """
         raise NotImplementedError()
 
@@ -149,8 +127,6 @@ class ProblemBase(abc.ABC):
             A valid configuration space for the benchmark's fidelity parameters
         """
         raise NotImplementedError()
-
-
 
 
     @staticmethod
@@ -172,3 +148,59 @@ class ProblemBase(abc.ABC):
         """
         raise NotImplementedError()
 
+
+    def get_budget(self) -> int:
+        """Provides the function evaluations number about the benchmark.
+
+        Returns
+        -------
+        int
+            some human-readable information
+
+        """
+        return self.budget
+
+    def get_name(self) -> str:
+        """Provides the task name about the benchmark.
+
+        Returns
+        -------
+        str
+            some human-readable information
+
+        """
+        return self.task_name
+
+    def get_type(self) -> str:
+        """Provides the task type about the benchmark.
+
+        Returns
+        -------
+        str
+            some human-readable information
+
+        """
+        return self.task_type
+
+    def get_input_dim(self) -> int:
+        """Provides the input dimension about the benchmark.
+
+        Returns
+        -------
+        int
+            some human-readable information
+
+        """
+        return self.input_dim
+
+    def get_objective_num(self) -> int:
+        return self.num_objective
+
+    def lock(self):
+        self.lock_flag = True
+
+    def unlock(self):
+        self.lock_flag = False
+
+    def get_lock_state(self) -> bool:
+        return self.lock_flag

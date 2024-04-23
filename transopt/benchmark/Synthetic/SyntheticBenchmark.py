@@ -7,8 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Union, Dict
 from transopt.space.variable import *
-from transopt.utils.Register import benchmark_register, benchmark_registry
-from benchmark.problem_base.non_tab_problem import NonTabularProblem
+from transopt.utils.Register import benchmark_register, problem_registry
+from benchmark.problem_base.synthetic_problem import SyntheticProblemBase
 from transopt.space.search_space import SearchSpace
 from transopt.space.fidelity_space import FidelitySpace
 
@@ -1632,9 +1632,9 @@ class mpbOptBenchmark(NonTabularProblem):
 
 
 @benchmark_register("Ackley")
-class Ackley(NonTabularProblem):
+class Ackley(SyntheticProblemBase):
     def __init__(
-        self, task_name, budget, seed, workload, task_type="non-tabular", **kwargs
+        self, task_name, budget, seed, workload, **kwargs
     ):
         assert "params" in kwargs
         parameters = kwargs["params"]
@@ -1662,11 +1662,11 @@ class Ackley(NonTabularProblem):
             task_name=task_name,
             seed=seed,
             workload=workload,
-            task_type=task_type,
             budget=budget,
+    
         )
 
-    def objective_funfction(
+    def objective_function(
         self,
         configuration: Dict,
         fidelity: Dict = None,
@@ -1687,9 +1687,7 @@ class Ackley(NonTabularProblem):
 
         return {self.objective_info[0]: float(y), "info": {"fidelity": fidelity}}
 
-    def get_configuration_space(
-        self, seed: Union[int, None] = None
-    ) -> SearchSpace:
+    def get_configuration_space(self) -> SearchSpace:
         
         variables =  [Continuous(f'x{i}', (-32.768, 32.768)) for i in range(self.input_dim)]
         
@@ -1698,22 +1696,19 @@ class Ackley(NonTabularProblem):
         return ss
 
 
-    def get_fidelity_space(
-        self, seed: Union[int, None] = None
-    ) -> FidelitySpace:
-                
-
-        return FidelitySpace([])
-
-
-    def get_objectives(self) -> list:
+    def get_objectives() -> list:
         
         return ['f1']
 
+
+    def get_problem_type():
+        return "synthetic"
+
+
     def get_meta_information(self) -> Dict:
         return {}
-
-
+    
+    
 @benchmark_register("Ellipsoid")
 class EllipsoidOptBenchmark(NonTabularProblem):
     def __init__(
@@ -2456,7 +2451,7 @@ def plot_true_function(obj_fun_list, Dim, dtype, Exper_folder=None, plot_type="1
 
 def get_problem(fun, seed, Dim):
     # 从注册表中获取任务类
-    task_class = benchmark_registry.get(fun)
+    task_class = problem_registry.get(fun)
 
     if task_class is not None:
         problem = task_class(

@@ -4,7 +4,7 @@ import logging
 import numpy as np
 from typing import Union, Dict, List
 
-from transopt.benchmark.problem_base import NonTabularProblem
+from benchmark.problem_base.non_tab_problem import NonTabularProblem
 from benchmark.problem_base.tab_problem import TabularProblem
 from transopt.remote import ExperimentClient
 

@@ -5,7 +5,7 @@ import logging
 import numpy as np
 from typing import Union, Dict, List
 from pathlib import Path
-from transopt.benchmark.problem_base import ProblemBase
+from transopt.benchmark.problem_base.base import ProblemBase
 logger = logging.getLogger("NonTabularProblem")
 
 
@@ -13,13 +13,11 @@ class NonTabularProblem(ProblemBase):
     def __init__(
         self,
         task_name: str,
-        task_type: str,
         budget: int,
         workload,
         seed: Union[int, np.random.RandomState, None] = None,
         **kwargs,
     ):
-        self.task_type = task_type
         self.task_name = task_name
         self.budget = budget
         self.workload = workload

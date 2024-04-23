@@ -92,7 +92,6 @@ class SupportVectorMachine(NonTabularProblem):
         random_state.shuffle(self.train_idx)
 
     # pylint: disable=arguments-differ
-    @ProblemBase.check_parameters
     def objective_function(self, configuration: Union[CS.Configuration, Dict],
                            fidelity: Union[CS.Configuration, Dict, None] = None,
                            shuffle: bool = False,

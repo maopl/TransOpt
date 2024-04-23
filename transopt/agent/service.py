@@ -9,6 +9,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from log import logger
 from openai_connector import Message, OpenAIChat
+from transopt.utils.Register import problem_registry
 
 # Assuming OpenAIChat, Message, get_prompt, parse_response are defined correctly
 
@@ -97,6 +98,7 @@ def configuration_recieve_tasks():
     data = request.json
     # 从前端得到选择的tasks
     print(data)
+    
 
     # 接收的格式如下
     # [{'name': 'Task1', 'dim': 5, 'obj': 2, 'fidelity': 2}, 
@@ -147,6 +149,32 @@ def configuration_basic_information():
     user_input = data.get('paremeter', '')
 
     print(user_input)
+    
+    task_names = problem_registry.keys()
+    task_data = []
+    print(task_names)
+    
+            
+    for name in task_names:
+        if  problem_registry[name].get_problem_type() == 'synthetic':
+            task_info = {
+                "name" : name,
+                "anyDim": True,
+                "dim" : [],
+                'obj':[1],
+                'fidelity':[]
+            }
+        else:
+            obj_num =  problem_registry[name].get_objectives()
+            dim = len(problem_registry[name].get_configuration_space().keys())
+            task_info = {
+                "name" : name,
+                "anyDim": False,
+                "dim" : [dim],
+                'obj':[obj_num],
+                'fidelity':[]
+            }
+        task_data.append(task_info)
 
     # 发送Tasks数据给前端
     current_directory = os.path.dirname(__file__)

@@ -1,1 +1,1 @@
-from benchmark.Absolut
+from benchmark.Absolut.Absolut import Absolut

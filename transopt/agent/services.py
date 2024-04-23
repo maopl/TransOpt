@@ -145,6 +145,6 @@ class Services:
         return
     
     def run_optimize(self, seeds_info):
-        seeds = [int(seed) for seed in task['Seeds'].split(',')]
+        seeds = [int(seed) for seed in seeds_info.split(',')]
         for seed in seeds:
             task_set = InstantiateProblems(self.running_config.tasks, seed)

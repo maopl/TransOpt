@@ -146,7 +146,7 @@ def configuration_run():
     run_info = request.json
     # 从前端得到开始实验的信息
 
-    services.run_optimize(seed = run_info['seed'])
+    services.run_optimize(seeds_info = run_info['Seeds'])
     # 返回处理后的响应给前端
     return {"succeed": True}, 200
 

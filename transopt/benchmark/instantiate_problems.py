@@ -22,7 +22,7 @@ def InstantiateProblems(
         params = task_params.get("params", {})
 
 
-        problem_cls = g_problem_registry.get(task_name)
+        problem_cls = problem_registry[task_name]
         if problem_cls is None:
             raise KeyError(f"Task '{task_name}' not found in the problem registry.")
 

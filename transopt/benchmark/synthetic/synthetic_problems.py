@@ -1619,7 +1619,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 @problem_registry.register("Ackley")
 class Ackley(SyntheticProblemBase):
     def __init__(
-        self, task_name, budget, seed, workload, **kwargs
+        self, task_name, budget_type, budget, seed, workload, **kwargs
     ):
         assert "params" in kwargs
         parameters = kwargs["params"]
@@ -1647,6 +1647,7 @@ class Ackley(SyntheticProblemBase):
             task_name=task_name,
             seed=seed,
             workload=workload,
+            budget_type=budget_type,
             budget=budget,
     
         )

@@ -144,5 +144,7 @@ class Services:
         self.running_config.set_metadata(metadata_info)
         return
     
-    def run_optimize(self, seed):
-        task_set = InstantiateProblems(self.running_config.tasks)
+    def run_optimize(self, seeds_info):
+        seeds = [int(seed) for seed in task['Seeds'].split(',')]
+        for seed in seeds:
+            task_set = InstantiateProblems(self.running_config.tasks, seed)

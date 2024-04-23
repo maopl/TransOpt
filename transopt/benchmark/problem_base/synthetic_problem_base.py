@@ -13,6 +13,7 @@ class SyntheticProblemBase:
     def __init__(
         self,
         task_name: str,
+        budget_type,
         budget: int,
         workload,
         seed: Union[int, np.random.RandomState, None] = None,

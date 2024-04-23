@@ -1,4 +1,4 @@
-from transopt.agent.registry import g_problem_registry
+from transopt.agent.registry import problem_registry
 from transopt.benchmark.problem_base.tab_problem import TabularProblem
 from transopt.benchmark.problem_base.transfer_problem import TransferProblem, RemoteTransferOptBenchmark
 
@@ -18,36 +18,24 @@ def InstantiateProblems(
     for task_name, task_params in tasks.items():
         budget = task_params["budget"]
         workloads = task_params.get("workloads", [])
-        konbs = task_params.get("knobs", None)
+        budget_type = task_params.get("budget_type", 'Num_FEs')
         params = task_params.get("params", {})
-        tabular = task_params.get("tabular", False)
 
-        if tabular:
-            assert 'path' in task_params
-            data_path = task_params['path']
-            if 'space_info' in params:
-                space_info = params['space_info']
-            else:
-                space_info = None
-            for workload in workloads:
-                problem = TabularProblem(task_name, budget=budget, path=data_path, workload=workload,
-                                              task_type='tabular', seed=seed, bounds = None, space_info = space_info)
-                transfer_problems.add_task(problem)
-        else:
-            benchmark_cls = g_problem_registry.get(task_name)
-            if benchmark_cls is None:
-                raise KeyError(f"Task '{task_name}' not found in the benchmark registry.")
 
-            for idx, workload in enumerate(workloads):
-                problem = benchmark_cls(
-                    task_name=f"{task_name}_{workload}",
-                    task_id=idx,
-                    budget=budget,
-                    seed=seed,
-                    workload=workload,
-                    knobs=konbs,
-                    params=params,
-                )
-                transfer_problems.add_task(problem)
+        problem_cls = g_problem_registry.get(task_name)
+        if problem_cls is None:
+            raise KeyError(f"Task '{task_name}' not found in the problem registry.")
+
+        for idx, workload in enumerate(workloads):
+            problem = problem_cls(
+                task_name=f"{task_name}_{workload}",
+                task_id=idx,
+                budget_type=budget_type,
+                budget=budget,
+                seed=seed,
+                workload=workload,
+                params=params,
+            )
+            transfer_problems.add_task(problem)
 
     return transfer_problems

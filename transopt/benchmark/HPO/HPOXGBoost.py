@@ -14,7 +14,7 @@ from sklearn.preprocessing import OneHotEncoder
 
 from transopt.utils.openml_data_manager import OpenMLHoldoutDataManager
 from transopt.benchmark.problem_base import ProblemBase, NonTabularProblem
-from transopt.utils.Register import benchmark_register
+from agent.registry import benchmark_register
 
 
 os.environ['OMP_NUM_THREADS'] = "1"

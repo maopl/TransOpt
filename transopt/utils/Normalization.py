@@ -1,7 +1,7 @@
 import numpy as np
 from typing import Union, Dict, List
 from sklearn.preprocessing import power_transform
-from transopt.utils.Register import normalizer_registry,normalizer_register
+from agent.registry import normalizer_registry,normalizer_register
 
 def get_normalizer(name):
     """Create the optimizer object."""

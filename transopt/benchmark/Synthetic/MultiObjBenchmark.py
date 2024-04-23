@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import ConfigSpace as CS
 from typing import Union, Dict
 import random
-from transopt.utils.Register import benchmark_register
+from agent.registry import benchmark_register
 from transopt.benchmark.problem_base import NonTabularProblem
 
 logger = logging.getLogger("MultiObjBenchmark")

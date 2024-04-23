@@ -5,7 +5,7 @@ from scipy.stats import *
 from scipy.spatial import distance
 from GPyOpt.acquisitions.base import AcquisitionBase
 
-from transopt.utils.Register import acf_register
+from agent.registry import acf_register
 from transopt.utils.hypervolume import calc_hypervolume
 
 

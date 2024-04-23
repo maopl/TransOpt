@@ -1,7 +1,7 @@
 from pathlib import Path
-from transopt.utils.Register import problem_registry
+from agent.registry import g_problem_registry
 from transopt.utils import  check
-from transopt.benchmark.problem_base import (
+from transopt.benchmark import (
     TransferProblem,
     RemoteTransferOptBenchmark,
     TabularProblem
@@ -39,7 +39,7 @@ def InstantiateProblems(
                                               task_type='tabular', seed=seed, bounds = None, space_info = space_info)
                 transfer_problems.add_task(problem)
         else:
-            benchmark_cls = problem_registry.get(task_name)
+            benchmark_cls = g_problem_registry.get(task_name)
             if benchmark_cls is None:
                 raise KeyError(f"Task '{task_name}' not found in the benchmark registry.")
 

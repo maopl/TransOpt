@@ -2,7 +2,7 @@
 # Licensed under the BSD 3-clause license (see LICENSE.txt)
 
 from GPyOpt.acquisitions.base import AcquisitionBase
-from transopt.utils.Register import acf_register
+from agent.registry import acf_register
 
 @acf_register('ConformalLCB')
 class ConformalLCB(AcquisitionBase):

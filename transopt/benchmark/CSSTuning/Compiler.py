@@ -8,7 +8,7 @@ from typing import Union, Dict, Tuple
 from csstuning.compiler.compiler_benchmark import GCCBenchmark, LLVMBenchmark
 
 from transopt.benchmark.problem_base import NonTabularProblem
-from transopt.utils.Register import benchmark_register
+from agent.registry import benchmark_register
 
 ERROR_VALUE = 1e10
 

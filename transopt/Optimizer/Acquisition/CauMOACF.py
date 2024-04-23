@@ -13,7 +13,7 @@ from transopt.Optimizer.Acquisition.ACF import AcquisitionBase
 from transopt.utils.hypervolume import calc_hypervolume
 from transopt.utils.Normalization import normalize
 from transopt.utils.pareto import find_pareto_front
-from transopt.utils.Register import acf_register
+from agent.registry import acf_register
 from transopt.utils.profile import profile_function
 
 

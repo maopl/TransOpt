@@ -2,7 +2,7 @@
 import GPyOpt
 
 from pymoo.algorithms.moo.nsga2 import NSGA2
-from transopt.utils.Register import acf_registry
+from agent.registry import acf_registry
 
 
 def get_ACF(acf_name, model, search_space, config, tabular=False):

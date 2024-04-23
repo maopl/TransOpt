@@ -6,7 +6,7 @@ from sklearn.preprocessing import normalize
 from typing import Union, Tuple, Dict, List
 
 from transopt.benchmark.problem_base import NonTabularProblem
-from transopt.utils.Register import benchmark_register
+from agent.registry import benchmark_register
 
 
 logger = logging.getLogger("MovingPeakBenchmark")

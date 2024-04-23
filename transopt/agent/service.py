@@ -10,7 +10,7 @@ from flask_cors import CORS
 from log import logger
 from openai_connector import Message, OpenAIChat
 import benchmark
-import optimizer
+# import optimizer
 from agent.registry import *
 
 # Assuming OpenAIChat, Message, get_prompt, parse_response are defined correctly

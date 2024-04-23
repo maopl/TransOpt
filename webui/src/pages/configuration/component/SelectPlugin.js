@@ -110,7 +110,7 @@ function SelectAlgorithm({SearchSpace, Sample, PreTrain, Train, Acf, DataSelecto
           <div style={{ overflowY: 'auto', maxHeight: '200px' }}>
           <div>
               <h5 style={{color:"#f4f4f599"}}>
-                <span className="fw-semi-bold">Search space</span>
+                <span className="fw-semi-bold">Space refiner</span>
               </h5>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline' }}>
@@ -135,7 +135,7 @@ function SelectAlgorithm({SearchSpace, Sample, PreTrain, Train, Acf, DataSelecto
 
           <div>
               <h5 style={{color:"#f4f4f599"}}>
-                <span className="fw-semi-bold">Sample initial set</span>
+                <span className="fw-semi-bold">Sampler</span>
               </h5>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline' }}>
@@ -160,7 +160,7 @@ function SelectAlgorithm({SearchSpace, Sample, PreTrain, Train, Acf, DataSelecto
 
           <div>
               <h5 style={{color:"#f4f4f599"}}>
-                <span className="fw-semi-bold">Pre-train model</span>
+                <span className="fw-semi-bold">Pre-train</span>
               </h5>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline' }}>
@@ -185,7 +185,7 @@ function SelectAlgorithm({SearchSpace, Sample, PreTrain, Train, Acf, DataSelecto
 
           <div>
               <h5 style={{color:"#f4f4f599"}}>
-                <span className="fw-semi-bold">Train model</span>
+                <span className="fw-semi-bold">Model</span>
               </h5>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline' }}>
@@ -235,7 +235,7 @@ function SelectAlgorithm({SearchSpace, Sample, PreTrain, Train, Acf, DataSelecto
 
           <div>
               <h5 style={{color:"#f4f4f599"}}>
-                <span className="fw-semi-bold">Data selector</span>
+                <span className="fw-semi-bold">Dataset selector</span>
               </h5>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline' }}>

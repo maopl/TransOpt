@@ -10,7 +10,7 @@ import s from "./Configuration.module.scss"
 import Widget from "../../components/Widget/Widget";
 
 import SelectTask from "./component/SelectTask";
-import SelectAlgorithm from "./component/SelectAlgorithm";
+import SelectPlugins from "./component/SelectPlugin";
 import ChatUI from "./component/ChatUI";
 import SelectData from "./component/SelectData";
 import SearchData from "./component/SearchData"
@@ -122,7 +122,7 @@ class Configuration extends React.Component {
                 <Widget
                   title={
                     <h5>
-                      1.Choose <span className="fw-semi-bold">Task</span>
+                      1.<span className="fw-semi-bold">Choose Tasks</span>
                     </h5>
                   }
                   collapse
@@ -134,12 +134,12 @@ class Configuration extends React.Component {
                 <Widget
                   title={
                     <h5>
-                      2. Choose <span className="fw-semi-bold">Algorithms</span>
+                      2. <span className="fw-semi-bold">Choose Optimization Plugins</span>
                     </h5>
                   }
                   collapse
                 >
-                  <SelectAlgorithm SearchSpace={this.state.SearchSpace}
+                  <SelectPlugins SearchSpace={this.state.SearchSpace}
                                     Sample={this.state.Sample}
                                     PreTrain={this.state.PreTrain}
                                     Train={this.state.Train}
@@ -152,7 +152,7 @@ class Configuration extends React.Component {
                 <Widget
                   title={
                     <h5>
-                      3. Choose <span className="fw-semi-bold">Datasets</span>
+                      3. <span className="fw-semi-bold">Choose Datasets</span>
                     </h5>
                   }
                   collapse

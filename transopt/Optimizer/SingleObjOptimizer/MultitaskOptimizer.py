@@ -11,7 +11,7 @@ from transopt.utils.Kernel import construct_multi_objective_kernel
 from GPy.inference.latent_function_inference import expectation_propagation
 from GPy.inference.latent_function_inference import ExactGaussianInference
 from GPy.likelihoods.multioutput_likelihood import MixedNoise
-from transopt.Optimizer.Model.MPGP import MPGP
+from transopt.Optimizer.model.MPGP import MPGP
 
 @optimizer_register('MTBO')
 class MultitaskBO(BOBase):

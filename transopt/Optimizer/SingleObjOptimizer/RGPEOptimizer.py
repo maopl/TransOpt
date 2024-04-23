@@ -6,7 +6,7 @@ from agent.registry import optimizer_register
 from transopt.utils.Normalization import get_normalizer
 from typing import Dict, Union, List, Tuple
 from transopt.Optimizer.OptimizerBase import BOBase
-from transopt.Optimizer.Model.RGPE import RGPE
+from transopt.Optimizer.model.RGPE import RGPE
 
 @optimizer_register("RGPE")
 class RGPEOptimizer(BOBase):

@@ -11,10 +11,10 @@ from GPy.likelihoods.multioutput_likelihood import MixedNoise
 
 from GPy.core.gp import GP
 from GPy.mappings.constant import Constant
-from Model.MPGP import MPGP
-from Model.GP import PriorGP
+from model.MPGP import MPGP
+from model.GP import PriorGP
 from transopt.Optimizer.OptimizerBase import OptimizerBase
-from transopt.Optimizer.Model.PracGP import PracGP
+from transopt.Optimizer.model.PracGP import PracGP
 from Model.MOKernel import MOKernel
 from transopt_external.transfergpbo import models
 from transopt_external.transfergpbo.models import TaskData

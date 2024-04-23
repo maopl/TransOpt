@@ -9,7 +9,7 @@ from scipy.spatial.distance import cdist
 from scipy.stats import *
 from sklearn.metrics import pairwise_distances
 
-from transopt.Optimizer.Acquisition.ACF import AcquisitionBase
+from transopt.Optimizer.acquisition_function.ACF import AcquisitionBase
 from transopt.utils.hypervolume import calc_hypervolume
 from transopt.utils.Normalization import normalize
 from transopt.utils.pareto import find_pareto_front

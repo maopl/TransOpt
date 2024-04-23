@@ -1,15 +1,15 @@
 import numpy as np
 import GPy
 from paramz import ObsAr
-from transopt.Optimizer.Acquisition.ConstructACF import get_ACF
-from transopt.Optimizer.Acquisition.sequential import Sequential
+from transopt.Optimizer.acquisition_function.ConstructACF import get_ACF
+from transopt.Optimizer.acquisition_function.sequential import Sequential
 from typing import Dict, Union, List
 from transopt.Optimizer.OptimizerBase import BOBase
 from transopt.utils.serialization import ndarray_to_vectors
 from agent.registry import optimizer_register
 from transopt.utils.Kernel import construct_multi_objective_kernel
-from transopt.Optimizer.Model.MPGP import MPGP
-from transopt.Optimizer.Model.GP import PriorGP
+from transopt.Optimizer.model.MPGP import MPGP
+from transopt.Optimizer.model.GP import PriorGP
 from transopt.utils import Prior
 
 from GPy import util

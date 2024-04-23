@@ -1,5 +1,5 @@
 import numpy as np
-from transopt.Optimizer.Model.GP import PriorGP
+from transopt.Optimizer.model.GP import PriorGP
 import multiprocessing as mp
 
 log_2_pi = np.log(2*np.pi)

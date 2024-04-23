@@ -181,11 +181,11 @@ def configuration_basic_information():
         task_data.append(task_info)
 
     # 发送Tasks数据给前端
-    # current_directory = os.path.dirname(__file__)
-    # json_file_path = os.path.join(current_directory, 'page_service_data', 'configuration_basic.json')
-    # with open(json_file_path, 'r') as file:
-    #     data = json.load(file)
-    return jsonify(task_data), 200
+    current_directory = os.path.dirname(__file__)
+    json_file_path = os.path.join(current_directory, 'page_service_data', 'configuration_basic.json')
+    with open(json_file_path, 'r') as file:
+        data = json.load(file)
+    return jsonify(data), 200
 
 
 @app.route('/api/configuration/dataset', methods=['POST'])

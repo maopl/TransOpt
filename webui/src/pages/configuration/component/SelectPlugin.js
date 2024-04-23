@@ -106,157 +106,171 @@ function SelectAlgorithm({SearchSpace, Sample, PreTrain, Train, Acf, DataSelecto
             onFinish={onFinish}
             style={{width:"100%"}}
             autoComplete="off"
+            initialValues={{
+              SearchSpace: SearchSpace[0].name,
+              SearchSpaceParameters: SearchSpace[0].default,
+              Sample: Sample[0].name,
+              SampleParameters: Sample[0].default,
+              PreTrain: PreTrain[0].name,
+              PreTrainParameters: PreTrain[0].default,
+              Train: Train[0].name,
+              TrainParameters: Train[0].default,
+              Acf: Acf[0].name,
+              AcfParameters: Acf[0].default,
+              DataSelector: DataSelector[0].name,
+              DataSelectorParameters: DataSelector[0].default,
+            }}
         >
           <div style={{ overflowY: 'auto', maxHeight: '200px' }}>
-          <div>
-              <h5 style={{color:"#f4f4f599"}}>
-                <span className="fw-semi-bold">Space refiner</span>
-              </h5>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline' }}>
-            <Form.Item
-              name={'SearchSpace'}
-              style={{ marginRight: 8 , width: 150}}
-            >
-              <Select 
-                placeholder="name"
-                value={selectedSearchSpace.name}
-                options={SearchSpace.map(item => ({ value: item.name }))}
-                onChange={handleSSNameChange}
-              />
-            </Form.Item>
-            <Form.Item
-              name={'SearchSpaceParameters'}
-              style={{ flex: 1 }}
-            >
-              <Input placeholder="Parameters" value={selectedSearchSpace.default} />
-            </Form.Item>
-          </div>
+            <div>
+                <h5 style={{color:"#f4f4f599"}}>
+                  <span className="fw-semi-bold">Space refiner</span>
+                </h5>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline' }}>
+              <Form.Item
+                name={'SearchSpace'}
+                style={{ marginRight: 8 , width: 150}}
+              >
+                <Select 
+                  placeholder="name"
+                  defaultValue="default"
+                  options={SearchSpace.map(item => ({ value: item.name }))}
+                  onChange={handleSSNameChange}
+                />
+              </Form.Item>
+              <Form.Item
+                name={'SearchSpaceParameters'}
+                style={{ flex: 1 }}
+              >
+                <Input placeholder="Parameters" value={selectedSearchSpace.default} />
+              </Form.Item>
+            </div>
 
-          <div>
-              <h5 style={{color:"#f4f4f599"}}>
-                <span className="fw-semi-bold">Sampler</span>
-              </h5>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline' }}>
-            <Form.Item
-              name={'Sample'}
-              style={{ marginRight: 8 , width: 150}}
-            >
-              <Select
-                placeholder="name"
-                value={selectedSample.name}
-                options={Sample.map(item => ({ value: item.name }))}
-                onChange={handleSampleNameChange}
-              />
-            </Form.Item>
-            <Form.Item
-              name={'SampleParameters'}
-              style={{ flex: 1 }}
-            >
-              <Input placeholder="Parameters" value={selectedSample.default} />
-            </Form.Item>
-          </div>
+            <div>
+                <h5 style={{color:"#f4f4f599"}}>
+                  <span className="fw-semi-bold">Sampler</span>
+                </h5>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline' }}>
+              <Form.Item
+                name={'Sample'}
+                style={{ marginRight: 8 , width: 150}}
+              >
+                <Select
+                  placeholder="name"
+                  defaultValue="default"
+                  options={Sample.map(item => ({ value: item.name }))}
+                  onChange={handleSampleNameChange}
+                />
+              </Form.Item>
+              <Form.Item
+                name={'SampleParameters'}
+                style={{ flex: 1 }}
+              >
+                <Input placeholder="Parameters" value={selectedSample.default} />
+              </Form.Item>
+            </div>
 
-          <div>
-              <h5 style={{color:"#f4f4f599"}}>
-                <span className="fw-semi-bold">Pre-train</span>
-              </h5>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline' }}>
-            <Form.Item
-              name={'PreTrain'}
-              style={{ marginRight: 8 , width: 150}}
-            >
-              <Select
-                placeholder="name"
-                value={selectedPreTrain.name}
-                options={PreTrain.map(item => ({ value: item.name }))}
-                onChange={handlePreTrainNameChange}
-              />
-            </Form.Item>
-            <Form.Item
-              name={'PreTrainParameters'}
-              style={{ flex: 1 }}
-            >
-              <Input placeholder="Parameters" value={selectedPreTrain.default} />
-            </Form.Item>
-          </div>
+            <div>
+                <h5 style={{color:"#f4f4f599"}}>
+                  <span className="fw-semi-bold">Pre-train</span>
+                </h5>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline' }}>
+              <Form.Item
+                name={'PreTrain'}
+                style={{ marginRight: 8 , width: 150}}
+              >
+                <Select
+                  placeholder="name"
+                  defaultValue="default"
+                  options={PreTrain.map(item => ({ value: item.name }))}
+                  onChange={handlePreTrainNameChange}
+                />
+              </Form.Item>
+              <Form.Item
+                name={'PreTrainParameters'}
+                style={{ flex: 1 }}
+              >
+                <Input placeholder="Parameters" value={selectedPreTrain.default} />
+              </Form.Item>
+            </div>
 
-          <div>
-              <h5 style={{color:"#f4f4f599"}}>
-                <span className="fw-semi-bold">Model</span>
-              </h5>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline' }}>
-            <Form.Item
-              name={'Train'}
-              style={{ marginRight: 8 , width: 150}}
-            >
-              <Select
-                placeholder="name"
-                value={selectedTrain.name}
-                options={Train.map(item => ({ value: item.name }))}
-                onChange={handleTrainNameChange}
-              />
-            </Form.Item>
-            <Form.Item
-              name={'TrainParameters'}
-              style={{ flex: 1 }}
-            >
-              <Input placeholder="Parameters" value={selectedTrain.default} />
-            </Form.Item>
-          </div>
+            <div>
+                <h5 style={{color:"#f4f4f599"}}>
+                  <span className="fw-semi-bold">Model</span>
+                </h5>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline' }}>
+              <Form.Item
+                name={'Train'}
+                style={{ marginRight: 8 , width: 150}}
+              >
+                <Select
+                  placeholder="name"
+                  defaultValue="default"
+                  options={Train.map(item => ({ value: item.name }))}
+                  onChange={handleTrainNameChange}
+                />
+              </Form.Item>
+              <Form.Item
+                name={'TrainParameters'}
+                style={{ flex: 1 }}
+              >
+                <Input placeholder="Parameters" value={selectedTrain.default} />
+              </Form.Item>
+            </div>
 
-          <div>
-              <h5 style={{color:"#f4f4f599"}}>
-                <span className="fw-semi-bold">Acquisition function</span>
-              </h5>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline' }}>
-            <Form.Item
-              name={'Acf'}
-              style={{ marginRight: 8 , width: 150}}
-            >
-              <Select
-                placeholder="name"
-                value={selectedAcf.name}
-                options={Acf.map(item => ({ value: item.name }))}
-                onChange={handleAcfNameChange}
-              />
-            </Form.Item>
-            <Form.Item
-              name={'AcfParameters'}
-              style={{ flex: 1 }}
-            >
-              <Input placeholder="Parameters" value={selectedAcf.default} />
-            </Form.Item>
-          </div>
+            <div>
+                <h5 style={{color:"#f4f4f599"}}>
+                  <span className="fw-semi-bold">Acquisition function</span>
+                </h5>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline' }}>
+              <Form.Item
+                name={'Acf'}
+                style={{ marginRight: 8 , width: 150}}
+              >
+                <Select
+                  placeholder="name"
+                  defaultValue="default"
+                  options={Acf.map(item => ({ value: item.name }))}
+                  onChange={handleAcfNameChange}
+                />
+              </Form.Item>
+              <Form.Item
+                name={'AcfParameters'}
+                style={{ flex: 1 }}
+              >
+                <Input placeholder="Parameters" value={selectedAcf.default} />
+              </Form.Item>
+            </div>
 
-          <div>
-              <h5 style={{color:"#f4f4f599"}}>
-                <span className="fw-semi-bold">Dataset selector</span>
-              </h5>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline' }}>
-            <Form.Item
-              name={'DataSelector'}
-              style={{ marginRight: 8 , width: 150}}
-            >
-              <Select
-                placeholder="name"
-                value={selectedDataSelector.name}
-                options={DataSelector.map(item => ({ value: item.name }))}
-                onChange={handleDataSelectorNameChange}
-              />
-            </Form.Item>
-            <Form.Item
-              name={'DataSelectorParameters'}
-              style={{ flex: 1 }}
-            >
-              <Input placeholder="Parameters" value={selectedDataSelector.default} />
-            </Form.Item>
-          </div>
+            <div>
+                <h5 style={{color:"#f4f4f599"}}>
+                  <span className="fw-semi-bold">Dataset selector</span>
+                </h5>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline' }}>
+              <Form.Item
+                name={'DataSelector'}
+                style={{ marginRight: 8 , width: 150}}
+              >
+                <Select
+                  placeholder="name"
+                  defaultValue={DataSelector[0].name}
+                  options={DataSelector.map(item => ({ value: item.name }))}
+                  onChange={handleDataSelectorNameChange}
+                />
+              </Form.Item>
+              <Form.Item
+                name={'DataSelectorParameters'}
+                style={{ flex: 1 }}
+              >
+                <Input defaultValue={''} placeholder="Parameters" value={selectedDataSelector.default} />
+              </Form.Item>
+            </div>
           </div>
 
           <Form.Item style={{marginTop:10}}>

@@ -7,12 +7,14 @@ from transopt.agent.chat.openai_connector import (
     get_prompt
 )
 from transopt.agent.config import Config
+from transopt.agent.config import RunningConfig
 from transopt.datamanager.manager import DataManager
 
 
 class Services:
     def __init__(self):
         self.config = Config()
+        self.running_config = RunningConfig()
         self.data_manager = DataManager()
         
         self.openai_chat = OpenAIChat(self.config)
@@ -115,9 +117,19 @@ class Services:
         return datasets_list
     
     
-    def submit_dataset(self, dataset_name):
+    def select_dataset(self, dataset_name):
         self.data_manager.load_dataset(dataset_name)
     
+    def receive_tasks(self, tasks_info):
+        print(tasks_info)
+        tasks = {}
+        for task in tasks_info:
+            tasks[task["name"]] = {'budget_type': task["budget_type"],'budget': int(task['budget']), 
+                                   'workloads': task['workloads'], 'params':{'input_dim':task["dim"]}}
+
+
+        self.running_config.set_tasks(tasks)
+        return
     
     def run_optimize(self):
         pass

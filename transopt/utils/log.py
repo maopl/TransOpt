@@ -2,7 +2,7 @@ import logging
 
 from rich.logging import RichHandler
 
-LOGGER_NAME = "gpt_yaml"
+LOGGER_NAME = "Transopt"
 
 
 def get_logger(logger_name: str) -> logging.Logger:

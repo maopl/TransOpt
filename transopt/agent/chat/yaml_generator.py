@@ -2,8 +2,8 @@ from pathlib import Path
 from typing import Any, Dict
 
 import yaml
-from log import logger
-from openai_connector import Message, OpenAIChat
+from transopt.utils.log import logger
+from transopt.agent.chat.openai_connector import Message, OpenAIChat
 
 
 def get_prompt(file_name: str) -> str:

@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
 import yaml
@@ -6,8 +7,17 @@ from openai import OpenAI
 from openai.types.chat.chat_completion import ChatCompletion
 from pydantic import BaseModel
 
-from log import logger
+from transopt.utils.log import logger
 
+
+def get_prompt(file_name="prompt") -> str:
+    """Reads a prompt from a file."""
+    current_dir = Path(__file__).parent
+    file_path = current_dir / file_name
+    
+    with open(file_path, 'r') as file:
+        prompt = file.read()
+    return prompt
 
 class Message(BaseModel):
     """Model for LLM messages"""

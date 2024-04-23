@@ -2,17 +2,25 @@ from .database import Database
 from .lsh import LSHCache
 from .minhash import MinHasher
 
-
 class DataManager:
-    def __init__(
-        self, db=None, num_hashes=100, char_ngram=5, num_bands=50, random_state=12345
-    ):
-        if db is None:
-            self.db = Database()
-        else:
-            self.db = db
+    _instance = None
+    _init = False  # 用于保证初始化代码只运行一次
 
-        self._initialize_lsh_cache(num_hashes, char_ngram, num_bands, random_state)
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(DataManager, cls).__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+
+    def __init__(self, db=None, num_hashes=100, char_ngram=5, num_bands=50, random_state=12345):
+        if not self._initialized:
+            if db is None:
+                self.db = Database()
+            else:
+                self.db = db
+
+            self._initialize_lsh_cache(num_hashes, char_ngram, num_bands, random_state)
+            self._initialized = True
 
     def _initialize_lsh_cache(self, num_hashes, char_ngram, num_bands, random_state):
         hasher = MinHasher(

@@ -49,7 +49,7 @@ function ATask({key, name, restField, remove, data}) {
     }
 
     return (
-        <Space className="space" key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
+        <Space className="space" key={key} style={{ display: 'flex', marginBottom: 1 }} align="baseline">
            <Form.Item
              {...restField}
              name={[name, 'name']}
@@ -85,6 +85,19 @@ function ATask({key, name, restField, remove, data}) {
            </Form.Item>
            <Form.Item
              {...restField}
+             name={[name, 'budget_type']}
+           >
+             <Select
+               placeholder="budget_type"
+               options={[ {value: "evaluation count"},
+                          {value: "time(day)"},
+                          {value: "time(hour)"},
+                          {value: "time(minute)"},
+                        ]}
+             />
+           </Form.Item>
+           <Form.Item
+             {...restField}
              name={[name, 'budget']}
            >
              <Input placeholder="budget" style={{width:"100px"}} />
@@ -102,6 +115,7 @@ function SelectTask({data}) {
       dim: parseInt(task.dim),
       obj: task.obj,
       fidelity: task.fidelity,
+      budget_type: task.budget_type,
       budget: task.budget,
     }));
     console.log('Request data:', messageToSend);

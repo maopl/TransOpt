@@ -22,18 +22,93 @@
             "fidelity": [4,5,6]
         }
     ],
-    "AlgorithmsData":
+    "SearchSpace":
     [
         {
-            "name":"Algorithm1",
+            "name":"ss1",
             "default":"Parameter1=1, Parameter2=2"
         },
         {
-            "name":"Algorithm2",
+            "name":"ss2",
             "default":"Parameter3=3, Parameter4=4"
         },
         {
-            "name":"Algorithm3",
+            "name":"ss3",
+            "default":"Parameter5=5, Parameter6=6"
+        }
+    ],
+    "Sample":
+    [
+        {
+            "name":"sample1",
+            "default":"Parameter1=1, Parameter2=2"
+        },
+        {
+            "name":"sample2",
+            "default":"Parameter3=3, Parameter4=4"
+        },
+        {
+            "name":"sample3",
+            "default":"Parameter5=5, Parameter6=6"
+        }
+    ],
+    "PreTrain":
+    [
+        {
+            "name":"pre-train1",
+            "default":"Parameter1=1, Parameter2=2"
+        },
+        {
+            "name":"pre-train2",
+            "default":"Parameter3=3, Parameter4=4"
+        },
+        {
+            "name":"pre-train3",
+            "default":"Parameter5=5, Parameter6=6"
+        }
+    ],
+    "Train":
+    [
+        {
+            "name":"train1",
+            "default":"Parameter1=1, Parameter2=2"
+        },
+        {
+            "name":"train2",
+            "default":"Parameter3=3, Parameter4=4"
+        },
+        {
+            "name":"train3",
+            "default":"Parameter5=5, Parameter6=6"
+        }
+    ],
+    "Acf":
+    [
+        {
+            "name":"acf1",
+            "default":"Parameter1=1, Parameter2=2"
+        },
+        {
+            "name":"acf2",
+            "default":"Parameter3=3, Parameter4=4"
+        },
+        {
+            "name":"acf3",
+            "default":"Parameter5=5, Parameter6=6"
+        }
+    ],
+    "DataSelector":
+    [
+        {
+            "name":"data-selector1",
+            "default":"Parameter1=1, Parameter2=2"
+        },
+        {
+            "name":"data-selector2",
+            "default":"Parameter3=3, Parameter4=4"
+        },
+        {
+            "name":"data-selector3",
             "default":"Parameter5=5, Parameter6=6"
         }
     ]

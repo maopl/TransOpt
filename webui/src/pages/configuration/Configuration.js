@@ -24,7 +24,12 @@ class Configuration extends React.Component {
     super(props);
     this.state = {
       TasksData: [],
-      AlgorithmsData: [],
+      SearchSpace: [],
+      Sample: [],
+      PreTrain: [],
+      Train: [],
+      Acf: [],
+      DataSelector: [],
       DatasetData: []
     };
   }
@@ -65,7 +70,7 @@ class Configuration extends React.Component {
   }
 
   render() {
-    if (this.state.TasksData.length === 0 || this.state.AlgorithmsData.length === 0) {
+    if (this.state.TasksData.length === 0) {
       const messageToSend = {
         action: 'ask for basic information',
       }
@@ -84,7 +89,14 @@ class Configuration extends React.Component {
       })
       .then(data => {
         console.log('Message from back-end:', data);
-        this.setState({ TasksData: data.TasksData,  AlgorithmsData: data.AlgorithmsData });
+        this.setState({ TasksData: data.TasksData,
+                        SearchSpace: data.SearchSpace,
+                        Sample: data.Sample,
+                        PreTrain: data.PreTrain,
+                        Train: data.Train,
+                        Acf: data.Acf,
+                        DataSelector: data.DataSelector,
+                      });
       })
       .catch((error) => {
         console.error('Error sending message:', error);
@@ -115,15 +127,7 @@ class Configuration extends React.Component {
                   }
                   collapse
                 >
-                  <h3>
-                    List-<span className="fw-semi-bold">Task</span>
-                  </h3>
-                  <p>
-                  Click "Add Task" to select an optimization task, and then choose the name, dimensions, number of objectives, fidelity, and budget for the task. 
-                  The budget can be specified in two forms: (1) evaluation count, for example, "1000", or (2) evaluation time, for example, "1d2h3m4s". 
-                  Click "-" to delete the added task. Once the selection is complete, click the "Submit" button.
-                  </p>
-                  <SelectTask data={TasksData}/>
+                  <SelectTask data={this.state.TasksData}/>
                 </Widget>
               </Col>
               <Col lg={12} sm={12}>
@@ -135,13 +139,13 @@ class Configuration extends React.Component {
                   }
                   collapse
                 >
-                  <h3>
-                    List-<span className="fw-semi-bold">Algorithms</span>
-                  </h3>
-                  <p>
-                    There are some discription.There are some discription.There are some discription.There are some discription.
-                  </p>
-                  <SelectAlgorithm data={AlgorithmsData}/>
+                  <SelectAlgorithm SearchSpace={this.state.SearchSpace}
+                                    Sample={this.state.Sample}
+                                    PreTrain={this.state.PreTrain}
+                                    Train={this.state.Train}
+                                    Acf={this.state.Acf}
+                                    DataSelector={this.state.DataSelector}
+                  />
                 </Widget>
               </Col>
               <Col lg={12} sm={12}> 
@@ -153,12 +157,6 @@ class Configuration extends React.Component {
                   }
                   collapse
                 >
-                  <h3>
-                    <span className="fw-semi-bold">Search</span>
-                  </h3>
-                  <p>
-                    There are some discription.There are some discription.There are some discription.There are some discription.
-                  </p>
                   <SearchData set_dataset={this.set_dataset}/>
                   <h3 className="mt-5">
                     <span className="fw-semi-bold">Choose</span>
@@ -178,12 +176,6 @@ class Configuration extends React.Component {
                   }
                   collapse
                 >
-                  <h3>
-                    <span className="fw-semi-bold">Run the Experiment</span>
-                  </h3>
-                  <p>
-                    Click the "run" button to start the experiment.
-                  </p>
                   <Button type="primary" htmlType="submit" style={{width:"120px"}} onClick={this.handelRunClick}>
                     Run
                   </Button>

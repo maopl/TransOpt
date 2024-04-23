@@ -101,10 +101,10 @@ function ATask({key, name, restField, remove, data}) {
            >
              <Select
                placeholder="budget_type"
-               options={[ {value: "evaluation count"},
-                          {value: "time(day)"},
-                          {value: "time(hour)"},
-                          {value: "time(minute)"},
+               options={[ {value: "Num_FEs"},
+                          {value: "Hours"},
+                          {value: "Minutes"},
+                          {value: "Seconds"},
                         ]}
              />
            </Form.Item>

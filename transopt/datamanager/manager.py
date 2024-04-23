@@ -31,7 +31,7 @@ class DataManager:
         datasets = self.db.get_table_list()
 
         for dataset in datasets:
-            dataset_info = self.db.query_config(dataset)
+            dataset_info = self.db.query_dataset_info(dataset)
             self._add_lsh_vector(dataset, dataset_info)
 
     def _add_lsh_vector(self, dataset_name, dataset_info):

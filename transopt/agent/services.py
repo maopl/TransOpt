@@ -19,7 +19,7 @@ class Services:
         self.prompt = get_prompt()
         self.is_first_msg = True
         self.initialize_modules()
-        se
+        
 
     def chat(self, user_input):
         system_message = Message(role="system", content=self.prompt)
@@ -106,10 +106,13 @@ class Services:
             selector_info.append({"name": name})
         basic_info["DataSelector"] = selector_info
         
+        
         return basic_info
         
     def search_dataset(self, dataset_name, dataset_info):
-        return list(self.data_manager.get_similar_datasets(dataset_name, dataset_info))
+        datasets_list = list(self.data_manager.get_similar_datasets(dataset_name, dataset_info))
+        
+        return datasets_list
     
     
     def submit_dataset(self, dataset_name):

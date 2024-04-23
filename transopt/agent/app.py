@@ -63,15 +63,11 @@ def report_update_charts_data():
 
 @app.route("/api/configuration/select_task", methods=["POST"])
 def configuration_recieve_tasks():
-    data = request.json
+    tasks_info = request.json
     # 从前端得到选择的tasks
     
-    print(data)
+    services.receive_tasks(tasks_info)
 
-    # 接收的格式如下
-    # [{'name': 'Task1', 'dim': 5, 'obj': 2, 'fidelity': 2},
-    #  {'name': 'Task2', 'dim': 5, 'obj': 1, 'fidelity': 3},
-    #  {'name': 'Task3', 'dim': 10, 'obj': 1, 'fidelity': 5}]
 
     # 返回处理后的响应给前端
     return {"succeed": True}, 200

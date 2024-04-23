@@ -16,7 +16,7 @@ def InstantiateProblems(
         transfer_problems = TransferProblem(seed)
 
     for task_name, task_params in tasks.items():
-        budget = task_params["budget"]
+        budget = task_params.get("budget", 0)
         workloads = task_params.get("workloads", [])
         budget_type = task_params.get("budget_type", 'Num_FEs')
         params = task_params.get("params", {})

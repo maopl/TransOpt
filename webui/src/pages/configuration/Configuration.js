@@ -14,9 +14,8 @@ import SelectPlugins from "./component/SelectPlugin";
 import ChatUI from "./component/ChatUI";
 import SelectData from "./component/SelectData";
 import SearchData from "./component/SearchData"
+import Run from "./component/Run"
 
-import TasksData from './data/TasksData.json'
-import AlgorithmsData from './data/AlgorithmsData.json'
 
 
 class Configuration extends React.Component {
@@ -37,36 +36,6 @@ class Configuration extends React.Component {
   set_dataset = (datasets) => {
     console.log(datasets)
     this.setState({ DatasetData: datasets })
-  }
-
-  handelRunClick = () => {
-    const messageToSend = {
-      message: 'run the experiment',
-    };
-    console.log(messageToSend)
-    fetch('http://localhost:5000/api/configuration/run', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(messageToSend),
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      } 
-      return response.json();
-    })
-    .then(succeed => {
-      console.log('Message from back-end:', succeed);
-      Modal.success({
-        title: 'Infor',
-        content: 'Run successfully!'
-      })
-    })
-    .catch((error) => {
-      console.error('Error sending message:', error);
-    });
   }
 
   render() {
@@ -173,9 +142,7 @@ class Configuration extends React.Component {
                   }
                   collapse
                 >
-                  <Button type="primary" htmlType="submit" style={{width:"120px"}} onClick={this.handelRunClick}>
-                    Run
-                  </Button>
+                  <Run />
                 </Widget>
               </Col>
             </Row>

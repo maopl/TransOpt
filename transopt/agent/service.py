@@ -13,6 +13,7 @@ from transopt.utils.Register import problem_registry
 
 # Assuming OpenAIChat, Message, get_prompt, parse_response are defined correctly
 
+
 app = Flask(__name__)
 CORS(app)
 
@@ -246,13 +247,5 @@ def comparison_update_charts_data():
         data = json.load(file)
     # 返回处理后的响应给前端
     return jsonify(data), 200
-
-
-if __name__ == '__main__':
-    global_prompt = get_prompt("prompt")
-    openai_chat = OpenAIChat()
-    is_first_msg = True
-
-    app.run(debug=True)
 
     

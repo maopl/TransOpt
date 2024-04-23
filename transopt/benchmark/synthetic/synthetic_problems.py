@@ -7,8 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Union, Dict
 from transopt.space.variable import *
-from agent.registry import problem_register, g_problem_registry
-from benchmark.problem_base.synthetic_problem import SyntheticProblemBase
+from transopt.agent.registry import problem_register, g_problem_registry
+from transopt.benchmark.problem_base.synthetic_problem_base import SyntheticProblemBase
 from transopt.space.search_space import SearchSpace
 from transopt.space.fidelity_space import FidelitySpace
 

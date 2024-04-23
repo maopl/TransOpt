@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import os
 from sklearn.cluster import KMeans
 
-from transopt.benchmark.Synthetic.SyntheticBenchmark import BASE
+from benchmark.synthetic.synthetic_problems import BASE
 from transopt.KnowledgeBase import KnowledgeBase
 from Gym import Gym_Metric
 from sklearn.neighbors import KernelDensity

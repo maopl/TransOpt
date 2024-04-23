@@ -1,8 +1,8 @@
 import numpy as np
 from scipy.stats import qmc
 
-from sampler.sampler_base import Sampler
-from agent.registry import sampler_register
+from transopt.optimizer.sampler.sampler_base import Sampler
+from transopt.agent.registry import sampler_register
 
 @sampler_register("sobol")
 class SobolSampler(Sampler):

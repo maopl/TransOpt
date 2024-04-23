@@ -1,0 +1,2 @@
+from transopt.optimizer.pretrain.deepkernel import DeepKernelPretrain
+from transopt.optimizer.pretrain.hyper_bo import HyperBOPretrain

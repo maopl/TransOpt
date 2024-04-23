@@ -1,11 +1,6 @@
-from pathlib import Path
-from agent.registry import g_problem_registry
-from transopt.utils import  check
-from transopt.benchmark import (
-    TransferProblem,
-    RemoteTransferOptBenchmark,
-    TabularProblem
-)
+from transopt.agent.registry import g_problem_registry
+from transopt.benchmark.problem_base.tab_problem import TabularProblem
+from transopt.benchmark.problem_base.transfer_problem import TransferProblem, RemoteTransferOptBenchmark
 
 
 def InstantiateProblems(

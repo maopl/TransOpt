@@ -1,7 +1,7 @@
 import numpy as np
 
-from sampler.sampler_base import Sampler
-from agent.registry import sampler_register
+from transopt.optimizer.sampler.sampler_base import Sampler
+from transopt.agent.registry import sampler_register
 
 @sampler_register("random")
 class RandomSampler(Sampler):

@@ -11,7 +11,7 @@ from transopt.utils.log import logger
 app = Flask(__name__)
 CORS(app)
 services = Services()
-
+print("services")
 
 @app.route("/api/generate-yaml", methods=["POST"])
 def generate_yaml():

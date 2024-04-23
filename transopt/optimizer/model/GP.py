@@ -7,7 +7,7 @@ from paramz.transformations import Transformation, __fixed__
 from functools import reduce
 from transopt.utils.Prior import *
 
-from agent.registry import model_register
+from transopt.agent.registry import model_register
 
 
 log_2_pi = np.log(2*np.pi)

@@ -5,7 +5,7 @@ import numpy as np
 from GPy.kern import Kern
 from GPy.kern import RBF
 from transopt_external.transfergpbo.models import InputData, TaskData, Model, GPBO
-from agent.registry import model_register
+from transopt.agent.registry import model_register
 
 
 

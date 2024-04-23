@@ -2,12 +2,12 @@
 import GPyOpt
 
 from pymoo.algorithms.moo.nsga2 import NSGA2
-from agent.registry import acf_registry
+from transopt.agent.registry import g_acf_registry
 
 
 def get_acf(acf_name, model, search_space, config, tabular=False):
     """Create the optimizer object."""
-    acf_class = acf_registry.get(acf_name)
+    acf_class = g_acf_registry.get(acf_name)
     acquisition_optimizer = GPyOpt.optimization.AcquisitionOptimizer(search_space)
     if acf_class is not None:
         acquisition = acf_class(model=model, optimizer=acquisition_optimizer, space=search_space, config=config)

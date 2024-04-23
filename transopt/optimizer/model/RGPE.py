@@ -7,7 +7,7 @@ from GPy.kern import Kern
 from GPy.kern import RBF
 from transopt_external.transfergpbo.models import InputData, TaskData, Model, GPBO
 
-from agent.registry import model_register
+from transopt.agent.registry import model_register
 
 
 def roll_col(X: np.ndarray, shift: int) -> np.ndarray:

@@ -1,6 +1,6 @@
 from celery import Celery, Task
 from celery.utils.log import get_task_logger
-from transopt.utils.Register import problem_registry
+from agent.registry import g_problem_registry
 
 celery_inst = Celery(__name__)
 celery_inst.config_from_object("celeryconfig")
@@ -33,7 +33,7 @@ class ExperimentTaskHandler:
         bench_params = params["bench_params"]
         fitness_params = params["fitness_params"]
 
-        benchmark_cls = problem_registry.get(bench_name)
+        benchmark_cls = g_problem_registry.get(bench_name)
 
         if benchmark_cls is None:
             self.update_state(state="FAILURE", meta={"status": "Benchmark not found!"})

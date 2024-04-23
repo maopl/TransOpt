@@ -1,5 +1,5 @@
 
-from transopt.utils.Register import optimizer_registry
+from agent.registry import optimizer_registry
 from transopt.KnowledgeBase.KnowledgeBaseAccessor import KnowledgeBaseAccessor
 import transopt.Optimizer
 

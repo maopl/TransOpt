@@ -3,7 +3,7 @@ import GPy
 from typing import Dict, Union, List
 from transopt.Optimizer.OptimizerBase import BOBase
 from transopt.utils.serialization import ndarray_to_vectors
-from transopt.utils.Register import optimizer_register
+from agent.registry import optimizer_register
 from paramz import ObsAr
 from transopt.utils.Normalization import get_normalizer
 from GPy import util

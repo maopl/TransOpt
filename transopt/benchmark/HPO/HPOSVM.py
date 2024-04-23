@@ -14,7 +14,7 @@ from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
 from transopt.utils.openml_data_manager import OpenMLHoldoutDataManager
 from transopt.benchmark.problem_base import ProblemBase
 from transopt.benchmark.problem_base import NonTabularProblem
-from transopt.utils.Register import benchmark_register
+from agent.registry import benchmark_register
 
 logger = logging.getLogger('SVMBenchmark')
 

@@ -6,7 +6,7 @@ from transopt.Optimizer.Acquisition.sequential import Sequential
 from typing import Dict, Union, List
 from transopt.Optimizer.OptimizerBase import BOBase
 from transopt.utils.serialization import ndarray_to_vectors
-from transopt.utils.Register import optimizer_register
+from agent.registry import optimizer_register
 from transopt.utils.Kernel import construct_multi_objective_kernel
 from transopt.Optimizer.Model.MPGP import MPGP
 from transopt.Optimizer.Model.GP import PriorGP

@@ -10,7 +10,7 @@ from typing import Union, Dict
 from torchvision import datasets, transforms
 
 from transopt.benchmark.problem_base import NonTabularProblem
-from transopt.utils.Register import benchmark_register
+from agent.registry import benchmark_register
 
 logger = logging.getLogger("ConfigOptBenchmark")
 

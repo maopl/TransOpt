@@ -9,13 +9,17 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from log import logger
 from openai_connector import Message, OpenAIChat
-from transopt.utils.Register import problem_registry
+import benchmark
+
+from agent.registry import *
 
 # Assuming OpenAIChat, Message, get_prompt, parse_response are defined correctly
 
 
 app = Flask(__name__)
 CORS(app)
+is_first_msg = True
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -151,13 +155,12 @@ def configuration_basic_information():
 
     print(user_input)
     
-    task_names = problem_registry.keys()
+    task_names = list(g_problem_registry.keys())
     task_data = []
-    print(task_names)
-    
+    algoprithm_data = []
             
     for name in task_names:
-        if  problem_registry[name].get_problem_type() == 'synthetic':
+        if  g_problem_registry[name].get_problem_type() == 'synthetic':
             task_info = {
                 "name" : name,
                 "anyDim": True,
@@ -166,8 +169,8 @@ def configuration_basic_information():
                 'fidelity':[]
             }
         else:
-            obj_num =  problem_registry[name].get_objectives()
-            dim = len(problem_registry[name].get_configuration_space().keys())
+            obj_num =  g_problem_registry[name].get_objectives()
+            dim = len(g_problem_registry[name].get_configuration_space().keys())
             task_info = {
                 "name" : name,
                 "anyDim": False,
@@ -178,11 +181,11 @@ def configuration_basic_information():
         task_data.append(task_info)
 
     # 发送Tasks数据给前端
-    current_directory = os.path.dirname(__file__)
-    json_file_path = os.path.join(current_directory, 'page_service_data', 'configuration_basic.json')
-    with open(json_file_path, 'r') as file:
-        data = json.load(file)
-    return jsonify(data), 200
+    # current_directory = os.path.dirname(__file__)
+    # json_file_path = os.path.join(current_directory, 'page_service_data', 'configuration_basic.json')
+    # with open(json_file_path, 'r') as file:
+    #     data = json.load(file)
+    return jsonify(task_data), 200
 
 
 @app.route('/api/configuration/dataset', methods=['POST'])
@@ -257,4 +260,7 @@ def comparison_update_charts_data():
     # 返回处理后的响应给前端
     return jsonify(data), 200
 
-    
+
+global_prompt = get_prompt("prompt")
+openai_chat = OpenAIChat()
+app.run(debug=True)

@@ -5,7 +5,7 @@ from scipy.stats import *
 from scipy.spatial import distance
 from GPyOpt.util.general import get_quantiles
 
-from transopt.utils.Register import acf_register
+from agent.registry import acf_register
 from transopt.utils.hypervolume import calc_hypervolume
 from GPyOpt.optimization.acquisition_optimizer import AcquisitionOptimizer
 

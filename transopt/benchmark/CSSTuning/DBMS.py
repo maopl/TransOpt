@@ -8,7 +8,7 @@ from pathlib import Path
 from csstuning.dbms.dbms_benchmark import MySQLBenchmark
 
 from transopt.benchmark.problem_base import NonTabularProblem
-from transopt.utils.Register import benchmark_register
+from agent.registry import benchmark_register
 
 ERROR_VALUE = 1e10
 

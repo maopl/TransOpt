@@ -5,8 +5,8 @@ import os
 import pandas as pds
 
 from transopt.utils.Normalization import Norm_pt
-from Optimizer import VBOOptimizer
-from Optimizer import construct_acf
+from optimizer import VBOOptimizer
+from optimizer import construct_acf
 
 import Visualization.Visual_landscape as visual
 from torch.quasirandom import SobolEngine

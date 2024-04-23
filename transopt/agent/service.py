@@ -10,7 +10,7 @@ from flask_cors import CORS
 from log import logger
 from openai_connector import Message, OpenAIChat
 import benchmark
-
+# import optimizer
 from agent.registry import *
 
 # Assuming OpenAIChat, Message, get_prompt, parse_response are defined correctly
@@ -133,8 +133,9 @@ def configuration_search_dataset():
     # 从前端得到dataset的搜索条件
     print(data)
 
+    # task_name , numb_variables, variables_name, num_objectives
     # 接收的格式如下
-    # {'name': 0.27, 'dim': 0.62, 'obj': 0.25, 'fidelityName': 0.71, 'fidelity': 0.19}
+    # {'name': 0.27, 'dim': 0.62, 'obj': 0.25, 'fidelityName': 0.71, 'variables_name': 'learning_rate, epochs, aa'}
 
 
     data = [

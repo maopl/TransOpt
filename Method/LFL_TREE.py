@@ -8,12 +8,12 @@ from transopt.utils.Normalization  import Normalize
 from transopt.utils.Initialization import InitData
 from transopt_external.transfergpbo.models import TaskData
 
-from Optimizer import construct_acf
+from optimizer import construct_acf
 
 import Visualization.Visual_landscape as visual
 from Gym import Gym_Metric
 
-from Optimizer import MTTree
+from optimizer import MTTree
 
 from transopt.KnowledgeBase.Task_recognition import reco_Tree
 

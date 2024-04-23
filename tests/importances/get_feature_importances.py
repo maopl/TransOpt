@@ -26,7 +26,7 @@ data_path = package_dir / 'tests'/ 'sample_data'
 # data_path = package_dir / "experiment_results" / "llvm_samples"
 
 
-from transopt.Optimizer.model.MultiTree import RandomForestRegression as RFR
+from transopt.optimizer.model.MultiTree import RandomForestRegression as RFR
 
 def load_and_prepare_data(file_path, objectives):
     """

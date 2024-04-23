@@ -9,56 +9,56 @@ import {
     Modal,
 } from "antd";
 
-function SelectAlgorithm({SearchSpace, Sample, PreTrain, Train, Acf, DataSelector}) {
+function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelector}) {
     const [form] = Form.useForm()
     
-    const [selectedSearchSpace, setSearchSpace] = useState(SearchSpace[0])
-    function handleSSNameChange(value) {
-        // console.log(`selected ${value}`);
-        const searchspace = SearchSpace.find(searchspace => searchspace.name === value)
-        setSearchSpace(searchspace)
-        form.setFieldValue('SearchSpaceParameters', searchspace.default)
-    }
+    // const [selectedSpaceRefiner, setSpaceRefiner] = useState(SpaceRefiner[0])
+    // function handleSSNameChange(value) {
+    //     // console.log(`selected ${value}`);
+    //     const spacerefiner = SpaceRefiner.find(spacerefiner => spacerefiner.name === value)
+    //     setSpaceRefiner(spacerefiner)
+    //     form.setFieldValue('SearchSpaceParameters', spacerefiner.default)
+    // }
 
-    const [selectedSample, setSample] = useState(Sample[0])
-    function handleSampleNameChange(value) {
-        // console.log(`selected ${value}`);
-        const sample = Sample.find(sample => sample.name === value)
-        setSample(sample)
-        form.setFieldValue('SampleParameters', sample.default)
-    }
+    // const [selectedSampler, setSampler] = useState(Sampler[0])
+    // function handleSamplerNameChange(value) {
+    //     // console.log(`selected ${value}`);
+    //     const sample = Sample.find(sample => sample.name === value)
+    //     setSampler(sample)
+    //     form.setFieldValue('SampleParameters', sample.default)
+    // }
 
-    const [selectedPreTrain, setPreTrain] = useState(PreTrain[0])
-    function handlePreTrainNameChange(value) {
-        // console.log(`selected ${value}`);
-        const pretrain = PreTrain.find(pretrain => pretrain.name === value)
-        setPreTrain(pretrain)
-        form.setFieldValue('PreTrainParameters', pretrain.default)
-    }
+    // const [selectedPreTrain, setPreTrain] = useState(PreTrain[0])
+    // function handlePreTrainNameChange(value) {
+    //     // console.log(`selected ${value}`);
+    //     const pretrain = PreTrain.find(pretrain => pretrain.name === value)
+    //     setPreTrain(pretrain)
+    //     form.setFieldValue('PreTrainParameters', pretrain.default)
+    // }
 
-    const [selectedTrain, setTrain] = useState(Train[0])
-    function handleTrainNameChange(value) {
-        // console.log(`selected ${value}`);
-        const train = Train.find(train => train.name === value)
-        setTrain(train)
-        form.setFieldValue('TrainParameters', train.default)
-    }
+    // const [selectedTrain, setTrain] = useState(Train[0])
+    // function handleTrainNameChange(value) {
+    //     // console.log(`selected ${value}`);
+    //     const train = Train.find(train => train.name === value)
+    //     setTrain(train)
+    //     form.setFieldValue('TrainParameters', train.default)
+    // }
 
-    const [selectedAcf, setAcf] = useState(Acf[0])
-    function handleAcfNameChange(value) {
-        // console.log(`selected ${value}`);
-        const acf = Acf.find(acf => acf.name === value)
-        setAcf(acf)
-        form.setFieldValue('AcfParameters', acf.default)
-    }
+    // const [selectedAcf, setAcf] = useState(Acf[0])
+    // function handleAcfNameChange(value) {
+    //     // console.log(`selected ${value}`);
+    //     const acf = Acf.find(acf => acf.name === value)
+    //     setAcf(acf)
+    //     form.setFieldValue('AcfParameters', acf.default)
+    // }
 
-    const [selectedDataSelector, setDataSelector] = useState(DataSelector[0])
-    function handleDataSelectorNameChange(value) {
-        // console.log(`selected ${value}`);
-        const dataselector = DataSelector.find(dataselector => dataselector.name === value)
-        setDataSelector(dataselector)
-        form.setFieldValue('DataSelectorParameters', dataselector.default)
-    }
+    // const [selectedDataSelector, setDataSelector] = useState(DataSelector[0])
+    // function handleDataSelectorNameChange(value) {
+    //     // console.log(`selected ${value}`);
+    //     const dataselector = DataSelector.find(dataselector => dataselector.name === value)
+    //     setDataSelector(dataselector)
+    //     form.setFieldValue('DataSelectorParameters', dataselector.default)
+    // }
 
     const onFinish = (values) => {
         // 构造要发送到后端的数据
@@ -107,18 +107,18 @@ function SelectAlgorithm({SearchSpace, Sample, PreTrain, Train, Acf, DataSelecto
             style={{width:"100%"}}
             autoComplete="off"
             initialValues={{
-              SearchSpace: SearchSpace[0].name,
-              SearchSpaceParameters: SearchSpace[0].default,
-              Sample: Sample[0].name,
-              SampleParameters: Sample[0].default,
-              PreTrain: PreTrain[0].name,
-              PreTrainParameters: PreTrain[0].default,
-              Train: Train[0].name,
-              TrainParameters: Train[0].default,
-              Acf: Acf[0].name,
-              AcfParameters: Acf[0].default,
+              SpaceRefiner: SpaceRefiner[0].name,
+              SpaceRefinerParameters: '',
+              Sampler: Sampler[0].name,
+              SamplerParameters: '',
+              Pretrain: Pretrain[0].name,
+              PretrainParameters: '',
+              Model: Model[0].name,
+              ModelParameters: '',
+              ACF: ACF[0].name,
+              ACFParameters: '',
               DataSelector: DataSelector[0].name,
-              DataSelectorParameters: DataSelector[0].default,
+              DataSelectorParameters: '',
             }}
         >
           <div style={{ overflowY: 'auto', maxHeight: '200px' }}>
@@ -129,21 +129,20 @@ function SelectAlgorithm({SearchSpace, Sample, PreTrain, Train, Acf, DataSelecto
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
               <Form.Item
-                name={'SearchSpace'}
+                name={'SpaceRefiner'}
                 style={{ marginRight: 8 , width: 150}}
               >
                 <Select 
                   placeholder="name"
-                  defaultValue="default"
-                  options={SearchSpace.map(item => ({ value: item.name }))}
-                  onChange={handleSSNameChange}
+                  defaultValue={SpaceRefiner[0].name}
+                  options={SpaceRefiner.map(item => ({ value: item.name }))}
                 />
               </Form.Item>
               <Form.Item
-                name={'SearchSpaceParameters'}
+                name={'SpaceRefinerParameters'}
                 style={{ flex: 1 }}
               >
-                <Input placeholder="Parameters" value={selectedSearchSpace.default} />
+                <Input placeholder="Parameters"/>
               </Form.Item>
             </div>
 
@@ -154,21 +153,20 @@ function SelectAlgorithm({SearchSpace, Sample, PreTrain, Train, Acf, DataSelecto
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
               <Form.Item
-                name={'Sample'}
+                name={'Sampler'}
                 style={{ marginRight: 8 , width: 150}}
               >
                 <Select
                   placeholder="name"
-                  defaultValue="default"
-                  options={Sample.map(item => ({ value: item.name }))}
-                  onChange={handleSampleNameChange}
+                  defaultValue={Sampler[0].name}
+                  options={Sampler.map(item => ({ value: item.name }))}
                 />
               </Form.Item>
               <Form.Item
-                name={'SampleParameters'}
+                name={'SamplerParameters'}
                 style={{ flex: 1 }}
               >
-                <Input placeholder="Parameters" value={selectedSample.default} />
+                <Input placeholder="Parameters"/>
               </Form.Item>
             </div>
 
@@ -179,21 +177,20 @@ function SelectAlgorithm({SearchSpace, Sample, PreTrain, Train, Acf, DataSelecto
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
               <Form.Item
-                name={'PreTrain'}
+                name={'Pretrain'}
                 style={{ marginRight: 8 , width: 150}}
               >
                 <Select
                   placeholder="name"
-                  defaultValue="default"
-                  options={PreTrain.map(item => ({ value: item.name }))}
-                  onChange={handlePreTrainNameChange}
+                  defaultValue={Pretrain[0].name}
+                  options={Pretrain.map(item => ({ value: item.name }))}
                 />
               </Form.Item>
               <Form.Item
-                name={'PreTrainParameters'}
+                name={'PretrainParameters'}
                 style={{ flex: 1 }}
               >
-                <Input placeholder="Parameters" value={selectedPreTrain.default} />
+                <Input placeholder="Parameters"/>
               </Form.Item>
             </div>
 
@@ -204,21 +201,20 @@ function SelectAlgorithm({SearchSpace, Sample, PreTrain, Train, Acf, DataSelecto
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
               <Form.Item
-                name={'Train'}
+                name={'Model'}
                 style={{ marginRight: 8 , width: 150}}
               >
                 <Select
                   placeholder="name"
-                  defaultValue="default"
-                  options={Train.map(item => ({ value: item.name }))}
-                  onChange={handleTrainNameChange}
+                  defaultValue={Model[0].name}
+                  options={Model.map(item => ({ value: item.name }))}
                 />
               </Form.Item>
               <Form.Item
-                name={'TrainParameters'}
+                name={'ModelParameters'}
                 style={{ flex: 1 }}
               >
-                <Input placeholder="Parameters" value={selectedTrain.default} />
+                <Input placeholder="Parameters" />
               </Form.Item>
             </div>
 
@@ -229,21 +225,20 @@ function SelectAlgorithm({SearchSpace, Sample, PreTrain, Train, Acf, DataSelecto
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
               <Form.Item
-                name={'Acf'}
+                name={'ACF'}
                 style={{ marginRight: 8 , width: 150}}
               >
                 <Select
                   placeholder="name"
-                  defaultValue="default"
-                  options={Acf.map(item => ({ value: item.name }))}
-                  onChange={handleAcfNameChange}
+                  defaultValue={ACF[0].name}
+                  options={ACF.map(item => ({ value: item.name }))}
                 />
               </Form.Item>
               <Form.Item
-                name={'AcfParameters'}
+                name={'ACFParameters'}
                 style={{ flex: 1 }}
               >
-                <Input placeholder="Parameters" value={selectedAcf.default} />
+                <Input placeholder="Parameters" />
               </Form.Item>
             </div>
 
@@ -261,14 +256,13 @@ function SelectAlgorithm({SearchSpace, Sample, PreTrain, Train, Acf, DataSelecto
                   placeholder="name"
                   defaultValue={DataSelector[0].name}
                   options={DataSelector.map(item => ({ value: item.name }))}
-                  onChange={handleDataSelectorNameChange}
                 />
               </Form.Item>
               <Form.Item
                 name={'DataSelectorParameters'}
                 style={{ flex: 1 }}
               >
-                <Input defaultValue={''} placeholder="Parameters" value={selectedDataSelector.default} />
+                <Input placeholder="Parameters"/>
               </Form.Item>
             </div>
           </div>

@@ -65,6 +65,7 @@ def report_update_charts_data():
 def configuration_recieve_tasks():
     data = request.json
     # 从前端得到选择的tasks
+    
     print(data)
 
     # 接收的格式如下
@@ -112,9 +113,12 @@ def configuration_dataset():
     data = request.json
     # 从前端得到选择的dataset，并开始实验
     print(data)
-
-    # 接收的格式如下
+    
+    # Input 
     # ['dataset1', 'dataset2', 'dataset3', 'dataset4']
+    
+    # Output
+
 
     # 返回处理后的响应给前端
     return {"succeed": True}, 200

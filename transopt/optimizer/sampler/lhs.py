@@ -2,9 +2,9 @@ import numpy as np
 from scipy.stats import qmc
 
 from sampler.sampler_base import Sampler
-from agent.registry import sampler_register
+from agent.registry import sampler_registry
 
-@sampler_register.register("lhs")
+@sampler_registry.register("lhs")
 class LatinHypercubeSampler(Sampler):
     def sample(self, search_space, n_samples=10, metadata = None):
         d = len(search_space.variables_order)

@@ -29,13 +29,13 @@ class Registry:
     def __contains__(self, item):
         return item in self._registry
 
-space_refine_register = Registry()
-sampler_register = Registry()
-pretrain_register = Registry()
-model_register = Registry()
-acf_register = Registry()
-problem_register = Registry()
-statistic_register = Registry()
+space_refine_registry = Registry()
+sampler_registry = Registry()
+pretrain_registry = Registry()
+model_registry = Registry()
+acf_registry = Registry()
+problem_registry = Registry()
+statistic_registry = Registry()
 
 # 示例使用
 # print(sampler_registry.list_names())

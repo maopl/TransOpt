@@ -4,9 +4,9 @@ from GPyOpt.acquisitions.base import AcquisitionBase
 from GPyOpt.core.task.cost import constant_cost_withGradients
 from GPyOpt.util.general import get_quantiles
 
-from transopt.agent.registry import acf_register
+from transopt.agent.registry import acf_registry
 
-@acf_register.register('EI')
+@acf_registry.register('EI')
 class AcquisitionEI(AcquisitionBase):
     """
     General template to create a new GPyOPt acquisition function

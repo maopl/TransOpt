@@ -5,12 +5,12 @@ from scipy.stats import *
 from scipy.spatial import distance
 from GPyOpt.util.general import get_quantiles
 
-from agent.registry import acf_register
+from agent.registry import acf_registry
 from transopt.utils.hypervolume import calc_hypervolume
 from GPyOpt.optimization.acquisition_optimizer import AcquisitionOptimizer
 
 
-@acf_register.register("MOEADEGO")
+@acf_registry.register("MOEADEGO")
 class MOEADEGO:
     def __init__(self, model, space, optimizer, config):
         self.optimizer = optimizer

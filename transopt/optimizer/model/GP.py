@@ -7,7 +7,7 @@ from paramz.transformations import Transformation, __fixed__
 from functools import reduce
 from transopt.utils.Prior import *
 
-from transopt.agent.registry import model_register
+from transopt.agent.registry import model_registry
 
 
 log_2_pi = np.log(2*np.pi)
@@ -17,7 +17,7 @@ def opt_wrapper(args):
     kwargs = args[1]
     return m.optimize(**kwargs)
 
-@model_register.register('GP')
+@model_registry.register('GP')
 class PriorGP(GP):
     def __init__(self,  X, Y, kernel, likelihood=None, mean_function=None, inference_method=None, name='MPGP', Y_metadata=None, noise_var=1., normalizer=False):
         if kernel is None:

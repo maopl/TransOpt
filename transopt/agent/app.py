@@ -65,6 +65,7 @@ def report_update_charts_data():
 def configuration_recieve_tasks():
     data = request.json
     # 从前端得到选择的tasks
+    
     print(data)
 
     # 接收的格式如下
@@ -96,12 +97,12 @@ def configuration_basic_information():
 
     print(user_input)
 
-    task_names = problem_register.list_names()
+    task_names = problem_registry.list_names()
     task_data = []
     algoprithm_data = []
 
     for name in task_names:
-        if problem_register[name].get_problem_type() == "synthetic":
+        if problem_registry[name].get_problem_type() == "synthetic":
             task_info = {
                 "name": name,
                 "anyDim": True,
@@ -110,8 +111,8 @@ def configuration_basic_information():
                 "fidelity": [],
             }
         else:
-            obj_num = problem_register[name].get_objectives()
-            dim = len(problem_register[name].get_configuration_space().keys())
+            obj_num = problem_registry[name].get_objectives()
+            dim = len(problem_registry[name].get_configuration_space().keys())
             task_info = {
                 "name": name,
                 "anyDim": False,
@@ -136,9 +137,12 @@ def configuration_dataset():
     data = request.json
     # 从前端得到选择的dataset，并开始实验
     print(data)
-
-    # 接收的格式如下
+    
+    # Input 
     # ['dataset1', 'dataset2', 'dataset3', 'dataset4']
+    
+    # Output
+
 
     # 返回处理后的响应给前端
     return {"succeed": True}, 200

@@ -7,7 +7,7 @@ from GPy.kern import Kern
 from GPy.kern import RBF
 from transopt_external.transfergpbo.models import InputData, TaskData, Model, GPBO
 
-from transopt.agent.registry import model_register
+from transopt.agent.registry import model_registry
 
 
 def roll_col(X: np.ndarray, shift: int) -> np.ndarray:
@@ -103,7 +103,7 @@ def compute_ranking_loss(
     return rank_loss
 
 
-@model_register.register('EnsembleGP')
+@model_registry.register('EnsembleGP')
 class RGPE(Model):
     def __init__(
             self,

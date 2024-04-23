@@ -2,9 +2,9 @@
 # Licensed under the BSD 3-clause license (see LICENSE.txt)
 
 from GPyOpt.acquisitions.base import AcquisitionBase
-from agent.registry import acf_register
+from agent.registry import acf_registry
 
-@acf_register.register('ConformalLCB')
+@acf_registry.register('ConformalLCB')
 class ConformalLCB(AcquisitionBase):
     """
     GP-Lower Confidence Bound acquisition function with constant exploration weight.

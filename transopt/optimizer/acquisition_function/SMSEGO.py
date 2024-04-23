@@ -5,11 +5,11 @@ from scipy.stats import *
 from scipy.spatial import distance
 from GPyOpt.acquisitions.base import AcquisitionBase
 
-from agent.registry import acf_register
+from agent.registry import acf_registry
 from transopt.utils.hypervolume import calc_hypervolume
 
 
-@acf_register.register("SMSEGO")
+@acf_registry.register("SMSEGO")
 class SMSEGO:
     def __init__(self, model, space, optimizer, config):
         self.optimizer = optimizer

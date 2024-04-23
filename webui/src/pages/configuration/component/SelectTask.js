@@ -19,7 +19,6 @@ function SelectDim({anyDim, dim, name, restField}) {
         <Form.Item
            {...restField}
            name={[name, 'dim']}
-           rules={[{ required: true, message: 'Missing dim' }]}
          >
         <Input placeholder="dim" style={{width:"70px"}} />
         </Form.Item>
@@ -29,7 +28,6 @@ function SelectDim({anyDim, dim, name, restField}) {
         <Form.Item
            {...restField}
            name={[name, 'dim']}
-           rules={[{ required: true, message: 'Missing dim' }]}
          >
            <Select
              placeholder="dim"
@@ -55,7 +53,6 @@ function ATask({key, name, restField, remove, data}) {
            <Form.Item
              {...restField}
              name={[name, 'name']}
-             rules={[{ required: true, message: 'Missing name' }]}
            >
              <Select
                showSearch
@@ -80,12 +77,17 @@ function ATask({key, name, restField, remove, data}) {
            <Form.Item
              {...restField}
              name={[name, 'fidelity']}
-             rules={[{ required: true, message: 'Missing fidelity' }]}
            >
              <Select
                placeholder="fidelity"
                options={selectedTask.fidelity.map(item => ({value: item}))}
              />
+           </Form.Item>
+           <Form.Item
+             {...restField}
+             name={[name, 'budget']}
+           >
+             <Input placeholder="budget" style={{width:"70px"}} />
            </Form.Item>
            <MinusCircleOutlined style={{color: 'white'}} onClick={() => remove(name)} />
         </Space>
@@ -100,6 +102,7 @@ function SelectTask({data}) {
       dim: parseInt(task.dim),
       obj: task.obj,
       fidelity: task.fidelity,
+      budget: task.budget,
     }));
     console.log('Request data:', messageToSend);
     // 向后端发送请求...

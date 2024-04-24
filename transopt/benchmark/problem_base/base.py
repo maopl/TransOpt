@@ -88,25 +88,11 @@ class ProblemBase(abc.ABC):
         """Provides interface to use, e.g., SciPy optimizers"""
         return self.f(configuration, **kwargs)["function_value"]
 
-    
-    @abc.abstractmethod
-    def get_dyn_configuration_space() -> SearchSpace:
-        """Defines the configuration space for each benchmark.
-        Parameters
-        ----------
-        seed: int, None
-            Seed for the configuration space.
 
-        Returns
-        -------
-        ConfigSpace.ConfigurationSpace
-            A valid configuration space for the benchmark's parameters
-        """
-        raise NotImplementedError()
     
     @staticmethod
     @abc.abstractmethod
-    def get_configuration_space() -> SearchSpace:
+    def get_configuration_space(self) -> SearchSpace:
         """Defines the configuration space for each benchmark.
         Parameters
         ----------
@@ -120,9 +106,8 @@ class ProblemBase(abc.ABC):
         """
         raise NotImplementedError()
 
-    @staticmethod
     @abc.abstractmethod
-    def get_fidelity_space() -> FidelitySpace:
+    def get_fidelity_space(self) -> FidelitySpace:
         """Defines the available fidelity parameters as a "fidelity space" for each benchmark.
         Parameters
         ----------
@@ -135,9 +120,8 @@ class ProblemBase(abc.ABC):
         """
         raise NotImplementedError()
 
-    @staticmethod
     @abc.abstractmethod
-    def get_objectives() -> list:
+    def get_objectives(self) -> list:
         """Defines the available fidelity parameters as a "fidelity space" for each benchmark.
         Parameters
         ----------
@@ -153,15 +137,13 @@ class ProblemBase(abc.ABC):
 
 
 
-    @staticmethod
     @abc.abstractmethod
-    def get_problem_type()->str:
+    def get_problem_type(self)->str:
         return NotImplementedError()
     
     
-    @staticmethod
     @abc.abstractmethod
-    def get_meta_information() -> Dict:
+    def get_meta_information(self) -> Dict:
         """Provides some meta information about the benchmark.
 
         Returns

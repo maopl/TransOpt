@@ -18,6 +18,12 @@ class SearchSpace:
         }
 
         self.ranges = copy.deepcopy(self.original_ranges)
+    
+    def __getitem__(self, item):
+        return self._variables.get(item)
+
+    def __contains__(self, item):
+        return item in self._variables
 
 
     def get_hyperparameter_names(self):

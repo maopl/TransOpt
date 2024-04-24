@@ -22,7 +22,7 @@ class Continuous(Variable):
         super().__init__(name, "continuous")
         self.range = range
         
-        self.is_discrect = False
+        self.is_discrete = False
 
     @property
     def search_space_range(self):
@@ -40,7 +40,7 @@ class Categorical(Variable):
         super().__init__(name, "categorical")
         self.categories = categories
         
-        self.is_discrect = True
+        self.is_discrete = True
 
     @property
     def search_space_range(self):
@@ -58,7 +58,7 @@ class Integer(Variable):
         super().__init__(name, "integer")
         self.range = range
 
-        self.is_discrect = True
+        self.is_discrete = True
 
     @property
     def search_space_range(self):
@@ -76,7 +76,7 @@ class LogContinuous(Variable):
         super().__init__(name, "log_continuous")
         self.range = range
         
-        self.is_discrect = False
+        self.is_discrete = False
 
     @property
     def search_space_range(self):

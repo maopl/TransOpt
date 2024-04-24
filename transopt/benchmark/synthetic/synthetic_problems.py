@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from typing import Union, Dict
 from transopt.space.variable import *
 from transopt.agent.registry import problem_registry
-from transopt.benchmark.problem_base.synthetic_problem_base import SyntheticProblemBase
+from transopt.benchmark.problem_base.non_tab_problem import NonTabularProblem
 from transopt.space.search_space import SearchSpace
 from transopt.space.fidelity_space import FidelitySpace
 
@@ -1617,7 +1617,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 
 
 @problem_registry.register("Ackley")
-class Ackley(SyntheticProblemBase):
+class Ackley(NonTabularProblem):
     def __init__(
         self, task_name, budget_type, budget, seed, workload, **kwargs
     ):
@@ -1681,13 +1681,16 @@ class Ackley(SyntheticProblemBase):
 
         return ss
 
+    def get_fidelity_space(self) -> FidelitySpace:
+        fs = FidelitySpace([])
+        return fs
 
-    def get_objectives() -> list:
+    def get_objectives(self) -> list:
         
         return ['f1']
 
 
-    def get_problem_type():
+    def get_problem_type(self):
         return "synthetic"
 
 

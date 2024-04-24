@@ -1,6 +1,6 @@
-from .database import Database
-from .lsh import LSHCache
-from .minhash import MinHasher
+from transopt.datamanager.database import Database
+from transopt.datamanager.lsh import LSHCache
+from transopt.datamanager.minhash import MinHasher
 
 class DataManager:
     _instance = None
@@ -58,3 +58,19 @@ class DataManager:
 
     def insert_data(self, dataset_name, data):
         return self.db.insert_data(dataset_name, data)
+
+
+if __name__ == "__main__":
+    db = Database()
+    data_manager = DataManager(db)
+    
+    # print(db.get_table_list())
+    
+    info = data_manager.db.query_dataset_info('education_2_4_crukx')
+    
+    sm = data_manager.get_similar_datasets('education_2_4_crukx', info)
+    
+    db.close()
+
+    # 获取某一 dataset 的 info
+    # print(db.query_dataset_info('transportation_2_5_fxrvy'))

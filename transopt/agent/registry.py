@@ -29,7 +29,7 @@ class Registry:
     def __contains__(self, item):
         return item in self._registry
 
-space_refine_registry = Registry()
+space_refiner_registry = Registry()
 sampler_registry = Registry()
 pretrain_registry = Registry()
 model_registry = Registry()

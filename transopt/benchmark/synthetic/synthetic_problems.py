@@ -1618,6 +1618,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 
 @problem_registry.register("Ackley")
 class Ackley(NonTabularProblem):
+    problem_type = "synthetic" 
     def __init__(
         self, task_name, budget_type, budget, seed, workload, **kwargs
     ):

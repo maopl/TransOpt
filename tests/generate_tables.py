@@ -87,10 +87,10 @@ if __name__ == "__main__":
     db = Database()  # Assuming Database is properly initialized and can be used
 
     # 创建测试 datasets
-    create_test_tables(db, 200)
+    # create_test_tables(db, 200)
 
     # 获取所有的 datasets
-    # print(db.get_table_list())
+    print(db.get_table_list())
     
     # 获取某一 dataset 的 info
     # print(db.query_dataset_info('transportation_2_5_fxrvy'))

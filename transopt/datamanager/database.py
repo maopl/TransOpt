@@ -263,15 +263,11 @@ class Database:
         
         dataset_info = {
             "num_variables": len(variables),
-            "variables": variables,
-            
             "num_objectives": len(objectives),
-            "objectives": objectives,
-            
             "num_fidelities": len(fidelities),
-            "fidelities": fidelities,
             
             "data_number": num_rows,
+            **config
         }
         return dataset_info 
 

@@ -29,16 +29,15 @@ def report_send_tasks_information():
     data = request.json
     user_input = data.get("paremeter", "")
 
-    print(user_input)
+    all_tasks = services.get_all_tasks()
 
-    # 发送Tasks数据给前端
-    current_directory = os.path.dirname(__file__)
-    json_file_path = os.path.join(
-        current_directory, "page_service_data", "task_information.json"
-    )
-    with open(json_file_path, "r") as file:
-        data = json.load(file)
-    return jsonify(data), 200
+    # current_directory = os.path.dirname(__file__)
+    # json_file_path = os.path.join(
+    #     current_directory, "page_service_data", "task_information.json"
+    # )
+    # with open(json_file_path, "r") as file:
+    #     data = json.load(file)
+    return jsonify(all_tasks), 200
 
 
 @app.route("/api/report/charts", methods=["POST"])
@@ -107,14 +106,12 @@ def configuration_basic_information():
 @app.route("/api/configuration/dataset", methods=["POST"])
 def configuration_dataset():
     metadata_info = request.json
-    # 从前端得到选择的dataset，并开始实验
-    print(data)
-    
+    # 从前端得到选择的dataset，并开始实验    
     # Input 
     # ['dataset1', 'dataset2', 'dataset3', 'dataset4']
     
     # Output
-
+    services.select_dataset(metadata_info)
 
     # 返回处理后的响应给前端
     return {"succeed": True}, 200

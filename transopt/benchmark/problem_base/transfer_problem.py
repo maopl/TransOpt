@@ -15,6 +15,7 @@ class TransferProblem:
     def __init__(self, seed: Union[int, np.random.RandomState, None] = None, **kwargs):
         self.seed = seed
         self.tasks = []
+        self.time = []
         self.query_nums = []
         self.__id = 0
 
@@ -114,27 +115,7 @@ class TransferProblem:
             raise NameError
 
     def get_cur_searchspace(self) -> Dict:
-        space_info = {
-            "input_dim": self.get_curdim(),
-            "num_objective": self.get_curobjnum(),
-            "budget": self.get_curbudget(),
-            "seed": self.get_curseed(),
-            # "task_id": self.get_curtask_id(),
-            "workload": self.get_curtworkload(),
-            "variables": {},
-        }
-        cs = self.get_curcs()
-
-        for k, v in cs.items():
-            if type(v) is ConfigSpace.CategoricalHyperparameter:
-                space_info["variables"][k] = {
-                    "bounds": v.choices,
-                    "type": type(v).__name__,
-                }
-            else:
-                space_info["variables"][k] = {"bounds": [v.lower, v.upper], "type": type(v).__name__}
-
-        return space_info
+        return self.tasks[self.__id].configuration_space
 
     ###Methods only for tabular data###
     def get_dataset_size(self):

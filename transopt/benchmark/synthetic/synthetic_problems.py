@@ -15,6 +15,32 @@ from transopt.space.fidelity_space import FidelitySpace
 
 logger = logging.getLogger("SyntheticBenchmark")
 
+class SytheticProblemBase(NonTabularProblem):
+    def __init__(
+        self, task_name, budget_type, budget, seed, workload, **kwargs
+    ):
+        super(SytheticProblemBase, self).__init__(
+            task_name=task_name,
+            seed=seed,
+            workload=workload,
+            budget_type=budget_type,
+            budget=budget,
+        )
+
+    def get_fidelity_space(self) -> FidelitySpace:
+        fs = FidelitySpace([])
+        return fs
+
+    def get_objectives(self) -> list:
+        return ['f1']
+
+    def get_problem_type(self):
+        return "synthetic"
+
+    def get_meta_information(self) -> Dict:
+        return {}
+    
+
 
 # @problem_register.register("Sphere")
 # class SphereOptBenchmark(SyntheticProblemBase):
@@ -1618,6 +1644,7 @@ logger = logging.getLogger("SyntheticBenchmark")
 
 @problem_registry.register("Ackley")
 class Ackley(NonTabularProblem):
+    problem_type = "synthetic"
     def __init__(
         self, task_name, budget_type, budget, seed, workload, **kwargs
     ):

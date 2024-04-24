@@ -113,8 +113,8 @@ class Services:
         return datasets_list
     
     
-    def select_dataset(self, dataset_name):
-        self.data_manager.load_dataset(dataset_name)
+    def select_dataset(self, dataset_names):
+        self.running_config.set_metadata(dataset_names)
     
     def receive_tasks(self, tasks_info):
         tasks = {}
@@ -147,14 +147,12 @@ class Services:
             optimizer = ConstructOptimizer(self.running_config.optimizer, seed)
             
             while (task_set.get_unsolved_num()):
-                space_info = task_set.get_cur_searchspace()
-                self.reset(testsuits.get_curname(), space_info, search_sapce=None)
-                testsuits.sync_query_num(len(self._X))
-                self.set_metadata()
-                while (testsuits.get_rest_budget()):
+                optimizer.link_task(task_set.get_curname(), task_set.get_cur_searchspace())
+                optimizer.set_metadata()
+                optimizer.search_space_refine()
+                while (task_set.get_rest_budget()):
                     suggested_sample = self.suggest()
-                    observation = testsuits.f(suggested_sample)
+                    observation = task_set.f(suggested_sample)
                     self.observe(suggested_sample, observation)
-                    if self.verbose:
-                        self.visualization(testsuits, suggested_sample)
-                testsuits.roll()
+
+                task_set.roll()

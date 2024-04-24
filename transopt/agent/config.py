@@ -21,5 +21,5 @@ class RunningConfig:
         self.optimizer = optimizer
 
     def set_metadata(self, metadata):
-        self.optimizer = metadata
+        self.metadata = metadata
 

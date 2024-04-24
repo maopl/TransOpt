@@ -107,14 +107,12 @@ def configuration_basic_information():
 @app.route("/api/configuration/dataset", methods=["POST"])
 def configuration_dataset():
     metadata_info = request.json
-    # 从前端得到选择的dataset，并开始实验
-    print(data)
-    
+    # 从前端得到选择的dataset，并开始实验    
     # Input 
     # ['dataset1', 'dataset2', 'dataset3', 'dataset4']
     
     # Output
-
+    services.select_dataset(metadata_info)
 
     # 返回处理后的响应给前端
     return {"succeed": True}, 200

@@ -15,7 +15,7 @@ from csstuning.compiler.compiler_benchmark import CompilerBenchmarkBase
 from transopt.benchmark import instantiate_problems
 from transopt.KnowledgeBase.kb_builder import construct_knowledgebase
 from transopt.KnowledgeBase.TransferDataHandler import OptTaskDataHandler
-from transopt.optimizer.ConstructOptimizer import get_optimizer
+from optimizer.construct_optimizer import get_optimizer
 
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["NUMEXPR_NUM_THREADS"] = "1"

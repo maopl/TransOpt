@@ -1,6 +1,9 @@
 from transopt.datamanager.database import Database
 from transopt.datamanager.lsh import LSHCache
 from transopt.datamanager.minhash import MinHasher
+from transopt.datamanager.database import Database
+from transopt.datamanager.lsh import LSHCache
+from transopt.datamanager.minhash import MinHasher
 
 class DataManager:
     _instance = None

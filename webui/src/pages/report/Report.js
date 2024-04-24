@@ -127,6 +127,7 @@ class Report extends React.Component {
                       }
                       collapse
                     >
+                    <div style={{ overflowY: 'auto', maxHeight: '300px' }}>
                     {this.state.tasksInfo.map((task, index) => (
                       <Button
                         key={index}
@@ -136,6 +137,7 @@ class Report extends React.Component {
                           {task.name}
                         </Button>
                     ))}
+                    </div>
                     </Widget>
                   </Col>
                   <Col lg={12} xs={12}>
@@ -147,20 +149,34 @@ class Report extends React.Component {
                       }
                       collapse
                     >
-                      <h4><strong>Task Name</strong></h4>
-                      <h5>{this.state.tasksInfo[this.state.selectedTaskIndex].name}</h5>
-                      <h4 className="mt-5"><strong>Auxiliary Data List</strong></h4>
+                      <div style={{ overflowY: 'auto', maxHeight: '650px' }}>
+                      <h4><strong>Task</strong></h4>
                       <ul>
-                        {this.state.tasksInfo[this.state.selectedTaskIndex].data.map((dataset, index) => (
-                          <li key={index}><h5>{dataset}</h5></li>
-                        ))}
+                        <li><h5><span className="fw-semi-bold">Name</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].name}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Dim</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].dim}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Obj</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].obj}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Fidelity</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].fidelity}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Workloads</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].workloads}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Budget type</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].budget_type}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Budget</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].budget}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Seeds</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].seeds}</h5></li>
                       </ul>
                       <h4 className="mt-5"><strong>Algorithm</strong></h4>
                       <ul>
-                        {this.state.tasksInfo[this.state.selectedTaskIndex].algorithm.map((algo, index) => (
-                          <li key={index}><h5>{algo}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Space refiner</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].SpaceRefiner}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Sampler</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].Sampler}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Pre-train</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].Pretrain}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Model</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].Model}</h5></li>
+                        <li><h5><span className="fw-semi-bold">ACF</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].ACF}</h5></li>
+                        <li><h5><span className="fw-semi-bold">DatasetSelector</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].DatasetSelector}</h5></li>
+                      </ul>
+                      <h4 className="mt-5"><strong>Auxiliary Data List</strong></h4>
+                      <ul>
+                        {this.state.tasksInfo[this.state.selectedTaskIndex].datasets.map((dataset, index) => (
+                          <li key={index}><h5>{dataset}</h5></li>
                         ))}
                       </ul>
+                      </div>
                     </Widget>
                   </Col>
                 </Row>

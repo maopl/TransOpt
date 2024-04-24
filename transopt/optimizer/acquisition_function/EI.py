@@ -20,10 +20,8 @@ class AcquisitionEI(AcquisitionBase):
     # --- Set this line to true if analytical gradients are available
     analytical_gradient_prediction = False
 
-    def __init__(self, model, space, optimizer, config):
-        self.optimizer = optimizer
-        super(AcquisitionEI, self).__init__(model, space, optimizer)
-        self.model = model
+    def __init__(self, config):
+        super(AcquisitionEI, self).__init__()
         if 'jitter' in config:
             self.jitter = config['jitter']
         else:

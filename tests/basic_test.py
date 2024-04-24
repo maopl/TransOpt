@@ -8,7 +8,7 @@ package_dir = os.path.dirname(current_dir)
 sys.path.insert(0, package_dir)
 
 from benchmark.instantiate_problems import get_testsuits
-from transopt.optimizer.ConstructOptimizer import get_optimizer
+from optimizer.construct_optimizer import get_optimizer
 from transopt.KnowledgeBase.kb_builder import construct_knowledgebase
 from transopt.KnowledgeBase.TransferDataHandler import OptTaskDataHandler
 

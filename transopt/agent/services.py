@@ -1,7 +1,4 @@
-import numpy as np
-
-from transopt.agent.chat.openai_connector import (Message, OpenAIChat,
-                                                  get_prompt)
+from transopt.agent.chat.openai_connector import Message, OpenAIChat, get_prompt
 from transopt.agent.config import Config, RunningConfig
 from transopt.agent.registry import *
 from transopt.benchmark.instantiate_problems import InstantiateProblems
@@ -14,25 +11,26 @@ class Services:
         self.config = Config()
         self.running_config = RunningConfig()
         self.data_manager = DataManager()
-        
+
         self.openai_chat = OpenAIChat(self.config)
         self.prompt = get_prompt()
         self.is_first_msg = True
 
         self._initialize_modules()
-        
 
     def chat(self, user_input):
         system_message = Message(role="system", content=self.prompt)
         user_message = Message(role="user", content=user_input)
-        
+
         if self.is_first_msg:
-            response_content = self.openai_chat.get_response([system_message, user_message])
+            response_content = self.openai_chat.get_response(
+                [system_message, user_message]
+            )
         else:
             response_content = self.openai_chat.get_response([user_message])
-        
+
         return response_content
-    
+
     def _initialize_modules(self):
         import transopt.benchmark.synthetic
         import transopt.optimizer.acquisition_function
@@ -40,17 +38,17 @@ class Services:
         import transopt.optimizer.pretrain
         import transopt.optimizer.refiner
         import transopt.optimizer.sampler
-        
-    def get_modules(self):        
+
+    def get_modules(self):
         basic_info = {}
         tasks_info = []
-        selector_info = [{"name": 'default'}]
-        model_info = [{"name": 'default'}]
-        sampler_info = [{"name": 'default'}]
-        acf_info = [{"name": 'default'}]
-        pretrain_info = [{"name": 'default'}]
-        refiner_info = [{"name": 'default'}]
-        
+        selector_info = [{"name": "default"}]
+        model_info = [{"name": "default"}]
+        sampler_info = [{"name": "default"}]
+        acf_info = [{"name": "default"}]
+        pretrain_info = [{"name": "default"}]
+        refiner_info = [{"name": "default"}]
+
         # tasks information
         task_names = problem_registry.list_names()
         for name in task_names:
@@ -74,66 +72,70 @@ class Services:
                 }
             tasks_info.append(task_info)
         basic_info["TasksData"] = tasks_info
-        
+
         sampler_names = sampler_registry.list_names()
         for name in sampler_names:
             sampler_info.append({"name": name})
         basic_info["Sampler"] = sampler_info
-        
+
         refiner_names = space_refiner_registry.list_names()
         for name in refiner_names:
             refiner_info.append({"name": name})
         basic_info["SpaceRefiner"] = refiner_info
-        
+
         pretrain_names = pretrain_registry.list_names()
         for name in pretrain_names:
             pretrain_info.append({"name": name})
         basic_info["Pretrain"] = pretrain_info
-        
+
         model_names = model_registry.list_names()
         for name in model_names:
             model_info.append({"name": name})
         basic_info["Model"] = model_info
-        
+
         acf_names = acf_registry.list_names()
         for name in acf_names:
             acf_info.append({"name": name})
         basic_info["ACF"] = acf_info
-        
+
         selector_names = selector_registry.list_names()
         for name in selector_names:
             selector_info.append({"name": name})
         basic_info["DataSelector"] = selector_info
-        
+
         return basic_info
-        
+
     def search_dataset(self, dataset_name, dataset_info):
-        datasets_list = list(self.data_manager.get_similar_datasets(dataset_name, dataset_info))
-        
+        datasets_list = list(
+            self.data_manager.get_similar_datasets(dataset_name, dataset_info)
+        )
+
         return datasets_list
-    
-    
+
     def select_dataset(self, dataset_names):
         self.running_config.set_metadata(dataset_names)
-    
+
     def receive_tasks(self, tasks_info):
         tasks = {}
         for task in tasks_info:
-            workloads = [int(item) for item in task['workloads'].split(',')]
-            tasks[task["name"]] = {'budget_type': task["budget_type"],'budget': int(task['budget']), 
-                                   'workloads': workloads, 'params':{'input_dim':int(task["dim"])}}
+            workloads = [int(item) for item in task["workloads"].split(",")]
+            tasks[task["name"]] = {
+                "budget_type": task["budget_type"],
+                "budget": int(task["budget"]),
+                "workloads": workloads,
+                "params": {"input_dim": int(task["dim"])},
+            }
 
         self.running_config.set_tasks(tasks)
         return
-    
+
     def receive_optimizer(self, optimizer_info):
         print(optimizer_info)
         optimizer = {}
 
-
         self.running_config.set_optimizer(optimizer_info)
         return
-    
+
     def receive_metadata(self, metadata_info):
         print(metadata_info)
 
@@ -185,3 +187,104 @@ class Services:
                 task_set.roll()
                 
 
+
+
+    def get_report_charts(self, task_name):
+        all_data = self.data_manager.db.select_data(task_name)
+
+        table_info = self.data_manager.db.query_dataset_info(task_name)
+        objectives = table_info["objectives"]
+
+        obj = objectives[0]["name"]
+        obj_type = objectives[0]["type"]
+
+        obj_data = [data[obj] for data in all_data]
+
+        ret = {
+            "RadarData": {
+                "indicator": [
+                    {"name": "F1 score", "max": 1},
+                    {"name": "Accuracy", "max": 1},
+                    {"name": "Recall", "max": 1},
+                    {"name": "Root Mean Squared Error", "max": 10},
+                    {"name": "AUC-ROC ", "max": 1},
+                    {"name": "BOA-AUC ", "max": 1},
+                ],
+                "data": [{"value": [0.8, 0.95, 0.5, 2.42639, 0.7, 0.8]}],
+            },
+            "BarData": [
+                {"value": 0.25, "name": "Learning_rate"},
+                {"value": 0.36, "name": "Neuron number"},
+                {"value": 0.76, "name": "Layer number"},
+                {"value": 0.12, "name": "Block number"},
+                {"value": 0.54, "name": "Weight decay"},
+                {"value": 0.72, "name": "Momentum"},
+            ],
+            "ScatterData": {
+                "cluster1": [
+                    [10.0, 8.04],
+                    [8.07, 6.95],
+                    [13.0, 7.58],
+                    [9.05, 8.81],
+                    [11.0, 8.33],
+                    [14.0, 7.66],
+                    [13.4, 6.81],
+                    [10.0, 6.33],
+                ],
+                "cluster2": [
+                    [14.0, 8.96],
+                    [12.5, 6.82],
+                    [9.15, 7.2],
+                    [11.5, 7.2],
+                    [3.03, 4.23],
+                    [12.2, 7.83],
+                    [2.02, 4.47],
+                    [1.05, 3.33],
+                ],
+                "cluster3": [
+                    [4.05, 4.96],
+                    [6.03, 7.24],
+                    [12.0, 6.26],
+                    [12.0, 8.84],
+                    [7.08, 5.82],
+                    [5.02, 5.68],
+                ],
+            },
+        }
+        ret.update(self.construct_trajectory_data(task_name, obj_data, obj_type))
+
+        return ret
+
+    def construct_trajectory_data(self, name, obj_data, obj_type="minimize"):
+        # Initialize the list to store trajectory data and the best value seen so far
+        trajectory = []
+        best_value = float("inf") if obj_type == "minimize" else -float("inf")
+        best_values_so_far = []
+
+        # Loop through each function evaluation
+        for index, current_value in enumerate(obj_data, start=1):
+            # Update the best value based on the objective type
+            if obj_type == "minimize":
+                if current_value < best_value:
+                    best_value = current_value
+            else:  # maximize
+                if current_value > best_value:
+                    best_value = current_value
+
+            # Append the best value observed so far to the list
+            best_values_so_far.append(best_value)
+            trajectory.append({"FEs": index, "y": best_value})
+
+        uncertainty = []
+        for data_point in trajectory:
+            base_value = data_point["y"]
+            uncertainty_range = [base_value, base_value]
+            uncertainty.append({"FEs": data_point["FEs"], "y": uncertainty_range})
+
+        trajectory_data = {
+            "name": name,
+            "average": trajectory,
+            "uncertainty": uncertainty,
+        }
+
+        return {"TrajectoryData": [trajectory_data]}

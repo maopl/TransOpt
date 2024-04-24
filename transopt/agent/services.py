@@ -1,3 +1,5 @@
+import numpy as np
+
 from transopt.agent.chat.openai_connector import (Message, OpenAIChat,
                                                   get_prompt)
 from transopt.agent.config import Config, RunningConfig
@@ -141,3 +143,45 @@ class Services:
     def get_all_tasks(self):
         all_tables = self.data_manager.db.get_table_list()
         return [self.data_manager.db.query_dataset_info(table) for table in all_tables]
+    
+    def run_optimize(self, seeds_info):
+        seeds = [int(seed) for seed in seeds_info.split(',')]
+        data_manager = DataManager()
+        for seed in seeds:
+            task_set = InstantiateProblems(self.running_config.tasks, seed)
+            optimizer = ConstructOptimizer(self.running_config.optimizer, seed)
+            
+            def construct_dataset_info(task_set):
+                dataset_info = {}
+                dataset_info['variables'] = [{"name": var.name, "type": var.type, "range": var.range} for var_name, var in task_set.get_cur_searchspace_info().items()]
+                dataset_info['objectives'] = [{"name": name, "type": type} for name, type in task_set.get_curobj_info().items()]
+                dataset_info['fidelities'] = [{"name": var.name, "type": var.type, "range": var.range} for var_name, var in task_set.get_cur_fidelity_info().items()]
+
+                return dataset_info
+            
+            while (task_set.get_unsolved_num()):
+                search_space = task_set.get_cur_searchspace()
+                dataset_info = construct_dataset_info(task_set)
+                
+                data_manager.db.create_table(task_set.get_curname(), dataset_info)
+                optimizer.link_task(task_name=task_set.get_curname(), search_sapce=search_space)
+                optimizer.set_metadata()
+                optimizer.search_space_refine()
+                samples = optimizer.sample_initial_set()
+                parameters = [search_space.map_to_design_space(sample) for sample in samples]
+                observations = task_set.f(parameters) 
+                
+                # data_manager.db.insert_data(task_set.get_curname(), parameters.update(observations))
+                
+                while (task_set.get_rest_budget()):
+                    suggested_sample = self.suggest()
+                    parameters = search_space.map_to_design_space(suggested_sample)
+                    observations = task_set.f(parameters)
+                    # data_manager.db.insert_data(task_set.get_curname(), parameters.update(observations))
+                    
+                    optimizer.observe(search_space.map_from_design_space(suggested_sample), observations)
+                    # if self.verbose:
+                    #     self.visualization(testsuits, suggested_sample)
+                task_set.roll()
+                
+

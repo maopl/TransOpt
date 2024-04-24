@@ -159,7 +159,7 @@ class Database:
         variables = problem_cfg.get("variables", [])
         objectives = problem_cfg.get("objectives", [])
         fidelities = problem_cfg.get("fidelities", [])
-    
+        
         var_type_map = {
             "continuous": "float",
             "log_continuous": "float",

@@ -161,19 +161,19 @@ class BO(OptimizerBase):
 
         return space
 
-    # def _set_default_search_space(self):
-    #     assert self.design_space is not None
-    #     space = []
-    #     for var in self.design_space.config_space:
-    #         var_dic = {
-    #             'name': var['name'],
-    #             'type': 'continuous',
-    #             'domain': tuple([-1, 1])
-    #         }
+    def _set_default_search_space(self):
+        assert self.design_space is not None
+        space = []
+        for var in self.design_space.config_space:
+            var_dic = {
+                'name': var['name'],
+                'type': 'continuous',
+                'domain': tuple([-1, 1])
+            }
 
-    #         space.append(var_dic.copy())
+            space.append(var_dic.copy())
 
-    #     return space
+        return space
 
 
     # def validate_space_info(self, space_info: Dict) -> bool:
@@ -217,56 +217,56 @@ class BO(OptimizerBase):
     #     return True
 
 
-    # def set_space(self, design_space_info: Dict[str, dict], search_space_info: Union[Dict[str, dict], None]= None):
-    #     """
-    #     Define the design space based on the provided space_info and copy the design space to the search space.
+    def set_space(self, design_space_info: Dict[str, dict], search_space_info: Union[Dict[str, dict], None]= None):
+        """
+        Define the design space based on the provided space_info and copy the design space to the search space.
 
-    #     :param design_space_info: Dictionary containing information about the variables.
-    #     """
-    #     assert self.validate_space_info(design_space_info)
+        :param design_space_info: Dictionary containing information about the variables.
+        """
+        assert self.validate_space_info(design_space_info)
 
-    #     self.design_info = design_space_info.copy()
-    #     self.input_dim = design_space_info['input_dim']
-    #     self.num_objective = design_space_info['num_objective']
-    #     self.budget = design_space_info['budget']
+        self.design_info = design_space_info.copy()
+        self.input_dim = design_space_info['input_dim']
+        self.num_objective = design_space_info['num_objective']
+        self.budget = design_space_info['budget']
 
-    #     if self.ini_num is None:
-    #         self.ini_num = 11 * self.input_dim - 1
+        if self.ini_num is None:
+            self.ini_num = 11 * self.input_dim - 1
 
-    #     task_design_space = self.bind_task(design_space_info)
-    #     self.design_space = GPyOpt.Design_space(space=task_design_space)
-    #     if search_space_info is not None:
-    #         task_search_space = self.bind_task(search_space_info)
-    #     else:
-    #         task_search_space = self._set_default_search_space()
-    #     self.search_space = GPyOpt.Design_space(space=task_search_space)
+        task_design_space = self.bind_task(design_space_info)
+        self.design_space = GPyOpt.Design_space(space=task_design_space)
+        if search_space_info is not None:
+            task_search_space = self.bind_task(search_space_info)
+        else:
+            task_search_space = self._set_default_search_space()
+        self.search_space = GPyOpt.Design_space(space=task_search_space)
 
-    #     self.design_params = self.design_info['variables']
-    #     self.search_param = {}
-    #     self.search_bounds = {k:[-1,1] for k, _ in self.design_params.items()}
-    #     self.design_bounds = {}
-    #     for k, v in self.design_params.items():
-    #         if 'CategoricalHyperparameter' == self.design_params[k]['type']:
-    #             db = [0, len(self.design_params[k]['bounds']) - 1]
-    #             self.design_bounds[k] = db
-    #         else:
-    #             self.design_bounds[k] = v['bounds']
+        self.design_params = self.design_info['variables']
+        self.search_param = {}
+        self.search_bounds = {k:[-1,1] for k, _ in self.design_params.items()}
+        self.design_bounds = {}
+        for k, v in self.design_params.items():
+            if 'CategoricalHyperparameter' == self.design_params[k]['type']:
+                db = [0, len(self.design_params[k]['bounds']) - 1]
+                self.design_bounds[k] = db
+            else:
+                self.design_bounds[k] = v['bounds']
 
-    #     self.search_type = {k:'continuous' for k, _ in self.design_params.items()}
-    #     self.design_type = {}
-    #     for k, v in self.design_params.items():
-    #         self.search_param[k] = {'bounds': [-1,1], 'type': 'continuous'}
-    #         if self.design_params[k]['type'] == 'UniformFloatHyperparameter':
-    #             self.design_params[k]['type'] = 'continuous'
-    #             self.design_type[k] = 'continuous'
-    #         elif self.design_params[k]['type'] == 'UniformIntegerHyperparameter':
-    #             self.design_params[k]['type'] = 'integer'
-    #             self.design_type[k] = 'integer'
-    #         elif self.design_params[k]['type'] == 'CategoricalHyperparameter':
-    #             self.design_params[k]['type'] = 'categorical'
-    #             self.design_type[k] = 'categorical'
-    #         else:
-    #             raise NameError('Unknown variable type!')
+        self.search_type = {k:'continuous' for k, _ in self.design_params.items()}
+        self.design_type = {}
+        for k, v in self.design_params.items():
+            self.search_param[k] = {'bounds': [-1,1], 'type': 'continuous'}
+            if self.design_params[k]['type'] == 'UniformFloatHyperparameter':
+                self.design_params[k]['type'] = 'continuous'
+                self.design_type[k] = 'continuous'
+            elif self.design_params[k]['type'] == 'UniformIntegerHyperparameter':
+                self.design_params[k]['type'] = 'integer'
+                self.design_type[k] = 'integer'
+            elif self.design_params[k]['type'] == 'CategoricalHyperparameter':
+                self.design_params[k]['type'] = 'categorical'
+                self.design_type[k] = 'categorical'
+            else:
+                raise NameError('Unknown variable type!')
 
 
     # def get_spaceinfo(self, space_name):

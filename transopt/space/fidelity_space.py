@@ -13,3 +13,7 @@ class FidelitySpace:
         return self.ranges.keys()
     
     
+    def get_fidelity_range(self):
+        return self.ranges
+    
+    

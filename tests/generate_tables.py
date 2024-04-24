@@ -56,6 +56,13 @@ def generate_comma_separated_numbers(count):
 def choose_random_from_registry(registry):
     return random.choice(registry.list_names() + ["default"])
 
+def initialize_modules():
+    import transopt.benchmark.synthetic
+    import transopt.optimizer.acquisition_function
+    import transopt.optimizer.model
+    import transopt.optimizer.pretrain
+    import transopt.optimizer.refiner
+    import transopt.optimizer.sampler
 
 def generate_table_config():
     domain = random.choice(list(base_strings.keys()))
@@ -81,6 +88,8 @@ def generate_table_config():
     fidelities = []  # No fidelities defined in your setup, can be adjusted if needed
 
     used_dataset = random.sample(list(base_strings.keys()), k=random.randint(1, 3))
+    
+    initialize_modules()
 
     # Additional fields
     additional_config = {
@@ -123,7 +132,7 @@ if __name__ == "__main__":
 
     # 获取所有的 datasets
     table_ls = db.get_table_list() 
-    print(table_ls)
+    # print(table_ls)
 
     # 获取某一 dataset 的 info
     print(db.query_dataset_info(table_ls[0]))

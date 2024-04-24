@@ -139,5 +139,5 @@ class Services:
         return
 
     def get_all_tasks(self):
-        all_tables = self.data_manager.get_table_list()
-        return [self.data_manager.query_dataset_info(table) for table in all_tables]
+        all_tables = self.data_manager.db.get_table_list()
+        return [self.data_manager.db.query_dataset_info(table) for table in all_tables]

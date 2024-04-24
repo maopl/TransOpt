@@ -123,18 +123,53 @@ def create_test_tables(db, num_tables):
         table_name, problem_cfg = generate_table_config()
         db.create_table(table_name, problem_cfg)
 
+def generate_random_value(data_type):
+    if data_type == "continuous":
+        return round(random.uniform(0, 100), 2)
+    elif data_type == "integer":
+        return random.randint(1, 100)
+
+def generate_and_insert_data(db, table_name, problem_cfg, num_rows=100):
+    variables = problem_cfg["variables"]
+    objectives = problem_cfg["objectives"]
+    fidelities = problem_cfg["fidelities"]
+    
+    # Generate data
+    data = []
+    for _ in range(num_rows):
+        row = {}
+        for var in variables:
+            row[var["name"]] = generate_random_value(var["type"])
+        for obj in objectives:
+            row[obj["name"]] = generate_random_value("continuous")  # Assuming objectives are continuous
+        for fid in fidelities:
+            row[fid["name"]] = generate_random_value(fid["type"])
+        data.append(row)
+    
+    # Insert data into the database
+    db.insert_data(table_name, data)
+
 
 if __name__ == "__main__":
     db = Database()  # Assuming Database is properly initialized and can be used
 
     # 创建测试 datasets
-    create_test_tables(db, 200)
+    # create_test_tables(db, 200)
 
     # 获取所有的 datasets
     table_ls = db.get_table_list() 
     # print(table_ls)
 
-    # 获取某一 dataset 的 info
-    print(db.query_dataset_info(table_ls[0]))
+    for table in table_ls:
+        table_info = db.query_dataset_info(table)
+        generate_and_insert_data(db, table, table_info, 100)
+    
+    # # 获取某一 dataset 的 info
+    # table_info = db.query_dataset_info(table_ls[0])
 
+    # generate_and_insert_data(db, table_ls[0], table_info, 100)
+    
+    # print(db.select_data(table_ls[0]))
+    # [{'loan_amount_fyb': 49.57, 'credit_score_el': 60.26, 'market_risk_w': 65.6, 'obj_0_aot': 5.97, 'batch': -1, 'error': 0}, ...]
+    
     db.close()

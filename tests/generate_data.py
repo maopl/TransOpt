@@ -24,7 +24,7 @@ for _ in range(5000):
     num_variables = random.randint(3, 5)
     num_objectives = random.randint(1, 2)
     
-    dataset_name_suffix = generate_random_string(random.randint(1, 3))
+    dataset_name_suffix = generate_random_string(5)
     dataset_name = f"{domain}_{num_objectives}_{num_variables}_{dataset_name_suffix}"
     
     variables = []

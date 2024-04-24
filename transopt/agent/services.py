@@ -16,7 +16,8 @@ class Services:
         self.openai_chat = OpenAIChat(self.config)
         self.prompt = get_prompt()
         self.is_first_msg = True
-        self.initialize_modules()
+
+        self._initialize_modules()
         
 
     def chat(self, user_input):
@@ -30,8 +31,7 @@ class Services:
         
         return response_content
     
-    
-    def initialize_modules(self):
+    def _initialize_modules(self):
         import transopt.benchmark.synthetic
         import transopt.optimizer.acquisition_function
         import transopt.optimizer.model
@@ -78,7 +78,6 @@ class Services:
             sampler_info.append({"name": name})
         basic_info["Sampler"] = sampler_info
         
-        
         refiner_names = space_refiner_registry.list_names()
         for name in refiner_names:
             refiner_info.append({"name": name})
@@ -103,7 +102,6 @@ class Services:
         for name in selector_names:
             selector_info.append({"name": name})
         basic_info["DataSelector"] = selector_info
-        
         
         return basic_info
         
@@ -139,20 +137,7 @@ class Services:
 
         self.running_config.set_metadata(metadata_info)
         return
-    
-    def run_optimize(self, seeds_info):
-        seeds = [int(seed) for seed in seeds_info.split(',')]
-        for seed in seeds:
-            task_set = InstantiateProblems(self.running_config.tasks, seed)
-            optimizer = ConstructOptimizer(self.running_config.optimizer, seed)
-            
-            while (task_set.get_unsolved_num()):
-                optimizer.link_task(task_set.get_curname(), task_set.get_cur_searchspace())
-                optimizer.set_metadata()
-                optimizer.search_space_refine()
-                while (task_set.get_rest_budget()):
-                    suggested_sample = self.suggest()
-                    observation = task_set.f(suggested_sample)
-                    self.observe(suggested_sample, observation)
 
-                task_set.roll()
+    def get_all_tasks(self):
+        all_tables = self.data_manager.get_table_list()
+        return [self.data_manager.query_dataset_info(table) for table in all_tables]

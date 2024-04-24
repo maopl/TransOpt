@@ -74,24 +74,24 @@ class SearchSpace:
         return values_array
 
     def update_range(self, name, new_range: tuple):
-            """
-            Update the range of a variable in the search space.
+        """
+        Update the range of a variable in the search space.
 
-            Args:
-                name (str): The name of the variable.
-                new_range (tuple): The new range for the variable.
+        Args:
+            name (str): The name of the variable.
+            new_range (tuple): The new range for the variable.
 
-            Raises:
-                ValueError: If the variable is not found in the search space or if the new range is out of the original range.
-            """
-            if name in self._variables:
-                # Check if the new range is valid
-                ori_range = self.original_ranges[name]
-                if new_range[0] < ori_range[0] or new_range[1] > ori_range[1]:
-                    raise ValueError(
-                        f"New range {new_range} is out of the original range {ori_range}."
-                    )
+        Raises:
+            ValueError: If the variable is not found in the search space or if the new range is out of the original range.
+        """
+        if name in self._variables:
+            # Check if the new range is valid
+            ori_range = self.original_ranges[name]
+            if new_range[0] < ori_range[0] or new_range[1] > ori_range[1]:
+                raise ValueError(
+                    f"New range {new_range} is out of the original range {ori_range}."
+                )
                 
-                self.ranges[name] = new_range
-            else:
-                raise ValueError(f"Variable '{name}' not found in search space.")
+            self.ranges[name] = new_range
+        else:
+            raise ValueError(f"Variable '{name}' not found in search space.")

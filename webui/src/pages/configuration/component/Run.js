@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import {
     Button,
     Form,
@@ -8,6 +7,7 @@ import {
     Space, 
     Select,
     Modal,
+    ConfigProvider
 } from "antd";
 
 function Run() {
@@ -44,6 +44,15 @@ function Run() {
       };
 
     return (
+        <ConfigProvider
+          theme={{
+            components: {
+              Input: {
+                addonBg:"white"
+              },
+            },
+          }}  
+        >
         <Form
             form={form}
             name="dynamic_form_nest_item"
@@ -53,19 +62,21 @@ function Run() {
         >
             <div style={{ overflowY: 'auto', maxHeight: '150px' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline' }}>
-                    <Form.Item name="Seeds" style={{marginRight:10}}>
-                        <Input placeholder="Pretrain" />
+                    <h6 style={{color:"white"}}>Seeds</h6>
+                    <Form.Item name="Seeds" style={{marginRight:10, marginLeft:10}}>
+                        <Input />
                     </Form.Item>
-                    <Form.Item name="Remote" style={{marginRight:10}}>
-                        <Select
-                        placeholder="Remote"
-                        options={[ {value: "True"},
-                                    {value: "False"},
-                    ]}
-                        />
+                    <h6 style={{color:"white"}}>Remote</h6>
+                    <Form.Item name="Remote" style={{marginRight:10, marginLeft:10}}>
+                      <Select
+                      options={[ {value: "True"},
+                                  {value: "False"},
+                              ]}
+                      />
                     </Form.Item>
-                    <Form.Item name="ServerURL">
-                        <Input placeholder="ServerURL" />
+                    <h6 style={{color:"white"}}>ServerURL</h6>
+                    <Form.Item name="ServerURL" style={{marginLeft:10}}>
+                        <Input />
                     </Form.Item>
                 </div>
             </div>
@@ -75,6 +86,7 @@ function Run() {
             </Button>
             </Form.Item>
         </Form>
+      </ConfigProvider>
     );
 }
 

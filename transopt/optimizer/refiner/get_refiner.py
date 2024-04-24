@@ -1,10 +1,10 @@
-from transopt.agent.registry import g_space_refiner_registry
+from transopt.agent.registry import space_refiner_registry
 
 
 
 def get_refiner(refiner_name, **kwargs):
     """Create the optimizer object."""
-    refiner_class = g_space_refiner_registry.get(refiner_name)
+    refiner_class = space_refiner_registry.get(refiner_name)
     config = kwargs
 
     if refiner_class is not None:

@@ -1,15 +1,11 @@
+from transopt.agent.chat.openai_connector import (Message, OpenAIChat,
+                                                  get_prompt)
+from transopt.agent.config import Config, RunningConfig
 from transopt.agent.registry import *
-
-
-from transopt.agent.chat.openai_connector import (
-    Message,
-    OpenAIChat,
-    get_prompt
-)
-from transopt.agent.config import Config
-from transopt.agent.config import RunningConfig
-from transopt.datamanager.manager import DataManager
 from transopt.benchmark.instantiate_problems import InstantiateProblems
+from transopt.datamanager.manager import DataManager
+from transopt.optimizer.construct_optimizer import ConstructOptimizer
+
 
 class Services:
     def __init__(self):
@@ -40,8 +36,8 @@ class Services:
         import transopt.optimizer.acquisition_function
         import transopt.optimizer.model
         import transopt.optimizer.pretrain
-        import transopt.optimizer.sampler
         import transopt.optimizer.refiner
+        import transopt.optimizer.sampler
         
     def get_modules(self):        
         basic_info = {}
@@ -56,7 +52,7 @@ class Services:
         # tasks information
         task_names = problem_registry.list_names()
         for name in task_names:
-            if problem_registry[name].get_problem_type() == "synthetic":
+            if problem_registry[name].problem_type == "synthetic":
                 task_info = {
                     "name": name,
                     "anyDim": True,
@@ -83,7 +79,7 @@ class Services:
         basic_info["Sampler"] = sampler_info
         
         
-        refiner_names = space_refine_registry.list_names()
+        refiner_names = space_refiner_registry.list_names()
         for name in refiner_names:
             refiner_info.append({"name": name})
         basic_info["SpaceRefiner"] = refiner_info
@@ -148,3 +144,17 @@ class Services:
         seeds = [int(seed) for seed in seeds_info.split(',')]
         for seed in seeds:
             task_set = InstantiateProblems(self.running_config.tasks, seed)
+            optimizer = ConstructOptimizer(self.running_config.optimizer, seed)
+            
+            while (task_set.get_unsolved_num()):
+                space_info = task_set.get_cur_searchspace()
+                self.reset(testsuits.get_curname(), space_info, search_sapce=None)
+                testsuits.sync_query_num(len(self._X))
+                self.set_metadata()
+                while (testsuits.get_rest_budget()):
+                    suggested_sample = self.suggest()
+                    observation = testsuits.f(suggested_sample)
+                    self.observe(suggested_sample, observation)
+                    if self.verbose:
+                        self.visualization(testsuits, suggested_sample)
+                testsuits.roll()

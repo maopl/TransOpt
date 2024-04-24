@@ -113,7 +113,7 @@ class TransferProblem:
             logger.error("Unknown task type.")
             raise NameError
 
-    def get_cur_space_info(self) -> Dict:
+    def get_cur_searchspace(self) -> Dict:
         space_info = {
             "input_dim": self.get_curdim(),
             "num_objective": self.get_curobjnum(),
@@ -252,7 +252,7 @@ class RemoteTransferOptBenchmark(TransferProblem):
         idx: Union[int, None, List[int]] = None,
         **kwargs,
     ):
-        space = self.get_cur_space_info()
+        space = self.get_cur_searchspace()
         bench_name = self.get_curname().split("_")[0]
         bench_params = self.task_params_list[self.get_curid()]
 

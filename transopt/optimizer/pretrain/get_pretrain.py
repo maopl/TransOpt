@@ -1,10 +1,10 @@
-from transopt.agent.registry import g_pretrain_registry
+from transopt.agent.registry import pretrain_registry
 
 
 
 def get_pretrain(pretrain_name, **kwargs):
     """Create the optimizer object."""
-    pretrain_class = g_pretrain_registry.get(pretrain_name)
+    pretrain_class = pretrain_registry.get(pretrain_name)
     config = kwargs
 
     if pretrain_class is not None:

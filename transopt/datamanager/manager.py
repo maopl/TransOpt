@@ -1,6 +1,9 @@
-from .database import Database
-from .lsh import LSHCache
-from .minhash import MinHasher
+from transopt.datamanager.database import Database
+from transopt.datamanager.lsh import LSHCache
+from transopt.datamanager.minhash import MinHasher
+from transopt.datamanager.database import Database
+from transopt.datamanager.lsh import LSHCache
+from transopt.datamanager.minhash import MinHasher
 
 class DataManager:
     _instance = None
@@ -58,3 +61,18 @@ class DataManager:
 
     def insert_data(self, dataset_name, data):
         return self.db.insert_data(dataset_name, data)
+
+    def teardown(self):
+        self.db.close()
+
+
+if __name__ == "__main__":
+    dm = DataManager(num_hashes=200, char_ngram=5, num_bands=100)
+
+    test_query = dm.db.query_dataset_info("finance_1_5_bzlux")
+    
+    sd = dm.get_similar_datasets("finance_1_5_bzlux", test_query)
+    
+    print(dm.db.get_table_list()[:5])
+
+    dm.teardown()

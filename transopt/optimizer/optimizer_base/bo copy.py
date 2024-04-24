@@ -6,47 +6,30 @@ import ConfigSpace
 import GPyOpt
 import numpy as np
 
-from optimizer.acquisition_function.get_acf import get_acf
-from optimizer.sampler.get_sampler import get_sampler
-from optimizer.refiner.get_refiner import get_refiner
-from optimizer.model.get_model import get_model
-from optimizer.pretrain.get_pretrain import get_pretrain
-
-from optimizer.acquisition_function.sequential import Sequential
-from optimizer.optimizer_base.base import OptimizerBase
+from transopt.optimizer.acquisition_function.sequential import Sequential
+from transopt.optimizer.optimizer_base.base import OptimizerBase
 
 
-class BOBase(OptimizerBase):
+class BO(OptimizerBase):
     """
     The abstract Model for Bayesian Optimization
     """
 
-    def __init__(self, config):
-        super(BOBase, self).__init__(config=config)
+    def __init__(self, Refiner, Sampler, ACF, Pretrain, Model, config):
+        super(BO, self).__init__(config=config)
         self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
         self._Y = np.empty((0,))
         self.config = config
         self.search_space = None
-        self.design_space = None
         self.ini_num = None
         
-        assert 'refiner' in self.config
-        self.SpaceRefiner = get_refiner(self.config['refiner'])
+        self.SpaceRefiner = Refiner
+        self.Sampler = Sampler
+        self.acf = ACF
+        self.Pretrain = Pretrain
+        self.obj_model = Model
         
-        assert 'sampler' in self.config
-        self.Sampler = get_sampler(self.config['sampler'])
-        
-        assert 'acf' in self.config
-        self.ACF = get_acf(self.config['acf'])
-        
-        assert 'pretrain' in self.config
-        self.Pretrain = get_pretrain(self.config['pretrain'])
-        
-        assert 'model' in self.config
-        self.Model = get_model(self.config['model'])
-        
-        
-        
+
     
     def optimize(self, testsuits, data_handler):
 
@@ -414,8 +397,8 @@ class BOBase(OptimizerBase):
 
 
         
-    def set_DataHandler(self, data_handler:OptTaskDataHandler):
-        self._data_handler = data_handler
+    # def set_DataHandler(self, data_handler:OptTaskDataHandler):
+    #     self._data_handler = data_handler
 
     def sync_data(self, input_vectors: List[Dict], output_value: List[Dict]):
 

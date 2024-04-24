@@ -38,7 +38,7 @@ class ProblemBase(abc.ABC):
         self.problem_type = self.get_problem_type()
         self.configuration_space = self.get_configuration_space()
         
-        self.input_dim = len(self.configuration_space.keys())
+        self.input_dim = len(self.configuration_space.get_hyperparameter_names())
         self.num_objective = len(self.objective_info)
 
     def f(self, configuration, fidelity=None, seed=None, **kwargs) -> Dict:

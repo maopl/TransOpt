@@ -57,8 +57,11 @@ class Absolut(NonTabularProblem):
         result = subprocess.run(command, cwd=self.src_path, capture_output=True, text=True, shell=True).stdout
         energy = result.split("\t")[-3]
 
-        return {self.objective_info[0]: float(energy), "info": {"fidelity": fidelity}}
-    
+        results={list(self.objective_info.keys())[0]: float(energy)}
+        for fd_name in self.fidelity_space.fidelity_names:
+            results[fd_name] = fidelity[fd_name] 
+        return results
+
     def get_configuration_space(self) -> SearchSpace:
         variables = [Categorical(
             f'aa{i}',
@@ -72,7 +75,7 @@ class Absolut(NonTabularProblem):
         return fs
     
     def get_objectives(self) -> list:
-        return ["energy"]
+        return {"energy":'minimize'}
     
     def get_problem_type(self) -> str:
         return "CPD"

@@ -43,19 +43,10 @@ def report_send_tasks_information():
 @app.route("/api/report/charts", methods=["POST"])
 def report_update_charts_data():
     data = request.json
-    # 从前端得到 taskname
     user_input = data.get("taskname", "")
 
     charts = services.get_report_charts(user_input)
     
-    # # 发送Tasks数据给前端
-    # current_directory = os.path.dirname(__file__)
-    # json_file_path = os.path.join(
-    #     current_directory, "page_service_data", "ReportChartsData.json"
-    # )
-    # with open(json_file_path, "r") as file:
-    #     data = json.load(file)
-    # # 返回处理后的响应给前端
     return jsonify(charts), 200
 
 

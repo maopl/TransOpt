@@ -201,7 +201,7 @@ class Database:
             index_columns_string = ', '.join([f'"{column}"' for column in index_columns])
             self.execute(f'CREATE INDEX "idx_{name}_vars_fids" ON "{name}" ({index_columns_string})')
         
-        self.create_or_update_config(name, problem_cfg) 
+        self.create_or_update_config(name, problem_cfg)
 
     def remove_table(self, name):
         if not self.check_table_exist(name):
@@ -233,6 +233,8 @@ class Database:
                 "INSERT INTO _config (name, config) VALUES (?, ?)",
                 (name, config_json)
             )
+    
+        self.commit()
         
     def query_config(self, name):
         config_json = self.execute(

@@ -94,7 +94,8 @@ def configuration_search_dataset():
             ],
         }
         datasets = services.search_dataset(dataset_name, dataset_info)
-        data = ["1","2","3"]
+        # 返回为一个字典 {"isExact": False, "datasets": ["dataset1", "dataset2", "dataset3"]}
+        #         或者 {"isExact": True, "datasets": {task的详细信息}}
         return jsonify(datasets), 200
     except Exception as e:
         logger.error(f"Error in searching dataset: {e}")

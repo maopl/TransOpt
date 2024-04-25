@@ -30,7 +30,7 @@ class Configuration extends React.Component {
       ACF: [],
       DataSelector: [],
       Normalizer: [],
-      DatasetData: []
+      DatasetData: {"isExact": false, "datasets": []}
     };
   }
 
@@ -133,7 +133,7 @@ class Configuration extends React.Component {
                   <p>
                     Choose the datasets you want to use in the experiment.
                   </p>
-                  <SelectData data={this.state.DatasetData}/>
+                  <SelectData DatasetData={this.state.DatasetData}/>
                 </Widget>
               </Col>
               <Col lg={12} sm={12}>

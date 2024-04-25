@@ -107,7 +107,7 @@ class Services:
 
     def search_dataset(self, dataset_name, dataset_info):
         datasets_list = list(
-            self.data_manager.get_similar_datasets(dataset_name, dataset_info)
+            self.data_manager.search_similar_datasets(dataset_name, dataset_info)
         )
 
         return datasets_list

@@ -50,11 +50,19 @@ class DataManager:
 
         return (dataset_name, variable_names, num_variables, num_objectives)
 
-    def get_similar_datasets(self, dataset_name, problem_config):
+    def search_similar_datasets(self, dataset_name, problem_config):
         vector = self._construct_vector(dataset_name, problem_config)
         similar_datasets = self.lsh_cache.query(vector)
         return similar_datasets
 
+    def search_datasets_by_name(self, dataset_name):
+        all_tables = self.db.get_table_list()
+        matching_tables = [table for table in all_tables if dataset_name.lower() in table.lower()]
+        return matching_tables
+    
+    def get_dataset_info(self, dataset_name):
+        return self.db.query_dataset_info(dataset_name)
+        
     def create_dataset(self, dataset_name, dataset_info, overwrite=True):
         self.db.create_table(dataset_name, dataset_info, overwrite)
         self._add_lsh_vector(dataset_name, dataset_info)
@@ -71,7 +79,7 @@ if __name__ == "__main__":
 
     test_query = dm.db.query_dataset_info("finance_1_5_bzlux")
     
-    sd = dm.get_similar_datasets("finance_1_5_bzlux", test_query)
+    sd = dm.search_similar_datasets("finance_1_5_bzlux", test_query)
     
     print(dm.db.get_table_list()[:5])
 

@@ -15,7 +15,7 @@
 
 import copy
 import numpy as np
-from typing import Dict, Hashable, Union, Sequence, Tuple
+from typing import Dict, Hashable, Union, Sequence, Tuple, List
 
 from GPy.kern import RBF
 
@@ -94,7 +94,8 @@ class MHGP(Model):
 
     def _meta_fit_single_gp(
         self,
-        data: np.ndarray,
+        X : np.ndarray,
+        Y : np.ndarray,
         optimize: bool,
     ) -> GP:
         """Train a new source GP on `data`.
@@ -113,14 +114,16 @@ class MHGP(Model):
             kernel, noise_variance=0.1, normalize=self._within_model_normalize
         )
         new_gp.fit(
-            TaskData(X=data.X, Y=residuals),
-            optimize,
+            X = X,
+            Y = residuals,
+            optimize = optimize,
         )
         return new_gp
 
     def meta_fit(
         self,
-        source_datasets: Dict[Hashable, TaskData],
+        source_X : List[np.ndarray],
+        source_Y : List[np.ndarray],
         optimize: Union[bool, Sequence[bool]] = True,
     ):
         """Train the source GPs on the given source data.
@@ -133,31 +136,26 @@ class MHGP(Model):
         """
         assert isinstance(optimize, bool) or isinstance(optimize, list)
         if isinstance(optimize, list):
-            assert len(source_datasets) == len(optimize)
+            assert len(source_X) == len(optimize)
         optimize_flag = copy.copy(optimize)
 
         if isinstance(optimize_flag, bool):
-            optimize_flag = [optimize_flag] * len(source_datasets)
+            optimize_flag = [optimize_flag] * len(source_X)
 
-        for i, (source_id, source_data) in enumerate(source_datasets.items()):
+        for i in len(source_X):
             new_gp = self._meta_fit_single_gp(
-                source_data,
+                source_X[i],
+                source_Y[i],
                 optimize=optimize_flag[i],
             )
             self._update_meta_data(new_gp)
 
 
-    def meta_add(self,
-        source_datasets: Dict[Hashable, TaskData],
-        optimize: Union[bool, Sequence[bool]] = True
-                 ):
-
-        self.meta_fit(source_datasets,optimize)
-
 
     def fit(
         self,
-        data: TaskData,
+        X: np.ndarray,
+        Y: np.ndarray,
         optimize: bool = False,
     ):
         if not self.source_gps:
@@ -165,19 +163,19 @@ class MHGP(Model):
                 "Error: source gps are not trained. Forgot to call `meta_fit`."
             )
 
-        self._X = copy.deepcopy(data.X)
-        self._y = copy.deepcopy(data.Y)
+        self._X = copy.deepcopy(X)
+        self._y = copy.deepcopy(Y)
 
         self.n_samples, n_features = self._X.shape
         if self.n_features != n_features:
             raise ValueError("Number of features in model and input data mismatch.")
 
-        residuals = self._compute_residuals(data)
+        residuals = self._compute_residuals(Y)
 
-        self.target_gp.fit(TaskData(data.X, residuals), optimize)
+        self.target_gp.fit(X, residuals, optimize)
 
     def predict(
-        self, data: np.ndarray, return_full: bool = False, with_noise: bool = False
+        self, X: np.ndarray, return_full: bool = False, with_noise: bool = False
     ) -> Tuple[np.ndarray, np.ndarray]:
         if not self.source_gps:
             raise ValueError(
@@ -185,16 +183,16 @@ class MHGP(Model):
             )
 
         # returned mean: sum of means of the predictions of all source and target GPs
-        mu = self.predict_posterior_mean(data)
+        mu = self.predict_posterior_mean(X)
 
         # returned variance is the variance of target GP
         _, var = self.target_gp.predict(
-            data, return_full=return_full, with_noise=with_noise
+            X, return_full=return_full, with_noise=with_noise
         )
 
         return mu, var
 
-    def predict_posterior_mean(self, data: np.ndarray, idx: int = None) -> np.ndarray:
+    def predict_posterior_mean(self, X: np.ndarray, idx: int = None) -> np.ndarray:
         """Predict the mean function for given test point(s).
 
         For `idx=None` returns the same as `self.predict(data)[0]` but avoids the
@@ -217,10 +215,10 @@ class MHGP(Model):
         if idx is None:  # if None, the target GP is considered
             idx = len(all_gps) - 1
 
-        mu = np.zeros((data.X.shape[0], 1))
+        mu = np.zeros((X.shape[0], 1))
         # returned mean is a sum of means of the predictions of all GPs below idx
         for model in all_gps[: idx + 1]:
-            mu += model.predict_posterior_mean(data)
+            mu += model.predict_posterior_mean(X)
 
         return mu
 

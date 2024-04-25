@@ -52,6 +52,11 @@ function SelectData({DatasetData}) {
       })
       .catch((error) => {
         console.error('Error sending message:', error);
+        var errorMessage = error.error;
+        Modal.error({
+          title: 'Information',
+          content: 'Error:' + errorMessage
+        })
       });
     }
 

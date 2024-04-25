@@ -45,7 +45,7 @@ function SearchData({set_dataset}) {
       var errorMessage = error.error;
       Modal.error({
         title: 'Information',
-        content: 'error:' + errorMessage
+        content: 'Error:' + errorMessage
       })
     });
   }

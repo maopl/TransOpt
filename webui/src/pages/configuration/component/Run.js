@@ -33,20 +33,18 @@ function Run() {
           })
           .then(isSucceed => {
             console.log('Message from back-end:', isSucceed);
-            if (isSucceed === true) {
-              Modal.success({
-                title: 'Information',
-                content: 'Run Successfully!'
-              })
-            } else {
-              Modal.error({
-                title: 'Information',
-                content: 'Run Failed!'
-              })
-            }
+            Modal.success({
+              title: 'Information',
+              content: 'Run Successfully!'
+            })
           })
           .catch((error) => {
             console.error('Error sending message:', error);
+            var errorMessage = error.error;
+            Modal.error({
+              title: 'Information',
+              content: 'Error:' + errorMessage
+            })
           });
       };
 

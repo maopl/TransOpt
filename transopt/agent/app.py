@@ -48,16 +48,24 @@ def report_update_charts_data():
 @app.route("/api/configuration/select_task", methods=["POST"])
 def configuration_recieve_tasks():
     tasks_info = request.json
+    try:
+        services.receive_tasks(tasks_info) 
+    except Exception as e:
+        logger.error(f"Error in searching dataset: {e}")
+        return jsonify({"error": str(e)}), 500
     
-    services.receive_tasks(tasks_info)
     return {"succeed": True}, 200
 
 
 @app.route("/api/configuration/select_algorithm", methods=["POST"])
 def configuration_recieve_algorithm():
     optimizer_info = request.json
-
-    services.receive_optimizer(optimizer_info)
+    try:
+        services.receive_optimizer(optimizer_info)
+    except Exception as e:
+        logger.error(f"Error in searching dataset: {e}")
+        return jsonify({"error": str(e)}), 500
+    
     return {"succeed": True}, 200
 
 
@@ -75,8 +83,12 @@ def configuration_basic_information():
 @app.route("/api/configuration/dataset", methods=["POST"])
 def configuration_dataset():
     metadata_info = request.json
+    try:
+        services.select_dataset(metadata_info)
+    except Exception as e:
+        logger.error(f"Error in searching dataset: {e}")
+        return jsonify({"error": str(e)}), 500
     
-    services.select_dataset(metadata_info)
     return {"succeed": True}, 200
 
 
@@ -109,9 +121,9 @@ def configuration_run():
 
     try:
         services.run_optimize(seeds_info = run_info['Seeds'])
-    except:
-        # raise Exception("Error in running the optimization")
-        return {"isSucceed": False}, 200
+    except Exception as e:
+        logger.error(f"Error in searching dataset: {e}")
+        return jsonify({"error": str(e)}), 500
 
     # 返回处理后的响应给前端
     return {"isSucceed": True}, 200

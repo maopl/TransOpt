@@ -15,6 +15,7 @@ import ChatUI from "./component/ChatUI";
 import SelectData from "./component/SelectData";
 import SearchData from "./component/SearchData"
 import Run from "./component/Run"
+import TaskProgress from "./component/TaskProgress"
 
 
 
@@ -146,6 +147,7 @@ class Configuration extends React.Component {
                   collapse
                 >
                   <Run />
+                  {/* <TaskProgress /> */}
                 </Widget>
               </Col>
             </Row>

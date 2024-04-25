@@ -67,7 +67,6 @@ class Report extends React.Component {
       // console.log('State:', this.state.BarData)
     } catch (error) {
       console.error('Error fetching data:', error);
-      // 在这里处理错误
     }
   };
 

@@ -176,6 +176,7 @@ class Services:
             "Model": running_config.optimizer['Model'],
             "ACF": running_config.optimizer['ACF'],
             "DatasetSelector": running_config.optimizer['DataSelector'],
+            "Normalizer": running_config.optimizer['Normalizer'],
             "datasets": running_config.metadata if running_config.metadata else [],
         }
         return dataset_info

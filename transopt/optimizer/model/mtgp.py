@@ -14,7 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import copy
-from typing import Dict, Hashable, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 from GPy.kern import Kern, RBF
@@ -78,7 +78,8 @@ class MTGP(GP):
 
     def meta_fit(
         self,
-        source_datasets: Dict[Hashable, TaskData],
+        source_X : List[np.ndarray],
+        source_Y : List[np.ndarray],
         **kwargs,
     ):
         data = copy.deepcopy(source_datasets)
@@ -86,13 +87,14 @@ class MTGP(GP):
 
         # create list of input/observed values from source data
         for i, (_, source_data) in enumerate(data.items()):
-            self._metadata_x.append(source_data.X)
-            self._metadata_y.append(source_data.Y)
+            self._metadata_x = self._metadata_x + source_X
+            self._metadata_y = self._metadata_y + source_Y
         self.n_features = self._metadata_x[0].shape[-1]
 
     def fit(
         self,
-        data: TaskData,
+        X : np.ndarray,
+        Y : np.ndarray,
         optimize: bool = False,
     ):
         if not self._metadata_x:
@@ -100,14 +102,14 @@ class MTGP(GP):
                 "Error: source data not available. Forgot to call `meta_fit`."
             )
 
-        self._X = np.copy(data.X)
-        self._y = np.copy(data.Y)
+        self._X = np.copy(X)
+        self._y = np.copy(Y)
 
         # add target data to the list of input/observed values
         x_list = copy.deepcopy(self._metadata_x)
         y_list = copy.deepcopy(self._metadata_y)
-        x_list.append(data.X)
-        y_list.append(data.Y)
+        x_list.append(X)
+        y_list.append(Y)
 
         if self._normalize:
             # add source order to data lists
@@ -158,10 +160,10 @@ class MTGP(GP):
         self._noise_variance = self._gpy_model.likelihood.param_array
 
     def _raw_predict(
-        self, data: InputData, return_full: bool = False, with_noise: bool = False
+        self, X: np.ndarray, return_full: bool = False, with_noise: bool = False
     ) -> Tuple[np.ndarray, np.ndarray]:
 
-        _X = data.X.copy()
+        _X = X.copy()
 
         if self._X is None:
             mu = np.zeros((_X.shape[0], 1))

@@ -23,9 +23,20 @@ class NonTabularProblem(ProblemBase):
         self.budget = budget
         self.workload = workload
         self.lock_flag = False
+        self.budget_type = budget_type
 
         super(NonTabularProblem, self).__init__(seed, **kwargs)
 
+    def get_budget_type(self) -> str:
+        """Provides the budget type about the benchmark.
+
+        Returns
+        -------
+        str
+            some human-readable information
+
+        """
+        return self.budget_type
 
     def get_budget(self) -> int:
         """Provides the function evaluations number about the benchmark.

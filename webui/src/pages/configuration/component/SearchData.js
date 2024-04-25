@@ -11,8 +11,8 @@ import {
     Form,
     ConfigProvider,
     Select,
+    Modal,
 } from "antd";
-import { Modal } from "reactstrap";
 
 
 function SearchData({set_dataset}) {
@@ -37,20 +37,16 @@ function SearchData({set_dataset}) {
     })
     .then(message => {
       console.log('Message from back-end:', message);
-      if (message.isSucceed === false) {
-        var errorMessage = message.info;
-        console.log("Error:", errorMessage);
-        Modal.error({
-          title: 'Information',
-          content: 'error:' + errorMessage
-        })
-      } else {
-        // 返回dataset
         set_dataset(message)
       }
-    })
+    )
     .catch((error) => {
       console.error('Error sending message:', error);
+      var errorMessage = error.error;
+      Modal.error({
+        title: 'Information',
+        content: 'error:' + errorMessage
+      })
     });
   }
 

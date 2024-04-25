@@ -172,20 +172,22 @@ class Services:
                 samples = optimizer.sample_initial_set()
                 parameters = [search_space.map_to_design_space(sample) for sample in samples]
                 observations = task_set.f(parameters) 
-                
+                data_manager.teardown()
+                return
                 # data_manager.db.insert_data(task_set.get_curname(), parameters.update(observations))
                 
-                while (task_set.get_rest_budget()):
-                    suggested_sample = self.suggest()
-                    parameters = search_space.map_to_design_space(suggested_sample)
-                    observations = task_set.f(parameters)
-                    # data_manager.db.insert_data(task_set.get_curname(), parameters.update(observations))
+                # while (task_set.get_rest_budget()):
+                #     suggested_sample = self.suggest()
+                #     parameters = search_space.map_to_design_space(suggested_sample)
+                #     observations = task_set.f(parameters)
+                #     data_manager.db.insert_data(task_set.get_curname(), parameters.update(observations))
                     
-                    optimizer.observe(search_space.map_from_design_space(suggested_sample), observations)
+                #     optimizer.observe(search_space.map_from_design_space(suggested_sample), observations)
                     # if self.verbose:
                     #     self.visualization(testsuits, suggested_sample)
                 task_set.roll()
-                
+        
+        
 
 
 

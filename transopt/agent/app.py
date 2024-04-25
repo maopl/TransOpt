@@ -143,9 +143,13 @@ def configuration_run():
     print(run_info)
     # 从前端得到开始实验的信息
 
-    services.run_optimize(seeds_info = run_info['Seeds'])
+    try:
+        services.run_optimize(seeds_info = run_info['Seeds'])
+    except:
+        return {"Failed": True}, 200
+
     # 返回处理后的响应给前端
-    return {"succeed": True}, 200
+    return {"Succeed": True}, 200
 
 
 @app.route("/api/comparison/tasks", methods=["POST"])

@@ -31,12 +31,19 @@ function Run() {
             } 
             return response.json();
           })
-          .then(succeed => {
-            console.log('Message from back-end:', succeed);
-            Modal.success({
-              title: 'Infor',
-              content: 'Run Successfully!'
-            })
+          .then(isSucceed => {
+            console.log('Message from back-end:', isSucceed);
+            if (isSucceed === true) {
+              Modal.success({
+                title: 'Information',
+                content: 'Run Successfully!'
+              })
+            } else {
+              Modal.error({
+                title: 'Information',
+                content: 'Run Failed!'
+              })
+            }
           })
           .catch((error) => {
             console.error('Error sending message:', error);

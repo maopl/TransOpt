@@ -143,7 +143,7 @@ function SelectTask({data}) {
       .then(succeed => {
         console.log('Message from back-end:', succeed);
         Modal.success({
-          title: 'Tasks List',
+          title: 'Information',
           content: 'Submit successfully!'
         })
       })

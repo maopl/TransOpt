@@ -9,7 +9,7 @@ import {
     Modal,
 } from "antd";
 
-function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelector}) {
+function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelector, Normalizer}) {
     const [form] = Form.useForm()
 
     const onFinish = (values) => {
@@ -33,7 +33,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
           .then(succeed => {
             console.log('Message from back-end:', succeed);
             Modal.success({
-              title: 'Algorithm',
+              title: 'Information',
               content: 'Submit successfully!'
             })
           })
@@ -71,6 +71,8 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
               ACFParameters: '',
               DataSelector: DataSelector[0].name,
               DataSelectorParameters: '',
+              Normalizer: Normalizer[0].name,
+              NormalizerParameters: '',
             }}
         >
           <div style={{ overflowY: 'auto', maxHeight: '200px' }}>
@@ -212,6 +214,29 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
               </Form.Item>
               <Form.Item
                 name={'DataSelectorParameters'}
+                style={{ flex: 1 }}
+              >
+                <Input placeholder="Parameters"/>
+              </Form.Item>
+            </div>
+            <div>
+                <h5 style={{color:"#f4f4f599"}}>
+                  <span className="fw-semi-bold">Normalizer</span>
+                </h5>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline' }}>
+              <Form.Item
+                name={'Normalizer'}
+                style={{ marginRight: 8 , width: 150}}
+              >
+                <Select
+                  placeholder="name"
+                  defaultValue={Normalizer[0].name}
+                  options={Normalizer.map(item => ({ value: item.name }))}
+                />
+              </Form.Item>
+              <Form.Item
+                name={'NormalizerParameters'}
                 style={{ flex: 1 }}
               >
                 <Input placeholder="Parameters"/>

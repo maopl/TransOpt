@@ -139,6 +139,40 @@ class Services:
     def get_all_tasks(self):
         all_tables = self.data_manager.db.get_table_list()
         return [self.data_manager.db.query_dataset_info(table) for table in all_tables]
+    
+    def construct_dataset_info(self, task_set, running_config):
+        dataset_info = {}
+        dataset_info["variables"] = [
+            {"name": var.name, "type": var.type, "range": var.range}
+            for var_name, var in task_set.get_cur_searchspace_info().items()
+        ]
+        dataset_info["objectives"] = [
+            {"name": name, "type": type}
+            for name, type in task_set.get_curobj_info().items()
+        ]
+        dataset_info["fidelities"] = [
+            {"name": var.name, "type": var.type, "range": var.range}
+            for var_name, var in task_set.get_cur_fidelity_info().items()
+        ]
+
+        dataset_info['additional_config'] = {
+            "name": task_set.get_curname(),
+            "dim": len(dataset_info["variables"]),
+            "obj": len(dataset_info["objectives"]),
+            "fidelity": ', '.join([d['name'] for d in dataset_info["fidelities"] if 'name' in d]) if len(dataset_info["fidelities"]) == 0 else '',
+            "workloads": task_set.get_curtworkload(),
+            "budget_type": task_set.get_cur_budgettype(),
+            "budget": task_set.get_cur_budget(),
+            "seeds": task_set.get_curseed(),
+            "SpaceRefiner": running_config.optimizer['SpaceRefiner'],
+            "Sampler": running_config.optimizer['Sampler'],
+            "Pretrain": running_config.optimizer['Pretrain'],
+            "Model": running_config.optimizer['Model'],
+            "ACF": running_config.optimizer['ACF'],
+            "DatasetSelector": running_config.optimizer['DataSelector'],
+            "datasets": running_config.metadata if running_config.metadata else [],
+        }
+        return dataset_info
 
     def run_optimize(self, seeds_info):
         seeds = [int(seed) for seed in seeds_info.split(",")]
@@ -146,23 +180,6 @@ class Services:
         for seed in seeds:
             task_set = InstantiateProblems(self.running_config.tasks, seed)
             optimizer = ConstructOptimizer(self.running_config.optimizer, seed)
-
-            def construct_dataset_info(task_set):
-                dataset_info = {}
-                dataset_info["variables"] = [
-                    {"name": var.name, "type": var.type, "range": var.range}
-                    for var_name, var in task_set.get_cur_searchspace_info().items()
-                ]
-                dataset_info["objectives"] = [
-                    {"name": name, "type": type}
-                    for name, type in task_set.get_curobj_info().items()
-                ]
-                dataset_info["fidelities"] = [
-                    {"name": var.name, "type": var.type, "range": var.range}
-                    for var_name, var in task_set.get_cur_fidelity_info().items()
-                ]
-
-                return dataset_info
             
             def save_data(parameters, observations):
                 data = [{} for i in range(len(parameters))]
@@ -175,7 +192,7 @@ class Services:
                 while (task_set.get_unsolved_num()):
                     iterations = 0
                     search_space = task_set.get_cur_searchspace()
-                    dataset_info = construct_dataset_info(task_set)
+                    dataset_info = self.construct_dataset_info(task_set, self.running_config)
                     
                     data_manager.db.create_table(task_set.get_curname(), dataset_info, overwrite=True)
                     optimizer.link_task(task_name=task_set.get_curname(), search_sapce=search_space)

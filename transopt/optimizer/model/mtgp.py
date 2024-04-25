@@ -25,6 +25,7 @@ from transopt.optimizer.model.gp import GP
 from transopt.optimizer.model.utils import is_pd, nearest_pd
 from transopt.agent.registry import model_registry
 
+@model_registry.register("mtgp")
 class MTGP(GP):
     r"""Multi-Task-Single-k GP, a GP-based transfer-learning algorithm.
 

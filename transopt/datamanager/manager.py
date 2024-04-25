@@ -1,9 +1,10 @@
+import cProfile
+import pstats
+
 from transopt.datamanager.database import Database
 from transopt.datamanager.lsh import LSHCache
 from transopt.datamanager.minhash import MinHasher
-from transopt.datamanager.database import Database
-from transopt.datamanager.lsh import LSHCache
-from transopt.datamanager.minhash import MinHasher
+
 
 class DataManager:
     _instance = None
@@ -62,6 +63,9 @@ class DataManager:
     
     def get_dataset_info(self, dataset_name):
         return self.db.query_dataset_info(dataset_name)
+    
+    def get_all_datasets(self):
+        return self.db.get_table_list()
         
     def create_dataset(self, dataset_name, dataset_info, overwrite=True):
         self.db.create_table(dataset_name, dataset_info, overwrite)
@@ -74,13 +78,20 @@ class DataManager:
         self.db.close()
 
 
-if __name__ == "__main__":
+def main():
     dm = DataManager(num_hashes=200, char_ngram=5, num_bands=100)
 
-    test_query = dm.db.query_dataset_info("finance_1_5_bzlux")
+    dataset = dm.db.get_table_list()[0]
+    test_query = dm.db.query_dataset_info(dataset)
     
-    sd = dm.search_similar_datasets("finance_1_5_bzlux", test_query)
+    sd = dm.search_similar_datasets(dataset, test_query)
     
-    print(dm.db.get_table_list()[:5])
+    print(dm.db.get_table_list()[:2])
 
     dm.teardown()
+
+if __name__ == "__main__":
+    profiler = cProfile.Profile()
+    profiler.run('main()')
+    stats = pstats.Stats(profiler)
+    stats.strip_dirs().sort_stats('time').print_stats(10)

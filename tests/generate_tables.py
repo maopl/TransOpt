@@ -154,7 +154,7 @@ if __name__ == "__main__":
     db = Database()  # Assuming Database is properly initialized and can be used
 
     # 创建测试 datasets
-    # create_test_tables(db, 200)
+    create_test_tables(db, 200)
 
     # 获取所有的 datasets
     table_ls = db.get_table_list() 
@@ -165,11 +165,11 @@ if __name__ == "__main__":
         generate_and_insert_data(db, table, table_info, 100)
     
     # # 获取某一 dataset 的 info
-    # table_info = db.query_dataset_info(table_ls[0])
+    table_info = db.query_dataset_info(table_ls[0])
 
-    # generate_and_insert_data(db, table_ls[0], table_info, 100)
+    generate_and_insert_data(db, table_ls[0], table_info, 100)
     
-    # print(db.select_data(table_ls[0]))
+    print(db.select_data(table_ls[0]))
     # [{'loan_amount_fyb': 49.57, 'credit_score_el': 60.26, 'market_risk_w': 65.6, 'obj_0_aot': 5.97, 'batch': -1, 'error': 0}, ...]
     
     db.close()

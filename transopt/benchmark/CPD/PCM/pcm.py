@@ -81,14 +81,13 @@ class PCM(NonTabularProblem):
         energy.calculate_energy(self.proteins)
         self.__clear_folder(self.energy_temp_save_path)
         proteins_energy = self.proteins[0].obj
-        return {self.objective_info[0]: float(proteins_energy[0]),
-                self.objective_info[1]: float(proteins_energy[1]),
-                self.objective_info[2]: float(proteins_energy[2]),
-                self.objective_info[3]: float(proteins_energy[3]),
-                "info": {"fidelity": fidelity}}
+        results = {list(self.objective_info.keys())[i]: proteins_energy[i] for i in range(len(proteins_energy))}
+        for fd_name in self.fidelity_space.fidelity_names:
+            results[fd_name] = fidelity[fd_name]
+        return results
     
     def get_configuration_space(self) -> SearchSpace:
-        variables = [Continuous(f'angle{i}', [self.min_angles[i],self.max_angles[i]]) for i in range(len(max_angles))]
+        variables = [Continuous(f'angle{i}', [self.min_angles[i],self.max_angles[i]]) for i in range(len(self.max_angles))]
         ss = SearchSpace(variables)
         return ss
 
@@ -97,7 +96,7 @@ class PCM(NonTabularProblem):
         return fs
     
     def get_objectives(self) -> list:
-        return ["bond_energy", "dDFIRE", "Rosetta", "RWplus"]
+        return {"bond_energy":'minimize', "dDFIRE":'minimize', "Rosetta":'minimize', "RWplus":'minimize'}
     
     def get_problem_type(self) -> str:
         return "CPD"

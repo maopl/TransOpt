@@ -1,4 +1,4 @@
-from transopt.agent.chat.openai_connector import Message, OpenAIChat, get_prompt
+from agent.chat.openai_chat import Message, OpenAIChat
 from transopt.agent.config import Config, RunningConfig
 from transopt.agent.registry import *
 from transopt.benchmark.instantiate_problems import InstantiateProblems
@@ -12,27 +12,21 @@ class Services:
         self.running_config = RunningConfig()
         self.data_manager = DataManager()
 
-        self.openai_chat = OpenAIChat(self.config)
-        self.prompt = get_prompt()
-        self.is_first_msg = True
+        self.openai_chat = OpenAIChat(
+            api_key=self.config.OPENAI_API_KEY,
+            model="gpt-3.5-turbo",
+            base_url=self.config.OPENAI_URL,
+        )
 
         self._initialize_modules()
 
     def chat(self, user_input):
-        system_message = Message(role="system", content=self.prompt)
-        user_message = Message(role="user", content=user_input)
-
-        if self.is_first_msg:
-            response_content = self.openai_chat.get_response(
-                [system_message, user_message]
-            )
-        else:
-            response_content = self.openai_chat.get_response([user_message])
-
+        response_content = self.openai_chat.get_response(user_input)
         return response_content
 
     def _initialize_modules(self):
         import transopt.benchmark.synthetic
+        import transopt.benchmark.CPD
         import transopt.optimizer.acquisition_function
         import transopt.optimizer.model
         import transopt.optimizer.pretrain
@@ -145,19 +139,28 @@ class Services:
     def get_all_tasks(self):
         all_tables = self.data_manager.db.get_table_list()
         return [self.data_manager.db.query_dataset_info(table) for table in all_tables]
-    
+
     def run_optimize(self, seeds_info):
-        seeds = [int(seed) for seed in seeds_info.split(',')]
+        seeds = [int(seed) for seed in seeds_info.split(",")]
         data_manager = DataManager()
         for seed in seeds:
             task_set = InstantiateProblems(self.running_config.tasks, seed)
             optimizer = ConstructOptimizer(self.running_config.optimizer, seed)
-            
+
             def construct_dataset_info(task_set):
                 dataset_info = {}
-                dataset_info['variables'] = [{"name": var.name, "type": var.type, "range": var.range} for var_name, var in task_set.get_cur_searchspace_info().items()]
-                dataset_info['objectives'] = [{"name": name, "type": type} for name, type in task_set.get_curobj_info().items()]
-                dataset_info['fidelities'] = [{"name": var.name, "type": var.type, "range": var.range} for var_name, var in task_set.get_cur_fidelity_info().items()]
+                dataset_info["variables"] = [
+                    {"name": var.name, "type": var.type, "range": var.range}
+                    for var_name, var in task_set.get_cur_searchspace_info().items()
+                ]
+                dataset_info["objectives"] = [
+                    {"name": name, "type": type}
+                    for name, type in task_set.get_curobj_info().items()
+                ]
+                dataset_info["fidelities"] = [
+                    {"name": var.name, "type": var.type, "range": var.range}
+                    for var_name, var in task_set.get_cur_fidelity_info().items()
+                ]
 
                 return dataset_info
             
@@ -199,10 +202,6 @@ class Services:
                     # if self.verbose:
                     #     self.visualization(testsuits, suggested_sample)
                 task_set.roll()
-        
-        
-
-
 
     def get_report_charts(self, task_name):
         all_data = self.data_manager.db.select_data(task_name)

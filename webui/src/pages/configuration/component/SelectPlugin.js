@@ -39,6 +39,11 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
           })
           .catch((error) => {
             console.error('Error sending message:', error);
+            var errorMessage = error.error;
+            Modal.error({
+              title: 'Information',
+              content: 'error:' + errorMessage
+            })
           });
       };
 

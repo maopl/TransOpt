@@ -196,10 +196,11 @@ class TransferProblem:
                 )
                 raise EnvironmentError
 
-            self.tasks[self.__id].f(configuration, fidelity)
+            result = self.tasks[self.__id].f(configuration, fidelity)
             self.add_query_num()
+            return result
 
-            raise TypeError(f"Unrecognized task type.")
+            # raise TypeError(f"Unrecognized task type.")
 
 
 class RemoteTransferOptBenchmark(TransferProblem):

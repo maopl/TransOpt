@@ -26,7 +26,7 @@ class Services:
 
     def _initialize_modules(self):
         import transopt.benchmark.synthetic
-        import transopt.benchmark.CPD
+        # import transopt.benchmark.CPD
         import transopt.optimizer.acquisition_function
         import transopt.optimizer.model
         import transopt.optimizer.pretrain
@@ -171,37 +171,42 @@ class Services:
                 [data[i].update({'batch':iterations}) for i in range(len(parameters))]
                 data_manager.db.insert_data(task_set.get_curname(), data)
             
-            while (task_set.get_unsolved_num()):
-                iterations = 0
-                search_space = task_set.get_cur_searchspace()
-                dataset_info = construct_dataset_info(task_set)
-                
-                data_manager.db.create_table(task_set.get_curname(), dataset_info, overwrite=True)
-                optimizer.link_task(task_name=task_set.get_curname(), search_sapce=search_space)
-                optimizer.set_metadata()
-                optimizer.search_space_refine()
-                samples = optimizer.sample_initial_set()
-                parameters = [search_space.map_to_design_space(sample) for sample in samples]
-                observations = task_set.f(parameters)
-                save_data(parameters, observations)
-                
-                optimizer.observe(samples, observations)
-                
-                #Pretrain
-                optimizer.meta_fit()
-        
-                while (task_set.get_rest_budget()):
-                    optimizer.fit()
-                    suggested_sample = optimizer.suggest()
-                    parameters = search_space.map_to_design_space(suggested_sample)
+            try:
+                while (task_set.get_unsolved_num()):
+                    iterations = 0
+                    search_space = task_set.get_cur_searchspace()
+                    dataset_info = construct_dataset_info(task_set)
+                    
+                    data_manager.db.create_table(task_set.get_curname(), dataset_info, overwrite=True)
+                    optimizer.link_task(task_name=task_set.get_curname(), search_sapce=search_space)
+                    optimizer.set_metadata()
+                    optimizer.search_space_refine()
+                    samples = optimizer.sample_initial_set()
+                    parameters = [search_space.map_to_design_space(sample) for sample in samples]
                     observations = task_set.f(parameters)
+                    save_data(parameters, observations)
                     
-                    data_manager.db.insert_data(task_set.get_curname(), [parameters[i].update(observations[i]) for i in range(len(parameters))])
+                    optimizer.observe(samples, observations)
                     
-                    optimizer.observe(search_space.map_from_design_space(suggested_sample), observations)
-                    # if self.verbose:
-                    #     self.visualization(testsuits, suggested_sample)
-                task_set.roll()
+                    #Pretrain
+                    optimizer.meta_fit()
+            
+                    while (task_set.get_rest_budget()):
+                        optimizer.fit()
+                        suggested_samples = optimizer.suggest()
+                        parameters = [search_space.map_to_design_space(sample) for sample in suggested_samples]
+                        observations = task_set.f(parameters)
+                        save_data(parameters, observations)
+                        
+                        optimizer.observe(suggested_samples, observations)
+                        iterations += 1
+                        
+                        print("Seed: ", seed, "Task: ", task_set.get_curname(), "Iteration: ", iterations)
+                        # if self.verbose:
+                        #     self.visualization(testsuits, suggested_sample)
+                    task_set.roll()
+            except Exception as e:
+                raise e
 
     def get_report_charts(self, task_name):
         all_data = self.data_manager.db.select_data(task_name)

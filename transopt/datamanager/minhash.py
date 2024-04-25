@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor
+
 import mmh3
 import numpy as np
 
@@ -45,8 +47,9 @@ class MinHasher:
                 hash_val = mmh3.hash(encoded_shingle, seed) % (2**32)
                 if hash_val < minhashes[i]:
                     minhashes[i] = hash_val
+        
         return minhashes
-
+    
     def estimate_similarity(self, fp1, fp2):
         return sum(1 for x, y in zip(fp1, fp2) if x == y) / self.num_hashes
 

@@ -1,8 +1,8 @@
 
 class Config:
     DEBUG = True
-    OPENAI_API_KEY = "sk-1234567890abcdef1234567890abcdef"
-    OPENAI_URL = "https://api.openai.com/v1/engines/davinci-codex/completions"
+    OPENAI_API_KEY = "sk-eGYDsI7kGLAVM9bs2585D337E51b48FbA30d88B0Fa8a1571"
+    OPENAI_URL = "https://aihubmix.com/v1"
 
 
 

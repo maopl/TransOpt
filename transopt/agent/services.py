@@ -182,18 +182,16 @@ class Services:
                 observations = task_set.f(parameters)
                 save_data(parameters, observations)
                 
-                #Pretrain
-                optimizer.meta_fit()
-                
-                #Train
-                
                 optimizer.observe(samples, observations)
                 
+                #Pretrain
+                optimizer.meta_fit()
+        
                 while (task_set.get_rest_budget()):
+                    optimizer.fit()
                     suggested_sample = optimizer.suggest()
                     parameters = search_space.map_to_design_space(suggested_sample)
                     observations = task_set.f(parameters)
-                    
                     
                     data_manager.db.insert_data(task_set.get_curname(), [parameters[i].update(observations[i]) for i in range(len(parameters))])
                     

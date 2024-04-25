@@ -1,8 +1,8 @@
 import abc
+import copy
 import math
 from typing import Dict, List, Union
 
-import ConfigSpace
 import GPyOpt
 import numpy as np
 
@@ -10,6 +10,8 @@ from transopt.optimizer.acquisition_function.sequential import Sequential
 from transopt.optimizer.optimizer_base.base import OptimizerBase
 from transopt.space.fidelity_space import FidelitySpace
 from transopt.space.search_space import SearchSpace
+from transopt.utils.serialization import (multioutput_to_ndarray,
+                                          output_to_ndarray)
 
 
 class BO(OptimizerBase):
@@ -17,7 +19,7 @@ class BO(OptimizerBase):
     The abstract Model for Bayesian Optimization
     """
 
-    def __init__(self, Refiner, Sampler, ACF, Pretrain, Model, DataSelector, config):
+    def __init__(self, Refiner, Sampler, ACF, Pretrain, Model, DataSelector, Normalizer, config):
         super(BO, self).__init__(config=config)
         self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
         self._Y = np.empty((0,))
@@ -31,6 +33,8 @@ class BO(OptimizerBase):
         self.Pretrain = Pretrain
         self.Model = Model
         self.DataSelector = DataSelector
+        self.Normalizer = Normalizer
+
         
         self.ACF.link_model(model=self.Model)
         
@@ -61,72 +65,41 @@ class BO(OptimizerBase):
     
     
     def meta_fit(self):
-        pass
+        if self.MetaData:
+            self.Model.metafit(self.MetaData)
+    
+    def fit(self):
+        if self.Normalizer:
+            Y = self.Normalizer.normalize(self._Y)
+        else:
+            Y = copy.deepcopy(self._Y)
             
-    def suggest(self):
-        if 'normalize' in self.config:
-            self.normalizer = get_normalizer(self.config['normalize'])
-
-        if self.aux_data is not None:
+        X = copy.deepcopy(self._X)
+        
+        if self.MetaData:
+            pass
+        elif self.DataSelector:
             pass
         else:
-            self.aux_data = {}
-
-        Data = self.combine_data()
-        self.update_model(Data)
+            pass
+        
+        self.Model.fit(X, Y)
+            
+    def suggest(self):
         suggested_sample, acq_value = self.evaluator.compute_batch(None, context_manager=None)
-        suggested_sample = self.search_space.zip_inputs(suggested_sample)
-        suggested_sample = ndarray_to_vectors(self._get_var_name('search'),suggested_sample)
-        design_suggested_sample = self.inverse_transform(suggested_sample)
+        # suggested_sample = self.search_space.zip_inputs(suggested_sample)
 
-        return design_suggested_sample
+        return suggested_sample
 
         
 
-    def observe(self, X: Union[List[Dict], Dict], Y: Union[List[Dict], Dict]) -> None:
-
-        self._data_handler.add_observation(X, Y)
-
-        # Convert dict to list of dict
-        if isinstance(X, Dict):
-            X = [X]
-        if isinstance(Y, Dict):
-            Y = [Y]
+    def observe(self, X: np.ndarray, Y: List[Dict]) -> None:
 
         # Check if the lists are empty and return if they are
-        if len(X) == 0 and len(Y) == 0:
+        if X.shape[0] == 0 or len(Y) == 0:
             return
 
-        self._X = np.vstack((self._X, vectors_to_ndarray(self._get_var_name('search'), X))) if self._X.size else vectors_to_ndarray(self._get_var_name('search'), X)
-        if self.num_objective >= 2:
-            self._Y = np.hstack((self._Y, multioutput_to_ndarray(Y, self.num_objective))) if self._Y.size else multioutput_to_ndarray(Y, self.num_objective)
-        else:
-            self._Y = np.vstack((self._Y, output_to_ndarray(Y))) if self._Y.size else output_to_ndarray(Y)
-
-
-        
-    # def set_DataHandler(self, data_handler:OptTaskDataHandler):
-    #     self._data_handler = data_handler
-
-    def sync_data(self, input_vectors: List[Dict], output_value: List[Dict]):
-
-        # Convert dict to list of dict
-        if isinstance(input_vectors, Dict):
-            input_vectors = [input_vectors]
-        if isinstance(output_value, Dict):
-            output_value = [output_value]
-        self.get_spaceinfo('design')
-        # Check if the lists are empty and return if they are
-        if len(input_vectors) == 0 and len(output_value) == 0:
-            return
-
-        self._validate_observation('design', input_vectors=input_vectors, output_value=output_value)
-        X = self.transform(input_vectors)
-
-        self._X = np.vstack((self._X, vectors_to_ndarray(self._get_var_name('search'), X))) if self._X.size else vectors_to_ndarray(self._get_var_name('search'), X)
-        if self.get_spaceinfo('design')['num_objective'] >= 2:
-            self._Y = []
-        else:
-            self._Y = np.vstack((self._Y, output_to_ndarray(output_value))) if self._Y.size else output_to_ndarray(output_value)
+        self._X = np.vstack((self._X, X)) if self._X.size else X
+        self._Y = np.vstack((self._Y, np.array(output_to_ndarray(Y)))) if self._Y.size else np.array(output_to_ndarray(Y))
 
 

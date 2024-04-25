@@ -67,9 +67,9 @@ def configuration_basic_information():
     user_input = data.get("paremeter", "")
 
     task_data = services.get_modules()
-    with open('transopt/agent/page_service_data/configuration_basic.json', 'r') as file:
-        data = json.load(file)
-    return jsonify(data), 200
+    # with open('transopt/agent/page_service_data/configuration_basic.json', 'r') as file:
+    #     data = json.load(file)
+    return jsonify(task_data), 200
 
 
 @app.route("/api/configuration/dataset", methods=["POST"])

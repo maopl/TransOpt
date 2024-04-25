@@ -25,7 +25,7 @@ from transopt.optimizer.model.gp import GP
 from transopt.optimizer.model.utils import is_pd, nearest_pd
 from transopt.agent.registry import model_registry
 
-@model_registry.register("mtgp")
+@model_registry.register("MTGP")
 class MTGP(GP):
     r"""Multi-Task-Single-k GP, a GP-based transfer-learning algorithm.
 
@@ -82,13 +82,14 @@ class MTGP(GP):
         source_Y : List[np.ndarray],
         **kwargs,
     ):
-        data = copy.deepcopy(source_datasets)
-        self.n_sources = len(data)
+        data_X = copy.deepcopy(source_X)
+        data_Y = copy.deepcopy(source_Y)
+        self.n_sources = len(data_X)
 
         # create list of input/observed values from source data
-        for i, (_, source_data) in enumerate(data.items()):
-            self._metadata_x = self._metadata_x + source_X
-            self._metadata_y = self._metadata_y + source_Y
+        for i in range(self.n_sources):
+            self._metadata_x = self._metadata_x + data_X
+            self._metadata_y = self._metadata_y + data_Y
         self.n_features = self._metadata_x[0].shape[-1]
 
     def fit(

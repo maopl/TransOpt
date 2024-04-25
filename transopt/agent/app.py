@@ -98,16 +98,20 @@ def configuration_search_dataset():
         data = request.json
 
         dataset_name = data["task_name"]
-        dataset_info = {
-            "num_variables": data["num_variables"],
-            "num_objectives": data["num_objectives"],
-            "variables": [
-                {"name": var_name} for var_name in data["variables_name"].split(",")
-            ],
-        }
-        datasets = services.search_dataset(dataset_name, dataset_info)
-        # 返回为一个字典 {"isExact": False, "datasets": ["dataset1", "dataset2", "dataset3"]}
-        #         或者 {"isExact": True, "datasets": {task的详细信息}}
+        if data['search_method'] == 'Fuzzy' or 'Hash':
+            dataset_info = {}
+        elif data['search_method'] == 'LSH':
+            dataset_info = {
+                "num_variables": data["num_variables"],
+                "num_objectives": data["num_objectives"],
+                "variables": [
+                    {"name": var_name} for var_name in data["variables_name"].split(",")
+                ],
+            }
+        else:
+            pass
+        datasets = services.search_dataset(data['search_method'], dataset_name, dataset_info)
+
         return jsonify(datasets), 200
     except Exception as e:
         logger.error(f"Error in searching dataset: {e}")
@@ -119,11 +123,11 @@ def configuration_run():
     run_info = request.json
     print(run_info)
 
-    try:
-        services.run_optimize(seeds_info = run_info['Seeds'])
-    except Exception as e:
-        logger.error(f"Error in searching dataset: {e}")
-        return jsonify({"error": str(e)}), 500
+    # try:
+    services.run_optimize(seeds_info = run_info['Seeds'])
+    # except Exception as e:
+    #     logger.error(f"Error in optimization: {e}")
+    #     return jsonify({"error": str(e)}), 500
 
     # 返回处理后的响应给前端
     return {"isSucceed": True}, 200

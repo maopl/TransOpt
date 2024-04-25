@@ -105,10 +105,22 @@ class Services:
 
         return basic_info
 
-    def search_dataset(self, dataset_name, dataset_info):
-        datasets_list = list(
-            self.data_manager.search_similar_datasets(dataset_name, dataset_info)
-        )
+    def search_dataset(self, search_method, dataset_name, dataset_info):
+        if search_method == 'Fuzzy':
+            datasets_list = {"isExact": False, 
+                             "datasets": list(self.data_manager.search_datasets_by_name(dataset_name))}
+        elif search_method == 'Hash':
+            dataset_detail_info = self.data_manager.get_dataset_info(dataset_name)
+            if dataset_detail_info:
+                datasets_list = {"isExact": True, "datasets": dataset_detail_info['additional_config']}
+            else:
+                raise ValueError("Dataset not found")
+        elif search_method == 'LSH':
+            datasets_list = {"isExact": False, 
+                             "datasets":list(self.data_manager.search_similar_datasets(dataset_name, dataset_info))}
+            
+        else:
+            raise ValueError("Invalid search method")
 
         return datasets_list
 
@@ -180,10 +192,21 @@ class Services:
             "datasets": running_config.metadata if running_config.metadata else [],
         }
         return dataset_info
+    
+    def get_metadata(self):
+        if self.running_config.metadata:
+            metadata = {}
+            metadata_info = {}
+            for dataset_name in self.running_config.metadata:
+                metadata[dataset_name] = self.data_manager.db.select_data(dataset_name)
+                metadata_info[dataset_name] = self.data_manager.db.query_dataset_info(dataset_name)
+            return metadata, metadata_info
+        else:
+            return None
+                
 
     def run_optimize(self, seeds_info):
         seeds = [int(seed) for seed in seeds_info.split(",")]
-        data_manager = DataManager()
         for seed in seeds:
             task_set = InstantiateProblems(self.running_config.tasks, seed)
             optimizer = ConstructOptimizer(self.running_config.optimizer, seed)
@@ -193,7 +216,7 @@ class Services:
                 [data[i].update(parameters[i]) for i in range(len(parameters))]
                 [data[i].update(observations[i]) for i in range(len(parameters))]
                 [data[i].update({'batch':iterations}) for i in range(len(parameters))]
-                data_manager.db.insert_data(task_set.get_curname(), data)
+                self.data_manager.db.insert_data(task_set.get_curname(), data)
             
             try:
                 while (task_set.get_unsolved_num()):
@@ -201,11 +224,11 @@ class Services:
                     search_space = task_set.get_cur_searchspace()
                     dataset_info = self.construct_dataset_info(task_set, self.running_config)
                     
-                    data_manager.db.create_table(task_set.get_curname(), dataset_info, overwrite=True)
+                    self.data_manager.db.create_table(task_set.get_curname(), dataset_info, overwrite=True)
                     optimizer.link_task(task_name=task_set.get_curname(), search_sapce=search_space)
-                    optimizer.set_metadata()
-                    optimizer.search_space_refine()
-                    samples = optimizer.sample_initial_set()
+                    metadata, metadata_info = self.get_metadata()
+                    optimizer.search_space_refine(metadata)
+                    samples = optimizer.sample_initial_set(metadata)
                     parameters = [search_space.map_to_design_space(sample) for sample in samples]
                     observations = task_set.f(parameters)
                     save_data(parameters, observations)
@@ -213,7 +236,7 @@ class Services:
                     optimizer.observe(samples, observations)
                     
                     #Pretrain
-                    optimizer.meta_fit()
+                    optimizer.meta_fit(metadata, metadata_info)
             
                     while (task_set.get_rest_budget()):
                         optimizer.fit()

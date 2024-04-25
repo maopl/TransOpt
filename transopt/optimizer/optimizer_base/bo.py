@@ -47,26 +47,28 @@ class BO(OptimizerBase):
         self._Y = np.empty((0,))
         self.ACF.link_space(self.search_space)
         self.evaluator = Sequential(self.ACF, batch_size=1)
-
-
-    def set_metadata(self):
-        if 'metadata' in self.config:
-            pass
             
     
-    def search_space_refine(self):
+    def search_space_refine(self, metadata = None):
         if self.SpaceRefiner is not None:
             self.search_space = self.SpaceRefiner.refine_space(self.search_space)
             self.ACF.link_space(self.search_space)
             self.evaluator = Sequential(self.ACF)
             
-    def sample_initial_set(self):
+    def sample_initial_set(self, metadata = None):
         return self.Sampler.sample(self.search_space, self.ini_num)
     
     
-    def meta_fit(self):
-        if self.MetaData:
-            self.Model.metafit(self.MetaData)
+    def meta_fit(self, metadata = None, metadata_info = None):
+        if metadata:
+            source_X = []
+            source_Y = []
+            for key, datasets in metadata.items():
+                data_info = metadata_info[key]
+                source_X.append(np.array([[data[var['name']] for var in data_info['variables']] for data in datasets]))
+                source_Y.append(np.array([[data[var['name']] for var in data_info['objectives']] for data in datasets]))
+                
+            self.Model.meta_fit(source_X, source_Y)
     
     def fit(self):
         if self.Normalizer:

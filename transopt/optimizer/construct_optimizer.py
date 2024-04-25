@@ -35,7 +35,7 @@ def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
     if optimizer_config['Model'] == 'default':
         Model = model_registry['GP'](config={'kernel': 'RBF'})
     else:
-        Model = model_registry[optimizer_config['Model']](optimizer_config['ModelParameters'])
+        Model = model_registry[optimizer_config['Model']](config = optimizer_config['ModelParameters'])
     
     
     if optimizer_config['DataSelector'] == 'default':

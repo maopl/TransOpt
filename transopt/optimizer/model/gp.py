@@ -1,7 +1,7 @@
 
 import copy
 import numpy as np
-from typing import Tuple, Dict, Hashable
+from typing import Tuple, Dict, List
 from sklearn.preprocessing import StandardScaler
 
 from GPy.models import GPRegression
@@ -82,7 +82,13 @@ class GP(Model):
             # re-cache the relevant quantities of the model
             self._gpy_model.parameters_changed()
 
-    def meta_fit(self, metadata, **kwargs):
+
+    def meta_fit(
+        self,
+        source_X : List[np.ndarray],
+        source_Y : List[np.ndarray],
+        **kwargs,
+    ):
         pass
 
     def fit(

@@ -1,19 +1,6 @@
 from abc import abstractmethod, ABC
-from dataclasses import dataclass
-from typing import Dict, Hashable, Tuple
+from typing import Dict, Hashable
 import numpy as np
-from emukit.core.interfaces import IModel
-
-
-@dataclass
-class InputData:
-    X: np.ndarray
-
-
-@dataclass
-class TaskData:
-    X: np.ndarray
-    Y: np.ndarray
 
 
 class Model(ABC):
@@ -35,7 +22,7 @@ class Model(ABC):
         return self._Y
 
     @abstractmethod
-    def meta_fit(self, metadata: Dict[Hashable, TaskData], **kwargs):
+    def meta_fit(self, metadata, **kwargs):
         """Train model on historical data.
 
         Parameters:
@@ -47,7 +34,7 @@ class Model(ABC):
         pass
 
     @abstractmethod
-    def fit(self, data: TaskData, **kwargs):
+    def fit(self, X, Y, **kwargs):
         """Adjust model parameter to the observation on the new dataset.
 
         Parameters:
@@ -58,7 +45,7 @@ class Model(ABC):
         pass
 
     @abstractmethod
-    def predict(self, data: InputData) -> (np.ndarray, np.ndarray):
+    def predict(self, X) -> (np.ndarray, np.ndarray):
         """Predict outcomes for a given array of input values.
 
         Parameters:

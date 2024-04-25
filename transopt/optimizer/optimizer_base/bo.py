@@ -45,8 +45,8 @@ class BO(OptimizerBase):
         self.search_space = search_sapce
         self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
         self._Y = np.empty((0,))
-        self.acqusition = self.ACF.link_space(self.search_space)
-        self.evaluator = Sequential(self.acqusition)
+        self.ACF.link_space(self.search_space)
+        self.evaluator = Sequential(self.ACF, batch_size=1)
 
 
     def set_metadata(self):
@@ -57,8 +57,8 @@ class BO(OptimizerBase):
     def search_space_refine(self):
         if self.SpaceRefiner is not None:
             self.search_space = self.SpaceRefiner.refine_space(self.search_space)
-            self.acqusition = self.ACF.link_space(self.search_space)
-            self.evaluator = Sequential(self.acqusition)
+            self.ACF.link_space(self.search_space)
+            self.evaluator = Sequential(self.ACF)
             
     def sample_initial_set(self):
         return self.Sampler.sample(self.search_space, self.ini_num)
@@ -82,8 +82,7 @@ class BO(OptimizerBase):
             pass
         else:
             pass
-        
-        self.Model.fit(X, Y)
+        self.Model.fit(X, Y, optimize = True)
             
     def suggest(self):
         suggested_sample, acq_value = self.evaluator.compute_batch(None, context_manager=None)

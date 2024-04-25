@@ -7,7 +7,7 @@ from sklearn.preprocessing import StandardScaler
 from GPy.models import GPRegression
 from GPy.kern import RBF, Kern
 
-from transopt.optimizer.model.model_base import InputData, TaskData, Model
+from transopt.optimizer.model.model_base import  Model
 from transopt.optimizer.model.utils import is_pd, nearest_pd
 from transopt.agent.registry import model_registry
 
@@ -82,17 +82,18 @@ class GP(Model):
             # re-cache the relevant quantities of the model
             self._gpy_model.parameters_changed()
 
-    def meta_fit(self, metadata: Dict[Hashable, TaskData], **kwargs):
+    def meta_fit(self, metadata, **kwargs):
         pass
 
     def fit(
         self,
-        data: TaskData,
+        X : np.ndarray,
+        Y : np.ndarray,
         optimize: bool = False,
     ):
-        self._X = np.copy(data.X)
-        self._y = np.copy(data.Y)
-        self._Y = np.copy(data.Y)
+        self._X = np.copy(X)
+        self._y = np.copy(Y)
+        self._Y = np.copy(Y)
 
         _X = np.copy(self._X)
         _y = np.copy(self._y)
@@ -157,9 +158,9 @@ class GP(Model):
         return mean, var
 
     def predict(
-        self, data: InputData, return_full: bool = False, with_noise: bool = False
+        self, X: np.ndarray, return_full: bool = False, with_noise: bool = False
     ) -> Tuple[np.ndarray, np.ndarray]:
-        mean, var = self._raw_predict(data, return_full, with_noise)
+        mean, var = self._raw_predict(X, return_full, with_noise)
 
         if self._X is None:
             return mean, var
@@ -170,7 +171,7 @@ class GP(Model):
         return mean, var
 
     def _raw_predict(
-        self, data: InputData, return_full: bool = False, with_noise: bool = False
+        self, X: np.ndarray, return_full: bool = False, with_noise: bool = False
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Predict functions distribution(s) for given test point(s) without taking into
         account data normalization. If `self._normalize` is `False`, return the same as
@@ -178,7 +179,7 @@ class GP(Model):
 
         Same input/output as `self.predict()`.
         """
-        _X_test = data.X.copy()
+        _X_test = X.copy()
 
         if self.X is None:
             mu = np.zeros((_X_test.shape[0], 1))
@@ -200,7 +201,7 @@ class GP(Model):
             cov = np.clip(cov, 1e-20, None)
         return mu, cov
 
-    def predict_posterior_mean(self, data: InputData) -> np.ndarray:
+    def predict_posterior_mean(self, X) -> np.ndarray:
         r"""Perform model inference.
 
         Predict the posterior mean of the latent distribution `f` for given test points.
@@ -215,7 +216,7 @@ class GP(Model):
         Returns:
             The mean prediction. `shape = (n_points, 1)`
         """
-        _x = data.X.copy()
+        _x = X.copy()
         if self._X is None:
             return np.zeros(_x.shape)
         _X = self._X.copy()
@@ -227,7 +228,7 @@ class GP(Model):
             mu = self._y_normalizer.inverse_transform(mu)
         return mu
 
-    def predict_posterior_covariance(self, x1: InputData, x2: InputData) -> np.ndarray:
+    def predict_posterior_covariance(self, x1, x2) -> np.ndarray:
         """Perform model inference.
 
         Predict the posterior covariance between `(x1, x2)` of the latent distribution
@@ -241,8 +242,8 @@ class GP(Model):
         Returns:
             Predicted covariance for every input. `shape = (n_points_1, n_points_2)`
         """
-        _X1 = x1.X.copy()
-        _X2 = x2.X.copy()
+        _X1 = x1.copy()
+        _X2 = x2.copy()
 
         if self._X is None:
             cov = self._kernel.K(_X1, _X2)
@@ -261,7 +262,7 @@ class GP(Model):
 
         return cov
 
-    def compute_kernel(self, x1: InputData, x2: InputData) -> np.ndarray:
+    def compute_kernel(self, x1, x2) -> np.ndarray:
         """Evaluate the kernel matrix for desired input points.
 
         Wrapper around `self.kernel.K()` that takes care of normalization and allows
@@ -274,13 +275,13 @@ class GP(Model):
         Returns:
             Kernel values at `(x1, x2)`. `shape = (n_points_1, n_points_2)`
         """
-        _x1, _x2 = np.copy(x1.X), np.copy(x2.X)
+        _x1, _x2 = np.copy(x1), np.copy(x2)
         if self._normalize and self._X is not None:
             _x1 = self._x_normalizer.transform(_x1)
             _x2 = self._x_normalizer.transform(_x2)
         return self._kernel.K(_x1, _x2)
 
-    def compute_kernel_diagonal(self, data: InputData) -> np.ndarray:
+    def compute_kernel_diagonal(self, X) -> np.ndarray:
         """Evaluate diagonal of kernel matrix for desired input points.
 
         Much faster than `compute_kernel()` in case only the diagonal is needed.
@@ -293,13 +294,13 @@ class GP(Model):
         Returns:
             Kernel diagonal. `shape = (n_points, 1)`
         """
-        _x = np.copy(data.X)
+        _x = np.copy(X)
         if self._normalize and self._X is not None:
             _x = self._x_normalizer.transform(_x)
         return self._kernel.Kdiag(_x).reshape(-1, 1)
 
     def sample(
-        self, data: InputData, size: int = 1, with_noise: bool = False
+        self, X, size: int = 1, with_noise: bool = False
     ) -> np.ndarray:
         """Perform model inference.
 
@@ -315,7 +316,14 @@ class GP(Model):
         Returns:
             Sampled function value for every input. `shape = (n_points, size)`
         """
-        mean, cov = self.predict(data, return_full=True, with_noise=with_noise)
+        mean, cov = self.predict(X, return_full=True, with_noise=with_noise)
         mean = mean.flatten()
         sample = np.random.multivariate_normal(mean, cov, size).T
         return sample
+    
+    def get_fmin(self):
+        if self._normalize:
+            return np.min(self._y_normalizer.inverse_transform(self._y))
+        else:
+            return np.min(self._y)
+         

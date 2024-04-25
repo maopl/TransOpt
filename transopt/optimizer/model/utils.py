@@ -5,7 +5,6 @@ import numpy as np
 import scipy
 from GPy.kern import Fixed, BasisFuncKernel
 
-from transopt.optimizer.model.model_base import InputData
 
 
 def is_pd(a: np.ndarray) -> bool:
@@ -121,7 +120,7 @@ class FixedKernel(Fixed):
         return input_dict
 
 
-def compute_alpha(model: "GP", x: InputData) -> np.ndarray:
+def compute_alpha(model: "GP", x) -> np.ndarray:
     r"""Calculate the $\alpha(x)$ Woodbury vector used for computing the boosted
     covariance.
 
@@ -140,7 +139,7 @@ def compute_alpha(model: "GP", x: InputData) -> np.ndarray:
         The $\alpha$ vector. `shape = (n_points, n_training_points)`
     """
     L = model._gpy_model.posterior.woodbury_chol
-    X = InputData(model.X)
+    X = model.X
     k = model.compute_kernel(X, x)
     return scipy.linalg.solve_triangular(
         L.T, scipy.linalg.solve_triangular(L, k, lower=True)

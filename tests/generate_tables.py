@@ -120,8 +120,8 @@ def generate_table_config():
 
 def create_test_tables(db, num_tables):
     for _ in range(num_tables):
-        table_name, problem_cfg = generate_table_config()
-        db.create_table(table_name, problem_cfg)
+        table_name, dataset_cfg = generate_table_config()
+        db.create_table(table_name, dataset_cfg)
 
 def generate_random_value(data_type):
     if data_type == "continuous":
@@ -129,10 +129,10 @@ def generate_random_value(data_type):
     elif data_type == "integer":
         return random.randint(1, 100)
 
-def generate_and_insert_data(db, table_name, problem_cfg, num_rows=100):
-    variables = problem_cfg["variables"]
-    objectives = problem_cfg["objectives"]
-    fidelities = problem_cfg["fidelities"]
+def generate_and_insert_data(db, table_name, dataset_cfg, num_rows=100):
+    variables = dataset_cfg["variables"]
+    objectives = dataset_cfg["objectives"]
+    fidelities = dataset_cfg["fidelities"]
     
     # Generate data
     data = []

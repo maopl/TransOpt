@@ -47,7 +47,7 @@ class TestDataManager(unittest.TestCase):
         # self.data_manager.create_dataset(dataset_name, new_dataset_info)
         
         # Query for a similar dataset
-        similar_datasets = self.data_manager.get_similar_datasets(dataset_name, new_dataset_info)
+        similar_datasets = self.data_manager.search_similar_datasets(dataset_name, new_dataset_info)
         # Check if any dataset is found similar, expected as data structure mimics the existing one
         self.assertTrue(len(similar_datasets) > 0)
 

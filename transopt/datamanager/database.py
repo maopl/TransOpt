@@ -139,7 +139,7 @@ class Database:
         )
         return table_exists is not None
 
-    def create_table(self, name, problem_cfg, overwrite=False):
+    def create_table(self, name, dataset_cfg, overwrite=False):
         """
         Create and initialize a database table based on problem configuration.
 
@@ -147,7 +147,7 @@ class Database:
         ----------
         name: str
             Name of the table to create and initialize.
-        problem_cfg: dict
+        dataset_cfg: dict
             Configuration for the table schema.
         """
         if self.check_table_exist(name):
@@ -156,9 +156,9 @@ class Database:
             else:
                 raise Exception(f"Table {name} already exists")
 
-        variables = problem_cfg.get("variables", [])
-        objectives = problem_cfg.get("objectives", [])
-        fidelities = problem_cfg.get("fidelities", [])
+        variables = dataset_cfg.get("variables", [])
+        objectives = dataset_cfg.get("objectives", [])
+        fidelities = dataset_cfg.get("fidelities", [])
         
         var_type_map = {
             "continuous": "float",
@@ -201,7 +201,7 @@ class Database:
             index_columns_string = ', '.join([f'"{column}"' for column in index_columns])
             self.execute(f'CREATE INDEX "idx_{name}_vars_fids" ON "{name}" ({index_columns_string})')
         
-        self.create_or_update_config(name, problem_cfg)
+        self.create_or_update_config(name, dataset_cfg)
 
     def remove_table(self, name):
         if not self.check_table_exist(name):
@@ -213,12 +213,12 @@ class Database:
     config
     '''
 
-    def create_or_update_config(self, name, problem_cfg):
+    def create_or_update_config(self, name, dataset_cfg):
         """
         Create or update a configuration entry in the _config table for a given table.
         """
-        # Serialize problem_cfg into JSON format
-        config_json = json.dumps(problem_cfg)
+        # Serialize dataset_cfg into JSON format
+        config_json = json.dumps(dataset_cfg)
 
         # Check if the configuration already exists
         if self.query_config(name) is not None:

@@ -43,7 +43,7 @@ def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
     else:
         DataSelector = selector_registry(optimizer_config['DataSelector'], optimizer_config['DataSelectorParameters'])
     
-    if 'Normalizer' not in optimizer_config or optimizer_config['Normalizer'] == 'default':
+    if optimizer_config['Normalizer'] == 'default':
         Normalizer = None
     else:
         Normalizer = normalizer_registry(optimizer_config['Normalizer'], optimizer_config['NormalizerParameters'])

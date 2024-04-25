@@ -3,6 +3,7 @@ import {
   Row,
   Col,
 } from "reactstrap";
+import { Button, Modal } from "antd";
 
 import s from "./Configuration.module.scss"
 
@@ -132,7 +133,7 @@ class Configuration extends React.Component {
                   <p>
                     Choose the datasets you want to use in the experiment.
                   </p>
-                  <SelectData Datasetdata={this.state.DatasetData}/>
+                  <SelectData data={this.state.DatasetData}/>
                 </Widget>
               </Col>
               <Col lg={12} sm={12}>

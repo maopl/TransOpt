@@ -14,37 +14,9 @@ import {
 } from "antd";
 import { Modal } from "reactstrap";
 
-function DecimalStep({ name, inputValue, onChange }) {
-  return (
-    <Row>
-      <Col span={6}>
-          <h5 style={{ height: '100%', lineHeight: '100%', color:'white' }}>{name}</h5>
-      </Col>
-      <Col span={10}>
-        <Slider
-          min={0}
-          max={1}
-          onChange={onChange}
-          value={typeof inputValue === 'number' ? inputValue : 0}
-          step={0.01}
-        />
-      </Col>
-      <Col span={4}>
-        <InputNumber
-          min={0}
-          max={1}
-          style={{ margin: '0 16px' }}
-          step={0.01}
-          value={inputValue}
-          onChange={onChange}
-        />
-      </Col>
-    </Row>
-  );
-};
+
 function SearchData({set_dataset}) {
   const [form] = Form.useForm()
-
 
   const onFinish = (values) => {
     const messageToSend = values;
@@ -63,10 +35,10 @@ function SearchData({set_dataset}) {
       } 
       return response.json();
     })
-    .then(data => {
-      console.log('Message from back-end:', data);
-      if (typeof data === "object" && data !== null && "error" in data) {
-        var errorMessage = data.error;
+    .then(message => {
+      console.log('Message from back-end:', message);
+      if (message.isSucceed === false) {
+        var errorMessage = message.info;
         console.log("Error:", errorMessage);
         Modal.error({
           title: 'Information',
@@ -74,7 +46,7 @@ function SearchData({set_dataset}) {
         })
       } else {
         // 返回dataset
-        set_dataset(data)
+        set_dataset(message)
       }
     })
     .catch((error) => {

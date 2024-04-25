@@ -1,11 +1,12 @@
 # Copyright (c) 2016, the GPyOpt Authors
 # Licensed under the BSD 3-clause license (see LICENSE.txt)
-import scipy
 import numpy as np
-
-from GPyOpt.util import epmgp
+import scipy
+from GPyOpt import Design_space
 from GPyOpt.core.task.cost import constant_cost_withGradients
 from GPyOpt.optimization.acquisition_optimizer import AcquisitionOptimizer
+from GPyOpt.util import epmgp
+
 
 class AcquisitionBase(object):
     """
@@ -22,10 +23,10 @@ class AcquisitionBase(object):
     def __init__(self, cost_withGradients=None, **kwargs):
         self.analytical_gradient_acq = self.analytical_gradient_prediction and self.model.analytical_gradient_prediction # flag from the model to test if gradients are available
 
-        if 'optimizer' in kwargs:
-            self.optimizer = kwargs['optimizer']
+        if 'optimizer_name' in kwargs:
+            self.optimizer_name = kwargs['optimizer']
         else:
-            self.optimizer = 'lbfgs'
+            self.optimizer_name = 'lbfgs'
 
         if cost_withGradients is  None:
             self.cost_withGradients = constant_cost_withGradients
@@ -44,7 +45,19 @@ class AcquisitionBase(object):
         self.model = model
         
     def link_space(self, space):
-        self.space = space
+        opt_space = []
+        for var_name in space.variables_order:
+            var_dic = {
+                'name': var_name,
+                'type': 'continuous',
+                'domain': space[var_name].search_space_range,
+            }
+            if space[var_name].type == 'categorical' or 'integer':
+                var_dic['type'] = 'discrete'
+
+            opt_space.append(var_dic.copy())
+            
+        self.space = Design_space(opt_space)
         self.optimizer = AcquisitionOptimizer(self.space, self.optimizer_name)
     
 

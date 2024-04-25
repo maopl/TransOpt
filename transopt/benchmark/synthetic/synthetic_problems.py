@@ -1698,7 +1698,10 @@ class Ackley(NonTabularProblem):
         part2 = -(np.exp(np.mean(np.cos(c * X), axis=-1)))
         y = part1 + part2 + a + math.e
 
-        return {self.objective_info[0]: float(y), "info": {"fidelity": fidelity}}
+        results = {list(self.objective_info.keys())[0]: float(y)}
+        for fd_name in self.fidelity_space.fidelity_names:
+            results[fd_name] = fidelity[fd_name] 
+        return results
 
     def get_configuration_space(self) -> SearchSpace:
         
@@ -1712,9 +1715,9 @@ class Ackley(NonTabularProblem):
         fs = FidelitySpace([])
         return fs
 
-    def get_objectives(self) -> list:
+    def get_objectives(self) -> Dict:
         
-        return ['f1']
+        return {'f1':'minimize'}
 
 
     def get_problem_type(self):

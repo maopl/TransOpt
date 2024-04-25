@@ -23,7 +23,7 @@ class BO(OptimizerBase):
         self._Y = np.empty((0,))
         self.config = config
         self.search_space = None
-        self.ini_num = None
+        self.ini_num = 10
         
         self.SpaceRefiner = Refiner
         self.Sampler = Sampler
@@ -37,6 +37,7 @@ class BO(OptimizerBase):
         self.MetaData = None
     
     def link_task(self, task_name:str, search_sapce: SearchSpace):
+        self.task_name = task_name
         self.search_space = search_sapce
         self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
         self._Y = np.empty((0,))
@@ -51,10 +52,12 @@ class BO(OptimizerBase):
     
     def search_space_refine(self):
         if self.SpaceRefiner is not None:
-            self.search_space = self.SpaceRefiner.refine_space(space_info)
+            self.search_space = self.SpaceRefiner.refine_space(self.search_space)
             self.acqusition = self.ACF.link_space(self.search_space)
             self.evaluator = Sequential(self.acqusition)
             
+    def sample_initial_set(self):
+        return self.Sampler.sample(self.search_space, self.ini_num)
     
     
     def optimize(self, testsuits, data_handler):
@@ -74,7 +77,7 @@ class BO(OptimizerBase):
             testsuits.roll()
             
     def suggest():
-        pass
+        suggestion = model.predict()
         
 
     def observe(self, input_vectors: Union[List[Dict], Dict], output_value: Union[List[Dict], Dict]) -> None:
@@ -90,10 +93,6 @@ class BO(OptimizerBase):
         # Check if the lists are empty and return if they are
         if len(input_vectors) == 0 and len(output_value) == 0:
             return
-
-
-        self._validate_observation('design', input_vectors=input_vectors, output_value=output_value)
-        X = self.transform(input_vectors)
 
         self._X = np.vstack((self._X, vectors_to_ndarray(self._get_var_name('search'), X))) if self._X.size else vectors_to_ndarray(self._get_var_name('search'), X)
         if self.num_objective >= 2:

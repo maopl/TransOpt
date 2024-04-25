@@ -7,7 +7,7 @@ from typing import Union, Dict, List
 from benchmark.problem_base.non_tab_problem import NonTabularProblem
 from benchmark.problem_base.tab_problem import TabularProblem
 from transopt.remote import ExperimentClient
-
+from transopt.space.search_space import SearchSpace
 logger = logging.getLogger("TransferProblem")
 
 
@@ -71,15 +71,24 @@ class TransferProblem:
     def get_curdim(self):
         return self.tasks[self.__id].get_input_dim()
 
-    def get_curobjnum(self):
-        return self.tasks[self.__id].get_objective_num()
+    def get_curobj_info(self):
+        return self.tasks[self.__id].get_objectives()
+    
+    def get_cur_fidelity_info(self) -> Dict:
+        return self.tasks[self.__id].fidelity_space.get_fidelity_range()
+
+    def get_cur_searchspace_info(self) -> Dict:
+        return self.tasks[self.__id].configuration_space.get_design_variables()
+    
+    
+    def get_cur_searchspace(self) -> SearchSpace:
+        return self.tasks[self.__id].configuration_space
+    
 
     def get_curtask(self):
         return self.tasks[self.__id]
-
-    def get_curcs(self):
-        return self.tasks[self.__id].configuration_space
-
+    
+    
     def get_curseed(self):
         return self.tasks[self.__id].seed
 
@@ -114,8 +123,6 @@ class TransferProblem:
             logger.error("Unknown task type.")
             raise NameError
 
-    def get_cur_searchspace(self) -> Dict:
-        return self.tasks[self.__id].configuration_space
 
     ###Methods only for tabular data###
     def get_dataset_size(self):
@@ -145,15 +152,13 @@ class TransferProblem:
     def f(
         self,
         configuration: Union[
-            ConfigSpace.Configuration,
             Dict,
-            List[Union[ConfigSpace.Configuration, Dict]],
+            List[Dict],
         ],
         fidelity: Union[
             Dict,
-            ConfigSpace.Configuration,
             None,
-            List[Union[ConfigSpace.Configuration, Dict]],
+            List[Dict],
         ] = None,
         **kwargs,
     ):

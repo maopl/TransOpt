@@ -51,6 +51,11 @@ function SearchData({set_dataset}) {
     })
     .catch((error) => {
       console.error('Error sending message:', error);
+      var errorMessage = error.error;
+      Modal.error({
+        title: 'Information',
+        content: 'error:' + errorMessage
+      })
     });
   }
 

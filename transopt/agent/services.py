@@ -161,28 +161,43 @@ class Services:
 
                 return dataset_info
             
+            def save_data(parameters, observations):
+                data = [{} for i in range(len(parameters))]
+                [data[i].update(parameters[i]) for i in range(len(parameters))]
+                [data[i].update(observations[i]) for i in range(len(parameters))]
+                [data[i].update({'batch':iterations}) for i in range(len(parameters))]
+                data_manager.db.insert_data(task_set.get_curname(), data)
+            
             while (task_set.get_unsolved_num()):
+                iterations = 0
                 search_space = task_set.get_cur_searchspace()
                 dataset_info = construct_dataset_info(task_set)
                 
-                data_manager.db.create_table(task_set.get_curname(), dataset_info)
+                data_manager.db.create_table(task_set.get_curname(), dataset_info, overwrite=True)
                 optimizer.link_task(task_name=task_set.get_curname(), search_sapce=search_space)
                 optimizer.set_metadata()
                 optimizer.search_space_refine()
                 samples = optimizer.sample_initial_set()
                 parameters = [search_space.map_to_design_space(sample) for sample in samples]
-                observations = task_set.f(parameters) 
-                data_manager.teardown()
-                return
-                # data_manager.db.insert_data(task_set.get_curname(), parameters.update(observations))
+                observations = task_set.f(parameters)
+                save_data(parameters, observations)
                 
-                # while (task_set.get_rest_budget()):
-                #     suggested_sample = self.suggest()
-                #     parameters = search_space.map_to_design_space(suggested_sample)
-                #     observations = task_set.f(parameters)
-                #     data_manager.db.insert_data(task_set.get_curname(), parameters.update(observations))
+                #Pretrain
+                optimizer.meta_fit()
+                
+                #Train
+                
+                optimizer.observe(samples, observations)
+                
+                while (task_set.get_rest_budget()):
+                    suggested_sample = optimizer.suggest()
+                    parameters = search_space.map_to_design_space(suggested_sample)
+                    observations = task_set.f(parameters)
                     
-                #     optimizer.observe(search_space.map_from_design_space(suggested_sample), observations)
+                    
+                    data_manager.db.insert_data(task_set.get_curname(), [parameters[i].update(observations[i]) for i in range(len(parameters))])
+                    
+                    optimizer.observe(search_space.map_from_design_space(suggested_sample), observations)
                     # if self.verbose:
                     #     self.visualization(testsuits, suggested_sample)
                 task_set.roll()

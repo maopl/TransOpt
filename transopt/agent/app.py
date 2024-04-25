@@ -137,7 +137,8 @@ def configuration_run():
     try:
         services.run_optimize(seeds_info = run_info['Seeds'])
     except:
-        return {"Failed": True}, 200
+        raise Exception("Error in running the optimization")
+        # return {"Failed": False}, 200
 
     # 返回处理后的响应给前端
     return {"Succeed": True}, 200

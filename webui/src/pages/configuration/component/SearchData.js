@@ -105,9 +105,9 @@ function SearchData({set_dataset}) {
         name="search_method"
       >
         <Select style={{minWidth: 150}}
-          options={[ {value: "LSH"},
-                      {value: "Fuzzy Matching"},
-                      {value: "Exact Matching"},
+          options={[ {value: "Hash"},
+                      {value: "Fuzzy"},
+                      {value: "LSH"},
                   ]}
         />
       </Form.Item>

@@ -10,7 +10,9 @@ import {
     Input,
     Form,
     ConfigProvider,
+    Select,
 } from "antd";
+import { Modal } from "reactstrap";
 
 function DecimalStep({ name, inputValue, onChange }) {
   return (
@@ -41,13 +43,6 @@ function DecimalStep({ name, inputValue, onChange }) {
   );
 };
 function SearchData({set_dataset}) {
-  const [values, setValues] = useState({
-    task_name: "",
-    num_variables: 0,
-    variables_name: "",
-    num_objectives: 0,
-  });
-
   const [form] = Form.useForm()
 
 
@@ -70,8 +65,17 @@ function SearchData({set_dataset}) {
     })
     .then(data => {
       console.log('Message from back-end:', data);
-      // 返回dataset
-      set_dataset(data)
+      if (typeof data === "object" && data !== null && "error" in data) {
+        var errorMessage = data.error;
+        console.log("Error:", errorMessage);
+        Modal.error({
+          title: 'Information',
+          content: 'error:' + errorMessage
+        })
+      } else {
+        // 返回dataset
+        set_dataset(data)
+      }
     })
     .catch((error) => {
       console.error('Error sending message:', error);
@@ -123,11 +127,24 @@ function SearchData({set_dataset}) {
           <Input addonBefore={"Num of Objectives"}/>
         </Form.Item>
       </Space>
+      <h6 style={{color:"white"}}>Search method:</h6>
+      <Space className="space" style={{ display: 'flex'}} align="baseline">
+      <Form.Item
+        name="search_method"
+      >
+        <Select style={{minWidth: 150}}
+          options={[ {value: "LSH"},
+                      {value: "Fuzzy Matching"},
+                      {value: "Exact Matching"},
+                  ]}
+        />
+      </Form.Item>
       <Form.Item>
         <Button type="primary" htmlType="submit" style={{width:"120px"}}>
           Search
         </Button>
       </Form.Item>
+      </Space>
     </Form>
     </ConfigProvider>
   )

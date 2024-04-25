@@ -3,7 +3,6 @@ import {
   Row,
   Col,
 } from "reactstrap";
-import { Button, Modal } from "antd";
 
 import s from "./Configuration.module.scss"
 
@@ -29,6 +28,7 @@ class Configuration extends React.Component {
       Model: [],
       ACF: [],
       DataSelector: [],
+      Normalizer: [],
       DatasetData: []
     };
   }
@@ -65,6 +65,7 @@ class Configuration extends React.Component {
                         Model: data.Model,
                         ACF: data.ACF,
                         DataSelector: data.DataSelector,
+                        Normalizer: data.Normalizer,
                       });
       })
       .catch((error) => {
@@ -114,6 +115,7 @@ class Configuration extends React.Component {
                                     Model={this.state.Model}
                                     ACF={this.state.ACF}
                                     DataSelector={this.state.DataSelector}
+                                    Normalizer={this.state.Normalizer}
                   />
                 </Widget>
               </Col>
@@ -130,7 +132,7 @@ class Configuration extends React.Component {
                   <p>
                     Choose the datasets you want to use in the experiment.
                   </p>
-                  <SelectData data={this.state.DatasetData}/>
+                  <SelectData Datasetdata={this.state.DatasetData}/>
                 </Widget>
               </Col>
               <Col lg={12} sm={12}>

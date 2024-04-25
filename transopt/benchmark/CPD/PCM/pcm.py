@@ -2,7 +2,7 @@ import os
 import json
 import numpy as np
 from typing import Union, Dict
-from PCM.energy.energy_nofile import *
+from transopt.benchmark.CPD.PCM.PCM.energy.energy_nofile import *
 from numpy.random.mtrand import RandomState as RandomState
 from transopt.space.variable import *
 from transopt.agent.registry import problem_registry

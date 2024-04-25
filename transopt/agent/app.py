@@ -64,7 +64,9 @@ def configuration_basic_information():
     user_input = data.get("paremeter", "")
 
     task_data = services.get_modules()
-    return jsonify(task_data), 200
+    with open('transopt/agent/page_service_data/configuration_basic.json', 'r') as file:
+        data = json.load(file)
+    return jsonify(data), 200
 
 
 @app.route("/api/configuration/dataset", methods=["POST"])
@@ -89,6 +91,7 @@ def configuration_search_dataset():
             ],
         }
         datasets = services.search_dataset(dataset_name, dataset_info)
+        data = ["1","2","3"]
         return jsonify(datasets), 200
     except Exception as e:
         logger.error(f"Error in searching dataset: {e}")
@@ -104,10 +107,10 @@ def configuration_run():
         services.run_optimize(seeds_info = run_info['Seeds'])
     except:
         # raise Exception("Error in running the optimization")
-        return {"Failed": False}, 200
+        return {"isSucceed": False}, 200
 
     # 返回处理后的响应给前端
-    return {"Succeed": True}, 200
+    return {"isSucceed": True}, 200
 
 
 @app.route("/api/comparison/tasks", methods=["POST"])

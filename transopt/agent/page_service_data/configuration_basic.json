@@ -111,5 +111,20 @@
         {
             "name":"data-selector3"
         }
+    ],
+    "Normalizer":
+    [
+        {
+            "name":"default"
+        },
+        {
+            "name":"normalizer1"
+        },
+        {
+            "name":"normalizer2"
+        },
+        {
+            "name":"normalizer3"
+        }
     ]
 }

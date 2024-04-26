@@ -65,23 +65,29 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
             autoComplete="off"
             initialValues={{
               SpaceRefiner: SpaceRefiner[0].name,
-              SpaceRefinerDataSelector: 'default',
               SpaceRefinerParameters: '',
+              SpaceRefinerDataSelector: 'default',
+              SpaceRefinerDataSelectorParameters: '',
               Sampler: Sampler[0].name,
-              SamplerDataSelector: 'default',
               SamplerParameters: '',
+              SamplerDataSelector: 'default',
+              SamplerDataSelectorParameters: '',
               Pretrain: Pretrain[0].name,
-              PretrainDataSelector: 'default',
               PretrainParameters: '',
+              PretrainDataSelector: 'default',
+              PretrainDataSelectorParameters: '',
               Model: Model[0].name,
-              ModelDataSelector: 'default',
               ModelParameters: '',
+              ModelDataSelector: 'default',
+              ModelDataSelectorParameters: '',
               ACF: ACF[0].name,
-              ACFDataSelector: 'default',
               ACFParameters: '',
+              ACFDataSelector: 'default',
+              ACFDataSelectorParameters: '',
               Normalizer: Normalizer[0].name,
-              NormalizerDataSelector: 'default',
               NormalizerParameters: '',
+              NormalizerDataSelector: 'default',
+              NormalizerDataSelectorParameters: '',
             }}
         >
           <div style={{ overflowY: 'auto', maxHeight: '200px' }}>
@@ -102,6 +108,13 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
                 />
               </Form.Item>
               <Form.Item
+                name={'SpaceRefinerParameters'}
+                style={{ flex: 1 , marginRight: 8}}
+              >
+                <Input placeholder="Parameters"/>
+              </Form.Item>
+              <h7 style={{color:"white", marginRight:8}}>DataSelector: </h7>
+              <Form.Item
                 name={'SpaceRefinerDataSelector'}
                 style={{ marginRight: 8 , width: 150}}
               >
@@ -111,7 +124,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
                 />
               </Form.Item>
               <Form.Item
-                name={'SpaceRefinerParameters'}
+                name={'SpaceRefinerDataSelectorParameters'}
                 style={{ flex: 1 }}
               >
                 <Input placeholder="Parameters"/>
@@ -135,6 +148,19 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
                 />
               </Form.Item>
               <Form.Item
+                name={'SamplerParameters'}
+                style={{ flex: 1 }}
+              >
+                <Input placeholder="Parameters"/>
+              </Form.Item>
+              <Form.Item
+                name={'SamplerInitNum'}
+                style={{ flex: 1, marginLeft: 8, marginRight: 8}}
+              >
+                <Input placeholder="Initial Sample Size"/>
+              </Form.Item>
+              <h7 style={{color:"white", marginRight:8}}>DataSelector: </h7>
+              <Form.Item
                 name={'SamplerDataSelector'}
                 style={{ marginRight: 8 , width: 150}}
               >
@@ -144,7 +170,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
                 />
               </Form.Item>
               <Form.Item
-                name={'SamplerParameters'}
+                name={'SamplerDataSelectorParameters'}
                 style={{ flex: 1 }}
               >
                 <Input placeholder="Parameters"/>
@@ -168,6 +194,13 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
                 />
               </Form.Item>
               <Form.Item
+                name={'PretrainParameters'}
+                style={{ flex: 1 , marginRight: 8 }}
+              >
+                <Input placeholder="Parameters"/>
+              </Form.Item>
+              <h7 style={{color:"white", marginRight:8}}>DataSelector: </h7>
+              <Form.Item
                 name={'PretrainDataSelector'}
                 style={{ marginRight: 8 , width: 150}}
               >
@@ -177,7 +210,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
                 />
               </Form.Item>
               <Form.Item
-                name={'PretrainParameters'}
+                name={'PretrainDataSelectorParameters'}
                 style={{ flex: 1 }}
               >
                 <Input placeholder="Parameters"/>
@@ -201,6 +234,13 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
                 />
               </Form.Item>
               <Form.Item
+                name={'ModelParameters'}
+                style={{ flex: 1, marginRight: 8}}
+              >
+                <Input placeholder="Parameters" />
+              </Form.Item>
+              <h7 style={{color:"white", marginRight:8}}>DataSelector: </h7>
+              <Form.Item
                 name={'ModelDataSelector'}
                 style={{ marginRight: 8 , width: 150}}
               >
@@ -210,7 +250,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
                 />
               </Form.Item>
               <Form.Item
-                name={'ModelParameters'}
+                name={'ModelDataSelectorParameters'}
                 style={{ flex: 1 }}
               >
                 <Input placeholder="Parameters" />
@@ -234,6 +274,13 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
                 />
               </Form.Item>
               <Form.Item
+                name={'ACFParameters'}
+                style={{ flex: 1, marginRight: 8}}
+              >
+                <Input placeholder="Parameters" />
+              </Form.Item>
+              <h7 style={{color:"white", marginRight:8}}>DataSelector: </h7>
+              <Form.Item
                 name={'ACFDataSelector'}
                 style={{ marginRight: 8 , width: 150}}
               >
@@ -243,7 +290,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
                 />
               </Form.Item>
               <Form.Item
-                name={'ACFParameters'}
+                name={'ACFDataSelectorParameters'}
                 style={{ flex: 1 }}
               >
                 <Input placeholder="Parameters" />
@@ -267,6 +314,13 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
                 />
               </Form.Item>
               <Form.Item
+                name={'NormalizerParameters'}
+                style={{ flex: 1, marginRight: 8}}
+              >
+                <Input placeholder="Parameters"/>
+              </Form.Item>
+              <h7 style={{color:"white", marginRight:8}}>DataSelector: </h7>
+              <Form.Item
                 name={'NormalizerDataSelector'}
                 style={{ marginRight: 8 , width: 150}}
               >
@@ -276,7 +330,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
                 />
               </Form.Item>
               <Form.Item
-                name={'NormalizerParameters'}
+                name={'NormalizerDataSelectorParameters'}
                 style={{ flex: 1 }}
               >
                 <Input placeholder="Parameters"/>

@@ -199,13 +199,23 @@ class Services:
             "Pretrain": running_config.optimizer['Pretrain'],
             "Model": running_config.optimizer['Model'],
             "ACF": running_config.optimizer['ACF'],
-            "DatasetSelector": running_config.optimizer['DataSelector'],
             "Normalizer": running_config.optimizer['Normalizer'],
-            "datasets": running_config.metadata if running_config.metadata else [],
+            "DatasetSelector": f"SpaceRefiner-{running_config.optimizer['SpaceRefinerDataSelector']}, \
+                Sampler - {running_config.optimizer['SamplerDataSelector']}, \
+                Pretrain - {running_config.optimizer['PretrainDataSelector']}, \
+                Model - {running_config.optimizer['ModelDataSelector']}, \
+                ACF-{running_config.optimizer['ACFDataSelector']}, \
+                Normalizer - {running_config.optimizer['NormalizerDataSelector']}",
+            "metadata": running_config.metadata if running_config.metadata else [],
         }
         
         dataset_name = f"{task_set.get_curname()}_w{task_set.get_cur_workload()}s{seed}d{len(dataset_info['variables'])}o{len(dataset_info['objectives'])}bt{task_set.get_cur_budgettype()}b{task_set.get_cur_budget()}\
-            R{running_config.optimizer['SpaceRefiner']}S{running_config.optimizer['Sampler']}P{running_config.optimizer['Pretrain']}M{running_config.optimizer['Model']}A{running_config.optimizer['ACF']}D{running_config.optimizer['DataSelector']}N{running_config.optimizer['Normalizer']}"
+                R{running_config.optimizer['SpaceRefiner']}s{{running_config.optimizer['SpaceRefinerDataSelector']}}\
+                S{running_config.optimizer['Sampler']}s{running_config.optimizer['SamplerDataSelector']}\
+                P{running_config.optimizer['Pretrain']}s{running_config.optimizer['PretrainDataSelector']}\
+                M{running_config.optimizer['Model']}s{running_config.optimizer['ModelDataSelector']}\
+                A{running_config.optimizer['ACF']}s{running_config.optimizer['ACFDataSelector']}\
+                N{running_config.optimizer['Normalizer']}s{running_config.optimizer['NormalizerDataSelector']}"
         return dataset_info, dataset_name
     
     
@@ -219,7 +229,13 @@ class Services:
             return metadata, metadata_info
         else:
             return None, None
-                
+    
+    def save_data(self, dataset_name, parameters, observations, iteration):
+        data = [{} for i in range(len(parameters))]
+        [data[i].update(parameters[i]) for i in range(len(parameters))]
+        [data[i].update(observations[i]) for i in range(len(parameters))]
+        [data[i].update({'batch':iteration}) for i in range(len(parameters))]
+        self.data_manager.db.insert_data(dataset_name, data)
 
     def run_optimize(self, seeds_info):
         seeds = [int(seed) for seed in seeds_info.split(",")]
@@ -227,27 +243,22 @@ class Services:
             task_set = InstantiateProblems(self.running_config.tasks, seed)
             optimizer = ConstructOptimizer(self.running_config.optimizer, seed)
             
-            def save_data(parameters, observations):
-                data = [{} for i in range(len(parameters))]
-                [data[i].update(parameters[i]) for i in range(len(parameters))]
-                [data[i].update(observations[i]) for i in range(len(parameters))]
-                [data[i].update({'batch':iterations}) for i in range(len(parameters))]
-                self.data_manager.db.insert_data(task_set.get_curname(), data)
+
             
             try:
                 while (task_set.get_unsolved_num()):
-                    iterations = 0
+                    iteration = 0
                     search_space = task_set.get_cur_searchspace()
                     dataset_info, dataset_name = self.construct_dataset_info(task_set, self.running_config, seed=seed)
                     
-                    self.data_manager.db.create_table(task_set.get_curname(), dataset_info, overwrite=True)
+                    self.data_manager.db.create_table(dataset_name, dataset_info, overwrite=True)
                     optimizer.link_task(task_name=task_set.get_curname(), search_sapce=search_space)
                     metadata, metadata_info = self.get_metadata()
                     optimizer.search_space_refine(metadata, metadata_info)
                     samples = optimizer.sample_initial_set(metadata, metadata_info)
                     parameters = [search_space.map_to_design_space(sample) for sample in samples]
                     observations = task_set.f(parameters)
-                    save_data(parameters, observations)
+                    self.save_data(dataset_name, parameters, observations, iteration)
                     
                     optimizer.observe(samples, observations)
                     
@@ -259,12 +270,12 @@ class Services:
                         suggested_samples = optimizer.suggest()
                         parameters = [search_space.map_to_design_space(sample) for sample in suggested_samples]
                         observations = task_set.f(parameters)
-                        save_data(parameters, observations)
+                        self.save_data(dataset_name, parameters, observations, iteration)
                         
                         optimizer.observe(suggested_samples, observations)
-                        iterations += 1
+                        iteration += 1
                         
-                        print("Seed: ", seed, "Task: ", task_set.get_curname(), "Iteration: ", iterations)
+                        print("Seed: ", seed, "Task: ", task_set.get_curname(), "Iteration: ", iteration)
                         # if self.verbose:
                         #     self.visualization(testsuits, suggested_sample)
                     task_set.roll()

@@ -83,6 +83,11 @@ def configuration_basic_information():
 @app.route("/api/configuration/dataset", methods=["POST"])
 def configuration_dataset():
     metadata_info = request.json
+    # print(metadata_info)
+    # metadate_info = {
+    #     "object": "Space refiner",
+    #     "datasets": ["dataset1", "dataset2]
+    # }
     try:
         services.select_dataset(metadata_info)
     except Exception as e:

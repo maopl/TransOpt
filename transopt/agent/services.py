@@ -48,22 +48,30 @@ class Services:
         task_names = problem_registry.list_names()
         for name in task_names:
             if problem_registry[name].problem_type == "synthetic":
+                num_obj = problem_registry[name].num_objectives
+                num_var = problem_registry[name].num_variables
                 task_info = {
                     "name": name,
-                    "anyDim": True,
-                    "dim": [],
-                    "obj": [1],
+                    "problem_type": "synthetic",
+                    "anyDim": "True",
+                    'num_vars': [],
+                    "num_objs": [1],
+                    "workloads": [],
                     "fidelity": [],
                 }
             else:
-                obj_num = problem_registry[name].get_objectives()
-                dim = len(problem_registry[name].get_configuration_space().keys())
+                num_obj = problem_registry[name].num_objectives
+                num_var = problem_registry[name].num_variables
+                fidelity = problem_registry[name].fidelity
+                workloads = problem_registry[name].workloads
                 task_info = {
                     "name": name,
+                    "problem_type": "synthetic",
                     "anyDim": False,
-                    "dim": [dim],
-                    "obj": [obj_num],
-                    "fidelity": [],
+                    "num_vars": [num_var],
+                    "num_objs": [num_obj],
+                    "workloads": [workloads],
+                    "fidelity": [fidelity],
                 }
             tasks_info.append(task_info)
         basic_info["TasksData"] = tasks_info
@@ -135,7 +143,7 @@ class Services:
                 "budget_type": task["budget_type"],
                 "budget": int(task["budget"]),
                 "workloads": workloads,
-                "params": {"input_dim": int(task["dim"])},
+                "params": {"input_dim": int(task["num_vars"])},
             }
 
         self.running_config.set_tasks(tasks)
@@ -158,7 +166,7 @@ class Services:
         all_tables = self.data_manager.db.get_table_list()
         return [self.data_manager.db.query_dataset_info(table) for table in all_tables]
     
-    def construct_dataset_info(self, task_set, running_config):
+    def construct_dataset_info(self, task_set, running_config, seed):
         dataset_info = {}
         dataset_info["variables"] = [
             {"name": var.name, "type": var.type, "range": var.range}
@@ -178,10 +186,10 @@ class Services:
             "dim": len(dataset_info["variables"]),
             "obj": len(dataset_info["objectives"]),
             "fidelity": ', '.join([d['name'] for d in dataset_info["fidelities"] if 'name' in d]) if len(dataset_info["fidelities"]) == 0 else '',
-            "workloads": task_set.get_curtworkload(),
+            "workloads": task_set.get_cur_workload(),
             "budget_type": task_set.get_cur_budgettype(),
             "budget": task_set.get_cur_budget(),
-            "seeds": task_set.get_curseed(),
+            "seeds": task_set.get_cur_seed(),
             "SpaceRefiner": running_config.optimizer['SpaceRefiner'],
             "Sampler": running_config.optimizer['Sampler'],
             "Pretrain": running_config.optimizer['Pretrain'],
@@ -191,7 +199,11 @@ class Services:
             "Normalizer": running_config.optimizer['Normalizer'],
             "datasets": running_config.metadata if running_config.metadata else [],
         }
-        return dataset_info
+        
+        dataset_name = f"{task_set.get_curname()}_w{task_set.get_cur_workload()}s{seed}d{len(dataset_info['variables'])}o{len(dataset_info['objectives'])}bt{task_set.get_cur_budgettype()}b{task_set.get_cur_budget()}\
+            R{running_config.optimizer['SpaceRefiner']}S{running_config.optimizer['Sampler']}P{running_config.optimizer['Pretrain']}M{running_config.optimizer['Model']}A{running_config.optimizer['ACF']}D{running_config.optimizer['DataSelector']}N{running_config.optimizer['Normalizer']}"
+        return dataset_info, dataset_name
+    
     
     def get_metadata(self):
         if self.running_config.metadata:
@@ -202,7 +214,7 @@ class Services:
                 metadata_info[dataset_name] = self.data_manager.db.query_dataset_info(dataset_name)
             return metadata, metadata_info
         else:
-            return None
+            return None, None
                 
 
     def run_optimize(self, seeds_info):
@@ -222,13 +234,13 @@ class Services:
                 while (task_set.get_unsolved_num()):
                     iterations = 0
                     search_space = task_set.get_cur_searchspace()
-                    dataset_info = self.construct_dataset_info(task_set, self.running_config)
+                    dataset_info, dataset_name = self.construct_dataset_info(task_set, self.running_config, seed=seed)
                     
                     self.data_manager.db.create_table(task_set.get_curname(), dataset_info, overwrite=True)
                     optimizer.link_task(task_name=task_set.get_curname(), search_sapce=search_space)
                     metadata, metadata_info = self.get_metadata()
-                    optimizer.search_space_refine(metadata)
-                    samples = optimizer.sample_initial_set(metadata)
+                    optimizer.search_space_refine(metadata, metadata_info)
+                    samples = optimizer.sample_initial_set(metadata, metadata_info)
                     parameters = [search_space.map_to_design_space(sample) for sample in samples]
                     observations = task_set.f(parameters)
                     save_data(parameters, observations)

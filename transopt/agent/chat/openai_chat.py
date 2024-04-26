@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from transopt.datamanager.manager import DataManager
 from transopt.utils.log import logger
-
+from transopt.agent.registry import *
 
 class Message(BaseModel):
     """Model for LLM messages"""
@@ -114,6 +114,14 @@ class OpenAIChat:
                     },
                 },
             },
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_task_problems",
+                    "description": "Get all optimization problems that our system supoorts",
+                    "parameters": {},
+                },
+            },
         ]
                 
         response = self.client.chat.completions.create(
@@ -168,7 +176,52 @@ class OpenAIChat:
     def call_data_manager_function(self, function_name, **kwargs):
         available_functions = {
             "get_all_datasets": self.data_manager.get_all_datasets,
+            "get_task_problems": self.data_manager.get_task_info(),
             "get_dataset_info": lambda: self.data_manager.get_dataset_info(kwargs['dataset_name']),
         }
         function_to_call = available_functions[function_name]
         return json.dumps({"result": function_to_call()})
+    
+    def _initialize_modules(self):
+        import transopt.benchmark.synthetic
+        # import transopt.benchmark.CPD
+        import transopt.optimizer.acquisition_function
+        import transopt.optimizer.model
+        import transopt.optimizer.pretrain
+        import transopt.optimizer.refiner
+        import transopt.optimizer.sampler
+
+    def get_task_problems(self):
+        tasks_info = []
+
+        # tasks information
+        task_names = problem_registry.list_names()
+        for name in task_names:
+            if problem_registry[name].problem_type == "synthetic":
+                num_obj = problem_registry[name].num_objectives
+                num_var = problem_registry[name].num_variables
+                task_info = {
+                    "name": name,
+                    "problem_type": "synthetic",
+                    "Adapt_to_any_dim": "True",
+                    'dim': [],
+                    "num_objs": [1],
+                    "workloads": [],
+                    "fidelity": [],
+                }
+            else:
+                num_obj = problem_registry[name].num_objectives
+                num_var = problem_registry[name].num_variables
+                fidelity = problem_registry[name].fidelity
+                workloads = problem_registry[name].workloads
+                task_info = {
+                    "name": name,
+                    "problem_type": "synthetic",
+                    "Adapt_to_any_dim": False,
+                    "dim": [num_var],
+                    "num_objs": [num_obj],
+                    "workloads": [workloads],
+                    "fidelity": [fidelity],
+                }
+            tasks_info.append(task_info)
+        return tasks_info

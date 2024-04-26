@@ -13,25 +13,25 @@ import {
 const filterOption = (input, option) =>
   (option?.value ?? '').toLowerCase().includes(input.toLowerCase());
 
-function SelectDim({anyDim, dim, name, restField}) {
+function SelectDim({anyDim, num_vars, name, restField}) {
   if (anyDim) {
       return (
         <Form.Item
            {...restField}
-           name={[name, 'dim']}
+           name={[name, 'num_vars']}
          >
-        <Input placeholder="dim" style={{width:"70px"}} />
+        <Input placeholder="num_vars" style={{width:"70px"}} />
         </Form.Item>
       )
   } else {
       return (
         <Form.Item
            {...restField}
-           name={[name, 'dim']}
+           name={[name, 'num_vars']}
          >
            <Select
-             placeholder="dim"
-             options={dim}
+             placeholder="num_vars"
+             options={num_vars}
              style={{width:"70px"}}
            />
          </Form.Item>
@@ -63,16 +63,16 @@ function ATask({key, name, restField, remove, data}) {
                onChange={handleNameChange}
              />
            </Form.Item>
-           <SelectDim anyDim={selectedTask.anyDim} dim={selectedTask.dim.map(item => ({value: item}))} name={name} restField={restField} />
+
+           <SelectDim anyDim={selectedTask.anyDim} num_vars={selectedTask.num_vars.map(item => ({value: item}))} name={name} restField={restField} />
            <Form.Item
              {...restField}
-             name={[name, 'obj']}
-             rules={[{ required: true, message: 'Missing obj' }]}
-           >
-             <Select
-               placeholder="obj"
-               options={selectedTask.obj.map(item => ({value: item}))}
-             />
+             name={[name, 'num_objs']}           
+            >
+            <Select
+              placeholder="num_objs"
+              options={selectedTask.num_objs.map(item => ({value: item}))}
+            />
            </Form.Item>
            <Form.Item
              {...restField}
@@ -118,8 +118,8 @@ function SelectTask({data}) {
     // 构造要发送到后端的数据
     const messageToSend = values.Tasks.map(task => ({
       name: task.name,
-      dim: parseInt(task.dim),
-      obj: task.obj,
+      num_vars: parseInt(task.num_vars),
+      num_objs: task.num_objs,
       fidelity: task.fidelity,
       workloads: task.workloads,
       budget_type: task.budget_type,

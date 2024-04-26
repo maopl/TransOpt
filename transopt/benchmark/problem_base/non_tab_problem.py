@@ -1,12 +1,18 @@
 """ Base-class of configuration optimization benchmarks """
-import os
 import json
 import logging
-import numpy as np
-from typing import Union, Dict, List
+import os
 from pathlib import Path
+from typing import Dict, List, Union
+
+import numpy as np
+
 from transopt.benchmark.problem_base.base import ProblemBase
+
 logger = logging.getLogger("NonTabularProblem")
+
+
+import abc
 
 
 class NonTabularProblem(ProblemBase):
@@ -69,7 +75,7 @@ class NonTabularProblem(ProblemBase):
             some human-readable information
 
         """
-        return self.task_type
+        return self.problem_type
 
     def get_input_dim(self) -> int:
         """Provides the input dimension about the benchmark.
@@ -80,10 +86,10 @@ class NonTabularProblem(ProblemBase):
             some human-readable information
 
         """
-        return self.input_dim
+        return self.num_variables
 
     def get_objective_num(self) -> int:
-        return self.num_objective
+        return self.num_objectives
 
     def lock(self):
         self.lock_flag = True
@@ -93,3 +99,13 @@ class NonTabularProblem(ProblemBase):
 
     def get_lock_state(self) -> bool:
         return self.lock_flag
+    
+    @property
+    @abc.abstractmethod
+    def workloads(self):
+        raise NotImplementedError()
+    
+    @property
+    @abc.abstractmethod
+    def fidelity(self):
+        raise NotImplementedError()

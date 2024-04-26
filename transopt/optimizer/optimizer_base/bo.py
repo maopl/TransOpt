@@ -49,13 +49,13 @@ class BO(OptimizerBase):
         self.evaluator = Sequential(self.ACF, batch_size=1)
             
     
-    def search_space_refine(self, metadata = None):
+    def search_space_refine(self, metadata = None, metadata_info = None):
         if self.SpaceRefiner is not None:
             self.search_space = self.SpaceRefiner.refine_space(self.search_space)
             self.ACF.link_space(self.search_space)
             self.evaluator = Sequential(self.ACF)
             
-    def sample_initial_set(self, metadata = None):
+    def sample_initial_set(self, metadata = None, metadata_info = None):
         return self.Sampler.sample(self.search_space, self.ini_num)
     
     

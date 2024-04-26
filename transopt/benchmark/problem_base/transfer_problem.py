@@ -47,7 +47,7 @@ class TransferProblem:
     def del_task_by_id(self, del_id, name):
         pass
 
-    def get_curid(self):
+    def get_cur_id(self):
         return self.__id
 
     def get_tasks_num(self):
@@ -92,13 +92,13 @@ class TransferProblem:
         return self.tasks[self.__id]
     
     
-    def get_curseed(self):
+    def get_cur_seed(self):
         return self.tasks[self.__id].seed
 
-    def get_curtask_id(self):
+    def get_cur_task_id(self):
         return self.tasks[self.__id].task_id
 
-    def get_curtworkload(self):
+    def get_cur_workload(self):
         return self.tasks[self.__id].workload
 
 

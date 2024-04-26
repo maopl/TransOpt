@@ -133,24 +133,18 @@ class ProblemBase(abc.ABC):
             A valid configuration space for the benchmark's fidelity parameters
         """
         raise NotImplementedError()
-
-
-
-
-    @abc.abstractmethod
-    def get_problem_type(self)->str:
-        return NotImplementedError()
     
     
+    @property
     @abc.abstractmethod
-    def get_meta_information(self) -> Dict:
-        """Provides some meta information about the benchmark.
-
-        Returns
-        -------
-        Dict
-            some human-readable information
-
-        """
+    def problem_type(self):
         raise NotImplementedError()
+    @property
+    @abc.abstractmethod
+    def num_objectives(self):
+        raise NotImplementedError()  
+    @property
+    @abc.abstractmethod
+    def num_variables(self):
+        raise NotImplementedError()  
 

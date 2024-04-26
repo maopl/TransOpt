@@ -48,11 +48,11 @@ def report_update_charts_data():
 @app.route("/api/configuration/select_task", methods=["POST"])
 def configuration_recieve_tasks():
     tasks_info = request.json
-    try:
-        services.receive_tasks(tasks_info) 
-    except Exception as e:
-        logger.error(f"Error in searching dataset: {e}")
-        return jsonify({"error": str(e)}), 500
+    # try:
+    services.receive_tasks(tasks_info) 
+    # except Exception as e:
+    #     logger.error(f"Error in searching dataset: {e}")
+    #     return jsonify({"error": str(e)}), 500
     
     return {"succeed": True}, 200
 

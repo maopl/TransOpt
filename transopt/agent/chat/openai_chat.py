@@ -176,7 +176,7 @@ class OpenAIChat:
     def call_data_manager_function(self, function_name, **kwargs):
         available_functions = {
             "get_all_datasets": self.data_manager.get_all_datasets,
-            "get_task_problems": self.data_manager.get_task_info(),
+            "get_task_problems": self.data_manager.get_task_info,
             "get_dataset_info": lambda: self.data_manager.get_dataset_info(kwargs['dataset_name']),
         }
         function_to_call = available_functions[function_name]
@@ -203,8 +203,8 @@ class OpenAIChat:
                 task_info = {
                     "name": name,
                     "problem_type": "synthetic",
-                    "Adapt_to_any_dim": "True",
-                    'dim': [],
+                    "anyDim": "True",
+                    'num_vars': [],
                     "num_objs": [1],
                     "workloads": [],
                     "fidelity": [],
@@ -217,8 +217,8 @@ class OpenAIChat:
                 task_info = {
                     "name": name,
                     "problem_type": "synthetic",
-                    "Adapt_to_any_dim": False,
-                    "dim": [num_var],
+                    "anyDim": False,
+                    "num_vars": [num_var],
                     "num_objs": [num_obj],
                     "workloads": [workloads],
                     "fidelity": [fidelity],

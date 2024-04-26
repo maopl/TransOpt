@@ -15,7 +15,7 @@
         "ACF":"EI",
         "DatasetSelector":"default",
         "Normalizer":"default",
-        "datasets":["Dataset 1", "Dataset 2"]
+        "metadata":["Dataset 1", "Dataset 2"]
     },
     {
         "name":"Task2jasdlkfjadasdlkfjlkasdjfalksjdfdlaksdfdafsfdlakj",
@@ -33,6 +33,6 @@
         "ACF":"LCB",
         "DatasetSelector":"default",
         "Normalizer":"default",
-        "datasets":["Dataset 3", "Dataset 4"]
+        "metadata":["Dataset 3", "Dataset 4"]
     }
 ]

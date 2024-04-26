@@ -134,7 +134,7 @@ function Info({isExact, data}) {
           </ul>
           <h4 className="mt-5"><strong>Auxiliary Data List</strong></h4>
           <ul>
-            {data.datasets.map((dataset, index) => (
+            {data.metadata.map((dataset, index) => (
               <li key={index}><h6>{dataset}</h6></li>
             ))}
           </ul>

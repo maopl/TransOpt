@@ -32,7 +32,7 @@ class DataManager:
         )
         self.lsh_cache = LSHCache(hasher, num_bands=num_bands)
 
-        datasets = self.db.get_dataset_list()
+        datasets = self.db.get_table_list()
 
         for dataset in datasets:
             dataset_info = self.db.query_dataset_info(dataset)
@@ -57,7 +57,7 @@ class DataManager:
         return similar_datasets
 
     def search_datasets_by_name(self, dataset_name):
-        all_tables = self.db.get_dataset_list()
+        all_tables = self.db.get_table_list()
         matching_tables = [table for table in all_tables if dataset_name.lower() in table.lower()]
         return matching_tables
     
@@ -65,10 +65,7 @@ class DataManager:
         return self.db.query_dataset_info(dataset_name)
     
     def get_all_datasets(self):
-        return self.db.get_dataset_list()
-    
-    def get_experiment_datasets(self):
-        return self.db.get_experiment_datasets()
+        return self.db.get_table_list()
         
     def create_dataset(self, dataset_name, dataset_info, overwrite=True):
         self.db.create_table(dataset_name, dataset_info, overwrite)

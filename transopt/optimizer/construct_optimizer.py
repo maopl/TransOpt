@@ -14,6 +14,7 @@ def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
         SpaceRefiner = None
     else:
         SpaceRefiner = space_refiner_registry[optimizer_config['SpaceRefiner']](optimizer_config['SpaceRefinerParameters'])
+        
     
     if optimizer_config['Sampler'] == 'default':
         Sampler = sampler_registry['lhs'](config={})
@@ -38,10 +39,10 @@ def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
         Model = model_registry[optimizer_config['Model']](config = optimizer_config['ModelParameters'])
     
     
-    if optimizer_config['DataSelector'] == 'default':
-        DataSelector = None
-    else:
-        DataSelector = selector_registry(optimizer_config['DataSelector'], optimizer_config['DataSelectorParameters'])
+    # if optimizer_config['DataSelector'] == 'default':
+    #     DataSelector = None
+    # else:
+    #     DataSelector = selector_registry(optimizer_config['DataSelector'], optimizer_config['DataSelectorParameters'])
     
     if optimizer_config['Normalizer'] == 'default':
         Normalizer = None
@@ -49,7 +50,7 @@ def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
         Normalizer = normalizer_registry(optimizer_config['Normalizer'], optimizer_config['NormalizerParameters'])
         
     
-    optimizer = BO(SpaceRefiner, Sampler, ACF, Pretrain, Model, DataSelector, Normalizer, optimizer_config)
+    optimizer = BO(SpaceRefiner, Sampler, ACF, Pretrain, Model, Normalizer, optimizer_config)
     
     
     return optimizer

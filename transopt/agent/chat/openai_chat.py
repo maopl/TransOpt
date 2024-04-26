@@ -117,7 +117,7 @@ class OpenAIChat:
             {
                 "type": "function",
                 "function": {
-                    "name": "get_task_problems",
+                    "name": "get_all_problems",
                     "description": "Get all optimization problems that our system supoorts",
                     "parameters": {},
                 },
@@ -176,7 +176,7 @@ class OpenAIChat:
     def call_data_manager_function(self, function_name, **kwargs):
         available_functions = {
             "get_all_datasets": self.data_manager.get_all_datasets,
-            "get_task_problems": self.data_manager.get_task_info,
+            "get_all_problems": self.get_all_problems,
             "get_dataset_info": lambda: self.data_manager.get_dataset_info(kwargs['dataset_name']),
         }
         function_to_call = available_functions[function_name]
@@ -191,7 +191,7 @@ class OpenAIChat:
         import transopt.optimizer.refiner
         import transopt.optimizer.sampler
 
-    def get_task_problems(self):
+    def get_all_problems(self):
         tasks_info = []
 
         # tasks information

@@ -167,7 +167,7 @@ class Services:
         return [self.data_manager.db.query_dataset_info(table) for table in all_tables]
     
     def get_experiment_datasets(self):
-        experiment_tables = self.data_manager.db.get_experiment_datasets()
+        experiment_tables = self.data_manager.db.get_table_list()
         return [self.data_manager.db.query_dataset_info(table) for table in experiment_tables] 
     
     def construct_dataset_info(self, task_set, running_config, seed):

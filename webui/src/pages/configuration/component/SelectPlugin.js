@@ -70,6 +70,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
               SpaceRefinerDataSelectorParameters: '',
               Sampler: Sampler[0].name,
               SamplerParameters: '',
+              SamplerInitNum: '11',
               SamplerDataSelector: 'default',
               SamplerDataSelectorParameters: '',
               Pretrain: Pretrain[0].name,

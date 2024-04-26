@@ -40,7 +40,16 @@ def report_send_tasks_information():
 def report_update_charts_data():
     data = request.json
     user_input = data.get("taskname", "")
+    # 其他的图, 数据格式和以前一样 {"RadarData":..., "BarData":..., "ScatterData":...}
+    charts = services.get_report_charts(user_input)
+    return jsonify(charts), 200
 
+
+@app.route("/api/report/trajectory", methods=["POST"])
+def report_update_trajectory_data():
+    data = request.json
+    user_input = data.get("taskname", "")
+    # trajectory, 数据格式和以前一样 {"TrajectoryData":...}
     charts = services.get_report_charts(user_input)
     return jsonify(charts), 200
 
@@ -67,6 +76,7 @@ def configuration_recieve_algorithm():
     #                   'SpaceRefinerDataSelectorParameters': '', 
     #                   'Sampler': 'default', 
     #                   'SamplerParameters': '', 
+    #                   'SamplerInitNum': '11',
     #                   'SamplerDataSelector': 'default', 
     #                   'SamplerDataSelectorParameters': '', 
     #                   'Pretrain': 'default', 

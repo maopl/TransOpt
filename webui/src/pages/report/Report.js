@@ -28,11 +28,38 @@ class Report extends React.Component {
   handleTaskClick = (index) => {
     console.log(index)
     this.setState({ selectedTaskIndex: index });
+    const messageToSend = {
+      taskname:this.state.tasksInfo[this.state.selectedTaskIndex].name,
+    }
+    fetch('http://localhost:5000/api/report/charts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(messageToSend),
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      } 
+      return response.json();
+    })
+    .then(data => {
+      // console.log('Message from back-end:', data);
+      this.setState({
+        BarData: data.BarData,
+        RadarData: data.RadarData,
+        ScatterData: data.ScatterData,
+      })
+    })
+    .catch((error) => {
+      console.error('Error sending message:', error);
+    });
   }
 
   componentDidMount() {
     // 开始定时调用 fetchData 函数
-    this.intervalId = setInterval(this.fetchData, 5000);
+    this.intervalId = setInterval(this.fetchData, 2000);
   }
 
   componentWillUnmount() {
@@ -45,7 +72,7 @@ class Report extends React.Component {
       const messageToSend = {
         taskname:this.state.tasksInfo[this.state.selectedTaskIndex].name,
       }
-      const response = await fetch('http://localhost:5000/api/report/charts', {
+      const response = await fetch('http://localhost:5000/api/report/trajectory', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -59,9 +86,9 @@ class Report extends React.Component {
       console.log('Data from server:', data);
       // 在这里处理从服务器获取的数据
       this.setState({
-        BarData: data.BarData,
-        RadarData: data.RadarData,
-        ScatterData: data.ScatterData,
+        // BarData: data.BarData,
+        // RadarData: data.RadarData,
+        // ScatterData: data.ScatterData,
         TrajectoryData: data.TrajectoryData
       })
       // console.log('State:', this.state.BarData)
@@ -98,6 +125,7 @@ class Report extends React.Component {
       .catch((error) => {
         console.error('Error sending message:', error);
       });
+
       
       // Set the default task as the first task in the list
       return (
@@ -108,6 +136,34 @@ class Report extends React.Component {
         </div>
       )
     } else {
+      const messageToSend = {
+        taskname:this.state.tasksInfo[this.state.selectedTaskIndex].name,
+      }
+      fetch('http://localhost:5000/api/report/charts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(messageToSend),
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        } 
+        return response.json();
+      })
+      .then(data => {
+        // console.log('Message from back-end:', data);
+        this.setState({
+          BarData: data.BarData,
+          RadarData: data.RadarData,
+          ScatterData: data.ScatterData,
+        })
+      })
+      .catch((error) => {
+        console.error('Error sending message:', error);
+      });
+
       return (
         <div className={s.root}>
           <h1 className="page-title">

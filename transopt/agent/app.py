@@ -29,7 +29,7 @@ def report_send_tasks_information():
     data = request.json
     user_input = data.get("paremeter", "")
     
-    all_tasks = [task_info['additional_config'] for task_info in services.get_all_tasks()]
+    all_tasks = [task_info['additional_config'] for task_info in services.get_experiment_datasets()]
     
     # with open("./page_service_data/task_information.json", "w") as file:
         # json.dump(all_tasks, file)

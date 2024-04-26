@@ -154,9 +154,13 @@ class Services:
         self.running_config.set_metadata(metadata_info)
         return
 
-    def get_all_tasks(self):
+    def get_all_datasets(self):
         all_tables = self.data_manager.db.get_table_list()
         return [self.data_manager.db.query_dataset_info(table) for table in all_tables]
+    
+    def get_experiment_datasets(self):
+        experiment_tables = self.data_manager.db.get_experiment_datasets()
+        return [self.data_manager.db.query_dataset_info(table) for table in experiment_tables] 
     
     def construct_dataset_info(self, task_set, running_config):
         dataset_info = {}

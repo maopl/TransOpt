@@ -60,7 +60,7 @@ def configuration_recieve_tasks():
 @app.route("/api/configuration/select_algorithm", methods=["POST"])
 def configuration_recieve_algorithm():
     optimizer_info = request.json
-    # print(optimizer_info)
+    print(optimizer_info)
     # optimizer_info = {'SpaceRefiner': 'default', 
     #                   'SpaceRefinerParameters': '', 
     #                   'SpaceRefinerDataSelector': 'default', 

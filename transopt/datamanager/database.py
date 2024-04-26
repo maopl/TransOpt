@@ -14,8 +14,9 @@ Descriptions of the reserved database tables.
 table_descriptions = {
 
     '_config': '''
-        name varchar(50) not null,
+        name varchar(255) not null,
         config text not null
+        is_experiment boolean default 1
         ''',
 
 }
@@ -129,7 +130,20 @@ class Database:
             "SELECT name FROM sqlite_master WHERE type='table'", fetchall=True
         )
         return [table[0] for table in table_list if table[0] not in self.reserved_tables]
-
+   
+    def get_dataset_list(self):
+        dataset_list = self.execute(
+            "SELECT name FROM _config", fetchall=True
+        )
+        return [dataset[0] for dataset in dataset_list]
+   
+    def get_experiment_dataset_list(self):
+        """Get the list of all experiment tables."""
+        dataset_list = self.execute(
+            "SELECT name FROM _config WHERE is_experiment=1", fetchall=True
+        )
+        return [dataset[0] for dataset in dataset_list]
+    
     def check_table_exist(self, name):
         """Check if a certain database table exists."""
         table_exists = self.execute(
@@ -139,7 +153,7 @@ class Database:
         )
         return table_exists is not None
 
-    def create_table(self, name, dataset_cfg, overwrite=False):
+    def create_table(self, name, dataset_cfg, overwrite=False, is_experiment=True):
         """
         Create and initialize a database table based on problem configuration.
 
@@ -201,7 +215,7 @@ class Database:
             index_columns_string = ', '.join([f'"{column}"' for column in index_columns])
             self.execute(f'CREATE INDEX "idx_{name}_vars_fids" ON "{name}" ({index_columns_string})')
         
-        self.create_or_update_config(name, dataset_cfg)
+        self.create_or_update_config(name, dataset_cfg, is_experiment)
 
     def remove_table(self, name):
         if not self.check_table_exist(name):
@@ -213,7 +227,7 @@ class Database:
     config
     '''
 
-    def create_or_update_config(self, name, dataset_cfg):
+    def create_or_update_config(self, name, dataset_cfg, is_experiment=True):
         """
         Create or update a configuration entry in the _config table for a given table.
         """
@@ -229,10 +243,12 @@ class Database:
             )
         else:
             # Insert a new configuration
-            self.execute(
-                "INSERT INTO _config (name, config) VALUES (?, ?)",
-                (name, config_json)
-            )
+            if is_experiment:
+                sql_statement = "INSERT INTO _config (name, config, is_experiment) VALUES (?, ?, 1)"
+            else:
+                sql_statement = "INSERT INTO _config (name, config, is_experiment) VALUES (?, ?, 0)"
+                
+            self.execute(sql_statement, (name, config_json))
     
         self.commit()
         

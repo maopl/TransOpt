@@ -5,6 +5,7 @@ import {
     Checkbox,
     ConfigProvider,
     Modal,
+    Select,
 } from "antd";
 
 const CheckboxGroup = Checkbox.Group;
@@ -17,6 +18,7 @@ function SelectData({DatasetData}) {
       data = DatasetData.datasets
     }
     const [checkedList, setCheckedList] = useState([]);
+    const [selectedOption, setSelectedOption] = useState();
     const checkAll = data.length === checkedList.length;
     const indeterminate = checkedList.length > 0 && checkedList.length < data.length;
     const onChange = (list) => {
@@ -25,10 +27,17 @@ function SelectData({DatasetData}) {
     const onCheckAllChange = (e) => {
         setCheckedList(e.target.checked ? data : []);
     };
+    const handleSelectChange = (value) => {
+      setSelectedOption(value); // 当选择发生变化时更新选项
+    };
     const handelClick = () => {
-      const messageToSend = checkedList.map(item => {
+      const datasetList = checkedList.map(item => {
         return item;
       });
+      const messageToSend = {
+        object: selectedOption,
+        datasets: datasetList,
+      }
       console.log(messageToSend)
       fetch('http://localhost:5000/api/configuration/dataset', {
         method: 'POST',
@@ -78,7 +87,18 @@ function SelectData({DatasetData}) {
           </div>
           <Info  isExact={DatasetData.isExact} data={DatasetData.datasets}/>
           <div style={{marginTop:"20px"}}>
-            <Button type="primary" htmlType="submit" style={{width:"120px"}} onClick={handelClick}>
+            <Select
+            style={{minWidth: 170}}
+            options={[ {value: "Space refiner"},
+                        {value: "Sampler"},
+                        {value: "Pre-train"},
+                        {value: "Model"},
+                        {value: "Acquisition function"},
+                        {value: "Normalizer"}
+                    ]}
+            onChange={handleSelectChange}
+            />
+            <Button type="primary" htmlType="submit" style={{width:"120px", marginLeft:10}} onClick={handelClick}>
               Submit
             </Button>
           </div>
@@ -114,7 +134,7 @@ function Info({isExact, data}) {
           </ul>
           <h4 className="mt-5"><strong>Auxiliary Data List</strong></h4>
           <ul>
-            {data.datasets.map((dataset, index) => (
+            {data.metadata.map((dataset, index) => (
               <li key={index}><h6>{dataset}</h6></li>
             ))}
           </ul>

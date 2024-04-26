@@ -172,7 +172,7 @@ class Report extends React.Component {
                       </ul>
                       <h4 className="mt-5"><strong>Auxiliary Data List</strong></h4>
                       <ul>
-                        {this.state.tasksInfo[this.state.selectedTaskIndex].datasets.map((dataset, index) => (
+                        {this.state.tasksInfo[this.state.selectedTaskIndex].metadata.map((dataset, index) => (
                           <li key={index}><h5>{dataset}</h5></li>
                         ))}
                       </ul>

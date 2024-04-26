@@ -29,7 +29,7 @@ def report_send_tasks_information():
     data = request.json
     user_input = data.get("paremeter", "")
     
-    all_tasks = [task_info['additional_config'] for task_info in services.get_all_tasks()]
+    all_tasks = [task_info['additional_config'] for task_info in services.get_experiment_datasets()]
     
     # with open("./page_service_data/task_information.json", "w") as file:
         # json.dump(all_tasks, file)
@@ -60,6 +60,26 @@ def configuration_recieve_tasks():
 @app.route("/api/configuration/select_algorithm", methods=["POST"])
 def configuration_recieve_algorithm():
     optimizer_info = request.json
+    # print(optimizer_info)
+    # optimizer_info = {'SpaceRefiner': 'box',
+    #                   'SpaceRefinerDataSelector': 'default',
+    #                   'SpaceRefinerParameters': '',
+    #                   'Sampler': 'random', 
+    #                   'SamplerDataSelector': 'default', 
+    #                   'SamplerParameters': '', 
+    #                   'Pretrain': 'deepkernel', 
+    #                   'PretrainDataSelector': 'default', 
+    #                   'PretrainParameters': '', 
+    #                   'Model': 'default', 
+    #                   'ModelDataSelector': 'default', 
+    #                   'ModelParameters': '', 
+    #                   'ACF': 'LCB', 
+    #                   'ACFDataSelector': 'default', 
+    #                   'ACFParameters': '', 
+    #                   'Normalizer': 'default', 
+    #                   'NormalizerDataSelector': 
+    #                   'default', 
+    #                   'NormalizerParameters': ''}
     try:
         services.receive_optimizer(optimizer_info)
     except Exception as e:
@@ -83,6 +103,11 @@ def configuration_basic_information():
 @app.route("/api/configuration/dataset", methods=["POST"])
 def configuration_dataset():
     metadata_info = request.json
+    # print(metadata_info)
+    # metadate_info = {
+    #     "object": "Space refiner",
+    #     "datasets": ["dataset1", "dataset2]
+    # }
     try:
         services.select_dataset(metadata_info)
     except Exception as e:

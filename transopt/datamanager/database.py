@@ -14,7 +14,7 @@ Descriptions of the reserved database tables.
 table_descriptions = {
 
     '_config': '''
-        name varchar(50) not null,
+        name varchar(255) not null,
         config text not null
         ''',
 

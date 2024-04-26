@@ -60,6 +60,26 @@ def configuration_recieve_tasks():
 @app.route("/api/configuration/select_algorithm", methods=["POST"])
 def configuration_recieve_algorithm():
     optimizer_info = request.json
+    # print(optimizer_info)
+    # optimizer_info = {'SpaceRefiner': 'box',
+    #                   'SpaceRefinerDataSelector': 'default',
+    #                   'SpaceRefinerParameters': '',
+    #                   'Sampler': 'random', 
+    #                   'SamplerDataSelector': 'default', 
+    #                   'SamplerParameters': '', 
+    #                   'Pretrain': 'deepkernel', 
+    #                   'PretrainDataSelector': 'default', 
+    #                   'PretrainParameters': '', 
+    #                   'Model': 'default', 
+    #                   'ModelDataSelector': 'default', 
+    #                   'ModelParameters': '', 
+    #                   'ACF': 'LCB', 
+    #                   'ACFDataSelector': 'default', 
+    #                   'ACFParameters': '', 
+    #                   'Normalizer': 'default', 
+    #                   'NormalizerDataSelector': 
+    #                   'default', 
+    #                   'NormalizerParameters': ''}
     try:
         services.receive_optimizer(optimizer_info)
     except Exception as e:

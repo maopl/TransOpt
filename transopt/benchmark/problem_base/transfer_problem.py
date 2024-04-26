@@ -57,12 +57,15 @@ class TransferProblem:
         return len(self.tasks) - self.__id
 
     def get_rest_budget(self):
-        return self.get_curbudget() - self.get_query_num()
+        return self.get_cur_budget() - self.get_query_num()
 
     def get_query_num(self):
         return self.query_nums[self.__id]
 
-    def get_curbudget(self):
+    def get_cur_budgettype(self):
+        return self.tasks[self.__id].get_budget_type()
+
+    def get_cur_budget(self):
         return self.tasks[self.__id].get_budget()
 
     def get_curname(self):
@@ -164,7 +167,7 @@ class TransferProblem:
     ):
         if isinstance(configuration, list):
             if (
-                self.get_query_num() + len(configuration) > self.get_curbudget()
+                self.get_query_num() + len(configuration) > self.get_cur_budget()
                 and self.get_lockstate() == False
             ):
                 logger.error(
@@ -188,7 +191,7 @@ class TransferProblem:
             return results
         else:
             if (
-                self.get_query_num() >= self.get_curbudget()
+                self.get_query_num() >= self.get_cur_budget()
                 and self.get_lockstate() == False
             ):
                 logger.error(
@@ -196,10 +199,11 @@ class TransferProblem:
                 )
                 raise EnvironmentError
 
-            self.tasks[self.__id].f(configuration, fidelity)
+            result = self.tasks[self.__id].f(configuration, fidelity)
             self.add_query_num()
+            return result
 
-            raise TypeError(f"Unrecognized task type.")
+            # raise TypeError(f"Unrecognized task type.")
 
 
 class RemoteTransferOptBenchmark(TransferProblem):

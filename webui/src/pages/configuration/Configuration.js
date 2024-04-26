@@ -15,6 +15,7 @@ import ChatUI from "./component/ChatUI";
 import SelectData from "./component/SelectData";
 import SearchData from "./component/SearchData"
 import Run from "./component/Run"
+import TaskProgress from "./component/TaskProgress"
 
 
 
@@ -29,7 +30,8 @@ class Configuration extends React.Component {
       Model: [],
       ACF: [],
       DataSelector: [],
-      DatasetData: []
+      Normalizer: [],
+      DatasetData: {"isExact": false, "datasets": []}
     };
   }
 
@@ -65,6 +67,7 @@ class Configuration extends React.Component {
                         Model: data.Model,
                         ACF: data.ACF,
                         DataSelector: data.DataSelector,
+                        Normalizer: data.Normalizer,
                       });
       })
       .catch((error) => {
@@ -114,6 +117,7 @@ class Configuration extends React.Component {
                                     Model={this.state.Model}
                                     ACF={this.state.ACF}
                                     DataSelector={this.state.DataSelector}
+                                    Normalizer={this.state.Normalizer}
                   />
                 </Widget>
               </Col>
@@ -130,7 +134,7 @@ class Configuration extends React.Component {
                   <p>
                     Choose the datasets you want to use in the experiment.
                   </p>
-                  <SelectData data={this.state.DatasetData}/>
+                  <SelectData DatasetData={this.state.DatasetData}/>
                 </Widget>
               </Col>
               <Col lg={12} sm={12}>
@@ -143,6 +147,7 @@ class Configuration extends React.Component {
                   collapse
                 >
                   <Run />
+                  {/* <TaskProgress /> */}
                 </Widget>
               </Col>
             </Row>

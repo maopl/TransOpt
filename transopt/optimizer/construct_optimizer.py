@@ -1,7 +1,7 @@
 
 from transopt.agent.registry import (acf_registry, sampler_registry,
                                      selector_registry, space_refiner_registry,
-                                     model_registry, pretrain_registry)
+                                     model_registry, pretrain_registry, normalizer_registry)
 from transopt.optimizer.model.get_model import get_model
 from transopt.optimizer.optimizer_base.bo import BO
 from transopt.optimizer.pretrain.get_pretrain import get_pretrain
@@ -35,7 +35,7 @@ def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
     if optimizer_config['Model'] == 'default':
         Model = model_registry['GP'](config={'kernel': 'RBF'})
     else:
-        Model = model_registry[optimizer_config['Model']](optimizer_config['ModelParameters'])
+        Model = model_registry[optimizer_config['Model']](config = optimizer_config['ModelParameters'])
     
     
     if optimizer_config['DataSelector'] == 'default':
@@ -43,7 +43,13 @@ def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
     else:
         DataSelector = selector_registry(optimizer_config['DataSelector'], optimizer_config['DataSelectorParameters'])
     
-    optimizer = BO(SpaceRefiner, Sampler, ACF, Pretrain, Model, DataSelector, optimizer_config)
+    if optimizer_config['Normalizer'] == 'default':
+        Normalizer = None
+    else:
+        Normalizer = normalizer_registry(optimizer_config['Normalizer'], optimizer_config['NormalizerParameters'])
+        
+    
+    optimizer = BO(SpaceRefiner, Sampler, ACF, Pretrain, Model, DataSelector, Normalizer, optimizer_config)
     
     
     return optimizer

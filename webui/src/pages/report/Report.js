@@ -67,7 +67,6 @@ class Report extends React.Component {
       // console.log('State:', this.state.BarData)
     } catch (error) {
       console.error('Error fetching data:', error);
-      // 在这里处理错误
     }
   };
 
@@ -169,10 +168,11 @@ class Report extends React.Component {
                         <li><h5><span className="fw-semi-bold">Model</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].Model}</h5></li>
                         <li><h5><span className="fw-semi-bold">ACF</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].ACF}</h5></li>
                         <li><h5><span className="fw-semi-bold">DatasetSelector</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].DatasetSelector}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Normalizer</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].Normalizer}</h5></li>
                       </ul>
                       <h4 className="mt-5"><strong>Auxiliary Data List</strong></h4>
                       <ul>
-                        {this.state.tasksInfo[this.state.selectedTaskIndex].datasets.map((dataset, index) => (
+                        {this.state.tasksInfo[this.state.selectedTaskIndex].metadata.map((dataset, index) => (
                           <li key={index}><h5>{dataset}</h5></li>
                         ))}
                       </ul>

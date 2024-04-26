@@ -10,46 +10,13 @@ import {
     Input,
     Form,
     ConfigProvider,
+    Select,
+    Modal,
 } from "antd";
 
-function DecimalStep({ name, inputValue, onChange }) {
-  return (
-    <Row>
-      <Col span={6}>
-          <h5 style={{ height: '100%', lineHeight: '100%', color:'white' }}>{name}</h5>
-      </Col>
-      <Col span={10}>
-        <Slider
-          min={0}
-          max={1}
-          onChange={onChange}
-          value={typeof inputValue === 'number' ? inputValue : 0}
-          step={0.01}
-        />
-      </Col>
-      <Col span={4}>
-        <InputNumber
-          min={0}
-          max={1}
-          style={{ margin: '0 16px' }}
-          step={0.01}
-          value={inputValue}
-          onChange={onChange}
-        />
-      </Col>
-    </Row>
-  );
-};
+
 function SearchData({set_dataset}) {
-  const [values, setValues] = useState({
-    task_name: "",
-    num_variables: 0,
-    variables_name: "",
-    num_objectives: 0,
-  });
-
   const [form] = Form.useForm()
-
 
   const onFinish = (values) => {
     const messageToSend = values;
@@ -68,13 +35,18 @@ function SearchData({set_dataset}) {
       } 
       return response.json();
     })
-    .then(data => {
-      console.log('Message from back-end:', data);
-      // 返回dataset
-      set_dataset(data)
-    })
+    .then(message => {
+      console.log('Message from back-end:', message);
+        set_dataset(message)
+      }
+    )
     .catch((error) => {
       console.error('Error sending message:', error);
+      var errorMessage = error.error;
+      Modal.error({
+        title: 'Information',
+        content: 'Error:' + errorMessage
+      })
     });
   }
 
@@ -123,11 +95,24 @@ function SearchData({set_dataset}) {
           <Input addonBefore={"Num of Objectives"}/>
         </Form.Item>
       </Space>
+      <h6 style={{color:"white"}}>Search method:</h6>
+      <Space className="space" style={{ display: 'flex'}} align="baseline">
+      <Form.Item
+        name="search_method"
+      >
+        <Select style={{minWidth: 150}}
+          options={[ {value: "Hash"},
+                      {value: "Fuzzy"},
+                      {value: "LSH"},
+                  ]}
+        />
+      </Form.Item>
       <Form.Item>
         <Button type="primary" htmlType="submit" style={{width:"120px"}}>
           Search
         </Button>
       </Form.Item>
+      </Space>
     </Form>
     </ConfigProvider>
   )

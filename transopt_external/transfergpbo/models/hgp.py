@@ -165,7 +165,7 @@ class HGP(GPBO):
         Y_metadata = dict(output_index=_X[:, [-1]].astype(int))
 
         if self._gpy_model is None:
-            self._gpy_model = GP(
+            self._gpy_model = GPBO(
                 X=_X,
                 Y=_y,
                 kernel=self.kernel,

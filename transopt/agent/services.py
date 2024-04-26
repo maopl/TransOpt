@@ -26,7 +26,7 @@ class Services:
 
     def _initialize_modules(self):
         import transopt.benchmark.synthetic
-        import transopt.benchmark.CPD
+        # import transopt.benchmark.CPD
         import transopt.optimizer.acquisition_function
         import transopt.optimizer.model
         import transopt.optimizer.pretrain
@@ -42,6 +42,7 @@ class Services:
         acf_info = [{"name": "default"}]
         pretrain_info = [{"name": "default"}]
         refiner_info = [{"name": "default"}]
+        normalizer_info = [{"name": "default"}]
 
         # tasks information
         task_names = problem_registry.list_names()
@@ -96,13 +97,30 @@ class Services:
         for name in selector_names:
             selector_info.append({"name": name})
         basic_info["DataSelector"] = selector_info
+        
+        normalizer_names = selector_registry.list_names()
+        for name in normalizer_names:
+            normalizer_info.append({"name": name})
+        basic_info["Normalizer"] = normalizer_info
 
         return basic_info
 
-    def search_dataset(self, dataset_name, dataset_info):
-        datasets_list = list(
-            self.data_manager.search_similar_datasets(dataset_name, dataset_info)
-        )
+    def search_dataset(self, search_method, dataset_name, dataset_info):
+        if search_method == 'Fuzzy':
+            datasets_list = {"isExact": False, 
+                             "datasets": list(self.data_manager.search_datasets_by_name(dataset_name))}
+        elif search_method == 'Hash':
+            dataset_detail_info = self.data_manager.get_dataset_info(dataset_name)
+            if dataset_detail_info:
+                datasets_list = {"isExact": True, "datasets": dataset_detail_info['additional_config']}
+            else:
+                raise ValueError("Dataset not found")
+        elif search_method == 'LSH':
+            datasets_list = {"isExact": False, 
+                             "datasets":list(self.data_manager.search_similar_datasets(dataset_name, dataset_info))}
+            
+        else:
+            raise ValueError("Invalid search method")
 
         return datasets_list
 
@@ -139,71 +157,103 @@ class Services:
     def get_all_tasks(self):
         all_tables = self.data_manager.db.get_table_list()
         return [self.data_manager.db.query_dataset_info(table) for table in all_tables]
+    
+    def construct_dataset_info(self, task_set, running_config):
+        dataset_info = {}
+        dataset_info["variables"] = [
+            {"name": var.name, "type": var.type, "range": var.range}
+            for var_name, var in task_set.get_cur_searchspace_info().items()
+        ]
+        dataset_info["objectives"] = [
+            {"name": name, "type": type}
+            for name, type in task_set.get_curobj_info().items()
+        ]
+        dataset_info["fidelities"] = [
+            {"name": var.name, "type": var.type, "range": var.range}
+            for var_name, var in task_set.get_cur_fidelity_info().items()
+        ]
+
+        dataset_info['additional_config'] = {
+            "name": task_set.get_curname(),
+            "dim": len(dataset_info["variables"]),
+            "obj": len(dataset_info["objectives"]),
+            "fidelity": ', '.join([d['name'] for d in dataset_info["fidelities"] if 'name' in d]) if len(dataset_info["fidelities"]) == 0 else '',
+            "workloads": task_set.get_curtworkload(),
+            "budget_type": task_set.get_cur_budgettype(),
+            "budget": task_set.get_cur_budget(),
+            "seeds": task_set.get_curseed(),
+            "SpaceRefiner": running_config.optimizer['SpaceRefiner'],
+            "Sampler": running_config.optimizer['Sampler'],
+            "Pretrain": running_config.optimizer['Pretrain'],
+            "Model": running_config.optimizer['Model'],
+            "ACF": running_config.optimizer['ACF'],
+            "DatasetSelector": running_config.optimizer['DataSelector'],
+            "Normalizer": running_config.optimizer['Normalizer'],
+            "datasets": running_config.metadata if running_config.metadata else [],
+        }
+        return dataset_info
+    
+    def get_metadata(self):
+        if self.running_config.metadata:
+            metadata = {}
+            metadata_info = {}
+            for dataset_name in self.running_config.metadata:
+                metadata[dataset_name] = self.data_manager.db.select_data(dataset_name)
+                metadata_info[dataset_name] = self.data_manager.db.query_dataset_info(dataset_name)
+            return metadata, metadata_info
+        else:
+            return None
+                
 
     def run_optimize(self, seeds_info):
         seeds = [int(seed) for seed in seeds_info.split(",")]
-        data_manager = DataManager()
         for seed in seeds:
             task_set = InstantiateProblems(self.running_config.tasks, seed)
             optimizer = ConstructOptimizer(self.running_config.optimizer, seed)
-
-            def construct_dataset_info(task_set):
-                dataset_info = {}
-                dataset_info["variables"] = [
-                    {"name": var.name, "type": var.type, "range": var.range}
-                    for var_name, var in task_set.get_cur_searchspace_info().items()
-                ]
-                dataset_info["objectives"] = [
-                    {"name": name, "type": type}
-                    for name, type in task_set.get_curobj_info().items()
-                ]
-                dataset_info["fidelities"] = [
-                    {"name": var.name, "type": var.type, "range": var.range}
-                    for var_name, var in task_set.get_cur_fidelity_info().items()
-                ]
-
-                return dataset_info
             
             def save_data(parameters, observations):
                 data = [{} for i in range(len(parameters))]
                 [data[i].update(parameters[i]) for i in range(len(parameters))]
                 [data[i].update(observations[i]) for i in range(len(parameters))]
                 [data[i].update({'batch':iterations}) for i in range(len(parameters))]
-                data_manager.db.insert_data(task_set.get_curname(), data)
+                self.data_manager.db.insert_data(task_set.get_curname(), data)
             
-            while (task_set.get_unsolved_num()):
-                iterations = 0
-                search_space = task_set.get_cur_searchspace()
-                dataset_info = construct_dataset_info(task_set)
-                
-                data_manager.db.create_table(task_set.get_curname(), dataset_info, overwrite=True)
-                optimizer.link_task(task_name=task_set.get_curname(), search_sapce=search_space)
-                optimizer.set_metadata()
-                optimizer.search_space_refine()
-                samples = optimizer.sample_initial_set()
-                parameters = [search_space.map_to_design_space(sample) for sample in samples]
-                observations = task_set.f(parameters)
-                save_data(parameters, observations)
-                
-                #Pretrain
-                optimizer.meta_fit()
-                
-                #Train
-                
-                optimizer.observe(samples, observations)
-                
-                while (task_set.get_rest_budget()):
-                    suggested_sample = optimizer.suggest()
-                    parameters = search_space.map_to_design_space(suggested_sample)
+            try:
+                while (task_set.get_unsolved_num()):
+                    iterations = 0
+                    search_space = task_set.get_cur_searchspace()
+                    dataset_info = self.construct_dataset_info(task_set, self.running_config)
+                    
+                    self.data_manager.db.create_table(task_set.get_curname(), dataset_info, overwrite=True)
+                    optimizer.link_task(task_name=task_set.get_curname(), search_sapce=search_space)
+                    metadata, metadata_info = self.get_metadata()
+                    optimizer.search_space_refine(metadata)
+                    samples = optimizer.sample_initial_set(metadata)
+                    parameters = [search_space.map_to_design_space(sample) for sample in samples]
                     observations = task_set.f(parameters)
+                    save_data(parameters, observations)
                     
+                    optimizer.observe(samples, observations)
                     
-                    data_manager.db.insert_data(task_set.get_curname(), [parameters[i].update(observations[i]) for i in range(len(parameters))])
-                    
-                    optimizer.observe(search_space.map_from_design_space(suggested_sample), observations)
-                    # if self.verbose:
-                    #     self.visualization(testsuits, suggested_sample)
-                task_set.roll()
+                    #Pretrain
+                    optimizer.meta_fit(metadata, metadata_info)
+            
+                    while (task_set.get_rest_budget()):
+                        optimizer.fit()
+                        suggested_samples = optimizer.suggest()
+                        parameters = [search_space.map_to_design_space(sample) for sample in suggested_samples]
+                        observations = task_set.f(parameters)
+                        save_data(parameters, observations)
+                        
+                        optimizer.observe(suggested_samples, observations)
+                        iterations += 1
+                        
+                        print("Seed: ", seed, "Task: ", task_set.get_curname(), "Iteration: ", iterations)
+                        # if self.verbose:
+                        #     self.visualization(testsuits, suggested_sample)
+                    task_set.roll()
+            except Exception as e:
+                raise e
 
     def get_report_charts(self, task_name):
         all_data = self.data_manager.db.select_data(task_name)

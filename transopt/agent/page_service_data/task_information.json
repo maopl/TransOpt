@@ -14,7 +14,8 @@
         "Model":"default",
         "ACF":"EI",
         "DatasetSelector":"default",
-        "datasets":["Dataset 1", "Dataset 2"]
+        "Normalizer":"default",
+        "metadata":["Dataset 1", "Dataset 2"]
     },
     {
         "name":"Task2jasdlkfjadasdlkfjlkasdjfalksjdfdlaksdfdafsfdlakj",
@@ -31,6 +32,7 @@
         "Model":"GP",
         "ACF":"LCB",
         "DatasetSelector":"default",
-        "datasets":["Dataset 3", "Dataset 4"]
+        "Normalizer":"default",
+        "metadata":["Dataset 3", "Dataset 4"]
     }
 ]

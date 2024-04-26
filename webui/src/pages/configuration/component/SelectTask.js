@@ -143,12 +143,17 @@ function SelectTask({data}) {
       .then(succeed => {
         console.log('Message from back-end:', succeed);
         Modal.success({
-          title: 'Tasks List',
+          title: 'Information',
           content: 'Submit successfully!'
         })
       })
       .catch((error) => {
         console.error('Error sending message:', error);
+        var errorMessage = error.error;
+        Modal.error({
+          title: 'Information',
+          content: 'error:' + errorMessage
+        })
       });
   };
 

@@ -29,7 +29,10 @@ def report_send_tasks_information():
     data = request.json
     user_input = data.get("paremeter", "")
     
-    all_tasks = services.get_all_tasks()
+    all_tasks = [task_info['additional_config'] for task_info in services.get_all_tasks()]
+    
+    # with open("./page_service_data/task_information.json", "w") as file:
+        # json.dump(all_tasks, file)
     return jsonify(all_tasks), 200
 
 
@@ -45,16 +48,44 @@ def report_update_charts_data():
 @app.route("/api/configuration/select_task", methods=["POST"])
 def configuration_recieve_tasks():
     tasks_info = request.json
+    try:
+        services.receive_tasks(tasks_info) 
+    except Exception as e:
+        logger.error(f"Error in searching dataset: {e}")
+        return jsonify({"error": str(e)}), 500
     
-    services.receive_tasks(tasks_info)
     return {"succeed": True}, 200
 
 
 @app.route("/api/configuration/select_algorithm", methods=["POST"])
 def configuration_recieve_algorithm():
     optimizer_info = request.json
-
-    services.receive_optimizer(optimizer_info)
+    # print(optimizer_info)
+    # optimizer_info = {'SpaceRefiner': 'box',
+    #                   'SpaceRefinerDataSelector': 'default',
+    #                   'SpaceRefinerParameters': '',
+    #                   'Sampler': 'random', 
+    #                   'SamplerDataSelector': 'default', 
+    #                   'SamplerParameters': '', 
+    #                   'Pretrain': 'deepkernel', 
+    #                   'PretrainDataSelector': 'default', 
+    #                   'PretrainParameters': '', 
+    #                   'Model': 'default', 
+    #                   'ModelDataSelector': 'default', 
+    #                   'ModelParameters': '', 
+    #                   'ACF': 'LCB', 
+    #                   'ACFDataSelector': 'default', 
+    #                   'ACFParameters': '', 
+    #                   'Normalizer': 'default', 
+    #                   'NormalizerDataSelector': 
+    #                   'default', 
+    #                   'NormalizerParameters': ''}
+    try:
+        services.receive_optimizer(optimizer_info)
+    except Exception as e:
+        logger.error(f"Error in searching dataset: {e}")
+        return jsonify({"error": str(e)}), 500
+    
     return {"succeed": True}, 200
 
 
@@ -64,14 +95,25 @@ def configuration_basic_information():
     user_input = data.get("paremeter", "")
 
     task_data = services.get_modules()
+    # with open('transopt/agent/page_service_data/configuration_basic.json', 'r') as file:
+    #     data = json.load(file)
     return jsonify(task_data), 200
 
 
 @app.route("/api/configuration/dataset", methods=["POST"])
 def configuration_dataset():
     metadata_info = request.json
+    # print(metadata_info)
+    # metadate_info = {
+    #     "object": "Space refiner",
+    #     "datasets": ["dataset1", "dataset2]
+    # }
+    try:
+        services.select_dataset(metadata_info)
+    except Exception as e:
+        logger.error(f"Error in searching dataset: {e}")
+        return jsonify({"error": str(e)}), 500
     
-    services.select_dataset(metadata_info)
     return {"succeed": True}, 200
 
 
@@ -81,14 +123,20 @@ def configuration_search_dataset():
         data = request.json
 
         dataset_name = data["task_name"]
-        dataset_info = {
-            "num_variables": data["num_variables"],
-            "num_objectives": data["num_objectives"],
-            "variables": [
-                {"name": var_name} for var_name in data["variables_name"].split(",")
-            ],
-        }
-        datasets = services.search_dataset(dataset_name, dataset_info)
+        if data['search_method'] == 'Fuzzy' or 'Hash':
+            dataset_info = {}
+        elif data['search_method'] == 'LSH':
+            dataset_info = {
+                "num_variables": data["num_variables"],
+                "num_objectives": data["num_objectives"],
+                "variables": [
+                    {"name": var_name} for var_name in data["variables_name"].split(",")
+                ],
+            }
+        else:
+            pass
+        datasets = services.search_dataset(data['search_method'], dataset_name, dataset_info)
+
         return jsonify(datasets), 200
     except Exception as e:
         logger.error(f"Error in searching dataset: {e}")
@@ -100,14 +148,14 @@ def configuration_run():
     run_info = request.json
     print(run_info)
 
-    try:
-        services.run_optimize(seeds_info = run_info['Seeds'])
-    except:
-        raise Exception("Error in running the optimization")
-        # return {"Failed": False}, 200
+    # try:
+    services.run_optimize(seeds_info = run_info['Seeds'])
+    # except Exception as e:
+    #     logger.error(f"Error in optimization: {e}")
+    #     return jsonify({"error": str(e)}), 500
 
     # 返回处理后的响应给前端
-    return {"Succeed": True}, 200
+    return {"isSucceed": True}, 200
 
 
 @app.route("/api/comparison/tasks", methods=["POST"])

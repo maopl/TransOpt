@@ -61,25 +61,30 @@ def configuration_recieve_tasks():
 def configuration_recieve_algorithm():
     optimizer_info = request.json
     # print(optimizer_info)
-    # optimizer_info = {'SpaceRefiner': 'box',
-    #                   'SpaceRefinerDataSelector': 'default',
-    #                   'SpaceRefinerParameters': '',
-    #                   'Sampler': 'random', 
-    #                   'SamplerDataSelector': 'default', 
+    # optimizer_info = {'SpaceRefiner': 'default', 
+    #                   'SpaceRefinerParameters': '', 
+    #                   'SpaceRefinerDataSelector': 'default', 
+    #                   'SpaceRefinerDataSelectorParameters': '', 
+    #                   'Sampler': 'default', 
     #                   'SamplerParameters': '', 
-    #                   'Pretrain': 'deepkernel', 
-    #                   'PretrainDataSelector': 'default', 
+    #                   'SamplerDataSelector': 'default', 
+    #                   'SamplerDataSelectorParameters': '', 
+    #                   'Pretrain': 'default', 
     #                   'PretrainParameters': '', 
+    #                   'PretrainDataSelector': 'default', 
+    #                   'PretrainDataSelectorParameters': '', 
     #                   'Model': 'default', 
-    #                   'ModelDataSelector': 'default', 
     #                   'ModelParameters': '', 
-    #                   'ACF': 'LCB', 
-    #                   'ACFDataSelector': 'default', 
+    #                   'ModelDataSelector': 'default', 
+    #                   'ModelDataSelectorParameters': '', 
+    #                   'ACF': 'default', 
     #                   'ACFParameters': '', 
+    #                   'ACFDataSelector': 'default', 
+    #                   'ACFDataSelectorParameters': '', 
     #                   'Normalizer': 'default', 
-    #                   'NormalizerDataSelector': 
-    #                   'default', 
-    #                   'NormalizerParameters': ''}
+    #                   'NormalizerParameters': '', 
+    #                   'NormalizerDataSelector': 'default', 
+    #                   'NormalizerDataSelectorParameters': ''}
     try:
         services.receive_optimizer(optimizer_info)
     except Exception as e:

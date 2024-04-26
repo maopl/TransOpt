@@ -11,7 +11,7 @@ class RunningConfig:
     def __init__(self):
         self.tasks = None
         self.optimizer = None
-        self.metadata = None
+        self.metadata = {'SpaceRefiner':[], 'Sampler':[], 'ACF':[], 'Pretrain':[], 'Model':[], 'Normalizer':[]}
         
         
     def set_tasks(self, tasks):
@@ -21,5 +21,5 @@ class RunningConfig:
         self.optimizer = optimizer
 
     def set_metadata(self, metadata):
-        self.metadata = metadata
+        self.metadata[metadata['object']] = metadata['datasets']
 

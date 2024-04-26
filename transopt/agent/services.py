@@ -185,8 +185,16 @@ class Services:
             for var_name, var in task_set.get_cur_fidelity_info().items()
         ]
 
+        dataset_name = f"{task_set.get_curname()}_w{task_set.get_cur_workload()}s{seed}d{len(dataset_info['variables'])}o{len(dataset_info['objectives'])}bt{task_set.get_cur_budgettype()}b{task_set.get_cur_budget()}\
+                R{running_config.optimizer['SpaceRefiner']}s{running_config.optimizer['SpaceRefinerDataSelector'][0]}\
+                S{running_config.optimizer['Sampler']}s{running_config.optimizer['SamplerDataSelector'][0]}\
+                P{running_config.optimizer['Pretrain']}s{running_config.optimizer['PretrainDataSelector'][0]}\
+                M{running_config.optimizer['Model']}s{running_config.optimizer['ModelDataSelector'][0]}\
+                A{running_config.optimizer['ACF']}s{running_config.optimizer['ACFDataSelector'][0]}\
+                N{running_config.optimizer['Normalizer']}s{running_config.optimizer['NormalizerDataSelector'][0]}"
+
         dataset_info['additional_config'] = {
-            "name": task_set.get_curname(),
+            "name": dataset_name,
             "dim": len(dataset_info["variables"]),
             "obj": len(dataset_info["objectives"]),
             "fidelity": ', '.join([d['name'] for d in dataset_info["fidelities"] if 'name' in d]) if len(dataset_info["fidelities"]) == 0 else '',
@@ -209,26 +217,22 @@ class Services:
             "metadata": running_config.metadata if running_config.metadata else [],
         }
         
-        dataset_name = f"{task_set.get_curname()}_w{task_set.get_cur_workload()}s{seed}d{len(dataset_info['variables'])}o{len(dataset_info['objectives'])}bt{task_set.get_cur_budgettype()}b{task_set.get_cur_budget()}\
-                R{running_config.optimizer['SpaceRefiner']}s{{running_config.optimizer['SpaceRefinerDataSelector']}}\
-                S{running_config.optimizer['Sampler']}s{running_config.optimizer['SamplerDataSelector']}\
-                P{running_config.optimizer['Pretrain']}s{running_config.optimizer['PretrainDataSelector']}\
-                M{running_config.optimizer['Model']}s{running_config.optimizer['ModelDataSelector']}\
-                A{running_config.optimizer['ACF']}s{running_config.optimizer['ACFDataSelector']}\
-                N{running_config.optimizer['Normalizer']}s{running_config.optimizer['NormalizerDataSelector']}"
+
         return dataset_info, dataset_name
     
     
-    def get_metadata(self):
-        if self.running_config.metadata:
+    def get_metadata(self, module_name):
+        if len(self.running_config.metadata[module_name]):
             metadata = {}
             metadata_info = {}
-            for dataset_name in self.running_config.metadata:
+            for dataset_name in self.running_config.metadata[module_name]:
                 metadata[dataset_name] = self.data_manager.db.select_data(dataset_name)
                 metadata_info[dataset_name] = self.data_manager.db.query_dataset_info(dataset_name)
             return metadata, metadata_info
         else:
             return None, None
+
+
     
     def save_data(self, dataset_name, parameters, observations, iteration):
         data = [{} for i in range(len(parameters))]
@@ -243,8 +247,6 @@ class Services:
             task_set = InstantiateProblems(self.running_config.tasks, seed)
             optimizer = ConstructOptimizer(self.running_config.optimizer, seed)
             
-
-            
             try:
                 while (task_set.get_unsolved_num()):
                     iteration = 0
@@ -253,9 +255,13 @@ class Services:
                     
                     self.data_manager.db.create_table(dataset_name, dataset_info, overwrite=True)
                     optimizer.link_task(task_name=task_set.get_curname(), search_sapce=search_space)
-                    metadata, metadata_info = self.get_metadata()
+                    
+                    metadata, metadata_info = self.get_metadata('SpaceRefiner')
                     optimizer.search_space_refine(metadata, metadata_info)
+                    
+                    metadata, metadata_info = self.get_metadata('Sampler')
                     samples = optimizer.sample_initial_set(metadata, metadata_info)
+                    
                     parameters = [search_space.map_to_design_space(sample) for sample in samples]
                     observations = task_set.f(parameters)
                     self.save_data(dataset_name, parameters, observations, iteration)
@@ -263,6 +269,7 @@ class Services:
                     optimizer.observe(samples, observations)
                     
                     #Pretrain
+                    metadata, metadata_info = self.get_metadata('Model')
                     optimizer.meta_fit(metadata, metadata_info)
             
                     while (task_set.get_rest_budget()):

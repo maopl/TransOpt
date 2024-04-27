@@ -7,7 +7,7 @@ import my_theme from './my_theme.json';
 echarts.registerTheme('my_theme', my_theme.theme)
 
 function Box({BoxData}) {
-  console.log("BoxData:",BoxData)
+  // console.log("BoxData:",BoxData)
   const dataLabel = Object.keys(BoxData)
   const data = Object.values(BoxData)
 

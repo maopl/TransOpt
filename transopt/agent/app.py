@@ -173,39 +173,24 @@ def configuration_run():
     return {"isSucceed": True}, 200
 
 
-@app.route("/api/comparison/tasks", methods=["POST"])
-def comparisno_tasks():
-    data = request.json
-    user_input = data.get("paremeter", "")
-
-    print(user_input)
-    data = ["Task1", "Task2", "Task3"]
+@app.route("/api/comparison/selections", methods=["POST"])
+def comparison_send_selections():
+    info = request.json
+    # Comparison初始化时，请求可选择的搜索选项
+    current_directory = os.path.dirname(__file__)
+    json_file_path = os.path.join(
+        current_directory, "page_service_data", "ComparisonSelection.json"
+    )
+    with open(json_file_path, "r") as file:
+        data = json.load(file)
     return jsonify(data), 200
 
 
 @app.route("/api/comparison/choose_task", methods=["POST"])
-def comparisno_choose_tasks():
-    data = request.json
-    user_input = data.get("task", "")
-
-    print(user_input)
-
-    if user_input == "Task1":
-        data = ["Algorithm1", "Algorithm2", "Algorithm3"]
-    elif user_input == "Task2":
-        data = ["BO", "MTBO"]
-    else:
-        data = ["Algorithm4"]
-    return jsonify(data), 200
-
-
-@app.route("/api/comparison/charts", methods=["POST"])
-def comparison_update_charts_data():
-    data = request.json
-    selected_task = data.get("taskname", "")
-    print(selected_task)
-    selected_algorithm = data.get("selectedAlgorithms", "")
-    print(selected_algorithm)
+def comparison_choose_tasks():
+    info = request.json
+    print(info)
+    # 根据选择的搜索条件，筛选出对应的任务进行比较，返回比较的图
 
     current_directory = os.path.dirname(__file__)
     json_file_path = os.path.join(

@@ -31,15 +31,20 @@ class KrigingGA(BOBase):
         else:
             self.ini_num = None
 
-        if 'surrogate_mode' in config:
-            self.surrogate_mode = config['surrogate_mode']
-        else:
-            self.surrogate_mode = 'Kriging'
-
         if 'ea' in config:
             self.ea_name = config['ea']
         else:
             self.ea_name = 'GA'
+
+        # model_manage: 'best' or 'pre-select' or 'generation'
+        if 'model_manage' in config:
+            self.model_manage = config['model_manage']
+        else:
+            self.model_manage = 'best'
+
+        # 'best':k best individual, 'pre-select' and 'generation': every k generation
+        if 'k' in config:
+            self.k = config['k']
 
         self.pop = None
 
@@ -59,12 +64,11 @@ class KrigingGA(BOBase):
             self.problem = EAProblem(self.search_space.config_space, self.predict)
             # 得到新的种群
             self.pop = self.ea.ask()
-            self.ea.evaluator.eval(self.problem, self.pop)
-            pop_X = np.array([p.X for p in self.pop])
-            pop_F = np.array([p.F for p in self.pop])
-            # 选择需要准确评估的个体
-            self.elites_idx = np.argsort(pop_F)[0]
-            elites = pop_X[self.elites_idx]
+            # self.ea.evaluator.eval(self.problem, self.pop)
+            # pop_X = np.array([p.X for p in self.pop])
+            # pop_F = np.array([p.F for p in self.pop])
+            # 模型管理策略，选择需要准确评估的个体
+            elites = self.model_manage_strategy()
             # 准确评估优秀个体
             suggested_sample = self.search_space.zip_inputs(elites)
             suggested_sample = ndarray_to_vectors(self._get_var_name('search'), suggested_sample)
@@ -175,6 +179,26 @@ class KrigingGA(BOBase):
         self._data_handler.reset_task(task_name, design_space)
         self.sync_data(self._data_handler.get_input_vectors(), self._data_handler.get_output_value())
         self.model_reset()
+
+    def model_manage_strategy(self):
+        self.ea.evaluator.eval(self.problem, self.pop)
+        pop_X = np.array([p.X for p in self.pop])
+        pop_F = np.array([p.F for p in self.pop])
+        if self.model_manage == 'best':
+            top_k_idx = sorted(range(len(pop_F)), key=lambda i: pop_F[i])[:self.k]
+            elites = self.pop_X[top_k_idx]
+        elif self.model_manage == 'pre-select':
+            total_pop = 
+            for i in range(self.k):
+                pop = self.ea.ask()
+
+            elites = self.pop
+        elif self.model_manage == 'generation':
+            elites = self.pop
+        else:
+            raise ValueError(f"Invalid model manage strategy: {self.model_manage}")
+
+        return elites
 
 
 class EAProblem(Problem):

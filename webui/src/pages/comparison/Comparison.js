@@ -25,20 +25,21 @@ class Comparison extends React.Component {
   }
 
   handleClick = (values) => {
+    console.log("Tasks:", values.Tasks)
     const messageToSend = values.Tasks.map(task => ({
-      SearchMethod: task.SearchMethod,
-      TaskName: task.TaskName,
-      NumObjs: task.NumObjs,
-      NumVars: task.NumVars,
-      Fidelity: task.Fidelity,
-      Workload: task.Workload,
-      Seed: task.Seed,
-      Refiner: task.Refiner,
-      Sampler: task.Sampler,
-      Pretrain: task.Pretrain,
-      Model: task.Model,
-      ACF: task.ACF,
-      Normalizer: task.Normalizer
+      SearchMethod: task.SearchMethod || '',
+      TaskName: task.TaskName || '',
+      NumObjs: task.NumObjs || '',
+      NumVars: task.NumVars || '',
+      Fidelity: task.Fidelity || '',
+      Workload: task.Workload || '',
+      Seed: task.Seed || '',
+      Refiner: task.Refiner || '',
+      Sampler: task.Sampler || '',
+      Pretrain: task.Pretrain || '',
+      Model: task.Model || '',
+      ACF: task.ACF || '',
+      Normalizer: task.Normalizer || ''
     }));
     fetch('http://localhost:5000/api/comparison/choose_task', {
       method: 'POST',

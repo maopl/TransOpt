@@ -61,6 +61,7 @@ function ATask({key, name, restField, remove, data}) {
                filterOption={filterOption}
                options={data.map(item => ({ value: item.name}))}
                onChange={handleNameChange}
+               style={{minWidth:"100px"}}
              />
            </Form.Item>
 

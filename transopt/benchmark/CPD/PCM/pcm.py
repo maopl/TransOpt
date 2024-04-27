@@ -13,6 +13,11 @@ from transopt.space.fidelity_space import FidelitySpace
 
 @problem_registry.register("PCM")
 class PCM(NonTabularProblem):
+    problem_type = "CPD"
+    num_variables = "by the protein"
+    num_objectives = 4
+    workloads = np.arange(39).tolist()
+    fidelity = None
     def __init__(
         self, task_name, budget_type, budget, seed, workload, **kwargs
     ):
@@ -49,7 +54,6 @@ class PCM(NonTabularProblem):
         protein_status = config['protein_params']['status']
         self.protein_name = config['protein_params']['name']
         self.root = config['paths']['root']
-        pop_size = config['algo_params']['pop_size']
         num_obj = config['energy_params']['number_objective']
         self.max_thread = config['energy_params']['max_thread']
         coder = Coding(protein_config, protein_status)
@@ -62,10 +66,10 @@ class PCM(NonTabularProblem):
 
         super(PCM, self).__init__(
             task_name=task_name,
-            budget=budget,
-            budget_type=budget_type,
             seed=seed,
             workload=workload,
+            budget_type=budget_type,
+            budget=budget,
         )
     
     def objective_function(
@@ -100,9 +104,6 @@ class PCM(NonTabularProblem):
     
     def get_problem_type(self) -> str:
         return "CPD"
-    
-    def get_meta_information(self) -> Dict:
-        return {}
     
     def __clear_folder(self, folder_path):
         for filename in os.listdir(folder_path):

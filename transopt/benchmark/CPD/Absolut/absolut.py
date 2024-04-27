@@ -14,6 +14,11 @@ from transopt.space.fidelity_space import FidelitySpace
 
 @problem_registry.register("Absolut")
 class Absolut(NonTabularProblem):
+    problem_type = "CPD"
+    num_variables = 11
+    num_objectives = 1
+    workloads = np.arange(194).tolist()
+    fidelity = None
     def __init__(
         self, task_name, budget_type, budget, seed, workload, **kwargs
     ):
@@ -74,12 +79,10 @@ class Absolut(NonTabularProblem):
         fs = FidelitySpace([])
         return fs
     
-    def get_objectives(self) -> list:
+    def get_objectives(self) -> Dict:
         return {"energy":'minimize'}
     
     def get_problem_type(self) -> str:
         return "CPD"
     
-    def get_meta_information(self) -> Dict:
-        return {}
     

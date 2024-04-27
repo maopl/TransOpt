@@ -26,7 +26,7 @@ class Services:
 
     def _initialize_modules(self):
         import transopt.benchmark.synthetic
-        # import transopt.benchmark.CPD
+        import transopt.benchmark.CPD
         import transopt.optimizer.acquisition_function
         import transopt.optimizer.model
         import transopt.optimizer.pretrain
@@ -64,13 +64,14 @@ class Services:
                 num_var = problem_registry[name].num_variables
                 fidelity = problem_registry[name].fidelity
                 workloads = problem_registry[name].workloads
+                problem_type = problem_registry[name].problem_type
                 task_info = {
                     "name": name,
-                    "problem_type": "synthetic",
+                    "problem_type": problem_type,
                     "anyDim": False,
                     "num_vars": [num_var],
                     "num_objs": [num_obj],
-                    "workloads": [workloads],
+                    "workloads": workloads,
                     "fidelity": [fidelity],
                 }
             tasks_info.append(task_info)

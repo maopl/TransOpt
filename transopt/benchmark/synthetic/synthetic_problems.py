@@ -1527,119 +1527,91 @@ class SytheticProblemBase(NonTabularProblem):
 #         print(1)
 #         return {}
 
+@problem_registry.register("mpb")
+class mpbOptBenchmark(NonTabularProblem):
+    problem_type = "synthetic"
+    num_variables = []
+    num_objectives = 1
+    workloads = []
+    fidelity = None
+    def __init__(
+        self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
+    ):
+        assert "params" in kwargs
+        parameters = kwargs["params"]
+        self.input_dim = parameters["input_dim"]
 
-# @problem_register.register("mpb")
-# class mpbOptBenchmark(SyntheticProblemBase):
-#     def __init__(
-#         self, task_name, budget, seed, task_id, task_type="non-tabular", **kwargs
-#     ):
-#         assert "params" in kwargs
-#         parameters = kwargs["params"]
-#         self.input_dim = parameters["input_dim"]
+        if "shift" in parameters:
+            self.shift = parameters["shift"]
+        else:
+            shift = np.random.random(size=(self.input_dim, 1)).T
+            self.shift = (shift * 2 - 1) * 0.02
 
-#         if "shift" in parameters:
-#             self.shift = parameters["shift"]
-#         else:
-#             shift = np.random.random(size=(self.input_dim, 1)).T
-#             self.shift = (shift * 2 - 1) * 0.02
+        if "stretch" in parameters:
+            self.stretch = parameters["stretch"]
+        else:
+            self.stretch = np.array([1] * self.input_dim, dtype=np.float64)
 
-#         if "stretch" in parameters:
-#             self.stretch = parameters["stretch"]
-#         else:
-#             self.stretch = np.array([1] * self.input_dim, dtype=np.float64)
+        self.optimizers = [
+            tuple(
+                math.pow(2.0, -(1.0 - 2.0 ** (-(i - 1))))
+                for i in range(1, self.input_dim + 1)
+            )
+        ]
+        self.dtype = np.float64
 
-#         self.optimizers = [
-#             tuple(
-#                 math.pow(2.0, -(1.0 - 2.0 ** (-(i - 1))))
-#                 for i in range(1, self.input_dim + 1)
-#             )
-#         ]
-#         self.dtype = np.float64
+        super(mpbOptBenchmark, self).__init__(
+            task_name=task_name,
+            seed=seed,
+            task_id=task_id,
+            task_type=task_type,
+            budget=budget,
+        )
 
-#         super(mpbOptBenchmark, self).__init__(
-#             task_name=task_name,
-#             seed=seed,
-#             task_id=task_id,
-#             task_type=task_type,
-#             budget=budget,
-#         )
+    def objective_function(
+        self,
+        configuration: Dict,
+        fidelity: Dict = None,
+        seed: Union[np.random.RandomState, int, None] = None,
+        **kwargs,
+    ) -> Dict:
+        X = np.array(
+            [[configuration[k] for idx, k in enumerate(configuration.keys())]]
+        )[0]
 
-#     def objective_function(
-#         self,
-#         configuration: Dict,
-#         fidelity: Dict = None,
-#         seed: Union[np.random.RandomState, int, None] = None,
-#         **kwargs,
-#     ) -> Dict:
-#         X = np.array(
-#             [[configuration[k] for idx, k in enumerate(configuration.keys())]]
-#         )[0]
+        n_peak = 2
+        self.peak = np.ndarray([[-0.5, -0.5], [0.2, 0.2], []])
 
-#         n_peak = 2
-#         self.peak = np.ndarray([[-0.5, -0.5], [0.2, 0.2], []])
+        if self.task_id == 0:
+            distance = np.linalg.norm(np.tile(X, (n_peak, 1)) - self.peak[0], axis=1)
+        elif self.task_id == 1:
+            distance = np.linalg.norm(np.tile(X, (n_peak, 1)) - self.peak[0], axis=1)
+        else:
+            distance = np.linalg.norm(np.tile(X, (n_peak, 1)) - self.peak[0], axis=1)
 
-#         if self.task_id == 0:
-#             distance = np.linalg.norm(np.tile(X, (n_peak, 1)) - self.peak[0], axis=1)
-#         elif self.task_id == 1:
-#             distance = np.linalg.norm(np.tile(X, (n_peak, 1)) - self.peak[0], axis=1)
-#         else:
-#             distance = np.linalg.norm(np.tile(X, (n_peak, 1)) - self.peak[0], axis=1)
+        y = np.max(self.height - self.width * distance)
 
-#         y = np.max(self.height - self.width * distance)
+        return {"f1": float(y), "info": {"fidelity": fidelity}}
 
-#         return {"f1": float(y), "info": {"fidelity": fidelity}}
-
-#     def get_configuration_space(
+def get_configuration_space(self) -> SearchSpace:
         
-#     ) -> SearchSpace:
-#         """
-#         Creates a ConfigSpace.ConfigurationSpace containing all parameters for
-#         the XGBoost Model
-
-#         Parameters
-#         ----------
-#         seed : int, None
-#             Fixing the seed for the ConfigSpace.ConfigurationSpace
-
-#         Returns
-#         -------
-#         ConfigSpace.ConfigurationSpace
-#         """
-#         seed = seed if seed is not None else np.random.randint(1, 100000)
-#         cs = SearchSpace(seed=seed)
-#         cs.add_hyperparameters(
-#             [
-#                 CS.UniformFloatHyperparameter(f"x{i}", lower=-1, upper=1)
-#                 for i in range(self.input_dim)
-#             ]
-#         )
-
-#         return cs
-
-#     def get_fidelity_space(
+        variables =  [Continuous(f'x{i}', (-32.768, 32.768)) for i in range(self.input_dim)]
         
-#     ) -> SearchSpace:
-#         """
-#         Creates a ConfigSpace.ConfigurationSpace containing all fidelity parameters for
-#         the XGBoost Benchmark
+        ss = SearchSpace(variables)
 
-#         Parameters
-#         ----------
-#         seed : int, None
-#             Fixing the seed for the ConfigSpace.ConfigurationSpace
+        return ss
 
-#         Returns
-#         -------
-#         ConfigSpace.ConfigurationSpace
-#         """
-#         seed = seed if seed is not None else np.random.randint(1, 100000)
-#         fidel_space = SearchSpace(seed=seed)
+def get_fidelity_space(self) -> FidelitySpace:
+    fs = FidelitySpace([])
+    return fs
 
-#         return fidel_space
+def get_objectives(self) -> Dict:
+    
+    return {'f1':'minimize'}
 
-#     def get_meta_information(self) -> Dict:
-#         print(1)
-#         return {}
+
+def get_problem_type(self):
+    return "synthetic"
 
 
 @problem_registry.register("Ackley")
@@ -1727,9 +1699,6 @@ class Ackley(NonTabularProblem):
     def get_problem_type(self):
         return "synthetic"
 
-
-    def get_meta_information(self) -> Dict:
-        return {}
     
     
 # @problem_register.register("Ellipsoid")

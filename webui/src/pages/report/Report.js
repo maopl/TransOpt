@@ -136,33 +136,6 @@ class Report extends React.Component {
         </div>
       )
     } else {
-      const messageToSend = {
-        taskname:this.state.tasksInfo[this.state.selectedTaskIndex].name,
-      }
-      fetch('http://localhost:5000/api/report/charts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(messageToSend),
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        } 
-        return response.json();
-      })
-      .then(data => {
-        // console.log('Message from back-end:', data);
-        this.setState({
-          BarData: data.BarData,
-          RadarData: data.RadarData,
-          ScatterData: data.ScatterData,
-        })
-      })
-      .catch((error) => {
-        console.error('Error sending message:', error);
-      });
 
       return (
         <div className={s.root}>

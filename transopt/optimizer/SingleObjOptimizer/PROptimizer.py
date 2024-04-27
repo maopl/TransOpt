@@ -6,7 +6,8 @@ from pymoo.algorithms.soo.nonconvex.de import DE
 from pymoo.algorithms.soo.nonconvex.cmaes import CMAES
 from pymoo.algorithms.soo.nonconvex.pso import PSO
 from typing import Dict, Union, List
-
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
 from transopt.optimizer.optimizer_base import BOBase
 from transopt.utils.serialization import vectors_to_ndarray, output_to_ndarray
 from transopt.utils.serialization import ndarray_to_vectors
@@ -14,10 +15,10 @@ from agent.registry import optimizer_register
 from transopt.utils.Normalization import get_normalizer
 
 
-@optimizer_register('KrigingEA')
-class KrigingEA(BOBase):
+@optimizer_register('PREA')
+class PREA(BayesianOptimizerBase):
     def __init__(self, config: Dict, **kwargs):
-        super(KrigingGA, self).__init__(config=config)
+        super(PREA, self).__init__(config=config)
 
         self.init_method = 'latin'
         self.model = None
@@ -38,6 +39,11 @@ class KrigingEA(BOBase):
             self.ea_name = config['ea']
         else:
             self.ea_name = 'GA'
+
+        if 'degree' in config:
+            self.degree = config['degree']
+        else:
+            self.degree = 10
 
         # model_manage: 'best' or 'pre-select' or 'generation'
         if 'model_manage' in config:
@@ -92,12 +98,14 @@ class KrigingEA(BOBase):
         if len(input_vectors) == 0 and len(output_value) == 0:
             return
 
-
         self._validate_observation('design', input_vectors=input_vectors, output_value=output_value)
         X = self.transform(input_vectors)
 
-        self._X = np.vstack((self._X, vectors_to_ndarray(self._get_var_name('search'), X))) if self._X.size else vectors_to_ndarray(self._get_var_name('search'), X)
-        self._Y = np.vstack((self._Y, output_to_ndarray(output_value))) if self._Y.size else output_to_ndarray(output_value)
+        self._X = np.vstack(
+            (self._X, vectors_to_ndarray(self._get_var_name('search'), X))) if self._X.size else vectors_to_ndarray(
+            self._get_var_name('search'), X)
+        self._Y = np.vstack((self._Y, output_to_ndarray(output_value))) if self._Y.size else output_to_ndarray(
+            output_value)
 
         if self.pop is not None:
             self.pop[self.elites_idx].F = output_value
@@ -113,23 +121,19 @@ class KrigingEA(BOBase):
         if self.normalizer is not None:
             Y = self.normalizer(Y)
 
-        if self.obj_model == None:
+        if self.obj_model is None:
             self.create_model(X, Y)
             self.problem = EAProblem(self.search_space.config_space, self.predict)
             self.create_ea()
         else:
-            self.obj_model.set_XY(X, Y)
-
-        try:
-            self.obj_model.optimize_restarts(num_restarts=1, verbose=self.verbose, robust=True)
-        except np.linalg.LinAlgError as e:
-            # break
-            print('Error: np.linalg.LinAlgError')
+            X_poly = self.poly_features.fit_transform(X)
+            self.obj_model.fit(X_poly, Y)
 
     def create_model(self, X, Y):
-        kern = GPy.kern.RBF(self.input_dim, ARD=True)
-        self.obj_model = GPy.models.GPRegression(X, Y, kernel=kern)
-        self.obj_model['Gaussian_noise.*variance'].constrain_bounded(1e-9, 1e-3)
+        self.poly_features = PolynomialFeatures(self.degree)
+        X_poly = self.poly_features.fit_transform(X)
+        self.obj_model = LinearRegression()
+        self.obj_model.fit(X_poly, Y)
 
     def create_ea(self):
         if self.ea_name == 'GA':
@@ -146,8 +150,9 @@ class KrigingEA(BOBase):
         if X.ndim == 1:
             X = X[None, :]
 
-        m, v = self.obj_model.predict(X)
-        return m, v
+        X_poly = self.poly_features.transform(X)
+        Y = self.obj_model.predict(X_poly)
+        return Y, None
 
     def sample(self, num_samples: int) -> List[Dict]:
         if self.input_dim is None:
@@ -179,10 +184,10 @@ class KrigingEA(BOBase):
         self.obj_model = None
 
     def get_fmin(self):
-        m, v = self.predict(self.obj_model.X)
+        m, _ = self.predict(self._X)
         return m.min()
 
-    def reset(self, task_name:str, design_space:Dict, search_sapce:Union[None, Dict] = None):
+    def reset(self, task_name: str, design_space: Dict, search_sapce: Union[None, Dict] = None):
         self.set_space(design_space, search_sapce)
         self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
         self._Y = np.empty((0,))

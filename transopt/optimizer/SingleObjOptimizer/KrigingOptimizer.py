@@ -188,13 +188,23 @@ class KrigingGA(BOBase):
             top_k_idx = sorted(range(len(pop_F)), key=lambda i: pop_F[i])[:self.k]
             elites = self.pop_X[top_k_idx]
         elif self.model_manage == 'pre-select':
-            total_pop = 
-            for i in range(self.k):
+            total_pop_X = pop_X
+            total_pop_F = pop_F
+            for i in range(self.k - 1):
                 pop = self.ea.ask()
-
-            elites = self.pop
+                self.ea.evaluator.eval(self.problem, pop)
+                pop_X = np.array([p.X for p in pop])
+                pop_F = np.array([p.F for p in pop])
+                total_pop_X = np.concatenate((total_pop_X, pop_X))
+                total_pop_F = np.concatenate((total_pop_F, pop_F))
+            top_k_idx = sorted(range(len(total_pop_F)), key=lambda i: total_pop_F[i])[:self.ini_num]
+            elites = total_pop_X[top_k_idx]
         elif self.model_manage == 'generation':
-            elites = self.pop
+            for i in range(self.k - 1):
+                pop = self.ea.ask()
+            self.ea.evaluator.eval(self.problem, pop)
+            pop_X = np.array([p.X for p in pop])
+            elites = pop_X
         else:
             raise ValueError(f"Invalid model manage strategy: {self.model_manage}")
 

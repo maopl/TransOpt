@@ -183,21 +183,24 @@ def comparison_send_selections():
     )
     with open(json_file_path, "r") as file:
         data = json.load(file)
+        
+    
     return jsonify(data), 200
 
 
 @app.route("/api/comparison/choose_task", methods=["POST"])
 def comparison_choose_tasks():
-    info = request.json
-    print(info)
+    conditions = request.json
+    print(conditions)
     # 根据选择的搜索条件，筛选出对应的任务进行比较，返回比较的图
 
-    current_directory = os.path.dirname(__file__)
-    json_file_path = os.path.join(
-        current_directory, "page_service_data", "ComparisonChartsData.json"
-    )
-    with open(json_file_path, "r") as file:
-        data = json.load(file)
+    datasets = services.comparision_search(conditions)
+    # current_directory = os.path.dirname(__file__)
+    # json_file_path = os.path.join(
+    #     current_directory, "page_service_data", "ComparisonChartsData.json"
+    # )
+    # with open(json_file_path, "r") as file:
+    #     data = json.load(file)
     return jsonify(data), 200
 
 

@@ -163,8 +163,6 @@ class Services:
         return
 
     def receive_optimizer(self, optimizer_info):
-        print(optimizer_info)
-        optimizer = {}
 
         self.running_config.set_optimizer(optimizer_info)
         return

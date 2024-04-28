@@ -144,7 +144,7 @@ class Report extends React.Component {
           </h1>
           <div>
             <Row>
-              <Col lg={2} xs={4}>
+              <Col lg={3} xs={4}>
                 <Row>
                   <Col lg={12} xs={12}>
                     <Widget
@@ -201,16 +201,61 @@ class Report extends React.Component {
                       </ul>
                       <h4 className="mt-5"><strong>Auxiliary Data List</strong></h4>
                       <ul>
-                        {this.state.tasksInfo[this.state.selectedTaskIndex].metadata.map((dataset, index) => (
-                          <li key={index}><h5>{dataset}</h5></li>
-                        ))}
+                        <li><h5><span className="fw-semi-bold">Space refiner</span>:</h5></li>
+                        <div>
+                          <ul>
+                            {this.state.tasksInfo[this.state.selectedTaskIndex].metadata.SpaceRefiner.map((dataset, index) => (
+                              <li key={index}><h5>{dataset}</h5></li>
+                            ))}
+                          </ul>
+                        </div>
+                        <li><h5><span className="fw-semi-bold">Sampler</span>:</h5></li>
+                        <div>
+                          <ul>
+                            {this.state.tasksInfo[this.state.selectedTaskIndex].metadata.Sampler.map((dataset, index) => (
+                              <li key={index}><h5>{dataset}</h5></li>
+                            ))}
+                          </ul>
+                        </div>
+                        <li><h5><span className="fw-semi-bold">Pre-train</span>:</h5></li>
+                        <div>
+                          <ul>
+                            {this.state.tasksInfo[this.state.selectedTaskIndex].metadata.Pretrain.map((dataset, index) => (
+                              <li key={index}><h5>{dataset}</h5></li>
+                            ))}
+                          </ul>
+                        </div>
+                        <li><h5><span className="fw-semi-bold">Model</span>:</h5></li>
+                        <div>
+                          <ul>
+                            {this.state.tasksInfo[this.state.selectedTaskIndex].metadata.Model.map((dataset, index) => (
+                              <li key={index}><h5>{dataset}</h5></li>
+                            ))}
+                          </ul>
+                        </div>
+                        <li><h5><span className="fw-semi-bold">ACF</span>:</h5></li>
+                        <div>
+                          <ul>
+                            {this.state.tasksInfo[this.state.selectedTaskIndex].metadata.ACF.map((dataset, index) => (
+                              <li key={index}><h5>{dataset}</h5></li>
+                            ))}
+                          </ul>
+                        </div>
+                        <li><h5><span className="fw-semi-bold">Normalizer</span>:</h5></li>
+                        <div>
+                          <ul>
+                            {this.state.tasksInfo[this.state.selectedTaskIndex].metadata.Normalizer.map((dataset, index) => (
+                              <li key={index}><h5>{dataset}</h5></li>
+                            ))}
+                          </ul>
+                        </div>
                       </ul>
                       </div>
                     </Widget>
                   </Col>
                 </Row>
               </Col>
-              <Col lg={10} xs={8}>
+              <Col lg={9} xs={8}>
                 <Row>
                   <Col lg={12} xs={12}>
                     <Widget

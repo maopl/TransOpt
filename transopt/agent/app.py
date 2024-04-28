@@ -158,6 +158,15 @@ def configuration_search_dataset():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/configuration/delete_dataset", methods=["POST"])
+def configuration_delete_dataset():
+    metadata_info = request.json
+    datasets = metadata_info["datasets"]
+    print(datasets)
+    # 删除选中的数据集
+    return {"succeed": True}, 200
+
+
 @app.route("/api/configuration/run", methods=["POST"])
 def configuration_run():
     run_info = request.json

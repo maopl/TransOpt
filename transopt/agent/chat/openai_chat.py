@@ -122,6 +122,33 @@ class OpenAIChat:
                     "parameters": {},
                 },
             },
+            {
+                "type": "function",
+                "function": {
+                    "name": "set_optimization_problem",
+                    "description": "This function is called when a user wants to perform an optimization or find an optimal solution for a given task.\
+                        It facilitates the optimization process by requiring the user to specify certain parameters that\
+                        define the 'workload' and 'budget' available for the task.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "problem_name": {
+                                "type": "string",
+                                "description": "The name of the optimization problem",
+                            },
+                            "workload": {
+                                "type": "string",
+                                "description": "The workload of the optimization problem",
+                            },
+                            "budget": {
+                                "type": "string",
+                                "description": "The budget of the optimization problem",
+                            },
+                        },
+                        "required": ["problem_name", "workload", "budget"],
+                    },
+                },
+            },
         ]
                 
         response = self.client.chat.completions.create(
@@ -138,7 +165,7 @@ class OpenAIChat:
             for tool_call in tool_calls:
                 function_name = tool_call.function.name
                 function_args = json.loads(tool_call.function.arguments)
-                function_response = self.call_data_manager_function(function_name, **function_args)
+                function_response = self.call_manager_function(function_name, **function_args)
                 tool_message = {
                     "role": "tool",
                     "tool_call_id": tool_call.id,
@@ -173,11 +200,13 @@ class OpenAIChat:
         logger.debug("---------- OpenAI Response End ----------")
         return response.choices[0].message.content 
     
-    def call_data_manager_function(self, function_name, **kwargs):
+    def call_manager_function(self, function_name, **kwargs):
         available_functions = {
             "get_all_datasets": self.data_manager.get_all_datasets,
             "get_all_problems": self.get_all_problems,
             "get_dataset_info": lambda: self.data_manager.get_dataset_info(kwargs['dataset_name']),
+            "set_optimization_problem": lambda: self.set_optimization_problem(kwargs['problem_name', 'workload', 'budget']),
+            
         }
         function_to_call = available_functions[function_name]
         return json.dumps({"result": function_to_call()})
@@ -225,3 +254,20 @@ class OpenAIChat:
                 }
             tasks_info.append(task_info)
         return tasks_info
+    
+    def set_optimization_problem(self, problem_name, workload, budget):
+        problem = problem_registry[problem_name]
+        problem.set_workload(workload)
+        problem.set_budget(budget)
+        
+        problem_info = {}
+        w = [int(item) for item in workload.split(",")]
+        if problem_name in problem_registry:
+            problem_info[problem_name] = {
+                'budget': budget,
+                'workload': w,
+                'budget_type': 'Num_FEs',
+            }
+
+        self.running_config.set_tasks(problem_info)
+        return "Succeed"

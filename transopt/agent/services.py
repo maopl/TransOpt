@@ -132,6 +132,18 @@ class Services:
             raise ValueError("Invalid search method")
 
         return datasets_list
+    
+    def comparision_search(self, conditions):
+        pass
+        # dataset_name = [for k,v in conditions.items()]
+        # if  conditions['search_method'] == 'Fuzzy':
+        #     datasets_list = {"isExact": False, 
+        #                      "datasets": list(self.data_manager.search_datasets_by_name(conditions['dataset_name']))}
+        # elif conditions['search_method'] == 'Hash':
+        #     dataset_detail_info = self.data_manager.get_dataset_info(conditions['dataset_name'])
+        # elif conditions['search_method'] == 'LSH':
+        #     datasets_list = {"isExact": False, 
+        #                      "datasets":list(self.data_manager.search_similar_datasets(conditions['dataset_name'], conditions['dataset_info']))}
 
     def select_dataset(self, dataset_names):
         self.running_config.set_metadata(dataset_names)

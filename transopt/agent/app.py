@@ -14,14 +14,14 @@ services = Services()
 
 @app.route("/api/generate-yaml", methods=["POST"])
 def generate_yaml():
-    try:
-        data = request.json
-        user_input = data.get("content", {}).get("text", "")
-        response_content = services.chat(user_input)
-        return jsonify({"message": response_content}), 200
-    except Exception as e:
-        logger.error(f"Error in generating YAML: {e}")
-        return jsonify({"error": str(e)}), 500
+    # try:
+    data = request.json
+    user_input = data.get("content", {}).get("text", "")
+    response_content = services.chat(user_input)
+    return jsonify({"message": response_content}), 200
+    # except Exception as e:
+    #     logger.error(f"Error in generating YAML: {e}")
+    #     return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/report/tasks", methods=["POST"])

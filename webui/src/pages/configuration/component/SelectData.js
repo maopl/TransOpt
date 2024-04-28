@@ -10,7 +10,7 @@ import {
 
 const CheckboxGroup = Checkbox.Group;
 
-function SelectData({DatasetData}) {
+function SelectData({DatasetData, set_dataset}) {
     var data = []
     if (DatasetData.isExact) {
       data = [DatasetData.datasets.name]
@@ -30,7 +30,7 @@ function SelectData({DatasetData}) {
     const handleSelectChange = (value) => {
       setSelectedOption(value); // 当选择发生变化时更新选项
     };
-    const handelClick = () => {
+    const handleClick = () => {
       const datasetList = checkedList.map(item => {
         return item;
       });
@@ -57,6 +57,53 @@ function SelectData({DatasetData}) {
         Modal.success({
           title: 'Information',
           content: 'Submit successfully!'
+        })
+      })
+      .catch((error) => {
+        console.error('Error sending message:', error);
+        var errorMessage = error.error;
+        Modal.error({
+          title: 'Information',
+          content: 'Error:' + errorMessage
+        })
+      });
+    }
+
+    const handleDelete = () => {
+      const datasetList = checkedList.map(item => {
+        return item;
+      });
+      const messageToSend = {
+        datasets: datasetList,
+      }
+      console.log(messageToSend)
+      fetch('http://localhost:5000/api/configuration/delete_dataset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(messageToSend),
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        } 
+        return response.json();
+      })
+      .then(succeed => {
+        console.log('Message from back-end:', succeed);
+        datasetList.forEach(item => {
+          let index = data.indexOf(item);
+          if (index !== -1) {
+            data.splice(index, 1);
+          }
+        });
+        var newDataset = {"isExact": false, "datasets": data}
+        console.log("new dataset:", newDataset)
+        // set_dataset(newDataset)
+        Modal.success({
+          title: 'Information',
+          content: 'Delete successfully!'
         })
       })
       .catch((error) => {
@@ -98,8 +145,11 @@ function SelectData({DatasetData}) {
                     ]}
             onChange={handleSelectChange}
             />
-            <Button type="primary" htmlType="submit" style={{width:"120px", marginLeft:10}} onClick={handelClick}>
+            <Button type="primary" htmlType="submit" style={{width:"120px", marginLeft:10}} onClick={handleClick}>
               Submit
+            </Button>
+            <Button danger style={{width:"120px", marginLeft:10}} onClick={handleDelete}>
+              Delete
             </Button>
           </div>
         </ConfigProvider>

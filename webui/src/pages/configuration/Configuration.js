@@ -134,7 +134,7 @@ class Configuration extends React.Component {
                   <p>
                     Choose the datasets you want to use in the experiment.
                   </p>
-                  <SelectData DatasetData={this.state.DatasetData}/>
+                  <SelectData DatasetData={this.state.DatasetData} set_dataset={this.set_dataset}/>
                 </Widget>
               </Col>
               <Col lg={12} sm={12}>

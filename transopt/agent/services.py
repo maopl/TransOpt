@@ -4,6 +4,7 @@ from transopt.agent.registry import *
 from transopt.benchmark.instantiate_problems import InstantiateProblems
 from transopt.datamanager.manager import DataManager
 from transopt.optimizer.construct_optimizer import ConstructOptimizer
+import time
 
 
 class Services:
@@ -132,19 +133,61 @@ class Services:
             raise ValueError("Invalid search method")
 
         return datasets_list
-    
-    def comparision_search(self, conditions):
-        pass
-        # dataset_name = [for k,v in conditions.items()]
-        # if  conditions['search_method'] == 'Fuzzy':
-        #     datasets_list = {"isExact": False, 
-        #                      "datasets": list(self.data_manager.search_datasets_by_name(conditions['dataset_name']))}
-        # elif conditions['search_method'] == 'Hash':
-        #     dataset_detail_info = self.data_manager.get_dataset_info(conditions['dataset_name'])
-        # elif conditions['search_method'] == 'LSH':
-        #     datasets_list = {"isExact": False, 
-        #                      "datasets":list(self.data_manager.search_similar_datasets(conditions['dataset_name'], conditions['dataset_info']))}
+  
+   
+    def convert_metadata(self, conditions):
+        type_map = {
+            "NumVars": int,
+            "NumObjs": int,
+            "Workload": int,
+            "Seed": int,
+            # Add other fields as necessary
+        }
+        converted_conditions = {}
+        for key, value in conditions.items():
+            if key in type_map:
+                try:
+                    # Convert the value according to its expected type
+                    if type_map[key] == int:
+                        converted_conditions[key] = int(value)
+                    elif type_map[key] == float:
+                        converted_conditions[key] = float(value)
+                    elif type_map[key] == bool:
+                        converted_conditions[key] = value.lower() in ['true', '1', 't', 'yes', 'y']
+                    else:
+                        converted_conditions[key] = value  # Assume string or no conversion needed
+                except ValueError:
+                    raise ValueError(f"Invalid value for {key}: {value}")
+            else:
+                # If no specific type is expected, assume string
+                converted_conditions[key] = value
 
+        return converted_conditions
+ 
+    def comparision_search(self, conditions):
+        conditions = {k: v for k, v in conditions.items() if v}
+        conditions = self.convert_metadata(conditions)
+        
+        key_map = {
+            "TaskName": "problem_name",
+            "NumVars": "dimensions",
+            "NumObjs": "objectives",
+            "Fidelity": "fidelities",
+            "Workload": "workloads",
+            "Seed": "seeds",
+            "Refiner": "space_refiner",
+            "Sampler": "sampler",
+            "Pretrain": "pretrain",
+            "Model": "model",
+            "ACF": "acf",
+            "Normalizer": "normalizer"
+        }
+        
+        # change key in conditions to match the key in database
+        conditions = {key_map[k]: v for k, v in conditions.items() if k in key_map}
+        
+        return self.data_manager.db.search_tables_by_metadata(conditions)
+    
     def select_dataset(self, dataset_names):
         self.running_config.set_metadata(dataset_names)
 
@@ -182,7 +225,7 @@ class Services:
     def get_experiment_datasets(self):
         experiment_tables = self.data_manager.db.get_table_list()
         return [self.data_manager.db.query_dataset_info(table) for table in experiment_tables] 
-    
+   
     def construct_dataset_info(self, task_set, running_config, seed):
         dataset_info = {}
         dataset_info["variables"] = [
@@ -198,23 +241,19 @@ class Services:
             for var_name, var in task_set.get_cur_fidelity_info().items()
         ]
 
-        dataset_name = f"{task_set.get_curname()}_w{task_set.get_cur_workload()}s{seed}d{len(dataset_info['variables'])}o{len(dataset_info['objectives'])}bt{task_set.get_cur_budgettype()}b{task_set.get_cur_budget()}\
-                R{running_config.optimizer['SpaceRefiner']}s{running_config.optimizer['SpaceRefinerDataSelector'][0]}\
-                S{running_config.optimizer['Sampler']}s{running_config.optimizer['SamplerDataSelector'][0]}\
-                P{running_config.optimizer['Pretrain']}s{running_config.optimizer['PretrainDataSelector'][0]}\
-                M{running_config.optimizer['Model']}s{running_config.optimizer['ModelDataSelector'][0]}\
-                A{running_config.optimizer['ACF']}s{running_config.optimizer['ACFDataSelector'][0]}\
-                N{running_config.optimizer['Normalizer']}s{running_config.optimizer['NormalizerDataSelector'][0]}"
+        # Simplify dataset name construction
+        timestamp = int(time.time())
+        dataset_name = f"{task_set.get_curname()}_w{task_set.get_cur_workload()}_{timestamp}"
 
         dataset_info['additional_config'] = {
-            "name": dataset_name,
+            "problem_name": task_set.get_curname(),
             "dim": len(dataset_info["variables"]),
             "obj": len(dataset_info["objectives"]),
-            "fidelity": ', '.join([d['name'] for d in dataset_info["fidelities"] if 'name' in d]) if len(dataset_info["fidelities"]) == 0 else '',
+            "fidelity": ', '.join([d['name'] for d in dataset_info["fidelities"] if 'name' in d]) if dataset_info["fidelities"] else '',
             "workloads": task_set.get_cur_workload(),
             "budget_type": task_set.get_cur_budgettype(),
             "budget": task_set.get_cur_budget(),
-            "seeds": task_set.get_cur_seed(),
+            "seeds": seed,
             "SpaceRefiner": running_config.optimizer['SpaceRefiner'],
             "Sampler": running_config.optimizer['Sampler'],
             "Pretrain": running_config.optimizer['Pretrain'],
@@ -229,11 +268,9 @@ class Services:
                 Normalizer - {running_config.optimizer['NormalizerDataSelector']}",
             "metadata": running_config.metadata if running_config.metadata else [],
         }
-        
 
         return dataset_info, dataset_name
-    
-    
+ 
     def get_metadata(self, module_name):
         if len(self.running_config.metadata[module_name]):
             metadata = {}
@@ -244,8 +281,6 @@ class Services:
             return metadata, metadata_info
         else:
             return None, None
-
-
     
     def save_data(self, dataset_name, parameters, observations, iteration):
         data = [{} for i in range(len(parameters))]
@@ -253,6 +288,9 @@ class Services:
         [data[i].update(observations[i]) for i in range(len(parameters))]
         [data[i].update({'batch':iteration}) for i in range(len(parameters))]
         self.data_manager.db.insert_data(dataset_name, data)
+    
+    def remove_dataset(self, dataset_name):
+        self.data_manager.db.remove_table(dataset_name)
 
     def run_optimize(self, seeds_info):
         seeds = [int(seed) for seed in seeds_info.split(",")]

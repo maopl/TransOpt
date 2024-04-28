@@ -9,7 +9,7 @@ from transopt.agent.registry import *
 from transopt.utils.log import logger
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 services = Services()
 
 @app.route("/api/generate-yaml", methods=["POST"])
@@ -191,17 +191,18 @@ def comparison_send_selections():
 @app.route("/api/comparison/choose_task", methods=["POST"])
 def comparison_choose_tasks():
     conditions = request.json
-    print(conditions)
-    # 根据选择的搜索条件，筛选出对应的任务进行比较，返回比较的图
-
-    datasets = services.comparision_search(conditions)
+  
+    ret = []
+    for condition in conditions:
+        condition.pop('SearchMethod')
+        ret.append(services.comparision_search(condition)) 
     # current_directory = os.path.dirname(__file__)
     # json_file_path = os.path.join(
     #     current_directory, "page_service_data", "ComparisonChartsData.json"
     # )
     # with open(json_file_path, "r") as file:
     #     data = json.load(file)
-    return jsonify(data), 200
+    return jsonify(ret), 200
 
 
 if __name__ == "__main__":

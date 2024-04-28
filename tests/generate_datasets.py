@@ -64,13 +64,13 @@ def initialize_modules():
     import transopt.optimizer.refiner
     import transopt.optimizer.sampler
 
-def generate_table_config():
+def generate_dataset_config():
     domain = random.choice(list(base_strings.keys()))
     num_variables = random.randint(3, 5)
     num_objectives = random.randint(1, 2)
 
     dataset_name_suffix = generate_random_string(5)
-    table_name = f"{domain}_{num_objectives}_{num_variables}_{dataset_name_suffix}"
+    dataset_name = f"{domain}_{num_objectives}_{num_variables}_{dataset_name_suffix}"
 
     variables = []
     selected_base_strings = random.sample(base_strings[domain], k=num_variables)
@@ -93,7 +93,7 @@ def generate_table_config():
 
     # Additional fields
     additional_config = {
-        "name": table_name,
+        "name": dataset_name,
         "dim": num_variables,
         "obj": num_objectives,
         "fidelity": generate_random_string(random.randint(3, 6)),
@@ -110,7 +110,7 @@ def generate_table_config():
         "datasets": used_dataset
     }
 
-    return table_name, {
+    return dataset_name, {
         "variables": variables,
         "objectives": objectives,
         "fidelities": fidelities,
@@ -118,10 +118,15 @@ def generate_table_config():
     }
 
 
-def create_test_tables(db, num_tables):
-    for _ in range(num_tables):
-        table_name, dataset_cfg = generate_table_config()
-        db.create_table(table_name, dataset_cfg)
+def create_experiment_datasets(db, num_datasets):
+    for _ in range(num_datasets):
+        dataset_name, dataset_cfg = generate_dataset_config()
+        db.create_table(dataset_name, dataset_cfg)
+
+def create_exported_datasets(db, num_datasets):
+    for _ in range(num_datasets):
+        dataset_name, dataset_cfg = generate_dataset_config()
+        db.create_table(dataset_name, dataset_cfg, is_experiment=False)
 
 def generate_random_value(data_type):
     if data_type == "continuous":
@@ -129,7 +134,7 @@ def generate_random_value(data_type):
     elif data_type == "integer":
         return random.randint(1, 100)
 
-def generate_and_insert_data(db, table_name, dataset_cfg, num_rows=100):
+def generate_and_insert_data(db, dataset_name, dataset_cfg, num_rows=100):
     variables = dataset_cfg["variables"]
     objectives = dataset_cfg["objectives"]
     fidelities = dataset_cfg["fidelities"]
@@ -147,29 +152,45 @@ def generate_and_insert_data(db, table_name, dataset_cfg, num_rows=100):
         data.append(row)
     
     # Insert data into the database
-    db.insert_data(table_name, data)
+    db.insert_data(dataset_name, data)
 
 
 if __name__ == "__main__":
     db = Database()  # Assuming Database is properly initialized and can be used
 
     # 创建测试 datasets
-    create_test_tables(db, 200)
+    # create_experiment_datasets(db, 200)
+    # create_exported_datasets(db, 100)
 
     # 获取所有的 datasets
-    table_ls = db.get_table_list() 
-    # print(table_ls)
+    # dataset_ls = db.get_table_list() 
+    # print(dataset_ls)
 
-    for table in table_ls:
-        table_info = db.query_dataset_info(table)
-        generate_and_insert_data(db, table, table_info, 100)
+    dataset_exp = db.get_experiment_datasets()
+    print(dataset_exp)
     
-    # # 获取某一 dataset 的 info
-    table_info = db.query_dataset_info(table_ls[0])
+    print()
+     
+    metadatas = db.get_all_metadata()
+    print(metadatas)
+    
+    print()
+    
+    search_res = db.search_tables_by_metadata({"dimensions": "5"})
+    print(search_res)
+    # dataset_all = db.get_all_datasets()
+    # print(dataset_all)
 
-    generate_and_insert_data(db, table_ls[0], table_info, 100)
+    # for dataset in dataset_ls:
+    #     dataset_info = db.query_dataset_info(dataset)
+    #     generate_and_insert_data(db, dataset, dataset_info, 100)
     
-    print(db.select_data(table_ls[0]))
+    # # # 获取某一 dataset 的 info
+    # dataset_info = db.query_dataset_info(dataset_ls[0])
+
+    # generate_and_insert_data(db, dataset_ls[0], dataset_info, 100)
+    
+    # print(db.select_data(dataset_ls[0]))
     # [{'loan_amount_fyb': 49.57, 'credit_score_el': 60.26, 'market_risk_w': 65.6, 'obj_0_aot': 5.97, 'batch': -1, 'error': 0}, ...]
     
     db.close()

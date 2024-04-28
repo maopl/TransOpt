@@ -42,6 +42,8 @@ class LSHCache:
             (task_name, variable_names, num_variables, num_objectives)
 
         """
+        if vector is None:
+            return
         # Compute a combined fingerprint for the string dimensions
         combined_fp = []
         for dimension in vector[:2]:  # Only take the first two string dimensions
@@ -77,6 +79,8 @@ class LSHCache:
         set
             A set of keys of similar vectors.
         """
+        if vector is None:
+            return set()
         similar_items = set()
         combined_fp = []
         for dimension in vector[:2]:  # Only take the first two string dimensions

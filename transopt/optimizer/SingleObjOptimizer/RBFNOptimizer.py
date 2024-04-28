@@ -12,12 +12,13 @@ from transopt.utils.serialization import vectors_to_ndarray, output_to_ndarray
 from transopt.utils.serialization import ndarray_to_vectors
 from agent.registry import optimizer_register
 from transopt.utils.Normalization import get_normalizer
+from transopt.optimizer.model.RBFN import RBFN, RegressionDataset
 
 
-@optimizer_register('KrigingEA')
-class KrigingEA(BOBase):
+@optimizer_register('RbfnEA')
+class RbfnEA(BayesianOptimizerBase):
     def __init__(self, config: Dict, **kwargs):
-        super(KrigingGA, self).__init__(config=config)
+        super(RbfnEA, self).__init__(config=config)
 
         self.init_method = 'latin'
         self.model = None
@@ -39,6 +40,26 @@ class KrigingEA(BOBase):
         else:
             self.ea_name = 'GA'
 
+        if 'max_epoch' in config:
+            self.max_epoch = config['max_epoch']
+        else:
+            self.max_epoch = 10
+
+        if 'batch_size' in config:
+            self.batch_size = config['batch_size']
+        else:
+            self.batch_size = 1
+
+        if 'lr' in config:
+            self.lr = config['lr']
+        else:
+            self.lr = 0.01
+
+        if 'num_centers' in config:
+            self.num_centers = config['num_centers']
+        else:
+            self.num_centers = 10
+        
         # model_manage: 'best' or 'pre-select' or 'generation'
         if 'model_manage' in config:
             self.model_manage = config['model_manage']
@@ -92,7 +113,6 @@ class KrigingEA(BOBase):
         if len(input_vectors) == 0 and len(output_value) == 0:
             return
 
-
         self._validate_observation('design', input_vectors=input_vectors, output_value=output_value)
         X = self.transform(input_vectors)
 
@@ -113,23 +133,27 @@ class KrigingEA(BOBase):
         if self.normalizer is not None:
             Y = self.normalizer(Y)
 
-        if self.obj_model == None:
+        if self.obj_model is None:
             self.create_model(X, Y)
             self.problem = EAProblem(self.search_space.config_space, self.predict)
             self.create_ea()
         else:
-            self.obj_model.set_XY(X, Y)
+            dataset = RegressionDataset(torch.from_numpy(X), torch.from_numpy(Y))
+            self.obj_model.update_dataset(dataset)
 
         try:
-            self.obj_model.optimize_restarts(num_restarts=1, verbose=self.verbose, robust=True)
+            self.obj_model.train()
         except np.linalg.LinAlgError as e:
             # break
             print('Error: np.linalg.LinAlgError')
 
     def create_model(self, X, Y):
-        kern = GPy.kern.RBF(self.input_dim, ARD=True)
-        self.obj_model = GPy.models.GPRegression(X, Y, kernel=kern)
-        self.obj_model['Gaussian_noise.*variance'].constrain_bounded(1e-9, 1e-3)
+        dataset = RegressionDataset(torch.from_numpy(X), torch.from_numpy(Y))
+        self.obj_model = RBFN(dataset=dataset,
+                              max_epoch=self.max_epoch,
+                              batch_size=self.batch_size,
+                              lr=self.lr,
+                              num_centers=self.num_centers)
 
     def create_ea(self):
         if self.ea_name == 'GA':
@@ -146,8 +170,8 @@ class KrigingEA(BOBase):
         if X.ndim == 1:
             X = X[None, :]
 
-        m, v = self.obj_model.predict(X)
-        return m, v
+        Y = self.obj_model.predict(X)
+        return Y, None
 
     def sample(self, num_samples: int) -> List[Dict]:
         if self.input_dim is None:
@@ -179,10 +203,11 @@ class KrigingEA(BOBase):
         self.obj_model = None
 
     def get_fmin(self):
-        m, v = self.predict(self.obj_model.X)
+        X = self.obj_model.dataset.inputs.numpy()
+        m, _ = self.predict(X)
         return m.min()
 
-    def reset(self, task_name:str, design_space:Dict, search_sapce:Union[None, Dict] = None):
+    def reset(self, task_name: str, design_space: Dict, search_sapce: Union[None, Dict] = None):
         self.set_space(design_space, search_sapce)
         self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
         self._Y = np.empty((0,))
@@ -220,7 +245,6 @@ class KrigingEA(BOBase):
             raise ValueError(f"Invalid model manage strategy: {self.model_manage}")
         self.elites_idx = top_k_idx
         return elites
-
 
 class EAProblem(Problem):
     def __init__(self, space, predict):

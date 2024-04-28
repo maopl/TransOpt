@@ -1,5 +1,6 @@
 
 import json
+import queue
 import sqlite3
 from multiprocessing import Manager, Process, Queue
 from typing import Union
@@ -15,10 +16,31 @@ Descriptions of the reserved database tables.
 table_descriptions = {
 
     '_config': '''
-        name varchar(50) not null,
-        config text not null
+        name varchar(200) not null,
+        config text not null,
+        is_experiment boolean not null default TRUE
         ''',
 
+    '_metadata': '''
+        table_name varchar(255) not null,
+        problem_name varchar(255) not null,
+        dimensions int,
+        objectives int,
+        fidelities text,
+        workloads int,
+        budget_type varchar(50),
+        budget int,
+        seeds int,
+        space_refiner varchar(50),
+        sampler varchar(50),
+        pretrain varchar(50),
+        model varchar(50),
+        acf varchar(50),
+        normalizer varchar(50),
+        dataset_selectors json,
+        PRIMARY KEY (table_name)
+    '''
+    
 }
 
 
@@ -90,7 +112,7 @@ class Database:
                 return result
             else:
                 raise result  # Re-raise the exception from the daemon
-        except Queue.Empty:
+        except queue.Empty:
             raise Exception("Task execution timed out or failed")
 
     @staticmethod
@@ -123,7 +145,22 @@ class Database:
     """ 
     table
     """
+    def get_experiment_datasets(self):
+        """Get the list of all tables that are marked as experiment datasets."""
+        experiment_datasets = self.execute(
+            "SELECT name FROM _config WHERE is_experiment = TRUE",
+            fetchall=True
+        )
+        return [table[0] for table in experiment_datasets if table[0] not in self.reserved_tables]
 
+    def get_all_datasets(self):
+        """Get the list of all tables and indicate which ones are experiment datasets."""
+        all_datasets = self.execute(
+            """SELECT name, is_experiment FROM _config""",
+            fetchall=True
+        )
+        return [table[0] for table in all_datasets if table[0] not in self.reserved_tables]
+        
     def get_table_list(self):
         """Get the list of all database tables."""
         table_list = self.execute(
@@ -140,7 +177,7 @@ class Database:
         )
         return table_exists is not None
 
-    def create_table(self, name, dataset_cfg, overwrite=False):
+    def create_table(self, name, dataset_cfg, overwrite=False, is_experiment=True):
         """
         Create and initialize a database table based on problem configuration.
 
@@ -150,6 +187,10 @@ class Database:
             Name of the table to create and initialize.
         dataset_cfg: dict
             Configuration for the table schema.
+        overwrite : bool, optional
+            Flag to determine whether to overwrite the existing table, default is False.
+        is_experiment : bool, optional
+            Flag to denote if the table is for experimental use, default is True.
         """
         if self.check_table_exist(name):
             if overwrite:
@@ -172,18 +213,15 @@ class Database:
 
         # description = ['status varchar(20) not null default "unevaluated"']
         description = []
-        index_columns = []
 
         for var_info in variables:
             description.append(f'"{var_info["name"]}" {var_type_map[var_info["type"]]} not null')
-            index_columns.append(var_info["name"])
 
         for obj_info in objectives:
             description.append(f'"{obj_info["name"]}" float')
         
         for fid_info in fidelities:
             description.append(f'"{fid_info["name"]}" {var_type_map[fid_info["type"]]} not null')
-            index_columns.append(fid_info["name"]) 
 
         description += [
             "batch int default -1",
@@ -197,12 +235,18 @@ class Database:
         # Create the table
         self.execute(f'CREATE TABLE "{name}" ({",".join(description)})')
 
-        # Create a combined index for variables and fidelity columns
+        # Optionally, create indexes on certain columns
+        index_columns = [var["name"] for var in variables] + [fid["name"] for fid in fidelities if fid.get("index", False)]
         if index_columns:
-            index_columns_string = ', '.join([f'"{column}"' for column in index_columns])
-            self.execute(f'CREATE INDEX "idx_{name}_vars_fids" ON "{name}" ({index_columns_string})')
+            index_statement = ', '.join([f'"{col}"' for col in index_columns])
+            self.execute(f'CREATE INDEX "idx_{name}" ON "{name}" ({index_statement})')
         
-        self.create_or_update_config(name, dataset_cfg)
+        self.create_or_update_config(name, dataset_cfg, is_experiment)
+        
+        # Handling metadata using additional_config if it exists
+        if "additional_config" in dataset_cfg:
+            self.create_or_update_metadata(name, dataset_cfg["additional_config"])
+        
 
     def remove_table(self, name):
         if not self.check_table_exist(name):
@@ -214,7 +258,7 @@ class Database:
     config
     '''
 
-    def create_or_update_config(self, name, dataset_cfg):
+    def create_or_update_config(self, name, dataset_cfg, is_experiment=True):
         """
         Create or update a configuration entry in the _config table for a given table.
         """
@@ -225,14 +269,14 @@ class Database:
         if self.query_config(name) is not None:
             # Update the existing configuration
             self.execute(
-                "UPDATE _config SET config = ? WHERE name = ?",
-                (config_json, name)
+                "UPDATE _config SET config = ?, is_experiment = ? WHERE name = ?",
+                (config_json, is_experiment, name)
             )
         else:
             # Insert a new configuration
             self.execute(
-                "INSERT INTO _config (name, config) VALUES (?, ?)",
-                (name, config_json)
+                "INSERT INTO _config (name, config, is_experiment) VALUES (?, ?, ?)",
+                (name, config_json, is_experiment)
             )
     
         self.commit()
@@ -274,6 +318,68 @@ class Database:
         }
         return dataset_info 
 
+
+    def create_or_update_metadata(self, table_name, metadata):
+        """
+        Create or update a metadata entry in the _metadata table for a given table.
+        """
+        dataset_selectors_json = json.dumps(metadata.get('DatasetSelectors', {}))
+        problem_name = metadata.get('problem_name', '')
+
+        self.execute(
+            f"""
+            INSERT INTO _metadata (
+                table_name, problem_name, dimensions, objectives, fidelities, workloads, budget_type, budget, seeds,
+                space_refiner, sampler, pretrain, model, acf, normalizer, dataset_selectors
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT (table_name) DO UPDATE SET
+                problem_name = EXCLUDED.problem_name, dimensions = EXCLUDED.dimensions, objectives = EXCLUDED.objectives, 
+                fidelities = EXCLUDED.fidelities, workloads = EXCLUDED.workloads, budget_type = EXCLUDED.budget_type,
+                budget = EXCLUDED.budget, seeds = EXCLUDED.seeds, space_refiner = EXCLUDED.space_refiner,
+                sampler = EXCLUDED.sampler, pretrain = EXCLUDED.pretrain, model = EXCLUDED.model, 
+                acf = EXCLUDED.acf, normalizer = EXCLUDED.normalizer, dataset_selectors = EXCLUDED.dataset_selectors
+            """,
+            (
+                table_name, problem_name, metadata['dim'], metadata['obj'], metadata['fidelity'], metadata['workloads'],
+                metadata['budget_type'], metadata['budget'], metadata['seeds'], metadata['SpaceRefiner'],
+                metadata['Sampler'], metadata['Pretrain'], metadata['Model'], metadata['ACF'],
+                metadata['Normalizer'], dataset_selectors_json
+            )
+        )
+        self.commit()
+  
+    def get_all_metadata(self):
+        """
+        Get the metadata for all tables in the database.
+        """
+        metadata = self.execute("SELECT * FROM _metadata", fetchall=True)
+        return metadata
+   
+    def search_tables_by_metadata(self, search_params):
+        """
+        Search for tables based on metadata criteria.
+
+        Parameters:
+        ----------
+        search_params : dict
+            A dictionary where keys are metadata column names and values are the criteria values.
+
+        Returns:
+        -------
+        list of str
+            A list of table names that match the search criteria.
+        """
+        if not search_params:
+            raise ValueError("Search parameters are required")
+
+        # Constructing the WHERE clause dynamically based on the provided search parameters
+        where_clause = self._get_conditions(conditions=search_params)
+    
+        query = f"SELECT table_name FROM _metadata{where_clause}"
+        result = self.execute(query, fetchall=True)
+        
+        return [row[0] for row in result]
+ 
     """
     basic operations
     """

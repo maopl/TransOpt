@@ -51,7 +51,7 @@ class Categorical(Variable):
         return self.categories.index(value) + 1
 
     def map_from_search_space(self, value):
-        return self.categories[value - 1]
+        return self.categories[int(value) - 1]
 
 
 class Integer(Variable):

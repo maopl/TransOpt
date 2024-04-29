@@ -28,7 +28,7 @@ def InstantiateProblems(
 
         for idx, workload in enumerate(workloads):
             problem = problem_cls(
-                task_name=f"{task_name}_w{workload}_s{seed}_b{budget}_t{budget_type}",
+                task_name=f"{task_name}",
                 task_id=idx,
                 budget_type=budget_type,
                 budget=budget,

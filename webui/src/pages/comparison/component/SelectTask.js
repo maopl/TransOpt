@@ -17,19 +17,6 @@ function ASearch({key, name, restField, remove, selections}) {
         <Space key={key} className="space" style={{ marginBottom: 1 }} align="baseline">
            <Form.Item
              {...restField}
-             name={[name, 'SearchMethod']}
-           >
-             <Select
-               placeholder="SearchMethod"
-               options={[ {value: "Hash"},
-                          {value: "Fuzzy"},
-                          {value: "LSH"},
-                        ]}
-             />
-           </Form.Item>
-
-           <Form.Item
-             {...restField}
              name={[name, 'TaskName']}
            >
              <Input placeholder="TaskName" style={{ minWidth: 93 }} />

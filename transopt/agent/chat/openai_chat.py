@@ -243,14 +243,10 @@ class OpenAIChat:
                 "function": {
                     "name": "run_optimization",
                     "description": "Set the normalization method to nomalize function evaluation and parameters. It requires one of the available normalization methods as input.",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {},
-                        },
-                        "required": ["Normalizer"],
-                    },
+                    "parameters": {},
                 },
             },
+                        
         ]
                 
         response = self.client.chat.completions.create(
@@ -491,7 +487,7 @@ class OpenAIChat:
                     optimizer.observe(suggested_samples, observations)
                     iteration += 1
                     
-                    print("Seed: ", seed, "Task: ", task_set.get_curname(), "Iteration: ", iteration)
+                    print("Seed: ", 0, "Task: ", task_set.get_curname(), "Iteration: ", iteration)
                     # if self.verbose:
                     #     self.visualization(testsuits, suggested_sample)
                 task_set.roll()

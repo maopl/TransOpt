@@ -211,6 +211,7 @@ def comparison_choose_tasks():
     # )
     # with open(json_file_path, "r") as file:
     #     data = json.load(file)
+    
     return jsonify(ret), 200
 
 

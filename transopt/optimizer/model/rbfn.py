@@ -46,7 +46,7 @@ class RbfNet(nn.Module):
 
 
 class rbfn(object):
-    def __init__(self, dataset, max_epoch=30, batch_size=5, lr=0.01, num_centers=5, details=False):
+    def __init__(self, dataset, max_epoch=30, batch_size=5, lr=0.01, num_centers=5, show_details=False):
         self.max_epoch = max_epoch
         self.batch_size = batch_size
         self.lr = lr
@@ -68,7 +68,7 @@ class rbfn(object):
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
         self.loss_fun = nn.MSELoss()
         self.avg_loss = 0
-        self.details = details
+        self.show_details = show_details
 
     def train(self):
         self.model.train()
@@ -86,7 +86,7 @@ class rbfn(object):
                 loss.backward()
                 self.optimizer.step()
                 self.avg_loss += loss / total_batch
-            if self.details:
+            if self.show_details:
                 print("[Epoch: {:>4}] loss = {:>.9}".format(epoch + 1, self.avg_loss))
         print("[*] Training finished! Loss: {:.9f}".format(self.avg_loss))
 

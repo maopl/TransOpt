@@ -16,6 +16,7 @@ class RBFN(Model):
         batch_size: int = 1,
         lr: float = 0.01,
         num_centers: int = 5,
+        show_details: bool = False,
         normalize: bool = True,
         **options: dict
     ):
@@ -25,6 +26,7 @@ class RBFN(Model):
         self._lr = lr
         self._num_centers = num_centers
         self._rbfn_model = None
+        self._show_details = show_details
 
         self._normalize = normalize
         self._x_normalizer = StandardScaler() if normalize else None
@@ -65,6 +67,7 @@ class RBFN(Model):
                 batch_size=self._batch_size,
                 lr=self._lr,
                 num_centers=self._num_centers,
+                show_details=self._show_details,
             )
         else:
             dataset = RegressionDataset(torch.from_numpy(_X), torch.from_numpy(_y))

@@ -27,7 +27,7 @@ class Services:
 
     def _initialize_modules(self):
         import transopt.benchmark.synthetic
-        # import transopt.benchmark.CPD
+        import transopt.benchmark.CPD
         import transopt.optimizer.acquisition_function
         import transopt.optimizer.model
         import transopt.optimizer.pretrain
@@ -327,6 +327,8 @@ class Services:
                         suggested_samples = optimizer.suggest()
                         parameters = [search_space.map_to_design_space(sample) for sample in suggested_samples]
                         observations = task_set.f(parameters)
+                        if observations is None:
+                            break
                         self.save_data(dataset_name, parameters, observations, iteration)
                         
                         optimizer.observe(suggested_samples, observations)

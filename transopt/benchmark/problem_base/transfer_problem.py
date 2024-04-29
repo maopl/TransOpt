@@ -166,14 +166,17 @@ class TransferProblem:
         **kwargs,
     ):
         if isinstance(configuration, list):
-            if (
-                self.get_query_num() + len(configuration) > self.get_cur_budget()
-                and self.get_lockstate() == False
-            ):
-                logger.error(
-                    " The current function evaluation has exceeded the user-set budget."
-                )
-                raise RuntimeError("The current function evaluation has exceeded the user-set budget.")
+            try:
+                if (
+                    self.get_query_num() + len(configuration) > self.get_cur_budget()
+                    and self.get_lockstate() == False
+                ):
+                    logger.error(
+                        " The current function evaluation has exceeded the user-set budget."
+                    )
+                    raise RuntimeError("The current function evaluation has exceeded the user-set budget.")
+            except RuntimeError as e:
+                return None
 
             if isinstance(fidelity, list):
                 assert len(fidelity) == len(configuration)

@@ -14,7 +14,7 @@ from transopt.space.fidelity_space import FidelitySpace
 @problem_registry.register("PCM")
 class PCM(NonTabularProblem):
     problem_type = "CPD"
-    num_variables = "by the protein"
+    num_variables = "0"
     num_objectives = 4
     workloads = np.arange(39).tolist()
     fidelity = None
@@ -85,7 +85,8 @@ class PCM(NonTabularProblem):
         energy.calculate_energy(self.proteins)
         self.__clear_folder(self.energy_temp_save_path)
         proteins_energy = self.proteins[0].obj
-        results = {list(self.objective_info.keys())[i]: proteins_energy[i] for i in range(len(proteins_energy))}
+        results = {list(self.objective_info.keys())[0]: float(proteins_energy[0])}
+        # results = {list(self.objective_info.keys())[i]: proteins_energy[i] for i in range(len(proteins_energy))}
         for fd_name in self.fidelity_space.fidelity_names:
             results[fd_name] = fidelity[fd_name]
         return results
@@ -100,7 +101,8 @@ class PCM(NonTabularProblem):
         return fs
     
     def get_objectives(self) -> list:
-        return {"bond_energy":'minimize', "dDFIRE":'minimize', "Rosetta":'minimize', "RWplus":'minimize'}
+        return {"bond_energy":'minimize'}
+        # return {"bond_energy":'minimize', "dDFIRE":'minimize', "Rosetta":'minimize', "RWplus":'minimize'}
     
     def get_problem_type(self) -> str:
         return "CPD"

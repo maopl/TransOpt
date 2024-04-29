@@ -41,7 +41,7 @@ class CMAESGeneration(AcquisitionBase):
 
         if self.ea is None:
             self.problem = EAProblem(self.space.config_space, self.model.predict)
-            self.ea = CMAES(self.pop_size)
+            self.ea = CMAES(pop_size=self.pop_size)
             self.ea.setup(self.problem, verbose=False)
         else:
             self.problem = EAProblem(self.space.config_space, self.model.predict)

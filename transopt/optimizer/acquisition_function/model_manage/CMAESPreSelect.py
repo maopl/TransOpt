@@ -1,5 +1,6 @@
 import numpy as np
 from pymoo.core.problem import Problem
+from GPyOpt import Design_space
 from pymoo.algorithms.soo.nonconvex.cmaes import CMAES
 from transopt.agent.registry import acf_registry
 from transopt.optimizer.acquisition_function.ACF import AcquisitionBase
@@ -17,20 +18,33 @@ class CMAESPreSelect(AcquisitionBase):
             self.k = 1
         if 'pop_size' in config:
             self.pop_size = config['pop_size']
+        else:
+            self.pop_size = 10
         self.model = None
+        self.ea = None
         self.problem = None
 
-    def link(self, model, space):
-        if self.model is None:
-            self.link_model(model=model)
-            self.link_space(space=space)
-            self.problem = EAProblem(space.config_space, self.model.predict)
+    def link_space(self, space):
+        opt_space = []
+        for var_name in space.variables_order:
+            var_dic = {
+                'name': var_name,
+                'type': 'continuous',
+                'domain': space[var_name].search_space_range,
+            }
+            if space[var_name].type == 'categorical' or 'integer':
+                var_dic['type'] = 'discrete'
+
+            opt_space.append(var_dic.copy())
+            
+        self.space = Design_space(opt_space)
+
+        if self.ea is None:
+            self.problem = EAProblem(self.space.config_space, self.model.predict)
             self.ea = CMAES(self.pop_size)
             self.ea.setup(self.problem, verbose=False)
         else:
-            self.link_model(model=model)
-            self.link_space(space=space)
-            self.problem = EAProblem(space.config_space, self.model.predict)
+            self.problem = EAProblem(self.space.config_space, self.model.predict)
 
     def optimize(self, duplicate_manager=None):
         pop = self.ea.ask()
@@ -47,8 +61,9 @@ class CMAESPreSelect(AcquisitionBase):
             total_pop_X = np.concatenate((total_pop_X, pop_X))
             total_pop_F = np.concatenate((total_pop_F, pop_F))
         top_k_idx = sorted(range(len(total_pop_F)), key=lambda i: total_pop_F[i])[:self.pop_size]
-        elites = pop_X[top_k_idx]
-        return elites
+        elites = total_pop_X[top_k_idx]
+        elites_F = total_pop_F[top_k_idx]
+        return elites, elites_F
 
     def _compute_acq(self, x):
         raise NotImplementedError()

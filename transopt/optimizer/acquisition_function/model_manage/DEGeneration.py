@@ -1,4 +1,5 @@
 import numpy as np
+from pymoo.core.problem import Problem
 from pymoo.algorithms.soo.nonconvex.de import DE
 from transopt.agent.registry import acf_registry
 from transopt.optimizer.acquisition_function.ACF import AcquisitionBase
@@ -31,7 +32,7 @@ class DEGeneration(AcquisitionBase):
             self.link_space(space=space)
             self.problem = EAProblem(space.config_space, self.model.predict)
 
-    def optimize(self):
+    def optimize(self, duplicate_manager=None):
         for i in range(self.k):
             pop = self.ea.ask()
         self.ea.evaluator.eval(self.problem, pop)

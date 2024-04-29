@@ -1,4 +1,5 @@
 import numpy as np
+from pymoo.core.problem import Problem
 from pymoo.algorithms.soo.nonconvex.pso import PSO
 from transopt.agent.registry import acf_registry
 from transopt.optimizer.acquisition_function.ACF import AcquisitionBase
@@ -31,7 +32,7 @@ class PSOPreSelect(AcquisitionBase):
             self.link_space(space=space)
             self.problem = EAProblem(space.config_space, self.model.predict)
 
-    def optimize(self):
+    def optimize(self, duplicate_manager=None):
         pop = self.ea.ask()
         self.ea.evaluator.eval(self.problem, pop)
         pop_X = np.array([p.X for p in pop])

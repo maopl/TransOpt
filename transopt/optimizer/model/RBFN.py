@@ -1,4 +1,7 @@
 import numpy as np
+import torch
+from typing import Tuple, Dict, List
+from sklearn.preprocessing import StandardScaler
 from transopt.optimizer.model.model_base import  Model
 from transopt.optimizer.model.utils import is_pd, nearest_pd
 from transopt.agent.registry import model_registry
@@ -12,7 +15,7 @@ class RBFN(Model):
         max_epoch: int = 10,
         batch_size: int = 1,
         lr: float = 0.01,
-        num_centers: int = 10,
+        num_centers: int = 5,
         normalize: bool = True,
         **options: dict
     ):
@@ -41,6 +44,7 @@ class RBFN(Model):
         self,
         X: np.ndarray,
         Y: np.ndarray,
+        optimize: bool = True,
     ):
         self._X = np.copy(X)
         self._y = np.copy(Y)
@@ -54,7 +58,7 @@ class RBFN(Model):
             _y = self._y_normalizer.fit_transform(_y)
 
         if self._rbfn_model is None:
-            dataset = RegressionDataset(torch.from_numpy(_X), torch.from_numpy(_Y))
+            dataset = RegressionDataset(torch.from_numpy(_X), torch.from_numpy(_y))
             self._rbfn_model = rbfn(
                 dataset=dataset,
                 max_epoch=self._max_epoch,
@@ -63,7 +67,7 @@ class RBFN(Model):
                 num_centers=self._num_centers,
             )
         else:
-            dataset = RegressionDataset(torch.from_numpy(_X), torch.from_numpy(_Y))
+            dataset = RegressionDataset(torch.from_numpy(_X), torch.from_numpy(_y))
             self._rbfn_model.update_dataset(dataset)
         
         try:

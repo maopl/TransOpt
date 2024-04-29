@@ -122,6 +122,16 @@ class OpenAIChat:
                     "parameters": {},
                 },
             },
+            
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_optimizer_components",
+                    "description": "Get all components of optimizer that our system supoorts, and show the techniques that can be used in each component",
+                    "parameters": {},
+                },
+            },
+                        
             {
                 "type": "function",
                 "function": {
@@ -137,12 +147,12 @@ class OpenAIChat:
                                 "description": "The name of the optimization problem",
                             },
                             "workload": {
-                                "type": "string",
-                                "description": "The workload of the optimization problem",
+                                "type": "integer",
+                                "description": "The number of workload",
                             },
                             "budget": {
-                                "type": "string",
-                                "description": "The budget of the optimization problem",
+                                "type": "integer",
+                                "description": "The number of budget to do function evaluations",
                             },
                         },
                         "required": ["problem_name", "workload", "budget"],
@@ -194,6 +204,10 @@ class OpenAIChat:
             system_message = {"role": "system", "content": self.prompt}
             messages.insert(0, system_message)
             self.is_first_msg = False
+        else:
+            system_message = {"role": "system", "content": "Don't tell me which function to use, just call it. Don't make assumptions about what values to plug into functions. Ask for clarification if a user request is ambiguous"}
+            messages.insert(0, system_message)
+            
 
         response = self.invoke_model(messages)
         logger.debug(f"Assistant: {response.choices[0].message.content}")
@@ -204,6 +218,7 @@ class OpenAIChat:
         available_functions = {
             "get_all_datasets": self.data_manager.get_all_datasets,
             "get_all_problems": self.get_all_problems,
+            "get_optimizer_components": self.get_optimizer_components,
             "get_dataset_info": lambda: self.data_manager.get_dataset_info(kwargs['dataset_name']),
             "set_optimization_problem": lambda: self.set_optimization_problem(kwargs['problem_name', 'workload', 'budget']),
             
@@ -254,6 +269,56 @@ class OpenAIChat:
                 }
             tasks_info.append(task_info)
         return tasks_info
+    
+    def get_optimizer_components(self):
+        basic_info = {}
+
+        selector_info = []
+        model_info = []
+        sampler_info = []
+        acf_info = []
+        pretrain_info = []
+        refiner_info = []
+        normalizer_info = []
+        
+        # tasks information
+        sampler_names = sampler_registry.list_names()
+        for name in sampler_names:
+            sampler_info.append(name)
+        basic_info["Sampler"] = ','.join(sampler_info)
+
+        refiner_names = space_refiner_registry.list_names()
+        for name in refiner_names:
+            refiner_info.append(name)
+        basic_info["SpaceRefiner"] = ','.join(refiner_info)
+
+        pretrain_names = pretrain_registry.list_names()
+        for name in pretrain_names:
+            pretrain_info.append(name)
+        basic_info["Pretrain"] = ','.join(pretrain_info)
+
+        model_names = model_registry.list_names()
+        for name in model_names:
+            model_info.append(name)
+        basic_info["Model"] = ','.join(model_info)
+
+        acf_names = acf_registry.list_names()
+        for name in acf_names:
+            acf_info.append(name)
+        basic_info["ACF"] = ','.join(acf_info)
+
+        selector_names = selector_registry.list_names()
+        for name in selector_names:
+            selector_info.append(name)
+        basic_info["DataSelector"] = ','.join(selector_info)
+        
+        normalizer_names = selector_registry.list_names()
+        for name in normalizer_names:
+            normalizer_info.append(name)
+        basic_info["Normalizer"] = ','.join(normalizer_info)
+        
+        
+        return basic_info
     
     def set_optimization_problem(self, problem_name, workload, budget):
         problem = problem_registry[problem_name]

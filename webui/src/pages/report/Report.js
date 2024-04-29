@@ -29,7 +29,7 @@ class Report extends React.Component {
     console.log(index)
     this.setState({ selectedTaskIndex: index });
     const messageToSend = {
-      taskname:this.state.tasksInfo[this.state.selectedTaskIndex].name,
+      taskname:this.state.tasksInfo[this.state.selectedTaskIndex].problem_name,
     }
     fetch('http://localhost:5000/api/report/charts', {
       method: 'POST',
@@ -70,7 +70,7 @@ class Report extends React.Component {
   fetchData = async () => {
     try {
       const messageToSend = {
-        taskname:this.state.tasksInfo[this.state.selectedTaskIndex].name,
+        taskname:this.state.tasksInfo[this.state.selectedTaskIndex].problem_name,
       }
       const response = await fetch('http://localhost:5000/api/report/trajectory', {
         method: 'POST',
@@ -162,7 +162,7 @@ class Report extends React.Component {
                         className={s.btn}
                         onClick={() => this.handleTaskClick(index)}
                         >
-                          {task.name}
+                          {task.problem_name}
                         </Button>
                     ))}
                     </div>
@@ -180,7 +180,7 @@ class Report extends React.Component {
                       <div style={{ overflowY: 'auto', maxHeight: '650px' }}>
                       <h4><strong>Task</strong></h4>
                       <ul>
-                        <li><h5><span className="fw-semi-bold">Name</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].name}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Name</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].problem_name}</h5></li>
                         <li><h5><span className="fw-semi-bold">Dim</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].dim}</h5></li>
                         <li><h5><span className="fw-semi-bold">Obj</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].obj}</h5></li>
                         <li><h5><span className="fw-semi-bold">Fidelity</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].fidelity}</h5></li>

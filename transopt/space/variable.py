@@ -39,6 +39,7 @@ class Categorical(Variable):
     def __init__(self, name, categories):
         super().__init__(name, "categorical")
         self.categories = categories
+        self.range = (1, len(self.categories))
         
         self.is_discrete = True
 

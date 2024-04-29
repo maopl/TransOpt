@@ -12,7 +12,7 @@ from transopt.optimizer.model.rbfn import rbfn, RegressionDataset
 class RBFN(Model):
     def __init__(
         self,
-        max_epoch: int = 10,
+        max_epoch: int = 50,
         batch_size: int = 1,
         lr: float = 0.01,
         num_centers: int = 5,

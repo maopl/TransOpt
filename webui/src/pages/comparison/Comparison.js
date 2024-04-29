@@ -27,7 +27,6 @@ class Comparison extends React.Component {
   handleClick = (values) => {
     console.log("Tasks:", values.Tasks)
     const messageToSend = values.Tasks.map(task => ({
-      SearchMethod: task.SearchMethod || '',
       TaskName: task.TaskName || '',
       NumObjs: task.NumObjs || '',
       NumVars: task.NumVars || '',

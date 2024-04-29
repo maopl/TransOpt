@@ -203,7 +203,6 @@ def comparison_choose_tasks():
   
     ret = []
     for condition in conditions:
-        condition.pop('SearchMethod')
         ret.append(services.comparision_search(condition)) 
     # current_directory = os.path.dirname(__file__)
     # json_file_path = os.path.join(

@@ -290,6 +290,7 @@ class Services:
     def remove_dataset(self, dataset_name):
         self.data_manager.db.remove_table(dataset_name)
 
+
     def run_optimize(self, seeds_info):
         seeds = [int(seed) for seed in seeds_info.split(",")]
         for seed in seeds:

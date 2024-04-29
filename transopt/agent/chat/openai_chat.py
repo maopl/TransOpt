@@ -7,8 +7,13 @@ from openai.types.chat.chat_completion import ChatCompletion
 from pydantic import BaseModel
 
 from transopt.datamanager.manager import DataManager
+from transopt.agent.config import RunningConfig
 from transopt.utils.log import logger
 from transopt.agent.registry import *
+
+
+from transopt.benchmark.instantiate_problems import InstantiateProblems
+from transopt.optimizer.construct_optimizer import ConstructOptimizer
 
 class Message(BaseModel):
     """Model for LLM messages"""
@@ -69,6 +74,7 @@ class OpenAIChat:
         self.history = []
 
         self.data_manager = DataManager()
+        self.running_config = RunningConfig()
 
     def _get_prompt(self):
         """Reads a prompt from a file."""
@@ -159,6 +165,92 @@ class OpenAIChat:
                     },
                 },
             },
+            
+            {
+                "type": "function",
+                "function": {
+                    "name": "set_model",
+                    "description": "Set the model used as surrogate model in the  Bayesian optimization, The input model name should be one of the available models.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "Model": {
+                                "type": "string",
+                                "description": "The model name",
+                            },
+                        },
+                        "required": ["Model"],
+                    },
+                },
+            },
+            
+            {
+                "type": "function",
+                "function": {
+                    "name": "set_sampler",
+                    "description": "Set the sampler for the optimization process as user input. The input sampler name should be one of the available samplers.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "Sampler": {
+                                "type": "string",
+                                "description": "The name of Sampler",
+                            },
+                        },
+                        "required": ["Sampler"],
+                    },
+                },
+            },
+            
+            {
+                "type": "function",
+                "function": {
+                    "name": "set_pretrain",
+                    "description": "Set the Pretrain methods. The input of users should include one of the available pretrain methods.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "Pretrain": {
+                                "type": "string",
+                                "description": "The name of Pretrain method",
+                            },
+                        },
+                        "required": ["Pretrain"],
+                    },
+                },
+            },
+            
+            {
+                "type": "function",
+                "function": {
+                    "name": "set_normalizer",
+                    "description": "Set the normalization method to nomalize function evaluation and parameters. It requires one of the available normalization methods as input.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "Normalizer": {
+                                "type": "string",
+                                "description": "The name of Normalization method",
+                            },
+                        },
+                        "required": ["Normalizer"],
+                    },
+                },
+            },
+            
+            {
+                "type": "function",
+                "function": {
+                    "name": "run_optimization",
+                    "description": "Set the normalization method to nomalize function evaluation and parameters. It requires one of the available normalization methods as input.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {},
+                        },
+                        "required": ["Normalizer"],
+                    },
+                },
+            },
         ]
                 
         response = self.client.chat.completions.create(
@@ -220,8 +312,13 @@ class OpenAIChat:
             "get_all_problems": self.get_all_problems,
             "get_optimizer_components": self.get_optimizer_components,
             "get_dataset_info": lambda: self.data_manager.get_dataset_info(kwargs['dataset_name']),
-            "set_optimization_problem": lambda: self.set_optimization_problem(kwargs['problem_name', 'workload', 'budget']),
-            
+            "set_optimization_problem": lambda: self.set_optimization_problem(kwargs['problem_name'], kwargs['workload'], kwargs['budget']),
+            'set_space_refiner': lambda: self.set_space_refiner(kwargs['refiner']),
+            'set_sampler': lambda: self.set_sampler(kwargs['Sampler']),
+            'set_pretrain': lambda: self.set_pretrain(kwargs['Pretrain']),
+            'set_model': lambda: self.set_model(kwargs['Model']),
+            'set_normalizer': lambda: self.set_normalizer(kwargs['Normalizer']),
+            'run_optimization': self.run_optimization,
         }
         function_to_call = available_functions[function_name]
         return json.dumps({"result": function_to_call()})
@@ -320,19 +417,83 @@ class OpenAIChat:
         
         return basic_info
     
-    def set_optimization_problem(self, problem_name, workload, budget):
-        problem = problem_registry[problem_name]
-        problem.set_workload(workload)
-        problem.set_budget(budget)
-        
+    def set_optimization_problem(self, problem_name, workload, budget):        
         problem_info = {}
-        w = [int(item) for item in workload.split(",")]
         if problem_name in problem_registry:
             problem_info[problem_name] = {
                 'budget': budget,
-                'workload': w,
+                'workload': workload,
                 'budget_type': 'Num_FEs',
+                "params": {},
             }
 
         self.running_config.set_tasks(problem_info)
         return "Succeed"
+    
+    def set_space_refiner(self, refiner):
+        self.running_config.optimizer['SpaceRefiner'] = refiner
+        return "Succeed"
+
+    def set_sampler(self, Sampler):
+        self.running_config.optimizer['Sampler'] = Sampler
+        return "Succeed"
+    
+    
+    def set_pretrain(self, Pretrain):
+        self.running_config.optimizer['Pretrain'] = Pretrain
+        return "Succeed"
+    
+    def set_model(self, Model):
+        self.running_config.optimizer['Model'] = Model
+        return "Succeed"
+    
+    def set_normalizer(self, Normalizer):
+        self.running_config.optimizer['Normalizer'] = Normalizer
+        return "Succeed"
+    
+    
+    def run_optimization(self):
+        task_set = InstantiateProblems(self.running_config.tasks, 0)
+        optimizer = ConstructOptimizer(self.running_config.optimizer, 0)
+        
+        try:
+            while (task_set.get_unsolved_num()):
+                iteration = 0
+                search_space = task_set.get_cur_searchspace()
+                dataset_info, dataset_name = self.construct_dataset_info(task_set, self.running_config, seed=0)
+                
+                self.data_manager.db.create_table(dataset_name, dataset_info, overwrite=True)
+                optimizer.link_task(task_name=task_set.get_curname(), search_sapce=search_space)
+                
+                metadata, metadata_info = self.get_metadata('SpaceRefiner')
+                optimizer.search_space_refine(metadata, metadata_info)
+                
+                metadata, metadata_info = self.get_metadata('Sampler')
+                samples = optimizer.sample_initial_set(metadata, metadata_info)
+                
+                parameters = [search_space.map_to_design_space(sample) for sample in samples]
+                observations = task_set.f(parameters)
+                self.save_data(dataset_name, parameters, observations, iteration)
+                
+                optimizer.observe(samples, observations)
+                
+                #Pretrain
+                metadata, metadata_info = self.get_metadata('Model')
+                optimizer.meta_fit(metadata, metadata_info)
+        
+                while (task_set.get_rest_budget()):
+                    optimizer.fit()
+                    suggested_samples = optimizer.suggest()
+                    parameters = [search_space.map_to_design_space(sample) for sample in suggested_samples]
+                    observations = task_set.f(parameters)
+                    self.save_data(dataset_name, parameters, observations, iteration)
+                    
+                    optimizer.observe(suggested_samples, observations)
+                    iteration += 1
+                    
+                    print("Seed: ", seed, "Task: ", task_set.get_curname(), "Iteration: ", iteration)
+                    # if self.verbose:
+                    #     self.visualization(testsuits, suggested_sample)
+                task_set.roll()
+        except Exception as e:
+            raise e

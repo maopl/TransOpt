@@ -1,4 +1,5 @@
 import os
+import traceback
 import argparse
 from services import Services
 
@@ -92,4 +93,7 @@ if __name__ == "__main__":
     services = Services()
     set_task(services, args)
     set_optimizer(services, args)
-    services.run_optimize(seeds_info = args.seeds)
+    try:
+        services.run_optimize(seeds_info = args.seeds)
+    except Exception as e:
+        traceback.print_exc()

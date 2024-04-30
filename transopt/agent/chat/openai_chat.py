@@ -6,14 +6,17 @@ import yaml
 from openai.types.chat.chat_completion import ChatCompletion
 from pydantic import BaseModel
 
-from transopt.datamanager.manager import DataManager
 from transopt.agent.config import RunningConfig
-from transopt.utils.log import logger
 from transopt.agent.registry import *
-
-
 from transopt.benchmark.instantiate_problems import InstantiateProblems
+from transopt.datamanager.manager import DataManager
 from transopt.optimizer.construct_optimizer import ConstructOptimizer
+from transopt.utils.log import logger
+
+
+def dict_to_string(dictionary):
+    return json.dumps(dictionary, ensure_ascii=False, indent=4)
+
 
 class Message(BaseModel):
     """Model for LLM messages"""
@@ -100,7 +103,7 @@ class OpenAIChat:
                 "type": "function",
                 "function": {
                     "name": "get_all_datasets",
-                    "description": "Get a list of all available datasets",
+                    "description": "Show all available datasets in our system",
                     "parameters": {},
                 },
             },
@@ -108,7 +111,7 @@ class OpenAIChat:
                 "type": "function",
                 "function": {
                     "name": "get_dataset_info",
-                    "description": "Get detailed information about a dataset",
+                    "description": "Show detailed information of dataset according to the dataset name",
                     "parameters": {
                         "type": "object",
                         "properties": {
@@ -125,7 +128,7 @@ class OpenAIChat:
                 "type": "function",
                 "function": {
                     "name": "get_all_problems",
-                    "description": "Get all optimization problems that our system supoorts",
+                    "description": "Show all optimization problems that our system supoorts",
                     "parameters": {},
                 },
             },
@@ -134,7 +137,7 @@ class OpenAIChat:
                 "type": "function",
                 "function": {
                     "name": "get_optimizer_components",
-                    "description": "Get all components of optimizer that our system supoorts, and show the techniques that can be used in each component",
+                    "description": "Show all components of optimizer that our system supoorts, and show the techniques that can be used in each component",
                     "parameters": {},
                 },
             },
@@ -143,9 +146,7 @@ class OpenAIChat:
                 "type": "function",
                 "function": {
                     "name": "set_optimization_problem",
-                    "description": "This function is called when a user wants to perform an optimization or find an optimal solution for a given task.\
-                        It facilitates the optimization process by requiring the user to specify certain parameters that\
-                        define the 'workload' and 'budget' available for the task.",
+                    "description": "Define or set an optimization problem based on user inputs for 'problem name', 'workload' and 'budget'.",
                     "parameters": {
                         "type": "object",
                         "properties": {
@@ -242,8 +243,35 @@ class OpenAIChat:
             {
                 "type": "function",
                 "function": {
+                    "name": "set_metadata",
+                    "description": "Set the metadata using a dataset stored in our system and specify a module to utilize this metadata.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "Normalizer": {
+                                "type": "string",
+                                "description": "The name of Normalization method",
+                            },
+                        },
+                        "required": ["module_name", "dataset_name"],
+                    },
+                },
+            },
+            
+            {
+                "type": "function",
+                "function": {
                     "name": "run_optimization",
                     "description": "Set the normalization method to nomalize function evaluation and parameters. It requires one of the available normalization methods as input.",
+                    "parameters": {},
+                },
+            },
+            
+            {
+                "type": "function",
+                "function": {
+                    "name": "show_configuration",
+                    "description": "Display all configurations set by the user so far, including the optimizer configuration, metadata configuration, and optimization problems",
                     "parameters": {},
                 },
             },
@@ -316,7 +344,9 @@ class OpenAIChat:
             'set_pretrain': lambda: self.set_pretrain(kwargs['Pretrain']),
             'set_model': lambda: self.set_model(kwargs['Model']),
             'set_normalizer': lambda: self.set_normalizer(kwargs['Normalizer']),
+            'set_metadata': lambda: self.set_metadata(kwargs['module_name'], kwargs['dataset_name']),
             'run_optimization': self.run_optimization,
+            'show_configuration': self.show_configuration,
         }
         function_to_call = available_functions[function_name]
         return json.dumps({"result": function_to_call()})
@@ -430,25 +460,28 @@ class OpenAIChat:
     
     def set_space_refiner(self, refiner):
         self.running_config.optimizer['SpaceRefiner'] = refiner
-        return "Succeed"
+        return f"Succeed to set the space refiner {refiner}"
 
     def set_sampler(self, Sampler):
         self.running_config.optimizer['Sampler'] = Sampler
-        return "Succeed"
+        return f"Succeed to set the sampler {Sampler}"
     
     
     def set_pretrain(self, Pretrain):
         self.running_config.optimizer['Pretrain'] = Pretrain
-        return "Succeed"
+        return f"Succeed to set the pretrain {Pretrain}"
     
     def set_model(self, Model):
         self.running_config.optimizer['Model'] = Model
-        return "Succeed"
+        return f"Succeed to set the model {Model}"
     
     def set_normalizer(self, Normalizer):
         self.running_config.optimizer['Normalizer'] = Normalizer
-        return "Succeed"
+        return f"Succeed to set the normalizer {Normalizer}"
     
+    def set_metadata(self, module_name, dataset_name):
+        self.running_config.metadata[module_name] = dataset_name
+        return f"Succeed to set the metadata {dataset_name} for {module_name}"
     
     def run_optimization(self):
         task_set = InstantiateProblems(self.running_config.tasks, 0)
@@ -495,3 +528,6 @@ class OpenAIChat:
                 task_set.roll()
         except Exception as e:
             raise e
+    def show_configuration(self):
+        conf = {'Optimization problem': self.running_config.tasks, 'Optimizer': self.running_config.optimizer, 'Metadata': self.running_config.metadata}
+        return dict_to_string(conf)

@@ -1,2 +1,0 @@
-from transopt.KnowledgeBase.KnowledgeBase import KnowledgeBase
-from transopt.KnowledgeBase.kb_builder import construct_knowledgebase

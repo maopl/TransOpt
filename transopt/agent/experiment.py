@@ -93,4 +93,3 @@ if __name__ == "__main__":
     set_task(services, args)
     set_optimizer(services, args)
     services.run_optimize(seeds_info = args.seeds)
-    services.data_manager.teardown()

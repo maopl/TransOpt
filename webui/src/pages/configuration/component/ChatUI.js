@@ -62,6 +62,8 @@ function ChatUI () {
       messages={messages}
       renderMessageContent={renderMessageContent}
       onSend={handleSend}
+      placeholder='Send a message...'
+      locale='en-US'
     />
   );
 };

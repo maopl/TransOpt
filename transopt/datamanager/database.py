@@ -252,7 +252,11 @@ class Database:
         if not self.check_table_exist(name):
             raise Exception(f"Table {name} does not exist")
 
+        self.execute(f"DELETE FROM _config WHERE name = '{name}'")
+        self.execute(f"DELETE FROM _metadata WHERE table_name = '{name}'")
         self.execute(f'DROP TABLE IF EXISTS "{name}"')
+        
+        self.commit()
 
     '''
     config

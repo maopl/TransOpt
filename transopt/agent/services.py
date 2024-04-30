@@ -27,7 +27,7 @@ class Services:
 
     def _initialize_modules(self):
         import transopt.benchmark.synthetic
-        # import transopt.benchmark.CPD
+        import transopt.benchmark.CPD
         import transopt.optimizer.acquisition_function
         import transopt.optimizer.model
         import transopt.optimizer.pretrain
@@ -244,7 +244,7 @@ class Services:
         dataset_name = f"{task_set.get_curname()}_w{task_set.get_cur_workload()}_{timestamp}"
 
         dataset_info['additional_config'] = {
-            "problem_name": task_set.get_curname(),
+            "problem_name": dataset_name,
             "dim": len(dataset_info["variables"]),
             "obj": len(dataset_info["objectives"]),
             "fidelity": ', '.join([d['name'] for d in dataset_info["fidelities"] if 'name' in d]) if dataset_info["fidelities"] else '',

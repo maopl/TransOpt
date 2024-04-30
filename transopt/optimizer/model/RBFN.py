@@ -3,7 +3,6 @@ import torch
 from typing import Tuple, Dict, List
 from sklearn.preprocessing import StandardScaler
 from transopt.optimizer.model.model_base import  Model
-from transopt.optimizer.model.utils import is_pd, nearest_pd
 from transopt.agent.registry import model_registry
 from transopt.optimizer.model.rbfn import rbfn, RegressionDataset
 

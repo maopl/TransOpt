@@ -88,7 +88,8 @@ class OpenAIChat:
         """Lazy initialization of the OpenAI client."""
         from openai import OpenAI
         return OpenAI(
-            api_key=self.api_key, base_url=self.base_url, **self.client_kwargs
+            api_key=self.api_key, base_url=self.base_url,
+            **self.client_kwargs
         )
 
     def invoke_model(self, messages: List[Dict]) -> ChatCompletion:
@@ -254,6 +255,7 @@ class OpenAIChat:
             messages=messages,
             tools=tools,
             tool_choice="auto",
+            temperature=0.1,
         )
         response_message = response.choices[0].message
         tool_calls = response_message.tool_calls

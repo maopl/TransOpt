@@ -1,7 +1,7 @@
 
 class Config:
     DEBUG = True
-    OPENAI_API_KEY = "sk-eGYDsI7kGLAVM9bs2585D337E51b48FbA30d88B0Fa8a1571"
+    OPENAI_API_KEY = "sk-1XGNThXZQVYh6EI25b44Bb74940d4eEdBdDa81723e00C794"
     OPENAI_URL = "https://aihubmix.com/v1"
 
 

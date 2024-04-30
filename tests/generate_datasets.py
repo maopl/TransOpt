@@ -163,8 +163,8 @@ if __name__ == "__main__":
     # create_exported_datasets(db, 100)
 
     # 获取所有的 datasets
-    # dataset_ls = db.get_table_list() 
-    # print(dataset_ls)
+    dataset_ls = db.get_table_list() 
+    print(dataset_ls)
 
     dataset_exp = db.get_experiment_datasets()
     print(dataset_exp)

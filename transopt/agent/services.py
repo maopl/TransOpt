@@ -244,7 +244,7 @@ class Services:
         dataset_name = f"{task_set.get_curname()}_w{task_set.get_cur_workload()}_{timestamp}"
 
         dataset_info['additional_config'] = {
-            "problem_name": dataset_name,
+            "problem_name": task_set.get_curname(),
             "dim": len(dataset_info["variables"]),
             "obj": len(dataset_info["objectives"]),
             "fidelity": ', '.join([d['name'] for d in dataset_info["fidelities"] if 'name' in d]) if dataset_info["fidelities"] else '',
@@ -288,8 +288,13 @@ class Services:
         self.data_manager.db.insert_data(dataset_name, data)
     
     def remove_dataset(self, dataset_name):
-        self.data_manager.db.remove_table(dataset_name)
-
+        if isinstance(dataset_name, str):
+            self.data_manager.db.remove_table(dataset_name)
+        elif isinstance(dataset_name, list):
+            for name in dataset_name:
+                self.data_manager.db.remove_table(name)
+        else:
+            raise ValueError("Invalid dataset name")
 
     def run_optimize(self, seeds_info):
         seeds = [int(seed) for seed in seeds_info.split(",")]

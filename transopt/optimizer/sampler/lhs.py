@@ -16,7 +16,7 @@ class LatinHypercubeSampler(Sampler):
             var_range = search_space.ranges[name]
             if search_space.var_discrete[name]: 
                 continuous_vals = qmc.scale(
-                    sample_points[:, i], var_range[0], var_range[1]
+                    sample_points[:, i][np.newaxis], var_range[0], var_range[1]
                 )
                 sample_points[:, i] = np.round(continuous_vals).astype(int)
             else:  # 连续变量处理

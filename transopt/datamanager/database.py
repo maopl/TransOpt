@@ -1,4 +1,5 @@
 
+import atexit
 import json
 import queue
 import sqlite3
@@ -71,6 +72,7 @@ class Database:
         self.lock = manager.Lock()
 
         self.start_daemon()
+        atexit.register(self.close)
 
         # reserved tables
         self.reserved_tables = list(table_descriptions.keys())
@@ -97,7 +99,8 @@ class Database:
         self.process.join()
 
     def close(self):
-        self.stop_daemon()
+        if self.process and self.process.is_alive():
+            self.stop_daemon()
 
     """
     execution
@@ -252,7 +255,11 @@ class Database:
         if not self.check_table_exist(name):
             raise Exception(f"Table {name} does not exist")
 
+        self.execute(f"DELETE FROM _config WHERE name = '{name}'")
+        self.execute(f"DELETE FROM _metadata WHERE table_name = '{name}'")
         self.execute(f'DROP TABLE IF EXISTS "{name}"')
+        
+        self.commit()
 
     '''
     config

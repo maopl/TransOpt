@@ -8,6 +8,7 @@ from transopt.space.search_space import SearchSpace
 from transopt.space.fidelity_space import FidelitySpace
 import numpy as np
 from typing import Union, Dict
+from transopt.space.variable import *
 
 logger = logging.getLogger("AbstractProblem")
 
@@ -65,11 +66,17 @@ class ProblemBase(abc.ABC):
             if key not in self.configuration_space.ranges:
                 raise ValueError(f"Configuration key {key} is not valid.")
 
-            range = self.configuration_space.ranges[key]
-            if not (range[0] <= value <= range[1]):
-                raise ValueError(
-                    f"Value of {key}={value} is out of allowed range {range}."
-                )
+            if type(self.configuration_space.get_design_variables()[key]) is Categorical:
+                if not (value in self.configuration_space.get_design_variables()[key].categories):
+                    raise ValueError(
+                        f"Value of {key}={value} is out of allowed range {range}."
+                    )
+            else:
+                range = self.configuration_space.ranges[key]
+                if not (range[0] <= value <= range[1]):
+                    raise ValueError(
+                        f"Value of {key}={value} is out of allowed range {range}."
+                    )
 
         if fidelity is None:
             return

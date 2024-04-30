@@ -162,8 +162,7 @@ def configuration_search_dataset():
 def configuration_delete_dataset():
     metadata_info = request.json
     datasets = metadata_info["datasets"]
-    print(datasets)
-    # 删除选中的数据集
+    services.remove_dataset(datasets) 
     return {"succeed": True}, 200
 
 

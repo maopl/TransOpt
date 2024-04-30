@@ -6,14 +6,17 @@ import yaml
 from openai.types.chat.chat_completion import ChatCompletion
 from pydantic import BaseModel
 
-from transopt.datamanager.manager import DataManager
 from transopt.agent.config import RunningConfig
-from transopt.utils.log import logger
 from transopt.agent.registry import *
-
-
 from transopt.benchmark.instantiate_problems import InstantiateProblems
+from transopt.datamanager.manager import DataManager
 from transopt.optimizer.construct_optimizer import ConstructOptimizer
+from transopt.utils.log import logger
+
+
+def dict_to_string(dictionary):
+    return json.dumps(dictionary, ensure_ascii=False, indent=4)
+
 
 class Message(BaseModel):
     """Model for LLM messages"""
@@ -100,7 +103,7 @@ class OpenAIChat:
                 "type": "function",
                 "function": {
                     "name": "get_all_datasets",
-                    "description": "Get a list of all available datasets",
+                    "description": "Show all available datasets in our system",
                     "parameters": {},
                 },
             },
@@ -125,7 +128,7 @@ class OpenAIChat:
                 "type": "function",
                 "function": {
                     "name": "get_all_problems",
-                    "description": "Get all optimization problems that our system supoorts",
+                    "description": "Show all optimization problems that our system supoorts",
                     "parameters": {},
                 },
             },
@@ -134,7 +137,7 @@ class OpenAIChat:
                 "type": "function",
                 "function": {
                     "name": "get_optimizer_components",
-                    "description": "Get all components of optimizer that our system supoorts, and show the techniques that can be used in each component",
+                    "description": "Show all components of optimizer that our system supoorts, and show the techniques that can be used in each component",
                     "parameters": {},
                 },
             },
@@ -247,6 +250,15 @@ class OpenAIChat:
                     "parameters": {},
                 },
             },
+            
+            {
+                "type": "function",
+                "function": {
+                    "name": "show_configuration",
+                    "description": "Display all configurations set by the user so far, including the optimizer configuration, metadata configuration, and optimization problems",
+                    "parameters": {},
+                },
+            },
                         
         ]
                 
@@ -317,6 +329,7 @@ class OpenAIChat:
             'set_model': lambda: self.set_model(kwargs['Model']),
             'set_normalizer': lambda: self.set_normalizer(kwargs['Normalizer']),
             'run_optimization': self.run_optimization,
+            'show_configuration': self.show_configuration,
         }
         function_to_call = available_functions[function_name]
         return json.dumps({"result": function_to_call()})
@@ -495,3 +508,6 @@ class OpenAIChat:
                 task_set.roll()
         except Exception as e:
             raise e
+    def show_configuration(self):
+        conf = {'Optimization problem': self.running_config.tasks, 'Optimizer': self.running_config.optimizer, 'Metadata': self.running_config.metadata}
+        return dict_to_string(conf)

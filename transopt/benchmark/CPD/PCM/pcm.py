@@ -15,7 +15,7 @@ from transopt.space.fidelity_space import FidelitySpace
 class PCM(NonTabularProblem):
     problem_type = "CPD"
     num_variables = "0"
-    num_objectives = 4
+    num_objectives = 1
     workloads = np.arange(39).tolist()
     fidelity = None
     def __init__(
@@ -47,8 +47,8 @@ class PCM(NonTabularProblem):
         config = json.loads(config_file)
         protein_config_file = open(os.path.join(file_path,'config/protein_config.json'), 'r').read()
         protein_config = json.loads(protein_config_file)
-        energy_config_file = open(os.path.join(file_path,'config/energy_config.json'), 'r').read()
-        self.energy_config = json.loads(energy_config_file)
+        self.energy_config_file = open(os.path.join(file_path,'config/energy_config.json'), 'r').read()
+        self.energy_config = json.loads(self.energy_config_file)
 
         self.second_struct_file_path = config['protein_params']['second_struct_file']
         protein_status = config['protein_params']['status']
@@ -81,7 +81,8 @@ class PCM(NonTabularProblem):
     ) -> Dict:
         angels = list(configuration.values())
         self.proteins[0].update_angle_from_view(angels)
-        energy = Energy(self.energy_config, self.root, self.energy_temp_save_path, self.protein_name, self.second_struct_file_path, self.max_thread, self.proteins[0])
+        energy_config = json.loads(self.energy_config_file)
+        energy = Energy(energy_config, self.root, self.energy_temp_save_path, self.protein_name, self.second_struct_file_path, self.max_thread, self.proteins[0])
         energy.calculate_energy(self.proteins)
         self.__clear_folder(self.energy_temp_save_path)
         proteins_energy = self.proteins[0].obj

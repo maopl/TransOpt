@@ -111,7 +111,7 @@ class OpenAIChat:
                 "type": "function",
                 "function": {
                     "name": "get_dataset_info",
-                    "description": "Get detailed information about a dataset",
+                    "description": "Show detailed information of dataset according to the dataset name",
                     "parameters": {
                         "type": "object",
                         "properties": {
@@ -146,9 +146,7 @@ class OpenAIChat:
                 "type": "function",
                 "function": {
                     "name": "set_optimization_problem",
-                    "description": "This function is called when a user wants to perform an optimization or find an optimal solution for a given task.\
-                        It facilitates the optimization process by requiring the user to specify certain parameters that\
-                        define the 'workload' and 'budget' available for the task.",
+                    "description": "Define or set an optimization problem based on user inputs for 'problem name', 'workload' and 'budget'.",
                     "parameters": {
                         "type": "object",
                         "properties": {
@@ -245,6 +243,24 @@ class OpenAIChat:
             {
                 "type": "function",
                 "function": {
+                    "name": "set_metadata",
+                    "description": "Set the metadata using a dataset stored in our system and specify a module to utilize this metadata.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "Normalizer": {
+                                "type": "string",
+                                "description": "The name of Normalization method",
+                            },
+                        },
+                        "required": ["module_name", "dataset_name"],
+                    },
+                },
+            },
+            
+            {
+                "type": "function",
+                "function": {
                     "name": "run_optimization",
                     "description": "Set the normalization method to nomalize function evaluation and parameters. It requires one of the available normalization methods as input.",
                     "parameters": {},
@@ -328,6 +344,7 @@ class OpenAIChat:
             'set_pretrain': lambda: self.set_pretrain(kwargs['Pretrain']),
             'set_model': lambda: self.set_model(kwargs['Model']),
             'set_normalizer': lambda: self.set_normalizer(kwargs['Normalizer']),
+            'set_metadata': lambda: self.set_metadata(kwargs['module_name'], kwargs['dataset_name']),
             'run_optimization': self.run_optimization,
             'show_configuration': self.show_configuration,
         }
@@ -443,25 +460,28 @@ class OpenAIChat:
     
     def set_space_refiner(self, refiner):
         self.running_config.optimizer['SpaceRefiner'] = refiner
-        return "Succeed"
+        return f"Succeed to set the space refiner {refiner}"
 
     def set_sampler(self, Sampler):
         self.running_config.optimizer['Sampler'] = Sampler
-        return "Succeed"
+        return f"Succeed to set the sampler {Sampler}"
     
     
     def set_pretrain(self, Pretrain):
         self.running_config.optimizer['Pretrain'] = Pretrain
-        return "Succeed"
+        return f"Succeed to set the pretrain {Pretrain}"
     
     def set_model(self, Model):
         self.running_config.optimizer['Model'] = Model
-        return "Succeed"
+        return f"Succeed to set the model {Model}"
     
     def set_normalizer(self, Normalizer):
         self.running_config.optimizer['Normalizer'] = Normalizer
-        return "Succeed"
+        return f"Succeed to set the normalizer {Normalizer}"
     
+    def set_metadata(self, module_name, dataset_name):
+        self.running_config.metadata[module_name] = dataset_name
+        return f"Succeed to set the metadata {dataset_name} for {module_name}"
     
     def run_optimization(self):
         task_set = InstantiateProblems(self.running_config.tasks, 0)

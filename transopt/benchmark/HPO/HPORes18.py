@@ -9,7 +9,6 @@ import torch.nn.functional as F
 from typing import Union, Dict
 from torchvision import datasets, transforms
 
-from transopt.benchmark.problem_base import NonTabularProblem
 from transopt.space.variable import *
 from transopt.agent.registry import problem_registry
 from transopt.benchmark.problem_base.non_tab_problem import NonTabularProblem

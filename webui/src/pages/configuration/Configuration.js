@@ -165,6 +165,19 @@ class Configuration extends React.Component {
                 </div>
               </Widget>
             </Col>
+            <Col lg={6} sm={4}>
+            <Widget
+                title={
+                  <h5>
+                    <span className="fw-semi-bold">Process</span>
+                  </h5>
+                }
+              >
+                <div className={s.chatui}>
+                  
+                </div>
+              </Widget>
+            </Col>
           </Row>
         </div>
       );

@@ -10,7 +10,11 @@ from typing import Union, Dict
 from torchvision import datasets, transforms
 
 from transopt.benchmark.problem_base import NonTabularProblem
-from agent.registry import benchmark_register
+from transopt.space.variable import *
+from transopt.agent.registry import problem_registry
+from transopt.benchmark.problem_base.non_tab_problem import NonTabularProblem
+from transopt.space.search_space import SearchSpace
+from transopt.space.fidelity_space import FidelitySpace
 
 logger = logging.getLogger("ConfigOptBenchmark")
 
@@ -87,17 +91,28 @@ class ResNet(nn.Module):
         return out
 
 
-@benchmark_register("Res")
+@problem_registry.register("Res")
 class HPOResNet(NonTabularProblem):
     DATASET_NAME = ["svhn", "cifar10", "cifar100"]
+    problem_type = 'hpo'
+    num_variables = 10
+    num_objectives = 1
+    workloads = []
+    fidelity = None
 
-    def __init__(self, task_name, budget, seed, task_id, task_type="non-tabular"):
+    def __init__(
+        self, task_name, budget_type, budget, seed, workload, **kwargs
+    ):
         super(HPOResNet, self).__init__(
-            task_name=task_name, seed=seed, task_type=task_type, budget=budget
+            task_name=task_name,
+            budget=budget,
+            budget_type=budget_type,
+            seed=seed,
+            workload=workload,
         )
         np.random.seed(seed)
         torch.manual_seed(seed)
-        self.dataset_name = HPOResNet.DATASET_NAME[task_id]
+        self.dataset_name = HPOResNet.DATASET_NAME[workload]
 
     def get_configuration_space(
         self, seed: Union[int, None] = None
@@ -115,19 +130,12 @@ class HPOResNet(NonTabularProblem):
         -------
         ConfigSpace.ConfigurationSpace
         """
-        seed = seed if seed is not None else np.random.randint(1, 100000)
-        cs = CS.ConfigurationSpace(seed=seed)
-
-        cs.add_hyperparameters(
-            [
-                CS.UniformFloatHyperparameter("lr", lower=-10, upper=0),
-                CS.UniformFloatHyperparameter("momentum", lower=0.0, upper=1),
-                CS.UniformFloatHyperparameter("weight_decay", lower=-10.0, upper=-5.0),
-                CS.UniformIntegerHyperparameter("number_block", lower=1, upper=5),
-            ]
-        )
-
-        return cs
+        variables=[Continuous('lr', [-10.0, 0.0]),
+                   Continuous('momentum', [0.0, 1.0]),
+                   Continuous('weight_decay', [-10.0, -5.0]),
+                   Integer('number_block', [1, 5]),]
+        ss = SearchSpace(variables)
+        return ss
 
     def get_fidelity_space(
         self, seed: Union[int, None] = None
@@ -145,21 +153,23 @@ class HPOResNet(NonTabularProblem):
         -------
         ConfigSpace.ConfigurationSpace
         """
-        seed = seed if seed is not None else np.random.randint(1, 100000)
-        fidel_space = CS.ConfigurationSpace(seed=seed)
+        # seed = seed if seed is not None else np.random.randint(1, 100000)
+        # fidel_space = CS.ConfigurationSpace(seed=seed)
 
-        fidel_space.add_hyperparameters(
-            [
-                CS.UniformFloatHyperparameter(
-                    "dataset_fraction", lower=0.0, upper=1.0, log=False
-                ),
-                CS.UniformIntegerHyperparameter(
-                    "epochs", lower=1, upper=300, log=False
-                ),
-            ]
-        )
+        # fidel_space.add_hyperparameters(
+        #     [
+        #         CS.UniformFloatHyperparameter(
+        #             "dataset_fraction", lower=0.0, upper=1.0, log=False
+        #         ),
+        #         CS.UniformIntegerHyperparameter(
+        #             "epochs", lower=1, upper=300, log=False
+        #         ),
+        #     ]
+        # )
 
-        return fidel_space
+        # return fidel_space
+        fs = FidelitySpace([])
+        return fs
 
     def get_meta_information(self) -> Dict:
         print(1)
@@ -289,11 +299,22 @@ class HPOResNet(NonTabularProblem):
             "data_frac": fidelity["data_frac"],
         }
         acc, time = self.get_score(c)
-        return {
-            "function_value": float(1 - acc),
-            "cost": time,
-            "info": {"fidelity": fidelity},
-        }
+        # return {
+        #     "function_value": float(1 - acc),
+        #     "cost": time,
+        #     "info": {"fidelity": fidelity},
+        # }
+
+        results = {list(self.objective_info.keys())[0]: float(1 - acc)}
+        for fd_name in self.fidelity_space.fidelity_names:
+            results[fd_name] = fidelity[fd_name] 
+        return results
+    
+    def get_objectives(self) -> Dict:
+        return {'function_value': 'minimize'}
+    
+    def get_problem_type(self):
+        return "hpo"
 
 
 if __name__ == "__main__":

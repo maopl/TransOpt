@@ -1,3 +1,4 @@
+import math
 import numpy as np
 from pymoo.core.problem import Problem
 from GPyOpt import Design_space
@@ -12,12 +13,21 @@ class CMAESPreSelect(AcquisitionBase):
 
     def __init__(self, config):
         super(CMAESPreSelect, self).__init__()
-        if 'k' in config:
-            self.k = config['k']
+        config_dict = {}
+        if config != "":
+            if ',' in config:
+                key_value_pairs = config.split(',')
+            else:
+                key_value_pairs = [config]
+            for pair in key_value_pairs:
+                key, value = pair.split(':')
+                config_dict[key.strip()] = value.strip()
+        if 'k' in config_dict:
+            self.k = int(config_dict['k'])
         else:
-            self.k = 1
-        if 'pop_size' in config:
-            self.pop_size = config['pop_size']
+            self.k = 2
+        if 'n' in config_dict:
+            self.pop_size = 4 + math.floor(3 * math.log(int(config_dict['n'])))
         else:
             self.pop_size = 10
         self.model = None

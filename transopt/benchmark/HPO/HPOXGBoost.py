@@ -13,19 +13,28 @@ from sklearn.metrics import accuracy_score, make_scorer
 from sklearn.preprocessing import OneHotEncoder
 
 from transopt.utils.openml_data_manager import OpenMLHoldoutDataManager
-from transopt.benchmark.problem_base import ProblemBase, NonTabularProblem
-from agent.registry import benchmark_register
+from transopt.space.variable import *
+from transopt.agent.registry import problem_registry
+from transopt.benchmark.problem_base.non_tab_problem import NonTabularProblem
+from transopt.space.search_space import SearchSpace
+from transopt.space.fidelity_space import FidelitySpace
 
 
 os.environ['OMP_NUM_THREADS'] = "1"
 logger = logging.getLogger('XGBBenchmark')
 
 
-@benchmark_register('XGB')
+@problem_registry.register('XGB')
 class XGBoostBenchmark(NonTabularProblem):
     task_lists = [167149, 167152, 126029, 167178, 167177]
-    def __init__(self, task_name:str, budget:int, task_type='non-tabular',task_id: Union[int, None] = None, n_threads: int = 1,
-                 seed: Union[np.random.RandomState, int, None] = None):
+    problem_type = 'hpo'
+    num_variables = 10
+    num_objectives = 1
+    workloads = []
+    fidelity = None
+    def __init__(
+        self, task_name, budget_type, budget, seed, workload, **kwargs
+    ):
         """
 
         Parameters
@@ -34,14 +43,19 @@ class XGBoostBenchmark(NonTabularProblem):
         n_threads  : int, None
         seed : np.random.RandomState, int, None
         """
-
-        super(XGBoostBenchmark, self).__init__(task_name=task_name, task_type=task_type, budget=budget, seed=seed)
-        self.task_id = XGBoostBenchmark.task_lists[task_id]
+        super(XGBoostBenchmark, self).__init__(
+            task_name=task_name,
+            budget=budget,
+            budget_type=budget_type,
+            seed=seed,
+            workload=workload,
+        )
+        self.task_id = XGBoostBenchmark.task_lists[workload]
         if torch.cuda.is_available():
             self.device = torch.device('cuda')
         else:
             self.device = torch.device('cpu')
-        self.n_threads = n_threads
+        self.n_threads = 1
         self.budget = budget
         self.accuracy_scorer = make_scorer(accuracy_score)
 
@@ -98,11 +112,13 @@ class XGBoostBenchmark(NonTabularProblem):
         random_state.shuffle(self.train_idx)
 
     # pylint: disable=arguments-differ
-    @ProblemBase.check_parameters
-    def objective_function(self, configuration: Union[CS.Configuration, Dict],
-                           fidelity: Union[CS.Configuration, Dict, None] = None,
-                           shuffle: bool = False,
-                           seed: Union[np.random.RandomState, int, None] = None, **kwargs) -> Dict:
+    def objective_function(
+        self,
+        configuration: Dict,
+        fidelity: Dict = None,
+        seed: Union[np.random.RandomState, int, None] = None,
+        **kwargs,
+    ) -> Dict:
         """
         Trains a XGBoost model given a hyperparameter configuration and
         evaluates the model on the validation set.
@@ -135,8 +151,8 @@ class XGBoostBenchmark(NonTabularProblem):
         """
         self.seed = seed
 
-        if shuffle:
-            self.shuffle_data(self.seed)
+        # if shuffle:
+        #     self.shuffle_data(self.seed)
 
         start = time.time()
 
@@ -147,14 +163,17 @@ class XGBoostBenchmark(NonTabularProblem):
         val_loss = 1 - self.accuracy_scorer(model, self.x_valid, self.y_valid)
         cost = time.time() - start
 
-        return {'function_value': float(val_loss),
-                'cost': cost,
-                'info': {'train_loss': float(train_loss),
-                         'fidelity': fidelity}
-                }
+        # return {'function_value': float(val_loss),
+        #         'cost': cost,
+        #         'info': {'train_loss': float(train_loss),
+        #                  'fidelity': fidelity}
+        #         }
+        results = {list(self.objective_info.keys())[0]: float(val_loss)}
+        for fd_name in self.fidelity_space.fidelity_names:
+            results[fd_name] = fidelity[fd_name] 
+        return results
 
     # pylint: disable=arguments-differ
-    @ProblemBase.check_parameters
     def objective_function_test(self, configuration: Union[CS.Configuration, Dict],
                                 fidelity: Union[CS.Configuration, Dict, None] = None,
                                 shuffle: bool = False,
@@ -227,23 +246,19 @@ class XGBoostBenchmark(NonTabularProblem):
         -------
         ConfigSpace.ConfigurationSpace
         """
-        seed = seed if seed is not None else np.random.randint(1, 100000)
-        cs = CS.ConfigurationSpace(seed=seed)
 
-        cs.add_hyperparameters([
-            CS.UniformFloatHyperparameter('eta', lower=-10, upper=0., default_value=-1),
-            CS.UniformIntegerHyperparameter('max_depth', lower=1, upper=15, default_value=6),
-            CS.UniformFloatHyperparameter('min_child_weight', lower=0., upper=7., default_value=0.),
-            CS.UniformFloatHyperparameter('colsample_bytree', lower=0.01, upper=1., default_value=1.),
-            CS.UniformFloatHyperparameter('colsample_bylevel', lower=0.01, upper=1., default_value=1.),
-            CS.UniformFloatHyperparameter('reg_lambda', lower=-10, upper=10, default_value=0),
-            CS.UniformFloatHyperparameter('reg_alpha', lower=-10, upper=10, default_value=0),
-            CS.UniformFloatHyperparameter('subsample_per_it', lower=0.1, upper=1, default_value=1),
-            CS.UniformIntegerHyperparameter('n_estimators', lower=1, upper=50, default_value=10),
-            CS.UniformFloatHyperparameter('gamma', lower=0, upper=1, default_value=0)
-        ])
-
-        return cs
+        variables=[Continuous('eta', [-10.0, 0.0]),
+                   Integer('max_depth', [1, 15]),
+                   Continuous('min_child_weight', [0.0, 7.0]),
+                   Continuous('colsample_bytree', [0.01, 1.0]),
+                   Continuous('colsample_bylevel', [0.01, 1.0]),
+                   Continuous('reg_lambda', [-10.0, 10.0]),
+                   Continuous('reg_alpha', [-10.0, 10.0]),
+                   Continuous('subsample_per_it', [0.1, 1.0]),
+                   Integer('n_estimators', [1, 50]),
+                   Continuous('gamma', [0.0, 1.0])]
+        ss = SearchSpace(variables)
+        return ss
 
 
     def get_fidelity_space(self, seed: Union[int, None] = None) -> CS.ConfigurationSpace:
@@ -260,15 +275,17 @@ class XGBoostBenchmark(NonTabularProblem):
         -------
         ConfigSpace.ConfigurationSpace
         """
-        seed = seed if seed is not None else np.random.randint(1, 100000)
-        fidel_space = CS.ConfigurationSpace(seed=seed)
+        # seed = seed if seed is not None else np.random.randint(1, 100000)
+        # fidel_space = CS.ConfigurationSpace(seed=seed)
 
-        fidel_space.add_hyperparameters([
-            CS.UniformFloatHyperparameter("dataset_fraction", lower=0.0, upper=1.0, default_value=1.0, log=False),
-            CS.UniformIntegerHyperparameter("n_estimators", lower=1, upper=256, default_value=256, log=False)
-        ])
+        # fidel_space.add_hyperparameters([
+        #     CS.UniformFloatHyperparameter("dataset_fraction", lower=0.0, upper=1.0, default_value=1.0, log=False),
+        #     CS.UniformIntegerHyperparameter("n_estimators", lower=1, upper=256, default_value=256, log=False)
+        # ])
 
-        return fidel_space
+        # return fidel_space
+        fs = FidelitySpace([])
+        return fs
 
 
     def get_meta_information(self) -> Dict:
@@ -337,7 +354,7 @@ class XGBoostBenchmark(NonTabularProblem):
                      ("continuous", SimpleImputer(strategy="mean"), ~self.categorical_data)])),
                 ('preprocess_one_hot',
                  ColumnTransformer([
-                     ("categorical", OneHotEncoder(categories=self.categories, sparse=False), self.categorical_data),
+                     ("categorical", OneHotEncoder(categories=self.categories), self.categorical_data),
                      ("continuous", "passthrough", ~self.categorical_data)])),
                 ('xgb',
                  xgb.XGBClassifier(
@@ -359,6 +376,12 @@ class XGBoostBenchmark(NonTabularProblem):
                 ])
 
         return clf
+
+    def get_objectives(self) -> Dict:
+        return {'train_loss': 'minimize'}
+    
+    def get_problem_type(self):
+        return "hpo"
 
     # def get_var_range(self):
     #     return {'eta':[-10,0], 'max_depth':[1, 15], 'min_child_weight':[0, 7], 'colsample_bytree':[0.01, 1.0], 'colsample_bylevel':[0.01, 1.0],

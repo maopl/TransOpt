@@ -14,7 +14,7 @@ class TaskProgress extends React.Component {
                 '0%': '#108ee9',
                 '100%': '#87d068',
             },
-            task_name: "",
+            problem_name: "",
             task_progress: 0,
             TrajectoryData: []
         }
@@ -49,7 +49,7 @@ class TaskProgress extends React.Component {
           console.log('Data from server:', data);
           // 在这里处理从服务器获取的数据
           this.setState({
-            task_name: data.name,
+            problem_name: data.problem_name,
             progress: data.progress,
             TrajectoryData: data.TrajectoryData
           })
@@ -63,7 +63,7 @@ class TaskProgress extends React.Component {
         return (
             <div>
                 <div style={{ marginBottom: 10 }}>
-                    <h6>{this.state.task_name}</h6>
+                    <h6>{this.state.problem_name}</h6>
                     <Progress percent={this.state.progress} type="line" strokeColor={this.state.twoColors}/>
                 </div>
                 <Trajectory TrajectoryData={this.state.TrajectoryData}/>

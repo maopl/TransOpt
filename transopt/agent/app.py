@@ -181,6 +181,16 @@ def configuration_run():
     return {"isSucceed": True}, 200
 
 
+@app.route("/api/configuration/progress", methods=["POST"])
+def configuration_progress():
+    message = request.json
+    # 获取正在运行的任务的进度
+
+    with open('transopt/agent/page_service_data/configuration_progress.json', 'r') as file:
+        data = json.load(file)
+    return jsonify(data), 200
+
+
 @app.route("/api/comparison/selections", methods=["POST"])
 def comparison_send_selections():
     info = request.json

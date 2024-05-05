@@ -153,17 +153,32 @@ class Configuration extends React.Component {
             </Row>
             </Col>
             <Col lg={6} sm={4}>
-              <Widget
-                title={
-                  <h5>
-                    Chat<span className="fw-semi-bold">TOS</span>
-                  </h5>
-                }
-              >
-                <div className={s.chatui}>
-                  <ChatUI />
-                </div>
-              </Widget>
+              <Row>
+                <Col lg={12} sm={12}>
+                <Widget
+                  title={
+                    <h5>
+                      Chat<span className="fw-semi-bold">TOS</span>
+                    </h5>
+                  }
+                >
+                  <div className={s.chatui}>
+                    <ChatUI />
+                  </div>
+                </Widget>
+                </Col>
+                <Col lg={12} sm={12}>
+                <Widget
+                  title={
+                    <h5>
+                      <span className="fw-semi-bold">Process</span>
+                    </h5>
+                  }
+                >
+                  <TaskProgress />
+                </Widget>
+                </Col>
+              </Row>
             </Col>
           </Row>
         </div>

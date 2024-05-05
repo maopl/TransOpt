@@ -12,14 +12,16 @@ from sklearn.metrics import accuracy_score, make_scorer
 from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
 
 from transopt.utils.openml_data_manager import OpenMLHoldoutDataManager
-from transopt.benchmark.problem_base import ProblemBase
-from transopt.benchmark.problem_base import NonTabularProblem
-from agent.registry import benchmark_register
+from transopt.space.variable import *
+from transopt.agent.registry import problem_registry
+from transopt.benchmark.problem_base.non_tab_problem import NonTabularProblem
+from transopt.space.search_space import SearchSpace
+from transopt.space.fidelity_space import FidelitySpace
 
 logger = logging.getLogger('SVMBenchmark')
 
 
-@benchmark_register('SVM')
+@problem_registry.register('SVM')
 class SupportVectorMachine(NonTabularProblem):
     """
     Hyperparameter optimization task to optimize the regularization
@@ -31,17 +33,30 @@ class SupportVectorMachine(NonTabularProblem):
     """
     task_lists = [167149, 167152, 167183, 126025, 126029, 167161, 167169,
                   167178, 167176, 167177]
+    problem_type = 'hpo'
+    num_variables = 2
+    num_objectives = 1
+    workloads = []
+    fidelity = None
 
-    def __init__(self, task_name:str, budget:int, task_type='non-tabular',task_id: Union[int, None] = None,
-                 seed: Union[np.random.RandomState, int, None] = None):
+    def __init__(
+        self, task_name, budget_type, budget, seed, workload, **kwargs
+    ):
         """
         Parameters
         ----------
         task_id : int, None
         rng : np.random.RandomState, int, None
         """
-        super(SupportVectorMachine, self).__init__(task_name=task_name, task_type=task_type, budget=budget, seed=seed)
-        self.task_id = SupportVectorMachine.task_lists[task_id]
+        super(SupportVectorMachine, self).__init__(
+            task_name=task_name,
+            budget=budget,
+            budget_type=budget_type,
+            seed=seed,
+            workload=workload,
+        )
+        task_type='non-tabular'
+        self.task_id = SupportVectorMachine.task_lists[workload]
         self.cache_size = 200  # Cache for the SVC in MB
         self.accuracy_scorer = make_scorer(accuracy_score)
 
@@ -92,10 +107,13 @@ class SupportVectorMachine(NonTabularProblem):
         random_state.shuffle(self.train_idx)
 
     # pylint: disable=arguments-differ
-    def objective_function(self, configuration: Union[CS.Configuration, Dict],
-                           fidelity: Union[CS.Configuration, Dict, None] = None,
-                           shuffle: bool = False,
-                           seed: Union[np.random.RandomState, int, None] = None, **kwargs) -> Dict:
+    def objective_function(
+        self,
+        configuration: Dict,
+        fidelity: Dict = None,
+        seed: Union[np.random.RandomState, int, None] = None,
+        **kwargs,
+    ) -> Dict:
         """
         Trains a SVM model given a hyperparameter configuration and
         evaluates the model on the validation set.
@@ -130,8 +148,8 @@ class SupportVectorMachine(NonTabularProblem):
 
         self.seed = seed
 
-        if shuffle:
-            self.shuffle_data(self.seed)
+        # if shuffle:
+        #     self.shuffle_data(self.seed)
 
         # Transform hyperparameters to linear scale
         hp_c = np.exp(float(configuration['C']))
@@ -147,13 +165,17 @@ class SupportVectorMachine(NonTabularProblem):
 
         cost = time.time() - start_time
 
-        return {'function_value': float(val_loss),
-                "cost": cost,
-                'info': {'train_loss': float(train_loss),
-                         'fidelity': fidelity}}
+        # return {'function_value': float(val_loss),
+        #         "cost": cost,
+        #         'info': {'train_loss': float(train_loss),
+        #                  'fidelity': fidelity}}
+
+        results = {list(self.objective_info.keys())[0]: float(val_loss)}
+        for fd_name in self.fidelity_space.fidelity_names:
+            results[fd_name] = fidelity[fd_name] 
+        return results
 
     # pylint: disable=arguments-differ
-    @ProblemBase.check_parameters
     def objective_function_test(self, configuration: Union[CS.Configuration, Dict],
                                 fidelity: Union[CS.Configuration, Dict, None] = None,
                                 shuffle: bool = False,
@@ -218,10 +240,16 @@ class SupportVectorMachine(NonTabularProblem):
 
         cost = time.time() - start_time
 
-        return {'function_value': float(test_loss),
-                "cost": cost,
-                'info': {'train_valid_loss': float(train_valid_loss),
-                         'fidelity': fidelity}}
+        # return {'function_value': float(test_loss),
+        #         "cost": cost,
+        #         'info': {'train_valid_loss': float(train_valid_loss),
+        #                  'fidelity': fidelity}}
+
+        results = {list(self.objective_info.keys())[0]: float(test_loss)}
+        for fd_name in self.fidelity_space.fidelity_names:
+            results[fd_name] = fidelity[fd_name] 
+
+        return results
 
     def get_pipeline(self, C: float, gamma: float) -> pipeline.Pipeline:
         """ Create the scikit-learn (training-)pipeline """
@@ -233,7 +261,7 @@ class SupportVectorMachine(NonTabularProblem):
                  ("continuous", SimpleImputer(strategy="mean"), ~self.categorical_data)])),
             ('preprocess_one_hot',
              ColumnTransformer([
-                 ("categorical", OneHotEncoder(categories=self.categories, sparse=False), self.categorical_data),
+                 ("categorical", OneHotEncoder(categories=self.categories), self.categorical_data),
                  ("continuous", MinMaxScaler(feature_range=(0, 1)), ~self.categorical_data)])),
             ('svm',
              svm.SVC(gamma=gamma, C=C, random_state=self.seed, cache_size=self.cache_size))
@@ -258,15 +286,9 @@ class SupportVectorMachine(NonTabularProblem):
         ConfigSpace.ConfigurationSpace
         """
 
-        seed = seed if seed is not None else np.random.randint(1, 100000)
-        cs = CS.ConfigurationSpace(seed=seed)
-
-        cs.add_hyperparameters([
-            CS.UniformFloatHyperparameter('C', lower=-10., upper=10., default_value=0., log=False),
-            CS.UniformFloatHyperparameter('gamma', lower=-10., upper=10., default_value=1., log=False),
-        ])
-        # cs.generate_all_continuous_from_bounds(SupportVectorMachine.get_meta_information()['bounds'])
-        return cs
+        variables=[Continuous('C', [-10, 10]), Continuous('gamma', [-10, 10])]
+        ss = SearchSpace(variables)
+        return ss
 
 
     def get_fidelity_space(self, seed: Union[int, None] = None) -> CS.ConfigurationSpace:
@@ -288,13 +310,15 @@ class SupportVectorMachine(NonTabularProblem):
         -------
         ConfigSpace.ConfigurationSpace
         """
-        seed = seed if seed is not None else np.random.randint(1, 100000)
-        fidel_space = CS.ConfigurationSpace(seed=seed)
+        # seed = seed if seed is not None else np.random.randint(1, 100000)
+        # fidel_space = CS.ConfigurationSpace(seed=seed)
 
-        fidel_space.add_hyperparameters([
-            CS.UniformFloatHyperparameter("dataset_fraction", lower=0.0, upper=1.0, default_value=1.0, log=False),
-        ])
-        return fidel_space
+        # fidel_space.add_hyperparameters([
+        #     CS.UniformFloatHyperparameter("dataset_fraction", lower=0.0, upper=1.0, default_value=1.0, log=False),
+        # ])
+
+        fs = FidelitySpace([])
+        return fs
 
 
     def get_meta_information(self):
@@ -322,6 +346,12 @@ class SupportVectorMachine(NonTabularProblem):
                 'initial random seed': self.seed,
                 'task_id': self.task_id
                 }
+    
+    def get_objectives(self) -> Dict:
+        return {'train_loss': 'minimize'}
+    
+    def get_problem_type(self):
+        return "hpo"
 
 if __name__ == '__main__':
     task_lists = [167149, 167152, 126029, 167178, 167177]

@@ -15,15 +15,15 @@
 
 import copy
 import numpy as np
-from typing import Tuple, Dict, Hashable
+from typing import Tuple, Dict, List
 from sklearn.preprocessing import StandardScaler
 
-from transopt_external.transfergpbo.models import InputData, TaskData, Model
-from transopt_external.transfergpbo.models.utils import is_pd, nearest_pd
+from transopt.optimizer.model.model_base import  Model
+from transopt.agent.registry import model_registry
+from sklearn.ensemble import RandomForestRegressor
 
 
-import sklearn
-
+@model_registry.register('RF')
 class RF(Model):
     def __init__(
         self,
@@ -39,28 +39,44 @@ class RF(Model):
         self.name = name
         self.num_estimators = num_estimators
 
-        self.model = sklearn.ensemble.RandomForestRegressor(
-         n_estimators=100,
-         max_features='sqrt',
-         bootstrap=True,
-         random_state=seed)
+        self.model = RandomForestRegressor(
+            n_estimators=100,
+            max_features='sqrt',
+            bootstrap=True,
+            random_state=seed
+        )
 
-    def meta_fit(self, metadata: Dict[Hashable, TaskData], **kwargs):
+        self._normalize = normalize
+        self._x_normalizer = StandardScaler() if normalize else None
+        self._y_normalizer = StandardScaler() if normalize else None
+
+        self._options = options
+
+    def meta_fit(
+        self,
+        source_X : List[np.ndarray],
+        source_Y : List[np.ndarray],
+        **kwargs,
+    ):
         pass
 
     def fit(
         self,
-        data: TaskData,
+        X: np.ndarray,
+        Y: np.ndarray,
         optimize: bool = True,
     ):
-        self._X = np.copy(data.X)
-        self._Y = np.copy(data.Y)
+        self._X = np.copy(X)
+        self._y = np.copy(Y)
+        self._Y = np.copy(Y)
 
         _X = np.copy(self._X)
-        _Y = np.copy(self._Y)[:,0]
-        # _X = np.tile(_X, (self.num_duplicates, 1))
-        # _Y = np.tile(_Y, (self.num_duplicates,))
-        self.model.fit(_X, _Y)
+        _y = np.copy(self._y)
+
+        if self._normalize:
+            _X = self._x_normalizer.fit_transform(_X)
+            _y = self._y_normalizer.fit_transform(_y)
+        self.model.fit(_X, _y)
 
 
     def predict(
@@ -103,7 +119,7 @@ class RF(Model):
         return std
 
     def sample(
-        self, data: InputData, size: int = 1, with_noise: bool = False
+        self, X, size: int = 1, with_noise: bool = False
     ) -> np.ndarray:
         """Perform model inference.
 
@@ -119,7 +135,13 @@ class RF(Model):
         Returns:
             Sampled function value for every input. `shape = (n_points, size)`
         """
-        mean, cov = self.predict(data, return_full=True, with_noise=with_noise)
+        mean, cov = self.predict(X, return_full=True, with_noise=with_noise)
         mean = mean.flatten()
         sample = np.random.multivariate_normal(mean, cov, size).T
         return sample
+
+    def get_fmin(self):
+        if self._normalize:
+            return np.min(self._y_normalizer.inverse_transform(self._y))
+        else:
+            return np.min(self._y)

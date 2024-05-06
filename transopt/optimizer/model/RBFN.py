@@ -11,10 +11,10 @@ from transopt.optimizer.model.rbfn import rbfn, RegressionDataset
 class RBFN(Model):
     def __init__(
         self,
-        max_epoch: int = 50,
+        max_epoch: int = 30,
         batch_size: int = 1,
         lr: float = 0.01,
-        num_centers: int = 5,
+        num_centers: int = 10,
         show_details: bool = False,
         normalize: bool = True,
         **options: dict

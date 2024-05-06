@@ -37,6 +37,8 @@ class Services:
         # import transopt.benchmark.CPD
         import transopt.benchmark.HPO
         import transopt.benchmark.synthetic
+        # import transopt.benchmark.CPD
+        import transopt.benchmark.HPO
         import transopt.optimizer.acquisition_function
         import transopt.optimizer.model
         import transopt.optimizer.pretrain

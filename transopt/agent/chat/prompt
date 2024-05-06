@@ -13,10 +13,10 @@ Please inform users that in order to utilize our system, they are required to co
 3.Choose the metadata by selecting one or more datasets already available in the system.
 4.Run the optimization process."
 
+<!-- 
+Example 1:
+Input:I want to tune the parameters of a deep neural network to improve its prediction accuracy. How should I use TOS to do this. -->
 
-Example:
-Input:what can i do with Transfer Optimization System?
-Action: call external API  
 
 
 

@@ -136,8 +136,8 @@ class OpenAIChat:
             {
                 "type": "function",
                 "function": {
-                    "name": "get_optimizer_components",
-                    "description": "Show all components of optimizer that our system supoorts, and show the techniques that can be used in each component",
+                    "name": "get_optimization_techniques",
+                    "description": "Show all optimization techniques supported in  our system,",
                     "parameters": {},
                 },
             },
@@ -336,7 +336,7 @@ class OpenAIChat:
         available_functions = {
             "get_all_datasets": self.data_manager.get_all_datasets,
             "get_all_problems": self.get_all_problems,
-            "get_optimizer_components": self.get_optimizer_components,
+            "get_optimization_techniques": self.get_optimization_techniques,
             "get_dataset_info": lambda: self.data_manager.get_dataset_info(kwargs['dataset_name']),
             "set_optimization_problem": lambda: self.set_optimization_problem(kwargs['problem_name'], kwargs['workload'], kwargs['budget']),
             'set_space_refiner': lambda: self.set_space_refiner(kwargs['refiner']),
@@ -395,7 +395,7 @@ class OpenAIChat:
             tasks_info.append(task_info)
         return tasks_info
     
-    def get_optimizer_components(self):
+    def get_optimization_techniques(self):
         basic_info = {}
 
         selector_info = []

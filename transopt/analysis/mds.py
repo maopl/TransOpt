@@ -8,8 +8,9 @@ class FootPrint:
     def __init__(self, X, range):
         self.X = X
         self.ranges = range
-        # self.boundary_points = self.get_random_boundary_points(10)
-        
+        self.boundary_points = self.get_random_boundary_points(10)
+        self.config_ids = np.arange(0, len(self.X) + len(self.boundary_points)).tolist()
+        self.n_configs = len(self.config_ids)
         
         self._distance = None
         self._reduced_data = None
@@ -25,12 +26,11 @@ class FootPrint:
         Returns:
         np.ndarray: Pairwise distances matrix.
         """
-        n_configs = self.X.shape[0]
-        distances = np.zeros((n_configs, n_configs))
-
-        for i in range(n_configs):
-            for j in range(i + 1, n_configs):
-                distances[i, j] = distances[j, i] = np.linalg.norm(self.X[i] - self.X[j])
+        distances = np.zeros((self.n_configs, self.n_configs))
+        configs = np.vstack((self.X, self.boundary_points))
+        for i in range(self.n_configs):
+            for j in range(i + 1, self.n_configs):
+                distances[i, j] = distances[j, i] = np.linalg.norm(configs[i] - configs[j])
 
         self._distances = distances
 
@@ -81,20 +81,21 @@ class FootPrint:
 
         if not rejected:
             X = np.vstack((X, config))
-            distances = new_distances
+            distances = new_distanceslist
 
         return rejected
         
-    # def get_random_boundary_points(self, num_samples):
-    #     num_dims = len(self.ranges)
+    def get_random_boundary_points(self, num_samples):
+        num_dims = len(self.ranges)
+    
+        # 生成所有上下界的组合
+        combinations = list(itertools.product(*self.ranges))
+        
+        # 从所有组合中随机选择指定数量的样本
+        # random_boundary_indices = np.random.choice(len(combinations), num_samples, replace=False)
+        # random_boundary_points = [combinations[i] for i in random_boundary_indices]
 
-    #     combinations = itertools.product(*self.ranges)
-    #     filtered_combinations = [comb for comb in combinations if len(set(comb)) == num_dims]
-
-    #     random_boundary_indices = np.random.choice(len(filtered_combinations), num_samples, replace=False)
-    #     random_boundary_points = [filtered_combinations[i] for i in random_boundary_indices]
-
-    #     return np.array(random_boundary_points)
+        return np.array(combinations)
 
         
     def get_mds(self):
@@ -111,7 +112,9 @@ class FootPrint:
 
         """
         plt.figure(figsize=(8, 6))
-        plt.scatter(self._reduced_data[:, 0], self._reduced_data[:, 1], c='b', label='MDS Embedding')
+        plt.scatter(self._reduced_data[:len(self.X), 0], self._reduced_data[:len(self.X), 1], c='b', label='MDS Embedding')
+        plt.scatter(self._reduced_data[len(self.X):, 0], self._reduced_data[len(self.X):, 1], c='r', marker= 'x', label='Boundary  points')
+
         plt.xlabel('Component 1')
         plt.ylabel('Component 2')
         plt.title('MDS Embedding')
@@ -119,20 +122,12 @@ class FootPrint:
         plt.grid(True)
         plt.show()
 
-        # Plot original data for comparison
-        plt.figure(figsize=(8, 6))
-        plt.scatter(self.X[:, 0], self.X[:, 1], c='r', label='Original Data')
-        plt.xlabel('Feature 1')
-        plt.ylabel('Feature 2')
-        plt.title('Original Data')
-        plt.legend()
-        plt.grid(True)
-        plt.show()
 
-# 示例数据
-X = np.random.rand(100, 5)
-bounds = [(0, 1), (0, 1),(0,1), (0,1), (0,1)]
-fp = FootPrint(X, bounds)
-fp.calculate_distances()
-fp.get_mds()
-fp.plot_embedding()
+if __name__ == '__main__':
+    # 示例数据
+    X = np.random.rand(100, 5)
+    bounds = [(0, 1), (0, 1),(0,1), (0,1), (0,1)]
+    fp = FootPrint(X, bounds)
+    fp.calculate_distances()
+    fp.get_mds()
+    fp.plot_embedding()

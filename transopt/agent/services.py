@@ -1,4 +1,5 @@
 import time
+import numpy as np
 from multiprocessing import Process, Manager
 
 from agent.chat.openai_chat import Message, OpenAIChat
@@ -9,7 +10,7 @@ from transopt.benchmark.instantiate_problems import InstantiateProblems
 from transopt.datamanager.manager import DataManager, Database
 from transopt.optimizer.construct_optimizer import ConstructOptimizer
 from transopt.utils.log import logger
-
+from analysis.mds import FootPrint
 
 class Services:
     def __init__(self, task_queue, result_queue, lock):
@@ -378,12 +379,13 @@ class Services:
 
         table_info = self.data_manager.db.query_dataset_info(task_name)
         objectives = table_info["objectives"]
+        ranges = [tuple(var['range']) for var in table_info["variables"]]
 
         obj = objectives[0]["name"]
         obj_type = objectives[0]["type"]
 
         obj_data = [data[obj] for data in all_data]
-
+        var_data = [[data[var["name"]] for var in table_info["variables"]] for data in all_data]
         ret = {
             "RadarData": {
                 "indicator": [
@@ -429,10 +431,20 @@ class Services:
                 ],
             },
         }
+        ret.update(self.construct_footprint_data(task_name, var_data, ranges))
         ret.update(self.construct_trajectory_data(task_name, obj_data, obj_type))
 
         return ret
 
+    def construct_footprint_data(self, name, var_data, ranges):
+        # Initialize the list to store trajectory data and the best value seen so far
+        fp = FootPrint(var_data, ranges)
+        fp.calculate_distances()
+        fp.get_mds()
+        scatter_data = {'parameters': fp._reduced_data[:len(fp.X)], 'boundary': fp._reduced_data[len(fp.X):]}
+
+        return {"ScatterData": scatter_data}
+    
     def construct_trajectory_data(self, name, obj_data, obj_type="minimize"):
         # Initialize the list to store trajectory data and the best value seen so far
         trajectory = []

@@ -8,7 +8,7 @@ class FootPrint:
     def __init__(self, X, range):
         self.X = X
         self.ranges = range
-        self.boundary_points = self.get_random_boundary_points(10)
+        self.boundary_points = self.get_random_boundary_points(0)
         self.config_ids = np.arange(0, len(self.X) + len(self.boundary_points)).tolist()
         self.n_configs = len(self.config_ids)
         
@@ -88,10 +88,8 @@ class FootPrint:
     def get_random_boundary_points(self, num_samples):
         num_dims = len(self.ranges)
     
-        # 生成所有上下界的组合
         combinations = list(itertools.product(*self.ranges))
         
-        # 从所有组合中随机选择指定数量的样本
         # random_boundary_indices = np.random.choice(len(combinations), num_samples, replace=False)
         # random_boundary_points = [combinations[i] for i in random_boundary_indices]
 
@@ -104,7 +102,7 @@ class FootPrint:
             raise RuntimeError("You need to call `calculate` first.")
 
         mds = MDS(n_components=2, dissimilarity="precomputed", random_state=0)
-        self._reduced_data =  mds.fit_transform(self._distances)
+        self._reduced_data =  mds.fit_transform(self._distances).tolist()
     
     def plot_embedding(self):
         """

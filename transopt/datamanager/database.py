@@ -3,12 +3,13 @@ import atexit
 import json
 import queue
 import sqlite3
-from multiprocessing import Manager, Process, Queue
+from multiprocessing import Event, Manager, Process, Queue
 from typing import Union
 
 import numpy as np
 import pandas as pd
 
+from transopt.utils.log import logger
 from transopt.utils.path import get_library_path
 
 '''
@@ -45,71 +46,62 @@ table_descriptions = {
 }
 
 
-def database_daemon(data_path, task_queue, result_queue, stop_event):
-    with sqlite3.connect(data_path) as conn:
-        cursor = conn.cursor()
-        while not stop_event.is_set():
-            task = task_queue.get()
-            if task is None:  # Sentinel for stopping
-                break
+class DatabaseDaemon:
+    def __init__(self, data_path, task_queue, result_queue, stop_event):
+        self.data_path = data_path
+        self.task_queue = task_queue
+        self.result_queue = result_queue
+        self.stop_event = stop_event
 
-            func, args = task
-            try:
-                result = func(cursor, *args)
-                result_queue.put(("SUCCESS", result))
-            except Exception as e:
-                result_queue.put(("FAILURE", e))
+    def run(self):
+        with sqlite3.connect(self.data_path) as conn:
+            cursor = conn.cursor()
+            while not self.stop_event.is_set():
+                task = self.task_queue.get()
+                if task is None:  # Sentinel for stopping
+                    break
+                func, args = task
+                try:
+                    cursor.execute("BEGIN")
+                    result = func(cursor, *args)
+                    conn.commit()
+                    self.result_queue.put(("SUCCESS", result))
+                except Exception as e:
+                    conn.rollback()
+                    logger.error(f"Database operation failed: {e}", exc_info=True)
+                    self.result_queue.put(("FAILURE", e))
 
 
 class Database:
-    def __init__(self, db_file_name="database.db"):
-        manager = Manager()
+    def __init__(self, db_file_name='database.db'):
         self.data_path = get_library_path() / db_file_name
 
+        manager = Manager()
         self.task_queue = manager.Queue()
         self.result_queue = manager.Queue()
-        self.stop_event = manager.Event()
         self.lock = manager.Lock()
-
-        self.start_daemon()
+        self.stop_event = manager.Event()
+        
+        self.process = Process(
+            target=DatabaseDaemon(self.data_path, self.task_queue, self.result_queue, self.stop_event).run
+        )
+        self.process.start()
         atexit.register(self.close)
-
+        
         # reserved tables
         self.reserved_tables = list(table_descriptions.keys())
-
-        # reserved tables
         for name, desc in table_descriptions.items():
             if not self.check_table_exist(name):
                 self.execute(f'CREATE TABLE "{name}" ({desc})')
 
-    """
-    connection
-    """
-
-    def start_daemon(self):
-        self.process = Process(
-            target=database_daemon,
-            args=(self.data_path, self.task_queue, self.result_queue, self.stop_event),
-        )
-        self.process.start()
-
-    def stop_daemon(self):
+    def close(self):
         self.stop_event.set()
         self.task_queue.put(None)
         self.process.join()
 
-    def close(self):
-        if self.process and self.process.is_alive():
-            self.stop_daemon()
-
-    """
-    execution
-    """
-
     def _execute(self, task, args=(), timeout=None):
         self.task_queue.put((task, args))
         try:
-            # Queue.get() will block until the result is ready by default.
             status, result = self.result_queue.get(timeout=timeout)
             if status == "SUCCESS":
                 return result
@@ -124,7 +116,6 @@ class Database:
             cursor.executemany(query, params or [])
         else:
             cursor.execute(query, params or ())
-
         if fetchone:
             return cursor.fetchone()
         if fetchall:
@@ -259,8 +250,6 @@ class Database:
         self.execute(f"DELETE FROM _metadata WHERE table_name = '{name}'")
         self.execute(f'DROP TABLE IF EXISTS "{name}"')
         
-        self.commit()
-
     '''
     config
     '''
@@ -286,8 +275,6 @@ class Database:
                 (name, config_json, is_experiment)
             )
     
-        self.commit()
-        
     def query_config(self, name):
         config_json = self.execute(
             "SELECT config FROM _config WHERE name=?",
@@ -353,7 +340,6 @@ class Database:
                 metadata['Normalizer'], dataset_selectors_json
             )
         )
-        self.commit()
   
     def get_all_metadata(self):
         """
@@ -390,11 +376,7 @@ class Database:
     """
     basic operations
     """
-
-    def commit(self):
-        self.execute("COMMIT")
-
-
+    
     def insert_data(self, table, data: Union[dict, list, pd.DataFrame, np.ndarray]) -> list:
         """
         Insert single-row or multiple-row data into the database.
@@ -445,7 +427,6 @@ class Database:
         
         query = f'INSERT INTO "{table}" ({column_str}) VALUES ({value_placeholders})'
         self.executemany(query, values)
-        self.commit()
 
         # Get the rowids of the inserted rows
         n_row = self.get_num_row(table)
@@ -536,7 +517,6 @@ class Database:
             update_values.append(values)
 
         self.executemany(query, update_values)
-        self.commit()
     
     def delete_data(self, table, rowid=None, conditions=None):
         """
@@ -556,7 +536,6 @@ class Database:
         query += condition
 
         self.execute(query)
-        self.commit()
     
     def select_data(self, table, columns=None, rowid=None, conditions=None, as_dataframe=False) -> Union[list, pd.DataFrame]:
         """

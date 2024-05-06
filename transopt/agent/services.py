@@ -1,31 +1,41 @@
+import time
+from multiprocessing import Process, Manager
+
 from agent.chat.openai_chat import Message, OpenAIChat
+
 from transopt.agent.config import Config, RunningConfig
 from transopt.agent.registry import *
 from transopt.benchmark.instantiate_problems import InstantiateProblems
-from transopt.datamanager.manager import DataManager
+from transopt.datamanager.manager import DataManager, Database
 from transopt.optimizer.construct_optimizer import ConstructOptimizer
-import time
+from transopt.utils.log import logger
 
 
 class Services:
-    def __init__(self):
+    def __init__(self, task_queue, result_queue, lock):
         self.config = Config()
         self.running_config = RunningConfig()
+        
+        # DataManager for general tasks, not specific optimization tasks
         self.data_manager = DataManager()
 
         self.openai_chat = OpenAIChat(
             api_key=self.config.OPENAI_API_KEY,
             model="gpt-3.5-turbo",
             base_url=self.config.OPENAI_URL,
+            data_manager= self.data_manager
         )
 
         self._initialize_modules()
+        self.process_info = Manager().dict()
 
     def chat(self, user_input):
         response_content = self.openai_chat.get_response(user_input)
         return response_content
 
     def _initialize_modules(self):
+        # import transopt.benchmark.CPD
+        import transopt.benchmark.HPO
         import transopt.benchmark.synthetic
         # import transopt.benchmark.CPD
         import transopt.benchmark.HPO
@@ -134,7 +144,6 @@ class Services:
             raise ValueError("Invalid search method")
 
         return datasets_list
-  
    
     def convert_metadata(self, conditions):
         type_map = {
@@ -242,7 +251,7 @@ class Services:
 
         # Simplify dataset name construction
         timestamp = int(time.time())
-        dataset_name = f"{task_set.get_curname()}_w{task_set.get_cur_workload()}_{timestamp}"
+        dataset_name = f"{task_set.get_curname()}_w{task_set.get_cur_workload()}_s{seed}_{timestamp}"
 
         dataset_info['additional_config'] = {
             "problem_name": dataset_name,
@@ -297,56 +306,73 @@ class Services:
         else:
             raise ValueError("Invalid dataset name")
 
-    def run_optimize(self, seeds_info):
-        seeds = [int(seed) for seed in seeds_info.split(",")]
+    def run_optimize(self, seeds):
+        # Create a separate process for each seed
+        process_list = []
         for seed in seeds:
-            task_set = InstantiateProblems(self.running_config.tasks, seed)
-            optimizer = ConstructOptimizer(self.running_config.optimizer, seed)
+            p = Process(target=self._run_optimize_process, args=(seed,))
+            process_list.append(p)
+            p.start()
+        
+        for p in process_list:
+            p.join()
             
-            try:
-                while (task_set.get_unsolved_num()):
-                    iteration = 0
-                    search_space = task_set.get_cur_searchspace()
-                    dataset_info, dataset_name = self.construct_dataset_info(task_set, self.running_config, seed=seed)
-                    
-                    self.data_manager.db.create_table(dataset_name, dataset_info, overwrite=True)
-                    optimizer.link_task(task_name=task_set.get_curname(), search_sapce=search_space)
-                    
-                    metadata, metadata_info = self.get_metadata('SpaceRefiner')
-                    optimizer.search_space_refine(metadata, metadata_info)
-                    
-                    metadata, metadata_info = self.get_metadata('Sampler')
-                    samples = optimizer.sample_initial_set(metadata, metadata_info)
-                    
-                    parameters = [search_space.map_to_design_space(sample) for sample in samples]
-                    observations = task_set.f(parameters)
-                    self.save_data(dataset_name, parameters, observations, iteration)
-                    
-                    optimizer.observe(samples, observations)
-                    
-                    #Pretrain
-                    metadata, metadata_info = self.get_metadata('Model')
-                    optimizer.meta_fit(metadata, metadata_info)
-            
-                    while (task_set.get_rest_budget()):
-                        optimizer.fit()
-                        suggested_samples = optimizer.suggest()
-                        parameters = [search_space.map_to_design_space(sample) for sample in suggested_samples]
-                        observations = task_set.f(parameters)
-                        if observations is None:
-                            break
-                        self.save_data(dataset_name, parameters, observations, iteration)
-                        
-                        optimizer.observe(suggested_samples, observations)
-                        iteration += 1
-                        
-                        print("Seed: ", seed, "Task: ", task_set.get_curname(), "Iteration: ", iteration)
-                        # if self.verbose:
-                        #     self.visualization(testsuits, suggested_sample)
-                    task_set.roll()
-            except Exception as e:
-                raise e
+    def _run_optimize_process(self, seed):
+        # Each process constructs its own DataManager
+        import os
+        pid = os.getpid()
+        self.process_info[pid] = {'status': 'running', 'seed': seed, 'task': None, 'iteration': 0, 'dataset_name': None}
+        logger.info(f"Start process #{pid}")
 
+        # Instantiate problems and optimizer
+        task_set = InstantiateProblems(self.running_config.tasks, seed)
+        optimizer = ConstructOptimizer(self.running_config.optimizer, seed)
+
+        while (task_set.get_unsolved_num()):
+            self.process_info[pid]['task'] = task_set.get_curname()
+            search_space = task_set.get_cur_searchspace()
+            
+            dataset_info, dataset_name = self.construct_dataset_info(task_set, self.running_config, seed=seed)
+            self.process_info[pid]['dataset_name'] = dataset_name
+            
+            self.data_manager.db.create_table(dataset_name, dataset_info, overwrite=True)
+            optimizer.link_task(task_name=task_set.get_curname(), search_space=search_space)
+                    
+            metadata, metadata_info = self.get_metadata('SpaceRefiner')
+            optimizer.search_space_refine(metadata, metadata_info)
+                    
+            metadata, metadata_info = self.get_metadata('Sampler')
+            samples = optimizer.sample_initial_set(metadata, metadata_info)
+                    
+            parameters = [search_space.map_to_design_space(sample) for sample in samples]
+            observations = task_set.f(parameters)
+            self.save_data(dataset_name, parameters, observations, self.process_info[pid]['iteration'])
+                    
+            optimizer.observe(samples, observations)
+                    
+            # Pretrain
+            metadata, metadata_info = self.get_metadata('Model')
+            optimizer.meta_fit(metadata, metadata_info)
+            
+            while (task_set.get_rest_budget()):
+                optimizer.fit()
+                suggested_samples = optimizer.suggest()
+                parameters = [search_space.map_to_design_space(sample) for sample in suggested_samples]
+                observations = task_set.f(parameters)
+                if observations is None:
+                    break
+                self.save_data(dataset_name, parameters, observations, self.process_info[pid]['iteration'])
+                        
+                optimizer.observe(suggested_samples, observations)
+                self.process_info[pid]['iteration'] += 1
+                logger.info(f"PID {pid}: Seed {seed}, Task {task_set.get_curname()}, Iteration {self.process_info[pid]['iteration']}")
+            task_set.roll()
+        
+        self.process_info[pid]['status'] = 'completed'
+    
+    def get_all_process_info(self):
+        return dict(self.process_info)
+    
     def get_report_charts(self, task_name):
         all_data = self.data_manager.db.select_data(task_name)
 
@@ -380,14 +406,8 @@ class Services:
             ],
             "ScatterData": {
                 "cluster1": [
-                    [10.0, 8.04],
-                    [8.07, 6.95],
-                    [13.0, 7.58],
-                    [9.05, 8.81],
-                    [11.0, 8.33],
-                    [14.0, 7.66],
-                    [13.4, 6.81],
-                    [10.0, 6.33],
+                    [10.0, 8.04], [8.07, 6.95], [13.0, 7.58], [9.05, 8.81], [11.0, 8.33], 
+                    [14.0, 7.66], [13.4, 6.81], [10.0, 6.33],
                 ],
                 "cluster2": [
                     [14.0, 8.96],

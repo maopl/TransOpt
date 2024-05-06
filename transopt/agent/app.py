@@ -1,5 +1,6 @@
 import json
 import os
+from multiprocessing import Process, Manager
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -10,7 +11,13 @@ from transopt.utils.log import logger
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
-services = Services()
+manager = Manager()
+
+task_queue = manager.Queue()
+result_queue = manager.Queue()
+db_lock = manager.Lock()
+
+services = Services(task_queue, result_queue, db_lock)
 
 @app.route("/api/generate-yaml", methods=["POST"])
 def generate_yaml():
@@ -26,13 +33,7 @@ def generate_yaml():
 
 @app.route("/api/report/tasks", methods=["POST"])
 def report_send_tasks_information():
-    data = request.json
-    user_input = data.get("paremeter", "")
-    
     all_tasks = [task_info['additional_config'] for task_info in services.get_experiment_datasets()]
-    
-    # with open("./page_service_data/task_information.json", "w") as file:
-        # json.dump(all_tasks, file)
     return jsonify(all_tasks), 200
 
 
@@ -169,16 +170,11 @@ def configuration_delete_dataset():
 @app.route("/api/configuration/run", methods=["POST"])
 def configuration_run():
     run_info = request.json
-    print(run_info)
-
-    # try:
-    services.run_optimize(seeds_info = run_info['Seeds'])
-    # except Exception as e:
-    #     logger.error(f"Error in optimization: {e}")
-    #     return jsonify({"error": str(e)}), 500
-
-    # 返回处理后的响应给前端
-    return {"isSucceed": True}, 200
+    
+    seeds = [int(seed) for seed in run_info['Seeds'].split(",")]
+    services.run_optimize(seeds)  # Handle process creation within run_optimize
+    
+    return jsonify({"isSucceed": True}), 200
 
 
 @app.route("/api/configuration/progress", methods=["POST"])
@@ -209,7 +205,6 @@ def comparison_send_selections():
 @app.route("/api/comparison/choose_task", methods=["POST"])
 def comparison_choose_tasks():
     conditions = request.json
-  
     ret = []
     for condition in conditions:
         ret.append(services.comparision_search(condition)) 

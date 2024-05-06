@@ -1,9 +1,12 @@
 import random
 import string
+import time
+from multiprocessing import Manager, Process
 
-from transopt.datamanager.database import Database
 from transopt.agent.registry import *
-
+from transopt.datamanager.manager import DataManager
+from transopt.datamanager.database import Database
+from transopt.utils.log import logger
 
 base_strings = {
     "finance": [
@@ -156,28 +159,58 @@ def generate_and_insert_data(db, dataset_name, dataset_cfg, num_rows=100):
 
 
 if __name__ == "__main__":
-    db = Database()  # Assuming Database is properly initialized and can be used
+    # manager = Manager()
+    # task_queue = manager.Queue()
+    # result_queue = manager.Queue()
+    # db_lock = manager.Lock()
+    
+    # db = Database(task_queue=task_queue, result_queue=result_queue, lock=db_lock)
+    dm = DataManager()
+    
+    def test_task(dm, pid):
+        table_list = dm.db.get_table_list()
+        logger.info(f"PID{pid}: Table list pre {table_list}")
+        for table in table_list:
+            all_data =  dm.db.select_data(table)
+            logger.info(f"PID{pid}: Table {table} has {len(all_data)} rows")
+        # dm.db.create_table(f"test_table_{pid}", {
+        #     "variables": [
+        #         {"name": "x1", "type": "continuous", "lb": -5.12, "ub": 5.12, "default": 0.0}
+        #     ]
+        # })
+        # table_list = dm.db.get_table_list()
+        # logger.debug(f"PID{pid}: Table list post {table_list}")
+    
+    processes = []
+    for i in range(5):
+        p = Process(target=test_task, args=(dm, i)) 
+        processes.append(p)
+        p.start()
+
+    for p in processes:
+        p.join()
 
     # 创建测试 datasets
     # create_experiment_datasets(db, 200)
     # create_exported_datasets(db, 100)
 
-    # 获取所有的 datasets
-    dataset_ls = db.get_table_list() 
-    print(dataset_ls)
 
-    dataset_exp = db.get_experiment_datasets()
-    print(dataset_exp)
+    # 获取所有的 datasets
+    # dataset_ls = db.get_table_list() 
+    # print(dataset_ls)
+
+    # dataset_exp = db.get_experiment_datasets()
+    # print(dataset_exp)
     
-    print()
+    # print()
      
-    metadatas = db.get_all_metadata()
-    print(metadatas)
+    # metadatas = db.get_all_metadata()
+    # print(metadatas)
     
-    print()
+    # print()
     
-    search_res = db.search_tables_by_metadata({"dimensions": "5"})
-    print(search_res)
+    # search_res = db.search_tables_by_metadata({"dimensions": "5"})
+    # print(search_res)
     # dataset_all = db.get_all_datasets()
     # print(dataset_all)
 
@@ -193,4 +226,4 @@ if __name__ == "__main__":
     # print(db.select_data(dataset_ls[0]))
     # [{'loan_amount_fyb': 49.57, 'credit_score_el': 60.26, 'market_risk_w': 65.6, 'obj_0_aot': 5.97, 'batch': -1, 'error': 0}, ...]
     
-    db.close()
+    dm.teardown()

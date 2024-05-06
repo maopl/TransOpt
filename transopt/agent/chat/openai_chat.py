@@ -65,6 +65,7 @@ class OpenAIChat:
         model="gpt-3.5-turbo",
         base_url="https://api.openai.com/v1",
         client_kwargs: Optional[Dict[str, Any]] = None,
+        data_manager: Optional[DataManager] = None,
     ):
         self.base_url = base_url
         self.model = model
@@ -76,7 +77,7 @@ class OpenAIChat:
         
         self.history = []
 
-        self.data_manager = DataManager()
+        self.data_manager = DataManager() if data_manager is None else data_manager
         self.running_config = RunningConfig()
 
     def _get_prompt(self):

@@ -17,7 +17,7 @@ class DataManager:
             cls._instance = super(DataManager, cls).__new__(cls)
             cls._instance._initialized = False
         return cls._instance
-
+    
     def __init__(
         self, db=None, num_hashes=100, char_ngram=5, num_bands=50, random_state=12345
     ):

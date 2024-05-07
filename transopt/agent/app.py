@@ -125,7 +125,7 @@ def configuration_dataset():
     #     "datasets": ["dataset1", "dataset2]
     # }
     try:
-        services.select_dataset(metadata_info)
+        services.set_metadata(metadata_info)
     except Exception as e:
         logger.error(f"Error in searching dataset: {e}")
         return jsonify({"error": str(e)}), 500
@@ -206,16 +206,15 @@ def comparison_send_selections():
 def comparison_choose_tasks():
     conditions = request.json
     ret = []
+    charts_data = {}
     for condition in conditions:
         ret.append(services.comparision_search(condition)) 
-    # current_directory = os.path.dirname(__file__)
-    # json_file_path = os.path.join(
-    #     current_directory, "page_service_data", "ComparisonChartsData.json"
-    # )
-    # with open(json_file_path, "r") as file:
-    #     data = json.load(file)
     
-    return jsonify(ret), 200
+
+    charts_data['BoxData'] = services.get_box_plot_data(ret)
+    charts_data['TrajectoryData'] = services.construct_statistic_trajectory_data(ret)
+    
+    return jsonify(charts_data), 200
 
 
 if __name__ == "__main__":

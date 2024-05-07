@@ -199,7 +199,7 @@ class Services:
         
         return self.data_manager.db.search_tables_by_metadata(conditions)
     
-    def select_dataset(self, dataset_names):
+    def set_metadata(self, dataset_names):
         self.running_config.set_metadata(dataset_names)
 
     def receive_tasks(self, tasks_info):
@@ -255,7 +255,7 @@ class Services:
         dataset_name = f"{task_set.get_curname()}_w{task_set.get_cur_workload()}_s{seed}_{timestamp}"
 
         dataset_info['additional_config'] = {
-            "problem_name": dataset_name,
+            "problem_name": task_set.get_curname(),
             "dim": len(dataset_info["variables"]),
             "obj": len(dataset_info["objectives"]),
             "fidelity": ', '.join([d['name'] for d in dataset_info["fidelities"] if 'name' in d]) if dataset_info["fidelities"] else '',
@@ -374,6 +374,21 @@ class Services:
     def get_all_process_info(self):
         return dict(self.process_info)
     
+    def get_box_plot_data(self, task_names):
+        all_data = {}
+        for group_id, group in enumerate(task_names):
+            all_data[str(group_id)] = []
+            for task_name in group:
+                data = self.data_manager.db.select_data(task_name)
+                table_info = self.data_manager.db.query_dataset_info(task_name)
+                objectives = table_info["objectives"]
+                obj = objectives[0]["name"]
+                best_obj = min([d[obj] for d in data])
+                
+                all_data[str(group_id)].append(best_obj)
+
+        return all_data
+    
     def get_report_charts(self, task_name):
         all_data = self.data_manager.db.select_data(task_name)
 
@@ -406,30 +421,6 @@ class Services:
                 {"value": 0.54, "name": "Weight decay"},
                 {"value": 0.72, "name": "Momentum"},
             ],
-            "ScatterData": {
-                "cluster1": [
-                    [10.0, 8.04], [8.07, 6.95], [13.0, 7.58], [9.05, 8.81], [11.0, 8.33], 
-                    [14.0, 7.66], [13.4, 6.81], [10.0, 6.33],
-                ],
-                "cluster2": [
-                    [14.0, 8.96],
-                    [12.5, 6.82],
-                    [9.15, 7.2],
-                    [11.5, 7.2],
-                    [3.03, 4.23],
-                    [12.2, 7.83],
-                    [2.02, 4.47],
-                    [1.05, 3.33],
-                ],
-                "cluster3": [
-                    [4.05, 4.96],
-                    [6.03, 7.24],
-                    [12.0, 6.26],
-                    [12.0, 8.84],
-                    [7.08, 5.82],
-                    [5.02, 5.68],
-                ],
-            },
         }
         ret.update(self.construct_footprint_data(task_name, var_data, ranges))
         ret.update(self.construct_trajectory_data(task_name, obj_data, obj_type))
@@ -444,6 +435,36 @@ class Services:
         scatter_data = {'parameters': fp._reduced_data[:len(fp.X)], 'boundary': fp._reduced_data[len(fp.X):]}
 
         return {"ScatterData": scatter_data}
+    
+    def construct_statistic_trajectory_data(self, task_names):
+        all_data = []
+        for group_id, group in enumerate(task_names):
+            min_data = {'name': f'Algorithm{group_id + 1}', 'average': [], 'uncertainty': []}
+            res = []
+            max_length = 0
+            for task_name in group:
+                data = self.data_manager.db.select_data(task_name)
+                table_info = self.data_manager.db.query_dataset_info(task_name)
+                objectives = table_info["objectives"]
+                obj = objectives[0]["name"]
+                obj_data = [d[obj] for d in data]
+                acc_obj_data = np.minimum.accumulate(obj_data).flatten().tolist()
+                res.append(acc_obj_data)
+                if len(acc_obj_data) > max_length:
+                    max_length = len(acc_obj_data)
+
+            # 计算每个点的中位数和标准差
+            for i in range(max_length):
+                current_data = [r[i] for r in res if i < len(r)]
+                median = np.median(current_data)
+                std = np.std(current_data)
+                min_data['average'].append({'FEs': i + 1, 'y': median})
+                min_data['uncertainty'].append({'FEs': i + 1, 'y': [median - std, median + std]})
+
+            all_data.append(min_data)
+
+        return all_data
+        
     
     def construct_trajectory_data(self, name, obj_data, obj_type="minimize"):
         # Initialize the list to store trajectory data and the best value seen so far

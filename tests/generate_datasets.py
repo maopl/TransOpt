@@ -167,28 +167,28 @@ if __name__ == "__main__":
     # db = Database(task_queue=task_queue, result_queue=result_queue, lock=db_lock)
     dm = DataManager()
     
-    def test_task(dm, pid):
-        table_list = dm.db.get_table_list()
-        logger.info(f"PID{pid}: Table list pre {table_list}")
-        for table in table_list:
-            all_data =  dm.db.select_data(table)
-            logger.info(f"PID{pid}: Table {table} has {len(all_data)} rows")
-        # dm.db.create_table(f"test_table_{pid}", {
-        #     "variables": [
-        #         {"name": "x1", "type": "continuous", "lb": -5.12, "ub": 5.12, "default": 0.0}
-        #     ]
-        # })
-        # table_list = dm.db.get_table_list()
-        # logger.debug(f"PID{pid}: Table list post {table_list}")
+    # def test_task(dm, pid):
+    #     table_list = dm.db.get_table_list()
+    #     logger.info(f"PID{pid}: Table list pre {table_list}")
+    #     for table in table_list:
+    #         all_data =  dm.db.select_data(table)
+    #         logger.info(f"PID{pid}: Table {table} has {len(all_data)} rows")
+    #     # dm.db.create_table(f"test_table_{pid}", {
+    #     #     "variables": [
+    #     #         {"name": "x1", "type": "continuous", "lb": -5.12, "ub": 5.12, "default": 0.0}
+    #     #     ]
+    #     # })
+    #     # table_list = dm.db.get_table_list()
+    #     # logger.debug(f"PID{pid}: Table list post {table_list}")
     
-    processes = []
-    for i in range(5):
-        p = Process(target=test_task, args=(dm, i)) 
-        processes.append(p)
-        p.start()
+    # processes = []
+    # for i in range(5):
+    #     p = Process(target=test_task, args=(dm, i)) 
+    #     processes.append(p)
+    #     p.start()
 
-    for p in processes:
-        p.join()
+    # for p in processes:
+    #     p.join()
 
     # 创建测试 datasets
     # create_experiment_datasets(db, 200)
@@ -196,16 +196,16 @@ if __name__ == "__main__":
 
 
     # 获取所有的 datasets
-    # dataset_ls = db.get_table_list() 
-    # print(dataset_ls)
+    dataset_ls = dm.db.get_table_list() 
+    print(dataset_ls)
 
-    # dataset_exp = db.get_experiment_datasets()
-    # print(dataset_exp)
+    dataset_exp = dm.db.get_experiment_datasets()
+    print(dataset_exp)
     
-    # print()
+    print()
      
-    # metadatas = db.get_all_metadata()
-    # print(metadatas)
+    metadatas = dm.db.get_all_metadata()
+    print(metadatas)
     
     # print()
     

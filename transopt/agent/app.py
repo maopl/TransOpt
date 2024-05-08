@@ -244,7 +244,6 @@ def comparison_choose_tasks():
 
     charts_data['BoxData'] = services.get_box_plot_data(ret)
     charts_data['TrajectoryData'] = services.construct_statistic_trajectory_data(ret)
-    
     return jsonify(charts_data), 200
 
 

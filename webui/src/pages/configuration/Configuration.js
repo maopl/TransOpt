@@ -17,6 +17,7 @@ import SearchData from "./component/SearchData"
 import Run from "./component/Run"
 import TaskProgress from "./component/TaskProgress"
 import RunProgress from "./component/RunProgress"
+import picture1 from "../../pictures/1.png"
 
 
 
@@ -176,7 +177,7 @@ class Configuration extends React.Component {
                     </h5>
                   }
                 >
-                  <TaskProgress />
+                  <img src={picture1} alt="picture3" style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%' }} /> 
                 </Widget>
                 </Col>
               </Row>

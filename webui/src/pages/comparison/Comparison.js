@@ -21,7 +21,6 @@ class Comparison extends React.Component {
       isFirst: true,
       selections: {},
       BoxData: {},
-      SkData: {},
       TrajectoryData: [],
     };
   }
@@ -57,7 +56,7 @@ class Comparison extends React.Component {
     })
     .then(data => {
       // console.log('Message from back-end:', data);
-      this.setState({ BoxData: data.BoxData, TrajectoryData: data.TrajectoryData, SkData: data.SkData });
+      this.setState({ BoxData: data.BoxData, TrajectoryData: data.TrajectoryData });
     })
     .catch((error) => {
       console.error('Error sending message:', error);
@@ -119,7 +118,7 @@ class Comparison extends React.Component {
               </Col>
               <Col lg={12} xs={12}>
                 <Row>
-                  <Col lg={12} xs={12}>
+                  <Col lg={6} xs={12}>
                     <Widget
                       title={
                         <h5>
@@ -141,18 +140,6 @@ class Comparison extends React.Component {
                       collapse
                     > 
                       <Box BoxData={this.state.BoxData}/>
-                    </Widget>
-                  </Col>
-                  <Col lg={6} xs={12}>
-                    <Widget
-                      title={
-                        <h5>
-                          <span className="fw-semi-bold">Box</span>
-                        </h5>
-                      }
-                      collapse
-                    > 
-                      <Box BoxData={this.state.SkData}/>
                     </Widget>
                   </Col>
                 </Row>

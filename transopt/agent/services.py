@@ -49,13 +49,13 @@ class Services:
     def get_modules(self):
         basic_info = {}
         tasks_info = []
-        selector_info = [{"name": "default"}]
-        model_info = [{"name": "default"}]
-        sampler_info = [{"name": "default"}]
-        acf_info = [{"name": "default"}]
-        pretrain_info = [{"name": "default"}]
-        refiner_info = [{"name": "default"}]
-        normalizer_info = [{"name": "default"}]
+        selector_info = []
+        model_info = []
+        sampler_info = []
+        acf_info = []
+        pretrain_info = []
+        refiner_info = []
+        normalizer_info = [{'name':'default'}]
 
         # tasks information
         task_names = problem_registry.list_names()
@@ -233,7 +233,7 @@ class Services:
     
     def get_experiment_datasets(self):
         experiment_tables = self.data_manager.db.get_table_list()
-        return [self.data_manager.db.query_dataset_info(table) for table in experiment_tables] 
+        return [(experiment_tables[table_id],self.data_manager.db.query_dataset_info(table)) for table_id, table in enumerate(experiment_tables)] 
    
     def construct_dataset_info(self, task_set, running_config, seed):
         dataset_info = {}

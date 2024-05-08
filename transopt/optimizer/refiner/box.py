@@ -5,3 +5,4 @@ from transopt.agent.registry import space_refiner_registry
 class BoxRefiner(RefinerBase):
     def __init__(self, config) -> None:
         super().__init__(config)
+        

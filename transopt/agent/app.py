@@ -33,8 +33,15 @@ def generate_yaml():
 
 @app.route("/api/report/tasks", methods=["POST"])
 def report_send_tasks_information():
-    all_tasks = [task_info['additional_config'] for task_info in services.get_experiment_datasets()]
-    return jsonify(all_tasks), 200
+    all_info = services.get_experiment_datasets()
+    all_tasks_info = []
+    for task_name, task_info in all_info:
+        info = task_info['additional_config']
+        info['problem_name'] = task_name
+        all_tasks_info.append(info)
+    
+    
+    return jsonify(all_tasks_info), 200
 
 
 @app.route("/api/report/charts", methods=["POST"])

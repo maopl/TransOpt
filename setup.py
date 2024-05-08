@@ -40,6 +40,7 @@ req = [
     "emukit",
     "pymoo",
     "jax",
+    "networkx",
     "gplearn",
     "oslo.concurrency>=4.2.0",
     'GPy @ git+https://github.com/SheffieldML/GPy.git@devel'

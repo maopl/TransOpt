@@ -12,6 +12,7 @@ import s from "./Comparison.module.scss";
 import Box from "./charts/Box";
 import Trajectory from "./charts/Trajectory";
 import SelectTask from "./component/SelectTask"
+import { Skeleton } from "antd";
 
 class Comparison extends React.Component {
   constructor(props) {
@@ -20,6 +21,7 @@ class Comparison extends React.Component {
       isFirst: true,
       selections: {},
       BoxData: {},
+      SkData: {},
       TrajectoryData: [],
     };
   }
@@ -55,7 +57,7 @@ class Comparison extends React.Component {
     })
     .then(data => {
       // console.log('Message from back-end:', data);
-      this.setState({ BoxData: data.BoxData, TrajectoryData: data.TrajectoryData });
+      this.setState({ BoxData: data.BoxData, TrajectoryData: data.TrajectoryData, SkData: data.SkData });
     })
     .catch((error) => {
       console.error('Error sending message:', error);
@@ -117,6 +119,18 @@ class Comparison extends React.Component {
               </Col>
               <Col lg={12} xs={12}>
                 <Row>
+                  <Col lg={12} xs={12}>
+                    <Widget
+                      title={
+                        <h5>
+                          <span className="fw-semi-bold">Trajectory</span>
+                        </h5>
+                      }
+                      collapse
+                    >
+                      <Trajectory TrajectoryData={this.state.TrajectoryData}/>
+                    </Widget>
+                  </Col>
                   <Col lg={6} xs={12}>
                     <Widget
                       title={
@@ -133,12 +147,12 @@ class Comparison extends React.Component {
                     <Widget
                       title={
                         <h5>
-                          <span className="fw-semi-bold">Trajectory</span>
+                          <span className="fw-semi-bold">Box</span>
                         </h5>
                       }
                       collapse
-                    >
-                      <Trajectory TrajectoryData={this.state.TrajectoryData}/>
+                    > 
+                      <Box BoxData={this.state.SkData}/>
                     </Widget>
                   </Col>
                 </Row>

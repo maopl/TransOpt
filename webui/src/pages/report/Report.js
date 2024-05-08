@@ -17,8 +17,8 @@ class Report extends React.Component {
     this.state = {
       selectedTaskIndex: -1,
       tasksInfo: [],
-      BarData: [],
-      RadarData: [],
+      // BarData: [],
+      // RadarData: [],
       ScatterData: [],
       TrajectoryData: []
     };
@@ -47,8 +47,8 @@ class Report extends React.Component {
     .then(data => {
       // console.log('Message from back-end:', data);
       this.setState({
-        BarData: data.BarData,
-        RadarData: data.RadarData,
+        // BarData: data.BarData,
+        // RadarData: data.RadarData,
         ScatterData: data.ScatterData,
       })
     })
@@ -274,18 +274,6 @@ class Report extends React.Component {
                     <Widget
                       title={
                         <h5>
-                            <span className="fw-semi-bold">Performance Metric</span>
-                        </h5>
-                      }
-                      collapse
-                    >
-                      <Radar RadarData={this.state.RadarData}/>
-                    </Widget>
-                  </Col>
-                  <Col lg={6} xs={12}>
-                    <Widget
-                      title={
-                        <h5>
                             <span className="fw-semi-bold">Configuration Footprint</span>
                         </h5>
                       }
@@ -298,12 +286,24 @@ class Report extends React.Component {
                     <Widget
                       title={
                         <h5>
-                          <span className="fw-semi-bold">Feature Importance</span>
+                          <span className="fw-semi-bold">Figure 1</span>
                         </h5>
                       }
                       collapse
                     >
-                      <Bar BarData={this.state.BarData} />
+                      
+                    </Widget>
+                  </Col>
+                  <Col lg={6} xs={12}>
+                    <Widget
+                      title={
+                        <h5>
+                          <span className="fw-semi-bold">Figure 2</span>
+                        </h5>
+                      }
+                      collapse
+                    >
+                      
                     </Widget>
                   </Col>
                 </Row>

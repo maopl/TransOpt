@@ -4,10 +4,9 @@ import {
     Progress,
     ConfigProvider
 } from "antd";
-import Trajectory from "../../report/charts/Trajectory";
 
 
-class TaskProgress extends React.Component {
+class RunProgress extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -15,9 +14,7 @@ class TaskProgress extends React.Component {
                 '0%': '#108ee9',
                 '100%': '#87d068',
             },
-            problem_name: "",
-            task_progress: 0,
-            TrajectoryData: []
+            data: []
         }
     }
     // 与后端交互，获取任务进度
@@ -36,7 +33,7 @@ class TaskProgress extends React.Component {
           const messageToSend = {
             message:"ask for progress"
           }
-          const response = await fetch('http://localhost:5000/api/configuration/progress', {
+          const response = await fetch('http://localhost:5000/api/configuration/run_progress', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -50,9 +47,7 @@ class TaskProgress extends React.Component {
           console.log('Data from server:', data);
           // 在这里处理从服务器获取的数据
           this.setState({
-            problem_name: data.problem_name,
-            progress: data.progress,
-            TrajectoryData: data.TrajectoryData
+            data: data
           })
           // console.log('State:', this.state.BarData)
         } catch (error) {
@@ -62,7 +57,7 @@ class TaskProgress extends React.Component {
 
       render() {
         return (
-          <ConfigProvider
+            <ConfigProvider
             theme={{
                 token:{
                     colorText: "#696969"
@@ -74,13 +69,14 @@ class TaskProgress extends React.Component {
                 },
             }}
             >
-            <div>
-                <div style={{ marginBottom: 10 }}>
-                    <h6>{this.state.problem_name}</h6>
-                    <Progress percent={this.state.progress} status="active" type="line" strokeColor={this.state.twoColors} />
+                <div style={{ overflowY: 'auto', maxHeight: '200px' }}>
+                    {this.state.data.map((task, index) => (
+                        <div key={index} style={{ marginBottom: 10 }}>
+                            <h6>{task.name}</h6>
+                            <Progress percent={task.progress} status="active" type="line" strokeColor={this.state.twoColors} />
+                        </div>
+                    ))}
                 </div>
-                <Trajectory TrajectoryData={this.state.TrajectoryData}/>
-            </div>
             </ConfigProvider>
         )
       }
@@ -88,4 +84,4 @@ class TaskProgress extends React.Component {
 
 
 
-export default TaskProgress;
+export default RunProgress;

@@ -16,6 +16,7 @@ import SelectData from "./component/SelectData";
 import SearchData from "./component/SearchData"
 import Run from "./component/Run"
 import TaskProgress from "./component/TaskProgress"
+import RunProgress from "./component/RunProgress"
 
 
 
@@ -147,7 +148,7 @@ class Configuration extends React.Component {
                   collapse
                 >
                   <Run />
-                  {/* <TaskProgress /> */}
+                  <RunProgress />
                 </Widget>
               </Col>
             </Row>

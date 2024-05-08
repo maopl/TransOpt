@@ -17,7 +17,7 @@ import SearchData from "./component/SearchData"
 import Run from "./component/Run"
 import TaskProgress from "./component/TaskProgress"
 import RunProgress from "./component/RunProgress"
-import picture1 from "../../pictures/1.png"
+import picture1 from "../../pictures/configuration.png"
 
 
 

@@ -9,8 +9,7 @@ import Trajectory from "./charts/Trajectory";
 import Radar from "./charts/Radar";
 import Scatter from "./charts/Scatter";
 import Bar from "./charts/Bar";
-import picture2 from "../../pictures/2.png";
-import picture3 from "../../pictures/3.png";
+import network from "../../pictures/parameter_network.png";
 
 
 class Report extends React.Component {
@@ -287,24 +286,12 @@ class Report extends React.Component {
                     <Widget
                       title={
                         <h5>
-                          <span className="fw-semi-bold">Figure 1</span>
+                          <span className="fw-semi-bold">Parameter network</span>
                         </h5>
                       }
                       collapse
                     >
-                      <img src={picture2} alt="picture2" style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%' }} /> 
-                    </Widget>
-                  </Col>
-                  <Col lg={6} xs={12}>
-                    <Widget
-                      title={
-                        <h5>
-                          <span className="fw-semi-bold">Figure 2</span>
-                        </h5>
-                      }
-                      collapse
-                    >
-                      <img src={picture3} alt="picture3" style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%' }} /> 
+                      <img src={network} alt="network" style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%' }} /> 
                     </Widget>
                   </Col>
                 </Row>

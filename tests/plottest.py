@@ -1,8 +1,67 @@
+from itertools import combinations
+
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
+from sklearn.ensemble import RandomForestRegressor
 
-# 创建图对象
+
+def calculate_interaction(X, y):
+    n_features = X.shape[1]
+    h_matrix = np.zeros((n_features, n_features))
+
+    # 训练单个变量的模型
+    single_models = []
+    for i in range(n_features):
+        model = RandomForestRegressor(n_estimators=50, random_state=42)
+        model.fit(X[:, [i]], y)
+        single_models.append(model)
+
+    # 两两特征组合，计算 H^2
+    for (i, j) in combinations(range(n_features), 2):
+        # 包含两个变量的模型
+        model_jk = RandomForestRegressor(n_estimators=50, random_state=42)
+        model_jk.fit(X[:, [i, j]], y)
+        f_jk = model_jk.predict(X[:, [i, j]])
+        
+        # 单个变量的预测
+        f_j = single_models[i].predict(X[:, [i]])
+        f_k = single_models[j].predict(X[:, [j]])
+
+        # 计算 H^2
+        numerator = np.sqrt(np.sum((f_jk - f_j - f_k) ** 2))
+
+        h_matrix[i, j] = numerator
+        h_matrix[j, i] = h_matrix[i, j]  # 由于 H^2 是对称的
+
+    mean = np.mean(h_matrix)
+    std = np.std(h_matrix)
+
+    normalized_matrix = (h_matrix - mean) / std
+    scaled_matrix = 1 / (1 + np.exp(-normalized_matrix))
+    
+    return scaled_matrix
+
+def calculate_importances(df, objective):
+    """
+    Calculates and returns feature importances.
+    """
+    X = df.drop([objective], axis=1)
+    y = df[objective]
+
+    model = DecisionTreeRegressor()
+    model.fit(np.array(X.values), np.array(y.values)[:, np.newaxis])
+    feature_importances = model.feature_importances_
+
+    feature_importance_df = pd.DataFrame(
+        {"Feature": X.columns, "Importance": feature_importances}
+    )
+    return feature_importance_df
+
+
+
+    
+    
 G = nx.Graph()
 
 # 添加节点及其权重，权重范围在 0 到 1

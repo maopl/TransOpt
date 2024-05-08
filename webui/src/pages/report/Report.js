@@ -9,6 +9,8 @@ import Trajectory from "./charts/Trajectory";
 import Radar from "./charts/Radar";
 import Scatter from "./charts/Scatter";
 import Bar from "./charts/Bar";
+import picture2 from "../../pictures/2.png";
+import picture3 from "../../pictures/3.png";
 
 
 class Report extends React.Component {
@@ -267,7 +269,6 @@ class Report extends React.Component {
                       collapse
                     >
                       <Trajectory TrajectoryData={this.state.TrajectoryData}/>
-                      {/* <Trajectory /> */}
                     </Widget>
                   </Col>
                   <Col lg={6} xs={12}>
@@ -291,7 +292,7 @@ class Report extends React.Component {
                       }
                       collapse
                     >
-                      
+                      <img src={picture2} alt="picture2" style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%' }} /> 
                     </Widget>
                   </Col>
                   <Col lg={6} xs={12}>
@@ -303,7 +304,7 @@ class Report extends React.Component {
                       }
                       collapse
                     >
-                      
+                      <img src={picture3} alt="picture3" style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%' }} /> 
                     </Widget>
                   </Col>
                 </Row>

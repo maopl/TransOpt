@@ -400,6 +400,8 @@ class Services:
 
         return all_data
     
+    
+    
     def get_report_charts(self, task_name):
         all_data = self.data_manager.db.select_data(task_name)
 

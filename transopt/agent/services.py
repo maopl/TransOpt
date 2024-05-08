@@ -29,6 +29,7 @@ class Services:
 
         self._initialize_modules()
         self.process_info = Manager().dict()
+        self.lock = Manager().Lock()
 
     def chat(self, user_input):
         response_content = self.openai_chat.get_response(user_input)
@@ -50,11 +51,11 @@ class Services:
         basic_info = {}
         tasks_info = []
         selector_info = []
-        model_info = []
-        sampler_info = []
-        acf_info = []
-        pretrain_info = []
-        refiner_info = []
+        model_info = [{'name':'default'}]
+        sampler_info = [{'name':'default'}]
+        acf_info = [{'name':'default'}]
+        pretrain_info = [{'name':'default'}]
+        refiner_info = [{'name':'default'}]
         normalizer_info = [{'name':'default'}]
 
         # tasks information
@@ -322,7 +323,7 @@ class Services:
         # Each process constructs its own DataManager
         import os
         pid = os.getpid()
-        self.process_info[pid] = {'status': 'running', 'seed': seed, 'task': None, 'iteration': 0, 'dataset_name': None}
+        self.process_info[pid] = {'status': 'running', 'seed': seed, 'budget': None, 'task': None, 'iteration': 0, 'dataset_name': None}
         logger.info(f"Start process #{pid}")
 
         # Instantiate problems and optimizer
@@ -330,12 +331,15 @@ class Services:
         optimizer = ConstructOptimizer(self.running_config.optimizer, seed)
 
         while (task_set.get_unsolved_num()):
-            self.process_info[pid]['task'] = task_set.get_curname()
             search_space = task_set.get_cur_searchspace()
-            
             dataset_info, dataset_name = self.construct_dataset_info(task_set, self.running_config, seed=seed)
-            self.process_info[pid]['dataset_name'] = dataset_name
-            
+            with self.lock:
+                temp_info = self.process_info[pid].copy()
+                temp_info['dataset_name'] = dataset_name
+                temp_info['task'] = task_set.get_curname()
+                temp_info['budget'] = task_set.get_cur_budget()
+                self.process_info[pid] = temp_info 
+                
             self.data_manager.db.create_table(dataset_name, dataset_info, overwrite=True)
             optimizer.link_task(task_name=task_set.get_curname(), search_space=search_space)
                     
@@ -365,11 +369,18 @@ class Services:
                 self.save_data(dataset_name, parameters, observations, self.process_info[pid]['iteration'])
                         
                 optimizer.observe(suggested_samples, observations)
-                self.process_info[pid]['iteration'] += 1
-                logger.info(f"PID {pid}: Seed {seed}, Task {task_set.get_curname()}, Iteration {self.process_info[pid]['iteration']}")
+                
+                with self.lock:
+                    temp_info = self.process_info[pid].copy()
+                    temp_info['iteration'] += 1 
+                    self.process_info[pid] = temp_info 
+                    logger.info(f"PID {pid}: Seed {seed}, Task {task_set.get_curname()}, Iteration {self.process_info[pid]['iteration']}")
             task_set.roll()
-        
-        self.process_info[pid]['status'] = 'completed'
+        with self.lock:
+            temp_info = self.process_info[pid].copy()
+            temp_info['status'] = 'completed'
+            self.process_info[pid] = temp_info 
+            
     
     def get_all_process_info(self):
         return dict(self.process_info)
@@ -499,3 +510,4 @@ class Services:
         }
 
         return {"TrajectoryData": [trajectory_data]}
+    

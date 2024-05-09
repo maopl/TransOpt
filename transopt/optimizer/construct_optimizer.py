@@ -11,33 +11,21 @@ from transopt.optimizer.pretrain.get_pretrain import get_pretrain
 def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
     DataSelectors = {}
     """Create the optimizer object."""
-    if optimizer_config['SpaceRefiner'] == 'default':
+    if optimizer_config['SpaceRefiner'] == 'None':
         SpaceRefiner = None
     else:
         SpaceRefiner = space_refiner_registry[optimizer_config['SpaceRefiner']](optimizer_config['SpaceRefinerParameters'])
         
     
-    if optimizer_config['Sampler'] == 'default':
-        Sampler = sampler_registry['lhs'](config={})
-    else:
-        Sampler = sampler_registry[optimizer_config['Sampler']](optimizer_config['SamplerParameters'])
-        
-    
-    if optimizer_config['ACF'] == 'default':
-        ACF = acf_registry['EI'](config={})
-    else:
-        ACF = acf_registry[optimizer_config['ACF']](config = optimizer_config['ACFParameters'])
-        
+    Sampler = sampler_registry[optimizer_config['Sampler']](optimizer_config['SamplerInitNum'], optimizer_config['SamplerParameters'])
+    ACF = acf_registry[optimizer_config['ACF']](config = optimizer_config['ACFParameters'])
+    Model = model_registry[optimizer_config['Model']](config = optimizer_config['ModelParameters'])
+
     if optimizer_config['Pretrain'] == 'default':
         Pretrain = None
     else:
         Pretrain = pretrain_registry[optimizer_config['Pretrain']](optimizer_config['PretrainParameters'])
         
-    
-    if optimizer_config['Model'] == 'default':
-        Model = model_registry['GP'](config={'kernel': 'RBF'})
-    else:
-        Model = model_registry[optimizer_config['Model']](config = optimizer_config['ModelParameters'])
     
     
     if optimizer_config['Normalizer'] == 'default':

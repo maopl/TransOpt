@@ -1,7 +1,7 @@
 
 import copy
 import numpy as np
-from typing import Tuple, Dict, List
+from typing import Tuple, List
 from sklearn.preprocessing import StandardScaler
 
 from GPy.models import GPRegression

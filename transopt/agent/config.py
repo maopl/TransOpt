@@ -29,6 +29,7 @@ class RunningConfig:
         
     def set_optimizer(self, optimizer):
         self.optimizer = optimizer
+        self.optimizer['SamplerInitNum'] =  int(self.optimizer['SamplerInitNum'])
 
     def set_metadata(self, metadata):
         self.metadata[metadata['object']] = metadata['datasets']

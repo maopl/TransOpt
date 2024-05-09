@@ -12,7 +12,7 @@ from GPy.likelihoods.multioutput_likelihood import MixedNoise
 from GPy.core.gp import GP
 from GPy.mappings.constant import Constant
 from model.MPGP import MPGP
-from model.GP import PriorGP
+from optimizer.model.GP_BAK import PriorGP
 from transopt.optimizer.optimizer_base import OptimizerBase
 from transopt.optimizer.model.PracGP import PracGP
 from Model.MOKernel import MOKernel

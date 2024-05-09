@@ -180,7 +180,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
 
             <div>
                 <h5 style={{color:"#f4f4f599"}}>
-                  <span className="fw-semi-bold">Pre-train</span>
+                  <span className="fw-semi-bold">Pretrain</span>
                 </h5>
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline' }}>

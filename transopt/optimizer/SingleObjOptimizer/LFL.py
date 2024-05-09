@@ -9,7 +9,7 @@ from transopt.utils.serialization import ndarray_to_vectors
 from agent.registry import optimizer_register
 from transopt.utils.Kernel import construct_multi_objective_kernel
 from transopt.optimizer.model.MPGP import MPGP
-from transopt.optimizer.model.GP import PriorGP
+from optimizer.model.GP_BAK import PriorGP
 from transopt.utils import Prior
 
 from GPy import util

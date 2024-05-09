@@ -138,7 +138,7 @@ function SelectData({DatasetData, set_dataset}) {
             style={{minWidth: 170}}
             options={[ {value: "Space refiner"},
                         {value: "Sampler"},
-                        {value: "Pre-train"},
+                        {value: "Pretrain"},
                         {value: "Model"},
                         {value: "Acquisition function"},
                         {value: "Normalizer"}
@@ -176,7 +176,7 @@ function Info({isExact, data}) {
           <ul>
             <li><h6><span className="fw-semi-bold">Space refiner</span>: {data.SpaceRefiner}</h6></li>
             <li><h6><span className="fw-semi-bold">Sampler</span>: {data.Sampler}</h6></li>
-            <li><h6><span className="fw-semi-bold">Pre-train</span>: {data.Pretrain}</h6></li>
+            <li><h6><span className="fw-semi-bold">Pretrain</span>: {data.Pretrain}</h6></li>
             <li><h6><span className="fw-semi-bold">Model</span>: {data.Model}</h6></li>
             <li><h6><span className="fw-semi-bold">ACF</span>: {data.ACF}</h6></li>
             <li><h6><span className="fw-semi-bold">DatasetSelector</span>: {data.DatasetSelector}</h6></li>

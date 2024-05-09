@@ -206,7 +206,9 @@ if __name__ == "__main__":
      
     metadatas = dm.db.get_all_metadata()
     print(metadatas)
-    
+
+    data = dm.db.select_data("Sphere_w1_s1_1715240386")    
+    print(data)
     # print()
     
     # search_res = db.search_tables_by_metadata({"dimensions": "5"})

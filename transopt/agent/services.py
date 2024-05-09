@@ -39,7 +39,6 @@ class Services:
         # import transopt.benchmark.CPD
         import transopt.benchmark.HPO
         import transopt.benchmark.synthetic
-        # import transopt.benchmark.CPD
         import transopt.benchmark.HPO
         import transopt.optimizer.acquisition_function
         import transopt.optimizer.model
@@ -51,11 +50,11 @@ class Services:
         basic_info = {}
         tasks_info = []
         selector_info = []
-        model_info = [{'name':'default'}]
-        sampler_info = [{'name':'default'}]
-        acf_info = [{'name':'default'}]
+        model_info = []
+        sampler_info = []
+        acf_info = []
         pretrain_info = [{'name':'default'}]
-        refiner_info = [{'name':'default'}]
+        refiner_info = [{'name':'None'}]
         normalizer_info = [{'name':'default'}]
 
         # tasks information
@@ -356,6 +355,9 @@ class Services:
             optimizer.observe(samples, observations)
                     
             # Pretrain
+            metadata, metadata_info = self.get_metadata('Pretrain')
+            optimizer.pretrain(metadata, metadata_info)
+            
             metadata, metadata_info = self.get_metadata('Model')
             optimizer.meta_fit(metadata, metadata_info)
             
@@ -414,27 +416,7 @@ class Services:
 
         obj_data = [data[obj] for data in all_data]
         var_data = [[data[var["name"]] for var in table_info["variables"]] for data in all_data]
-        ret = {
-            "RadarData": {
-                "indicator": [
-                    {"name": "F1 score", "max": 1},
-                    {"name": "Accuracy", "max": 1},
-                    {"name": "Recall", "max": 1},
-                    {"name": "Root Mean Squared Error", "max": 10},
-                    {"name": "AUC-ROC ", "max": 1},
-                    {"name": "BOA-AUC ", "max": 1},
-                ],
-                "data": [{"value": [0.8, 0.95, 0.5, 2.42639, 0.7, 0.8]}],
-            },
-            "BarData": [
-                {"value": 0.25, "name": "Learning_rate"},
-                {"value": 0.36, "name": "Neuron number"},
-                {"value": 0.76, "name": "Layer number"},
-                {"value": 0.12, "name": "Block number"},
-                {"value": 0.54, "name": "Weight decay"},
-                {"value": 0.72, "name": "Momentum"},
-            ],
-        }
+        ret = {}
         ret.update(self.construct_footprint_data(task_name, var_data, ranges))
         ret.update(self.construct_trajectory_data(task_name, obj_data, obj_type))
 

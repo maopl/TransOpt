@@ -1,12 +1,13 @@
 #Practical gaussian process
 import copy
-from typing import Dict, Hashable
+from typing import Dict, Hashable, Tuple
 import numpy as np
+import GPy
 from GPy.kern import Kern
 from GPy.kern import RBF
 from transopt_external.transfergpbo.models import InputData, TaskData, Model, GPBO
-from transopt.agent.registry import model_registry
 
+from transopt.agent.registry import model_registry
 
 
 def roll_col(X: np.ndarray, shift: int) -> np.ndarray:
@@ -102,8 +103,8 @@ def compute_ranking_loss(
     return rank_loss
 
 
-@model_registry.register('PracGP')
-class PracGP(Model):
+@model_registry.register('RGPE')
+class RGPE(Model):
     def __init__(
             self,
             n_features: int,
@@ -133,7 +134,7 @@ class PracGP(Model):
             self.kernel = RBF(self.n_features, ARD=True)
         else:
             self.kernel = kernel
-        self.target_model = GPBO(copy.deepcopy(self.kernel), noise_variance=0.1, normalize=self._within_model_normalize)
+        self.target_model = None
         self._target_model_weight = 1
     def meta_fit(self, source_datasets: Dict[Hashable, TaskData], **kwargs):
         # metadata, _ = SourceSelection.the_k_nearest(source_datasets)
@@ -146,6 +147,8 @@ class PracGP(Model):
             self._source_gps[idx] = model
         self._calculate_weights()
 
+    def meta_update(self):
+        pass
 
     def meta_add(self, metadata: Dict[Hashable, TaskData], **kwargs):
         n_meta = len(self._metadata)
@@ -173,15 +176,34 @@ class PracGP(Model):
 
         self._calculate_weights()
 
-    def fit(self, data: TaskData, optimize: bool = False):
-        self._X = data.X
-        self._Y = data.Y
-        self._Data = data
-        self.target_model.fit(data, optimize)
+    def fit(self, Data: Dict, optimize: bool = False):
+        X = Data['X']
+        Y = Data['Y']
+        self._X = copy.deepcopy(X)
+        self._Y = copy.deepcopy(Y)
+
+        self.n_samples, n_features = self._X.shape
+        if self.n_features != n_features:
+            raise ValueError("Number of features in model and input data mismatch.")
+
+        kern = GPy.kern.RBF(self.n_features, ARD=False)
+
+        self.target_model = GPy.models.GPRegression(self._X, self._Y, kernel=kern)
+        self.target_model['Gaussian_noise.*variance'].constrain_bounded(1e-9, 1e-3)
+
+        try:
+            self.target_model.optimize_restarts(num_restarts=1, verbose=False, robust=True)
+        except np.linalg.linalg.LinAlgError as e:
+            # break
+            print('Error: np.linalg.linalg.LinAlgError')
+
         self._calculate_weights()
 
-    def predict(self, data: InputData, return_full: bool = False):
-        X_test = data.X
+    def predict(
+        self, X, return_full: bool = False, with_noise: bool = False
+    ) -> Tuple[np.ndarray, np.ndarray]:
+
+        X_test = X
         n_models = len(self._source_gp_weights)
         if self._target_model_weight > 0:
             n_models += 1
@@ -193,33 +215,38 @@ class PracGP(Model):
         else:
             vars_ = np.empty((n_models, n_sample, n_sample))
         for task_uid, weight in enumerate(self._source_gp_weights):
-            means[task_uid], vars_[task_uid] = self._source_gps[task_uid].predict(data)
+            means[task_uid], vars_[task_uid] = self._source_gps[task_uid].predict(X_test)
             weights[task_uid] = weight
         if self._target_model_weight > 0:
-            means[-1], vars_[-1] = self.target_model.predict(data)
+            means[-1], vars_[-1] = self.target_model.predict(X_test)
             weights[-1] = self._target_model_weight
         weights = weights[:,:,np.newaxis]
         mean = np.sum(weights * means, axis=0)
         var = np.sum(weights ** 2 * vars_, axis=0)
         return mean, var
     def _calculate_weights(self, alpha: float = 0.0):
+        if len(self._source_gps) == 0:
+            self._target_model_weight = 1
+            return
+
         if self._X is None:
             weight = 1 / len(self._source_gps)
             self._source_gp_weights = [weight for task_uid in self._source_gps]
             self._target_model_weight = 0
             return
 
+
         if self.sampling_mode == 'bootstrap':
             predictions = []
             for model_idx in range(len(self._source_gps)):
                 model = self._source_gps[model_idx]
-                predictions.append(model.predict(self._Data)[0].flatten()) # ndarray(n,)
+                predictions.append(model.predict(self._X)[0].flatten()) # ndarray(n,)
 
             masks = np.eye(len(self._X), dtype=np.bool)
             train_x_cv = np.stack([self._X[~m] for m in masks])
             train_y_cv = np.stack([self._Y[~m] for m in masks])
             test_x_cv = np.stack([self._X[m] for m in masks])
-            model = GPBO(copy.deepcopy(self.kernel), noise_variance=0.1,normalize=self._within_model_normalize)
+            model = GPBO(copy.deepcopy(self.kernel), noise_variance=0.1, normalize=self._within_model_normalize)
 
             loo_prediction = []
             for i in range(self._Y.shape[0]):
@@ -335,6 +362,92 @@ class PracGP(Model):
         self._target_model_weight = rank_weights[-1]
 
         return rank_weights, p_drop
+
+    def _calculate_weights_with_no_observations(self):
+        """Calculate weights according to the given start Method when no target
+        task observations exist.
+        """
+
+        first, _, _ = self._start.partition("-")
+
+        if first == "random":
+            # do nothing, predict should not yet be used
+            return
+
+        if first == "mean":
+            # assign equal weights to all base models
+            weight = 1 / len(self._source_gps)
+            self._source_gp_weights = {
+                task_uid: weight for task_uid in self._source_gps
+            }
+            self._target_model_weight = 0
+            return
+
+        raise RuntimeError(f"Predict called without observations, first = {first}")
+
+    def _calculate_weights_with_one_observation(self):
+        """Calculate weights according to the given start Method when only one
+        unique target task observation is available.
+        """
+
+        _, _, second = self._start.partition("-")
+
+        if second == "random":
+            # do nothing, predict should not be used yet
+            return
+
+        if second == "mean":
+            # assign equal weights to all base models and the target model
+            weight = 1 / (len(self._source_gps) + 1)
+            self._source_gp_weights = {
+                task_uid: weight for task_uid in self._source_gps
+            }
+            self._target_model_weight = weight
+            return
+
+        if second == "weighted":
+            # get unique observed point
+            X, indices = np.unique(self._X, axis=0, return_index=True)
+
+            # draw _n_samples for each unique observed point from each
+            # base model
+            all_samples = np.empty((len(self._source_gps), self._n_samples))
+            for i, task_uid in enumerate(self._source_gps):
+                model = self._source_gps[task_uid]
+                samples = model.sample(
+                    InputData(X), size=self._n_samples, with_noise=True
+                )
+                all_samples[i] = samples
+
+            # compare drawn samples to observed values
+            y = self._y[indices]
+            diff = np.abs(all_samples - y)
+
+            # get base model with lowest absolute difference for each sample
+            best = np.argmin(diff, axis=0)
+
+            # compute weight as proportion of samples where a base model is best
+            occurences = np.bincount(best, minlength=len(self._source_gps))
+            weights = occurences / self._n_samples
+            self._source_gp_weights = dict(zip(self._source_gps, weights))
+            self._target_model_weight = 0
+            return
+
+        raise RuntimeError(
+            f"Weight calculation with one observation, second = {second}"
+        )
+
+    def _update_meta_data(self, *gps: GPy.models.GPRegression):
+        """Cache the meta data after meta training."""
+        n_models = len(self._source_gps)
+        for task_uid, gp in enumerate(gps):
+            self._source_gps[n_models + task_uid] = gp
+    def meta_update(self):
+        self._update_meta_data(self.target_model)
+
+    def set_XY(self, Data:Dict):
+        self._X = copy.deepcopy(Data['X'])
+        self._Y = copy.deepcopy(Data['Y'])
 
     def print_Weights(self):
         print(f'Source weights:{self._source_gp_weights}')

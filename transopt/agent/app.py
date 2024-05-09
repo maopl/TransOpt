@@ -48,7 +48,6 @@ def report_send_tasks_information():
 def report_update_charts_data():
     data = request.json
     user_input = data.get("taskname", "")
-    # 其他的图, 数据格式和以前一样 {"RadarData":..., "BarData":..., "ScatterData":...}
     charts = services.get_report_charts(user_input)
     return jsonify(charts), 200
 
@@ -193,29 +192,10 @@ def configuration_run_progress():
         if subpross['status'] == 'running':
             data.append({
                 "name": f"{subpross['task']}_seed_{subpross['seed']}",
-                "progress": str(subpross['iteration'] * 100 / subpross['budget'] ),
+                "progress": str(subpross['iteration'] * 100 / subpross['budget']) if subpross['budget'] != None else 0,
             })
     
-    # with open('transopt/agent/page_service_data/configuration_run_progress.json', 'r') as file:
-    #     data = json.load(file)
     return jsonify(data), 200
-
-# @app.route("/api/configuration/progress", methods=["POST"])
-# def configuration_progress():
-#     message = request.json
-#     # 获取正在运行的任务的进度
-#     data = []
-    
-#     # process_info = services.get_all_process_info()
-#     # for subpross in process_info:
-#     #     if subpross['status'] == 'Running':
-#     #         data.append({
-#     #             "name": subpross['task'],
-#     #             "progress": 50
-#     #         })
-#     with open('transopt/agent/page_service_data/configuration_progress.json', 'r') as file:
-#         data = json.load(file)
-#     return jsonify(data), 200
 
 
 @app.route("/api/comparison/selections", methods=["POST"])

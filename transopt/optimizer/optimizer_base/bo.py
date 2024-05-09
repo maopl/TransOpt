@@ -58,6 +58,11 @@ class BO(OptimizerBase):
     def sample_initial_set(self, metadata = None, metadata_info = None):
         return self.Sampler.sample(self.search_space, self.ini_num)
     
+    def pretrain(self, metadata = None, metadata_info = None):
+        if self.Pretrain:
+            self.Pretrain.set_data(metadata, metadata_info)
+            self.Pretrain.meta_train()
+    
     
     def meta_fit(self, metadata = None, metadata_info = None):
         if metadata:
@@ -78,12 +83,6 @@ class BO(OptimizerBase):
             
         X = copy.deepcopy(self._X)
         
-        if self.MetaData:
-            pass
-        elif self.DataSelectors:
-            pass
-        else:
-            pass
         self.Model.fit(X, Y, optimize = True)
             
     def suggest(self):

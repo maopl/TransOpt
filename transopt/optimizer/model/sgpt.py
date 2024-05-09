@@ -50,7 +50,6 @@ class SGPT_POE(Model):
             n_features: int,
             kernel: Kern = None,
             n_samples: int = 5,
-            beta = None,
             Seed: int = 0,
             sampling_mode: str = 'bootstrap',
             within_model_normalize: bool = False,

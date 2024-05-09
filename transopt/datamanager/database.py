@@ -51,31 +51,24 @@ class DatabaseDaemon:
         self.stop_event = stop_event
 
     def run(self):
-        while not self.stop_event.is_set():
-            try:
-                with sqlite3.connect(self.data_path) as conn:
-                    cursor = conn.cursor()
-                    while not self.stop_event.is_set():
-                        task = self.task_queue.get(timeout=1)  # Check every second
-                        if task is None:  # Sentinel for stopping
-                            break
-                        func, args, commit = task
-                        try:
-                            result = func(cursor, *args)
-                            if commit:
-                                conn.commit()
-                            self.result_queue.put(("SUCCESS", result))
-                        except Exception as e:
-                            conn.rollback()
-                            logger.error(
-                                f"Database operation failed: {e}", exc_info=True
-                            )
-                            self.result_queue.put(("FAILURE", e))
-            except Exception as e:
-                logger.error(
-                    f"Failed to maintain database connection: {e}", exc_info=True
-                )
-                time.sleep(10)  # Wait a bit before trying to reconnect
+        with sqlite3.connect(self.data_path) as conn:
+            cursor = conn.cursor()
+            while not self.stop_event.is_set():
+                task = self.task_queue.get()  # Check every second
+                if task is None:  # Sentinel for stopping
+                    break
+                func, args, commit = task
+                try:
+                    result = func(cursor, *args)
+                    if commit:
+                        conn.commit()
+                    self.result_queue.put(("SUCCESS", result))
+                except Exception as e:
+                    conn.rollback()
+                    logger.error(
+                        f"Database operation failed: {e}", exc_info=True
+                    )
+                    self.result_queue.put(("FAILURE", e))
 
 
 class Database:
@@ -86,6 +79,7 @@ class Database:
         self.task_queue = manager.Queue()
         self.result_queue = manager.Queue()
         self.lock = manager.Lock()
+        self.transaction_lock = manager.Lock()
         self.stop_event = manager.Event()
 
         self.process = Process(
@@ -274,41 +268,43 @@ class Database:
             # "hypervolume float",
         ]
 
-        try:
-            self.start_transaction()
+        with self.transaction_lock:
+            try:
+                self.start_transaction()
             
-            # Create the table
-            self.execute(f'CREATE TABLE "{name}" ({",".join(description)})', commit=False)
+                # Create the table
+                self.execute(f'CREATE TABLE "{name}" ({",".join(description)})', commit=False)
 
-            # Optionally, create indexes on certain columns
-            index_columns = [var["name"] for var in variables] + [
-                fid["name"] for fid in fidelities if fid.get("index", False)
-            ]
-            if index_columns:
-                index_statement = ", ".join([f'"{col}"' for col in index_columns])
-                self.execute(f'CREATE INDEX "idx_{name}" ON "{name}" ({index_statement})', commit=False)
+                # Optionally, create indexes on certain columns
+                index_columns = [var["name"] for var in variables] + [
+                    fid["name"] for fid in fidelities if fid.get("index", False)
+                ]
+                if index_columns:
+                    index_statement = ", ".join([f'"{col}"' for col in index_columns])
+                    self.execute(f'CREATE INDEX "idx_{name}" ON "{name}" ({index_statement})', commit=False)
 
-            self.create_or_update_config(name, dataset_cfg, is_experiment, commit=False)
-            if "additional_config" in dataset_cfg:
-                self.create_or_update_metadata(name, dataset_cfg["additional_config"], commit=False)
+                self.create_or_update_config(name, dataset_cfg, is_experiment, commit=False)
+                if "additional_config" in dataset_cfg:
+                    self.create_or_update_metadata(name, dataset_cfg["additional_config"], commit=False)
             
-            self.commit_transaction()
-        except Exception as e:
-            self.rollback_transaction()  # Rollback if an error occurred
-            raise e
+                self.commit_transaction()
+            except Exception as e:
+                self.rollback_transaction()  # Rollback if an error occurred
+                raise e
 
     def remove_table(self, name):
         if not self.check_table_exist(name):
             raise Exception(f"Table {name} does not exist")
-        try:
-            self.start_transaction()
-            self.execute(f"DELETE FROM _config WHERE name = '{name}'", commit=False)
-            self.execute(f"DELETE FROM _metadata WHERE table_name = '{name}'", commit=False)
-            self.execute(f'DROP TABLE IF EXISTS "{name}"', commit=False)
-            self.commit_transaction()
-        except Exception as e:
-            self.rollback_transaction()
-            raise e
+        with self.transaction_lock:
+            try:
+                self.start_transaction()
+                self.execute(f"DELETE FROM _config WHERE name = '{name}'", commit=False)
+                self.execute(f"DELETE FROM _metadata WHERE table_name = '{name}'", commit=False)
+                self.execute(f'DROP TABLE IF EXISTS "{name}"', commit=False)
+                self.commit_transaction()
+            except Exception as e:
+                self.rollback_transaction()
+                raise e
 
     """
     config

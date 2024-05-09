@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-
+import { MinusCircleOutlined } from '@ant-design/icons'
 import {
     Progress,
     ConfigProvider
@@ -55,6 +55,31 @@ class RunProgress extends React.Component {
         }
       };
 
+      handleClick = (task_name) => {
+        const messageToSend = {
+          name: task_name
+        }
+        fetch('http://localhost:5000/api/configuration/stop_progress', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(messageToSend),
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        } 
+        return response.json();
+      })
+      .then(succeed => {
+        console.log('Message from back-end:', succeed);
+      })
+      .catch((error) => {
+        console.error('Error sending message:', error);
+      });
+      }
+
       render() {
         return (
             <ConfigProvider
@@ -69,11 +94,12 @@ class RunProgress extends React.Component {
                 },
             }}
             >
-                <div style={{ overflowY: 'auto', maxHeight: '200px' }}>
+                <div style={{ overflowY: 'auto', maxHeight: '200px', maxWidth: '100%' }}>
                     {this.state.data.map((task, index) => (
                         <div key={index} style={{ marginBottom: 10 }}>
                             <h6>{task.name}</h6>
-                            <Progress percent={task.progress} status="active" type="line" strokeColor={this.state.twoColors} />
+                            <Progress percent={task.progress} status="active" type="line" strokeColor={this.state.twoColors} style={{ width:"93%", marginRight:25}} />
+                            <MinusCircleOutlined style={{color: 'white'}} onClick={()=>this.handleClick(task.name)} />
                         </div>
                     ))}
                 </div>

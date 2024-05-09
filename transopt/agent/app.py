@@ -200,6 +200,15 @@ def configuration_run_progress():
     #     data = json.load(file)
     return jsonify(data), 200
 
+@app.route("/api/configuration/stop_progress", methods=["POST"])
+def configuration_stop_progress():
+    message = request.json
+    task_name = message['name']
+    print(task_name)
+    # 停止任务
+
+    return {"succeed": True}, 200
+
 # @app.route("/api/configuration/progress", methods=["POST"])
 # def configuration_progress():
 #     message = request.json

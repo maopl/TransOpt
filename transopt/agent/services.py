@@ -354,12 +354,12 @@ class Services:
                     
                 optimizer.observe(samples, observations)
                     
-            # Pretrain
-            metadata, metadata_info = self.get_metadata('Pretrain')
-            optimizer.pretrain(metadata, metadata_info)
-            
-            metadata, metadata_info = self.get_metadata('Model')
-            optimizer.meta_fit(metadata, metadata_info)
+                # Pretrain
+                metadata, metadata_info = self.get_metadata('Pretrain')
+                optimizer.pretrain(metadata, metadata_info)
+                
+                metadata, metadata_info = self.get_metadata('Model')
+                optimizer.meta_fit(metadata, metadata_info)
             
                 while (task_set.get_rest_budget()):
                     optimizer.fit()

@@ -1,16 +1,19 @@
+import os
+import signal
 import time
-import numpy as np
-from multiprocessing import Process, Manager
+from multiprocessing import Manager, Process
 
+import numpy as np
 from agent.chat.openai_chat import Message, OpenAIChat
+from analysis.mds import FootPrint
 
 from transopt.agent.config import Config, RunningConfig
 from transopt.agent.registry import *
 from transopt.benchmark.instantiate_problems import InstantiateProblems
-from transopt.datamanager.manager import DataManager, Database
+from transopt.datamanager.manager import Database, DataManager
 from transopt.optimizer.construct_optimizer import ConstructOptimizer
 from transopt.utils.log import logger
-from analysis.mds import FootPrint
+
 
 class Services:
     def __init__(self, task_queue, result_queue, lock):
@@ -37,9 +40,9 @@ class Services:
 
     def _initialize_modules(self):
         # import transopt.benchmark.CPD
+        # import transopt.benchmark.CPD
         import transopt.benchmark.HPO
         import transopt.benchmark.synthetic
-        import transopt.benchmark.HPO
         import transopt.optimizer.acquisition_function
         import transopt.optimizer.model
         import transopt.optimizer.pretrain
@@ -320,39 +323,36 @@ class Services:
             
     def _run_optimize_process(self, seed):
         # Each process constructs its own DataManager
-        import os
-        pid = os.getpid()
-        self.process_info[pid] = {'status': 'running', 'seed': seed, 'budget': None, 'task': None, 'iteration': 0, 'dataset_name': None}
-        logger.info(f"Start process #{pid}")
+        try:
+            import os
+            pid = os.getpid()
+            self.process_info[pid] = {'status': 'running', 'seed': seed, 'budget': None, 'task': None, 'iteration': 0, 'dataset_name': None}
+            logger.info(f"Start process #{pid}")
 
-        # Instantiate problems and optimizer
-        task_set = InstantiateProblems(self.running_config.tasks, seed)
-        optimizer = ConstructOptimizer(self.running_config.optimizer, seed)
+            # Instantiate problems and optimizer
+            task_set = InstantiateProblems(self.running_config.tasks, seed)
+            optimizer = ConstructOptimizer(self.running_config.optimizer, seed)
 
-        while (task_set.get_unsolved_num()):
-            search_space = task_set.get_cur_searchspace()
-            dataset_info, dataset_name = self.construct_dataset_info(task_set, self.running_config, seed=seed)
-            with self.lock:
-                temp_info = self.process_info[pid].copy()
-                temp_info['dataset_name'] = dataset_name
-                temp_info['task'] = task_set.get_curname()
-                temp_info['budget'] = task_set.get_cur_budget()
-                self.process_info[pid] = temp_info 
+            while (task_set.get_unsolved_num()):
+                search_space = task_set.get_cur_searchspace()
+                dataset_info, dataset_name = self.construct_dataset_info(task_set, self.running_config, seed=seed)
                 
-            self.data_manager.db.create_table(dataset_name, dataset_info, overwrite=True)
-            optimizer.link_task(task_name=task_set.get_curname(), search_space=search_space)
+                self.data_manager.db.create_table(dataset_name, dataset_info, overwrite=True)
+                self.update_process_info(pid, {'dataset_name': dataset_name, 'task': task_set.get_curname(), 'budget': task_set.get_cur_budget()})
+
+                optimizer.link_task(task_name=task_set.get_curname(), search_space=search_space)
                     
-            metadata, metadata_info = self.get_metadata('SpaceRefiner')
-            optimizer.search_space_refine(metadata, metadata_info)
+                metadata, metadata_info = self.get_metadata('SpaceRefiner')
+                optimizer.search_space_refine(metadata, metadata_info)
                     
-            metadata, metadata_info = self.get_metadata('Sampler')
-            samples = optimizer.sample_initial_set(metadata, metadata_info)
+                metadata, metadata_info = self.get_metadata('Sampler')
+                samples = optimizer.sample_initial_set(metadata, metadata_info)
                     
-            parameters = [search_space.map_to_design_space(sample) for sample in samples]
-            observations = task_set.f(parameters)
-            self.save_data(dataset_name, parameters, observations, self.process_info[pid]['iteration'])
+                parameters = [search_space.map_to_design_space(sample) for sample in samples]
+                observations = task_set.f(parameters)
+                self.save_data(dataset_name, parameters, observations, self.process_info[pid]['iteration'])
                     
-            optimizer.observe(samples, observations)
+                optimizer.observe(samples, observations)
                     
             # Pretrain
             metadata, metadata_info = self.get_metadata('Pretrain')
@@ -361,29 +361,50 @@ class Services:
             metadata, metadata_info = self.get_metadata('Model')
             optimizer.meta_fit(metadata, metadata_info)
             
-            while (task_set.get_rest_budget()):
-                optimizer.fit()
-                suggested_samples = optimizer.suggest()
-                parameters = [search_space.map_to_design_space(sample) for sample in suggested_samples]
-                observations = task_set.f(parameters)
-                if observations is None:
-                    break
-                self.save_data(dataset_name, parameters, observations, self.process_info[pid]['iteration'])
-                        
-                optimizer.observe(suggested_samples, observations)
-                
-                with self.lock:
-                    temp_info = self.process_info[pid].copy()
-                    temp_info['iteration'] += 1 
-                    self.process_info[pid] = temp_info 
+                while (task_set.get_rest_budget()):
+                    optimizer.fit()
+                    suggested_samples = optimizer.suggest()
+                    parameters = [search_space.map_to_design_space(sample) for sample in suggested_samples]
+                    observations = task_set.f(parameters)
+                    if observations is None:
+                        break
+                    self.save_data(dataset_name, parameters, observations, self.process_info[pid]['iteration'])
+                    optimizer.observe(suggested_samples, observations)
+                    
+                    cur_iter = self.process_info[pid]['iteration']
+                    self.update_process_info(pid, {'iteration': cur_iter + 1})
                     logger.info(f"PID {pid}: Seed {seed}, Task {task_set.get_curname()}, Iteration {self.process_info[pid]['iteration']}")
-            task_set.roll()
+                task_set.roll()
+        except Exception as e:
+            logger.error(f"Error in process {pid}: {str(e)}")
+        finally:
+            self.update_process_info(pid, {'status': 'completed'})
+   
+    def terminate_task(self, pid):
+        with self.lock:
+            if pid in self.process_info:
+                dataset_name = self.process_info[pid].get('dataset_name')
+                try:
+                    os.kill(pid, signal.SIGTERM)
+                    logger.info(f"Process {pid} has been terminated.")
+                except Exception as e:
+                    logger.error(f"Failed to terminate process {pid}: {str(e)}")
+                if dataset_name:
+                    try:
+                        self.data_manager.remove_dataset(dataset_name)
+                        logger.info(f"Dataset {dataset_name} associated with process {pid} has been deleted.")
+                    except Exception as e:
+                        logger.error(f"Failed to delete dataset {dataset_name}: {str(e)}")
+                del self.process_info[pid]
+            else:
+                logger.warning(f"No such process {pid} found in process info.")
+    
+    def update_process_info(self, pid, updates):
         with self.lock:
             temp_info = self.process_info[pid].copy()
-            temp_info['status'] = 'completed'
-            self.process_info[pid] = temp_info 
-            
-    
+            temp_info.update(updates)
+            self.process_info[pid] = temp_info
+        
     def get_all_process_info(self):
         return dict(self.process_info)
     

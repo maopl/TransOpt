@@ -91,6 +91,9 @@ class DataManager:
     def insert_data(self, dataset_name, data):
         return self.db.insert_data(dataset_name, data)
 
+    def remove_dataset(self, dataset_name):
+        return self.db.remove_table(dataset_name)
+
     def teardown(self):
         self.db.close()
 

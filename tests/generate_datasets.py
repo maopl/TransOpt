@@ -194,6 +194,7 @@ if __name__ == "__main__":
     # create_experiment_datasets(db, 200)
     # create_exported_datasets(db, 100)
 
+    dm.db.remove_table("Sphere_w1_s123_1715002771")
 
     # 获取所有的 datasets
     dataset_ls = dm.db.get_table_list() 

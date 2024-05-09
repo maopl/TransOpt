@@ -1,8 +1,8 @@
-
 import atexit
 import json
 import queue
 import sqlite3
+import time
 from multiprocessing import Event, Manager, Process, Queue
 from typing import Union
 
@@ -12,18 +12,16 @@ import pandas as pd
 from transopt.utils.log import logger
 from transopt.utils.path import get_library_path
 
-'''
+"""
 Descriptions of the reserved database tables.
-'''
+"""
 table_descriptions = {
-
-    '_config': '''
+    "_config": """
         name varchar(200) not null,
         config text not null,
         is_experiment boolean not null default TRUE
-        ''',
-
-    '_metadata': '''
+        """,
+    "_metadata": """
         table_name varchar(255) not null,
         problem_name varchar(255) not null,
         dimensions int,
@@ -41,8 +39,7 @@ table_descriptions = {
         normalizer varchar(50),
         dataset_selectors json,
         PRIMARY KEY (table_name)
-    '''
-    
+    """,
 }
 
 
@@ -54,26 +51,35 @@ class DatabaseDaemon:
         self.stop_event = stop_event
 
     def run(self):
-        with sqlite3.connect(self.data_path) as conn:
-            cursor = conn.cursor()
-            while not self.stop_event.is_set():
-                task = self.task_queue.get()
-                if task is None:  # Sentinel for stopping
-                    break
-                func, args = task
-                try:
-                    cursor.execute("BEGIN")
-                    result = func(cursor, *args)
-                    conn.commit()
-                    self.result_queue.put(("SUCCESS", result))
-                except Exception as e:
-                    conn.rollback()
-                    logger.error(f"Database operation failed: {e}", exc_info=True)
-                    self.result_queue.put(("FAILURE", e))
+        while not self.stop_event.is_set():
+            try:
+                with sqlite3.connect(self.data_path) as conn:
+                    cursor = conn.cursor()
+                    while not self.stop_event.is_set():
+                        task = self.task_queue.get(timeout=1)  # Check every second
+                        if task is None:  # Sentinel for stopping
+                            break
+                        func, args, commit = task
+                        try:
+                            result = func(cursor, *args)
+                            if commit:
+                                conn.commit()
+                            self.result_queue.put(("SUCCESS", result))
+                        except Exception as e:
+                            conn.rollback()
+                            logger.error(
+                                f"Database operation failed: {e}", exc_info=True
+                            )
+                            self.result_queue.put(("FAILURE", e))
+            except Exception as e:
+                logger.error(
+                    f"Failed to maintain database connection: {e}", exc_info=True
+                )
+                time.sleep(10)  # Wait a bit before trying to reconnect
 
 
 class Database:
-    def __init__(self, db_file_name='database.db'):
+    def __init__(self, db_file_name="database.db"):
         self.data_path = get_library_path() / db_file_name
 
         manager = Manager()
@@ -81,13 +87,15 @@ class Database:
         self.result_queue = manager.Queue()
         self.lock = manager.Lock()
         self.stop_event = manager.Event()
-        
+
         self.process = Process(
-            target=DatabaseDaemon(self.data_path, self.task_queue, self.result_queue, self.stop_event).run
+            target=DatabaseDaemon(
+                self.data_path, self.task_queue, self.result_queue, self.stop_event
+            ).run
         )
         self.process.start()
         atexit.register(self.close)
-        
+
         # reserved tables
         self.reserved_tables = list(table_descriptions.keys())
         for name, desc in table_descriptions.items():
@@ -99,8 +107,8 @@ class Database:
         self.task_queue.put(None)
         self.process.join()
 
-    def _execute(self, task, args=(), timeout=None):
-        self.task_queue.put((task, args))
+    def _execute(self, task, args=(), timeout=None, commit=True):
+        self.task_queue.put((task, args, commit))
         try:
             status, result = self.result_queue.get(timeout=timeout)
             if status == "SUCCESS":
@@ -122,45 +130,81 @@ class Database:
             return cursor.fetchall()
         return None
 
-    def execute(self, query, params=None, fetchone=False, fetchall=False, timeout=None):
-        with self.lock:
-            return self._execute(
-                Database.query_exec, (query, params, fetchone, fetchall, False), timeout
-            )
-
-    def executemany(
-        self, query, params=None, fetchone=False, fetchall=False, timeout=None
+    def execute(
+        self,
+        query,
+        params=None,
+        fetchone=False,
+        fetchall=False,
+        timeout=None,
+        commit=True,
     ):
         with self.lock:
             return self._execute(
-                Database.query_exec, (query, params, fetchone, fetchall, True), timeout
+                Database.query_exec,
+                (query, params, fetchone, fetchall, False),
+                timeout,
+                commit
             )
 
+    def executemany(
+        self,
+        query,
+        params=None,
+        fetchone=False,
+        fetchall=False,
+        timeout=None,
+        commit=True,
+    ):
+        with self.lock:
+            return self._execute(
+                Database.query_exec,
+                (query, params, fetchone, fetchall, True),
+                timeout,
+                commit
+            )
+
+    def start_transaction(self):
+        self.execute("BEGIN", commit=False)
+
+    def commit_transaction(self):
+        self.execute("COMMIT", commit=False)
+
+    def rollback_transaction(self):
+        self.execute("ROLLBACK", commit=False)
+        
     """ 
     table
     """
+
     def get_experiment_datasets(self):
         """Get the list of all tables that are marked as experiment datasets."""
         experiment_datasets = self.execute(
-            "SELECT name FROM _config WHERE is_experiment = TRUE",
-            fetchall=True
+            "SELECT name FROM _config WHERE is_experiment = TRUE", fetchall=True
         )
-        return [table[0] for table in experiment_datasets if table[0] not in self.reserved_tables]
+        return [
+            table[0]
+            for table in experiment_datasets
+            if table[0] not in self.reserved_tables
+        ]
 
     def get_all_datasets(self):
         """Get the list of all tables and indicate which ones are experiment datasets."""
         all_datasets = self.execute(
-            """SELECT name, is_experiment FROM _config""",
-            fetchall=True
+            """SELECT name, is_experiment FROM _config""", fetchall=True
         )
-        return [table[0] for table in all_datasets if table[0] not in self.reserved_tables]
-        
+        return [
+            table[0] for table in all_datasets if table[0] not in self.reserved_tables
+        ]
+
     def get_table_list(self):
         """Get the list of all database tables."""
         table_list = self.execute(
             "SELECT name FROM sqlite_master WHERE type='table'", fetchall=True
         )
-        return [table[0] for table in table_list if table[0] not in self.reserved_tables]
+        return [
+            table[0] for table in table_list if table[0] not in self.reserved_tables
+        ]
 
     def check_table_exist(self, name):
         """Check if a certain database table exists."""
@@ -195,7 +239,7 @@ class Database:
         variables = dataset_cfg.get("variables", [])
         objectives = dataset_cfg.get("objectives", [])
         fidelities = dataset_cfg.get("fidelities", [])
-        
+
         var_type_map = {
             "continuous": "float",
             "log_continuous": "float",
@@ -209,13 +253,17 @@ class Database:
         description = []
 
         for var_info in variables:
-            description.append(f'"{var_info["name"]}" {var_type_map[var_info["type"]]} not null')
+            description.append(
+                f'"{var_info["name"]}" {var_type_map[var_info["type"]]} not null'
+            )
 
         for obj_info in objectives:
             description.append(f'"{obj_info["name"]}" float')
-        
+
         for fid_info in fidelities:
-            description.append(f'"{fid_info["name"]}" {var_type_map[fid_info["type"]]} not null')
+            description.append(
+                f'"{fid_info["name"]}" {var_type_map[fid_info["type"]]} not null'
+            )
 
         description += [
             "batch int default -1",
@@ -226,35 +274,47 @@ class Database:
             # "hypervolume float",
         ]
 
-        # Create the table
-        self.execute(f'CREATE TABLE "{name}" ({",".join(description)})')
+        try:
+            self.start_transaction()
+            
+            # Create the table
+            self.execute(f'CREATE TABLE "{name}" ({",".join(description)})', commit=False)
 
-        # Optionally, create indexes on certain columns
-        index_columns = [var["name"] for var in variables] + [fid["name"] for fid in fidelities if fid.get("index", False)]
-        if index_columns:
-            index_statement = ', '.join([f'"{col}"' for col in index_columns])
-            self.execute(f'CREATE INDEX "idx_{name}" ON "{name}" ({index_statement})')
-        
-        self.create_or_update_config(name, dataset_cfg, is_experiment)
-        
-        # Handling metadata using additional_config if it exists
-        if "additional_config" in dataset_cfg:
-            self.create_or_update_metadata(name, dataset_cfg["additional_config"])
-        
+            # Optionally, create indexes on certain columns
+            index_columns = [var["name"] for var in variables] + [
+                fid["name"] for fid in fidelities if fid.get("index", False)
+            ]
+            if index_columns:
+                index_statement = ", ".join([f'"{col}"' for col in index_columns])
+                self.execute(f'CREATE INDEX "idx_{name}" ON "{name}" ({index_statement})', commit=False)
+
+            self.create_or_update_config(name, dataset_cfg, is_experiment, commit=False)
+            if "additional_config" in dataset_cfg:
+                self.create_or_update_metadata(name, dataset_cfg["additional_config"], commit=False)
+            
+            self.commit_transaction()
+        except Exception as e:
+            self.rollback_transaction()  # Rollback if an error occurred
+            raise e
 
     def remove_table(self, name):
         if not self.check_table_exist(name):
             raise Exception(f"Table {name} does not exist")
+        try:
+            self.start_transaction()
+            self.execute(f"DELETE FROM _config WHERE name = '{name}'", commit=False)
+            self.execute(f"DELETE FROM _metadata WHERE table_name = '{name}'", commit=False)
+            self.execute(f'DROP TABLE IF EXISTS "{name}"', commit=False)
+            self.commit_transaction()
+        except Exception as e:
+            self.rollback_transaction()
+            raise e
 
-        self.execute(f"DELETE FROM _config WHERE name = '{name}'")
-        self.execute(f"DELETE FROM _metadata WHERE table_name = '{name}'")
-        self.execute(f'DROP TABLE IF EXISTS "{name}"')
-        
-    '''
+    """
     config
-    '''
+    """
 
-    def create_or_update_config(self, name, dataset_cfg, is_experiment=True):
+    def create_or_update_config(self, name, dataset_cfg, is_experiment=True, commit=True):
         """
         Create or update a configuration entry in the _config table for a given table.
         """
@@ -266,22 +326,22 @@ class Database:
             # Update the existing configuration
             self.execute(
                 "UPDATE _config SET config = ?, is_experiment = ? WHERE name = ?",
-                (config_json, is_experiment, name)
+                (config_json, is_experiment, name),
+                commit=commit
             )
         else:
             # Insert a new configuration
             self.execute(
                 "INSERT INTO _config (name, config, is_experiment) VALUES (?, ?, ?)",
-                (name, config_json, is_experiment)
+                (name, config_json, is_experiment),
+                commit=commit
             )
-    
+
     def query_config(self, name):
         config_json = self.execute(
-            "SELECT config FROM _config WHERE name=?",
-            params=(name,),
-            fetchone=True
+            "SELECT config FROM _config WHERE name=?", params=(name,), fetchone=True
         )
-        
+
         if config_json is None:
             return None
         else:
@@ -292,33 +352,31 @@ class Database:
         Query the dataset information of a given table.
         """
         config = self.query_config(name)
-   
+
         if config is None:
             return None
 
         variables = config["variables"]
         objectives = config["objectives"]
         fidelities = config["fidelities"]
-        
+
         num_rows = self.get_num_row(name)
-        
+
         dataset_info = {
             "num_variables": len(variables),
             "num_objectives": len(objectives),
             "num_fidelities": len(fidelities),
-            
             "data_number": num_rows,
-            **config
+            **config,
         }
-        return dataset_info 
+        return dataset_info
 
-
-    def create_or_update_metadata(self, table_name, metadata):
+    def create_or_update_metadata(self, table_name, metadata, commit=True):
         """
         Create or update a metadata entry in the _metadata table for a given table.
         """
-        dataset_selectors_json = json.dumps(metadata.get('DatasetSelectors', {}))
-        problem_name = metadata.get('problem_name', '')
+        dataset_selectors_json = json.dumps(metadata.get("DatasetSelectors", {}))
+        problem_name = metadata.get("problem_name", "")
 
         self.execute(
             f"""
@@ -334,20 +392,33 @@ class Database:
                 acf = EXCLUDED.acf, normalizer = EXCLUDED.normalizer, dataset_selectors = EXCLUDED.dataset_selectors
             """,
             (
-                table_name, problem_name, metadata['dim'], metadata['obj'], metadata['fidelity'], metadata['workloads'],
-                metadata['budget_type'], metadata['budget'], metadata['seeds'], metadata['SpaceRefiner'],
-                metadata['Sampler'], metadata['Pretrain'], metadata['Model'], metadata['ACF'],
-                metadata['Normalizer'], dataset_selectors_json
-            )
+                table_name,
+                problem_name,
+                metadata["dim"],
+                metadata["obj"],
+                metadata["fidelity"],
+                metadata["workloads"],
+                metadata["budget_type"],
+                metadata["budget"],
+                metadata["seeds"],
+                metadata["SpaceRefiner"],
+                metadata["Sampler"],
+                metadata["Pretrain"],
+                metadata["Model"],
+                metadata["ACF"],
+                metadata["Normalizer"],
+                dataset_selectors_json,
+            ),
+            commit=commit
         )
-  
+
     def get_all_metadata(self):
         """
         Get the metadata for all tables in the database.
         """
         metadata = self.execute("SELECT * FROM _metadata", fetchall=True)
         return metadata
-   
+
     def search_tables_by_metadata(self, search_params):
         """
         Search for tables based on metadata criteria.
@@ -367,17 +438,19 @@ class Database:
 
         # Constructing the WHERE clause dynamically based on the provided search parameters
         where_clause = self._get_conditions(conditions=search_params)
-    
+
         query = f"SELECT table_name FROM _metadata{where_clause}"
         result = self.execute(query, fetchall=True)
-        
+
         return [row[0] for row in result]
- 
+
     """
     basic operations
     """
-    
-    def insert_data(self, table, data: Union[dict, list, pd.DataFrame, np.ndarray]) -> list:
+
+    def insert_data(
+        self, table, data: Union[dict, list, pd.DataFrame, np.ndarray]
+    ) -> list:
         """
         Insert single-row or multiple-row data into the database.
 
@@ -395,7 +468,7 @@ class Database:
         -------
         list
             List of row numbers of the inse
-        
+
         """
         if isinstance(data, dict):
             # Single row insertion from dict
@@ -410,13 +483,19 @@ class Database:
                 columns = None
                 values = data
             else:
-                raise ValueError("All rows in data_list must be of the same type (all dicts or all lists)")
+                raise ValueError(
+                    "All rows in data_list must be of the same type (all dicts or all lists)"
+                )
         elif isinstance(data, (pd.DataFrame, np.ndarray)):
             # Convert DataFrame or ndarray to list of lists for insertion
-            values = data.tolist() if isinstance(data, np.ndarray) else data.values.tolist()
+            values = (
+                data.tolist() if isinstance(data, np.ndarray) else data.values.tolist()
+            )
             columns = data.columns.tolist() if isinstance(data, pd.DataFrame) else None
         else:
-            raise ValueError("Data parameter must be a dictionary, list, pandas DataFrame, or numpy ndarray")
+            raise ValueError(
+                "Data parameter must be a dictionary, list, pandas DataFrame, or numpy ndarray"
+            )
 
         if columns:
             column_str = ",".join([f'"{col}"' for col in columns])
@@ -424,7 +503,7 @@ class Database:
         else:
             column_str = ""
             value_placeholders = ",".join(["?"] * len(values[0]))
-        
+
         query = f'INSERT INTO "{table}" ({column_str}) VALUES ({value_placeholders})'
         self.executemany(query, values)
 
@@ -476,7 +555,7 @@ class Database:
             return " WHERE " + " AND ".join(conditions_list)
         else:
             return ""
-    
+
     def update_data(self, table, data, rowid=None, conditions=None):
         """
         Update single-row or multiple-row data in the database.
@@ -505,11 +584,11 @@ class Database:
             query = f'UPDATE "{table}" SET {set_clause}'
 
             if rowid:
-                query += f' WHERE rowid = ?'
+                query += f" WHERE rowid = ?"
                 values.append(rowid)
             elif conditions:
                 condition_str = " AND ".join([f'"{k}" = ?' for k in conditions.keys()])
-                query += f' WHERE {condition_str}'
+                query += f" WHERE {condition_str}"
                 values.extend(conditions.values())
             else:
                 raise ValueError("Either rowid or conditions must be provided")
@@ -517,7 +596,7 @@ class Database:
             update_values.append(values)
 
         self.executemany(query, update_values)
-    
+
     def delete_data(self, table, rowid=None, conditions=None):
         """
         Delete single-row or multiple-row data in the database.
@@ -536,8 +615,10 @@ class Database:
         query += condition
 
         self.execute(query)
-    
-    def select_data(self, table, columns=None, rowid=None, conditions=None, as_dataframe=False) -> Union[list, pd.DataFrame]:
+
+    def select_data(
+        self, table, columns=None, rowid=None, conditions=None, as_dataframe=False
+    ) -> Union[list, pd.DataFrame]:
         """
         Select data in the database.
 
@@ -582,8 +663,8 @@ class Database:
     def get_num_row(self, table):
         query = f'SELECT COUNT(*) FROM "{table}"'
         return self.execute(query, fetchone=True)[0]
-    
+
     def get_column_names(self, table):
-        '''Get the column names of a database table. '''
+        """Get the column names of a database table."""
         query = f'PRAGMA table_info("{table}")'
         return [col[1] for col in self.execute(query, fetchall=True)]

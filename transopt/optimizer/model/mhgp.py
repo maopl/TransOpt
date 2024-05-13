@@ -79,7 +79,7 @@ class MHGP(Model):
             return Y
 
         predicted_y = self.predict_posterior_mean(
-            np.ndarray(X), idx=len(self.source_gps) - 1
+            X, idx=len(self.source_gps) - 1
         )
 
         residuals = Y - predicted_y
@@ -106,11 +106,13 @@ class MHGP(Model):
         Returns:
             The newly trained GP.
         """
+        self.n_features = X.shape[1]
+        
         residuals = self._compute_residuals(X, Y)
-
+        
         kernel = RBF(self.n_features, ARD=True)
         new_gp = GP(
-            kernel, noise_variance=0.1, normalize=self._within_model_normalize
+            kernel, noise_variance=self._noise_variance
         )
         new_gp.fit(
             X = X,
@@ -141,7 +143,7 @@ class MHGP(Model):
         if isinstance(optimize_flag, bool):
             optimize_flag = [optimize_flag] * len(source_X)
 
-        for i in len(source_X):
+        for i in range(len(source_X)):
             new_gp = self._meta_fit_single_gp(
                 source_X[i],
                 source_Y[i],
@@ -165,19 +167,17 @@ class MHGP(Model):
         self._X = copy.deepcopy(X)
         self._y = copy.deepcopy(Y)
         
-        if self.target_gp is None:
-            self.n_features = self._X.shape[1]
-            self.target_gp = GP(
-            RBF(self.n_features, ARD=True),
-            noise_variance=0.1,
-            normalize=self._within_model_normalize,
-        )
-
         self.n_samples, n_features = self._X.shape
         if self.n_features != n_features:
             raise ValueError("Number of features in model and input data mismatch.")
+        
+        if self.target_gp is None:
+            self.target_gp = GP(
+            RBF(self.n_features, ARD=True),
+            noise_variance=0.1,
+        )
 
-        residuals = self._compute_residuals(Y)
+        residuals = self._compute_residuals(X, Y)
 
         self.target_gp.fit(X, residuals, optimize)
 
@@ -240,3 +240,7 @@ class MHGP(Model):
             Posterior covariance at `(x1, x2)`. `shape = (n_points_1, n_points_2)`
         """
         return self.target_gp.predict_posterior_covariance(x1, x2)
+    
+    def get_fmin(self):
+
+        return np.min(self._y)

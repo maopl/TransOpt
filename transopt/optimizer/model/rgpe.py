@@ -1,13 +1,14 @@
 #Practical gaussian process
 import copy
-from typing import Dict, Hashable, Tuple
-import numpy as np
+from typing import Dict, Hashable, Tuple, List, Union, Sequence, Tuple, List
+
 import GPy
-from GPy.kern import Kern
-from GPy.kern import RBF
-from external.transfergpbo.models import InputData, TaskData, Model, GPBO
+import numpy as np
+from GPy.kern import RBF, Kern
 
 from transopt.agent.registry import model_registry
+from transopt.optimizer.model.gp import GP
+from transopt.optimizer.model.model_base import Model
 
 
 def roll_col(X: np.ndarray, shift: int) -> np.ndarray:
@@ -15,66 +16,6 @@ def roll_col(X: np.ndarray, shift: int) -> np.ndarray:
     Rotate columns to right by shift.
     """
     return np.concatenate((X[:, -shift:], X[:, :-shift]), axis=1)
-
-
-
-# def sample_sobol(loo_model, locations, num_samples, engine_seed):
-#     """Sample from a Sobol sequence. Wraps the sampling to deal with the issue that the predictive
-#     covariance matrix might not be decomposable and fixes this by adding a small amount of noise
-#     to the diagonal."""
-#
-#     y_mean, y_cov = loo_model.predict(locations, cov_return_type='full_cov')
-#     initial_noise = 1e-14
-#     while initial_noise < 1:
-#         try:
-#             L = np.linalg.cholesky(y_cov + np.eye(len(locations)) * 1e-14)
-#             break
-#         except np.linalg.LinAlgError:
-#             initial_noise *= 10
-#             continue
-#     if initial_noise >= 1:
-#         rval = np.tile(y_mean, reps=num_samples).transpose()
-#         return rval
-#
-#     engine = botorch.sampling.qmc.NormalQMCEngine(len(y_mean), seed=engine_seed, )
-#     samples_alt = y_mean.flatten() + (engine.draw(num_samples).numpy() @ L)
-#     return samples_alt
-#
-# def get_target_model_loocv_sample_preds(
-#     train_x: np.ndarray,
-#     train_y: np.ndarray,
-#     num_samples: int,
-#     model: GaussianProcess,
-#     engine_seed: int,
-# ) -> np.ndarray:
-#     """
-#     Use LOOCV to fit len(train_y) independent GPs and sample from their posterior to obtain an
-#     approximate sample from the target model.
-#
-#     This sampling does not take into account the correlation between observations which occurs
-#     when the predictive uncertainty of the Gaussian process is unequal zero.
-#     """
-#     masks = np.eye(len(train_x), dtype=np.bool)
-#     train_x_cv = np.stack([train_x[~m] for m in masks])
-#     train_y_cv = np.stack([train_y[~m] for m in masks])
-#     test_x_cv = np.stack([train_x[m] for m in masks])
-#
-#     samples = np.zeros((num_samples, train_y.shape[0]))
-#     for i in range(train_y.shape[0]):
-#         loo_model = get_gaussian_process(
-#             configspace=model.configspace,
-#             bounds=model.bounds,
-#             types=model.types,
-#             rng=model.rng,
-#             kernel=model.kernel,
-#         )
-#         loo_model._train(X=train_x_cv[i], y=train_y_cv[i], do_optimize=False)
-#
-#         samples_i = sample_sobol(loo_model, test_x_cv[i], num_samples, engine_seed).flatten()
-#
-#         samples[:, i] = samples_i
-#
-#     return samples
 
 
 def compute_ranking_loss(
@@ -107,79 +48,92 @@ def compute_ranking_loss(
 class RGPE(Model):
     def __init__(
             self,
-            n_features: int,
             kernel: Kern = None,
-            n_samples: int = 5,
-            Seed: int = 0,
+            noise_variance: float = 1.0,
+            normalize: bool = True,
+            Seed = 0,
             sampling_mode: str = 'bootstrap',
-            within_model_normalize: bool = False,
             weight_dilution_strategy = 'probabilistic',
-            number_of_function_evaluations=44,
+            **options: dict,
     ):
         super().__init__()
         # GP on difference between target data and last source data set
-        self.n_features = n_features
-        self._within_model_normalize = within_model_normalize
-        self.n_samples = n_samples
+        self._noise_variance = noise_variance
         self._metadata = {}
         self._source_gps = {}
         self._source_gp_weights = {}
         self.sampling_mode = sampling_mode
+        self._normalize = normalize
         self.Seed = Seed
         self.rng = np.random.RandomState(self.Seed)
         self.weight_dilution_strategy = weight_dilution_strategy
-        self.number_of_function_evaluations = number_of_function_evaluations
 
-        if kernel is None:
-            self.kernel = RBF(self.n_features, ARD=True)
-        else:
-            self.kernel = kernel
         self.target_model = None
         self._target_model_weight = 1
-        
-    def meta_fit(self, source_datasets: Dict[Hashable, TaskData], **kwargs):
+    
+    
+    def _meta_fit_single_gp(
+        self,
+        X : np.ndarray,
+        Y : np.ndarray,
+        optimize: bool,
+    ) -> GP:
+        """Train a new source GP on `data`.
+
+        Args:
+            data: The source dataset.
+            optimize: Switch to run hyperparameter optimization.
+
+        Returns:
+            The newly trained GP.
+        """
+        self.n_features = X.shape[1]
+                
+        kernel = RBF(self.n_features, ARD=True)
+        new_gp = GP(
+            kernel, noise_variance=self._noise_variance
+        )
+        new_gp.fit(
+            X = X,
+            Y = Y,
+            optimize = optimize,
+        )
+        return new_gp
+    
+    def meta_fit(self,
+                source_X : List[np.ndarray],
+                source_Y : List[np.ndarray],
+                optimize: Union[bool, Sequence[bool]] = True):
         # metadata, _ = SourceSelection.the_k_nearest(source_datasets)
 
-        self._metadata = source_datasets
+        self._metadata = {'X': source_X, 'Y':source_Y}
         self._source_gps = {}
-        for idx, task_data in source_datasets.items():
-            model = GPBO(copy.deepcopy(self.kernel), noise_variance=0.1,normalize=self._within_model_normalize)
-            model.fit(task_data, optimize=True)
-            self._source_gps[idx] = model
-        self._calculate_weights()
+        
+        
+        assert isinstance(optimize, bool) or isinstance(optimize, list)
+        if isinstance(optimize, list):
+            assert len(source_X) == len(optimize)
+        optimize_flag = copy.copy(optimize)
 
-    def meta_update(self):
-        pass
-
-    def meta_add(self, metadata: Dict[Hashable, TaskData], **kwargs):
-        n_meta = len(self._metadata)
-        # train model for each base task
-        n_models = len(self._source_gps)
-        for task_uid, task_data in metadata.items():
-            self._metadata[n_meta + task_uid] = task_data
-            model = GPBO(copy.deepcopy(self.kernel), noise_variance=0.1,normalize=self._within_model_normalize)
-            model.fit(task_data, optimize=True)
-            self._source_gps[n_models + task_uid] = model
-
-        self._calculate_weights()
-
-    def reset_target(self):
-        if len(self._metadata) == 0:
-            raise ValueError("No metadata is found. Forgot to run meta_fit?")
-
-        self._X = None
-        self._y = None
-
-        # train model for target task if it will we used (when at least 1 target
-        # task observation exists)
-        self._target_model = GPBO(copy.deepcopy(self.kernel), noise_variance=0.1,normalize=self._within_model_normalize)
-        self._target_model_weight = 1
+        if isinstance(optimize_flag, bool):
+            optimize_flag = [optimize_flag] * len(source_X)
+        
+        for i in range(len(source_X)):
+            new_gp = self._meta_fit_single_gp(
+                source_X[i],
+                source_Y[i],
+                optimize=optimize_flag[i],
+            )
+            self._source_gps[i] = new_gp
 
         self._calculate_weights()
 
-    def fit(self, Data: Dict, optimize: bool = False):
-        X = Data['X']
-        Y = Data['Y']
+
+    def fit(self, 
+            X: np.ndarray,
+            Y: np.ndarray,
+            optimize: bool = False):
+
         self._X = copy.deepcopy(X)
         self._Y = copy.deepcopy(Y)
 
@@ -225,6 +179,8 @@ class RGPE(Model):
         mean = np.sum(weights * means, axis=0)
         var = np.sum(weights ** 2 * vars_, axis=0)
         return mean, var
+
+
     def _calculate_weights(self, alpha: float = 0.0):
         if len(self._source_gps) == 0:
             self._target_model_weight = 1
@@ -235,24 +191,25 @@ class RGPE(Model):
             self._source_gp_weights = [weight for task_uid in self._source_gps]
             self._target_model_weight = 0
             return
-
-
+        
+        kernel = RBF(self.n_features, ARD=True)
         if self.sampling_mode == 'bootstrap':
             predictions = []
             for model_idx in range(len(self._source_gps)):
                 model = self._source_gps[model_idx]
                 predictions.append(model.predict(self._X)[0].flatten()) # ndarray(n,)
 
-            masks = np.eye(len(self._X), dtype=np.bool)
+            masks = np.eye(len(self._X), dtype=bool)
             train_x_cv = np.stack([self._X[~m] for m in masks])
             train_y_cv = np.stack([self._Y[~m] for m in masks])
             test_x_cv = np.stack([self._X[m] for m in masks])
-            model = GPBO(copy.deepcopy(self.kernel), noise_variance=0.1, normalize=self._within_model_normalize)
+            
+            model = GP(copy.deepcopy(kernel), noise_variance=self._noise_variance)
 
             loo_prediction = []
             for i in range(self._Y.shape[0]):
-                model.fit(TaskData(train_x_cv[i], train_y_cv[i]), optimize=False)
-                loo_prediction.append(model.predict(InputData(test_x_cv[i]))[0][0][0])
+                model.fit(train_x_cv[i], train_y_cv[i], optimize=False)
+                loo_prediction.append(model.predict(test_x_cv[i])[0][0][0])
             predictions.append(loo_prediction)
             predictions = np.array(predictions)
 
@@ -416,7 +373,7 @@ class RGPE(Model):
             for i, task_uid in enumerate(self._source_gps):
                 model = self._source_gps[task_uid]
                 samples = model.sample(
-                    InputData(X), size=self._n_samples, with_noise=True
+                    X, size=self._n_samples, with_noise=True
                 )
                 all_samples[i] = samples
 
@@ -464,7 +421,7 @@ class RGPE(Model):
         model = self._source_gps[task_uid]
         X = self._X
         y = self._Y
-        samples = model.sample(InputData(X), size=self.n_samples, with_noise=True)
+        samples = model.sample(X, size=self.n_samples, with_noise=True)
         sample_comps = samples[:, np.newaxis, :] < samples
         target_comps = np.tile(y[:, np.newaxis, :] < y, self.n_samples)
         return np.sum(sample_comps ^ target_comps, axis=(1, 0))
@@ -515,5 +472,7 @@ class RGPE(Model):
         else:
             fsim = likelihood.samples(fsim, Y_metadata=Y_metadata)
         return fsim
-if __name__ == '__main__':
-    masks = np.eye(10, dtype=np.bool)
+
+    def get_fmin(self):
+
+        return np.min(self._Y)

@@ -1,5 +1,5 @@
-import cProfile
-import pstats
+# import cProfile
+# import pstats
 
 from transopt.datamanager.database import Database
 from transopt.datamanager.lsh import LSHCache
@@ -112,7 +112,8 @@ def main():
 
 
 if __name__ == "__main__":
-    profiler = cProfile.Profile()
-    profiler.run("main()")
-    stats = pstats.Stats(profiler)
-    stats.strip_dirs().sort_stats("time").print_stats(10)
+    pass
+    # profiler = cProfile.Profile()
+    # profiler.run("main()")
+    # stats = pstats.Stats(profiler)
+    # stats.strip_dirs().sort_stats("time").print_stats(10)

@@ -5,7 +5,8 @@
   "scripts": {
     "build": "cross-env PUBLIC_URL='./' node scripts/build.js",
     "start": "node scripts/start.js",
-    "test": "node scripts/test.js"
+    "test": "node scripts/test.js",
+    "dev": "export NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service serve"
   },
   "browserslist": [
     ">0.2%",

@@ -1,11 +1,11 @@
 import copy
 
 import numpy as np
-from GPyOpt.acquisitions.base import AcquisitionBase
 from GPyOpt.core.task.cost import constant_cost_withGradients
 from GPyOpt.util.general import get_quantiles
 
 from transopt.agent.registry import acf_registry
+from transopt.optimizer.acquisition_function.acf_base import AcquisitionBase
 
 
 @acf_registry.register('TAF')
@@ -22,16 +22,14 @@ class AcquisitionTAF(AcquisitionBase):
     # --- Set this line to true if analytical gradients are available
     analytical_gradient_prediction = False
 
-    def __init__(self, model, space, optimizer, config):
-        self.optimizer = optimizer
-        super(AcquisitionTAF, self).__init__(model, space, optimizer)
-        self.model = model
-        if 'jitter' in config['jitter']:
+    def __init__(self, config):
+        super(AcquisitionTAF, self).__init__()
+        if 'jitter' in config:
             self.jitter = config['jitter']
         else:
             self.jitter = 0.01
 
-        if 'threshold' in config['threshold']:
+        if 'threshold' in config:
             self.threshold = config['threshold']
         else:
             self.threshold = 0
@@ -40,20 +38,20 @@ class AcquisitionTAF(AcquisitionBase):
 
     def _compute_acq(self, x):
         n_sample = len(x)
-        source_num = len(self.model.obj_model._source_gps)
+        source_num = len(self.model._source_gps)
         n_models = source_num + 1
         acf_ei = np.empty((n_models, n_sample, 1))
 
         for task_uid in range(source_num):
-            m, s = self.model.obj_model._source_gps[task_uid].predict(x)
-            _X = self.model.obj_model._source_gps[task_uid]._X
-            fmin = self.model.obj_model._source_gps[task_uid].predict(_X)[0].min()
+            m, s = self.model._source_gps[task_uid].predict(x)
+            _X = self.model._source_gps[task_uid]._X
+            fmin = self.model._source_gps[task_uid].predict(_X)[0].min()
             phi, Phi, u = get_quantiles(self.jitter, fmin, m, s)
             acf_ei[task_uid] =  s * (u * Phi + phi)
         m,s = self.model.predict(x)
         for task_uid in range(source_num):
-            acf_ei[task_uid] = acf_ei[task_uid] * self.model.obj_model._source_gp_weights[task_uid][:, np.newaxis]
-        acf_ei[-1] = self.model.obj_model._target_model_weight[:, np.newaxis]
+            acf_ei[task_uid] = acf_ei[task_uid] * self.model._source_gp_weights[task_uid]
+        acf_ei[-1] = self.model._target_model_weight
         fmin = self.model.get_fmin()
         phi, Phi, u = get_quantiles(self.jitter, fmin, m, s)
         acf_ei[-1] = acf_ei[-1] * (s * (u * Phi + phi))

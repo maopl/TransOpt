@@ -1,5 +1,3 @@
-import numpy as np
-
 from GPyOpt.core.evaluators.base import EvaluatorBase
 
 

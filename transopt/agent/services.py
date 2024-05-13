@@ -4,7 +4,7 @@ import time
 from multiprocessing import Manager, Process
 
 import numpy as np
-from agent.chat.openai_chat import Message, OpenAIChat
+from agent.chat.openai_chat import OpenAIChat
 from analysis.mds import FootPrint
 
 from transopt.agent.config import Config, RunningConfig

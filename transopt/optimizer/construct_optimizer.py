@@ -2,9 +2,7 @@
 from transopt.agent.registry import (acf_registry, sampler_registry,
                                      selector_registry, space_refiner_registry,
                                      model_registry, pretrain_registry, normalizer_registry)
-from transopt.optimizer.model.get_model import get_model
 from transopt.optimizer.optimizer_base.bo import BO
-from transopt.optimizer.pretrain.get_pretrain import get_pretrain
 
 
 

@@ -5,7 +5,8 @@ from GPyOpt.core.task.cost import constant_cost_withGradients
 from GPyOpt.util.general import get_quantiles
 
 from transopt.agent.registry import acf_registry
-from optimizer.acquisition_function.acf_base import AcquisitionBase
+from transopt.optimizer.acquisition_function.acf_base import AcquisitionBase
+
 @acf_registry.register('EI')
 class AcquisitionEI(AcquisitionBase):
     """

@@ -4,7 +4,7 @@ from pymoo.core.problem import Problem
 from GPyOpt import Design_space
 from pymoo.algorithms.soo.nonconvex.cmaes import CMAES
 from transopt.agent.registry import acf_registry
-from optimizer.acquisition_function.acf_base import AcquisitionBase
+from transopt.optimizer.acquisition_function.acf_base import AcquisitionBase
 
 
 @acf_registry.register('CMAES-Best')

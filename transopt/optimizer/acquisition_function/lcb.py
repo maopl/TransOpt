@@ -4,7 +4,7 @@
 from GPyOpt.acquisitions.base import AcquisitionBase
 
 from transopt.agent.registry import acf_registry
-from transopt.optimizer.acquisition_function.ACF import AcquisitionBase
+from optimizer.acquisition_function.acf_base import AcquisitionBase
 @acf_registry.register('LCB')
 class AcquisitionLCB(AcquisitionBase):
     """

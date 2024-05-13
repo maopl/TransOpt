@@ -1,7 +1,7 @@
 # from transopt.optimizer.acquisition_function.ConformalLCB import ConformalLCB
-from transopt.optimizer.acquisition_function.EI import AcquisitionEI
-from transopt.optimizer.acquisition_function.LCB import AcquisitionLCB
-from transopt.optimizer.acquisition_function.PI import AcquisitionPI
+from optimizer.acquisition_function.ei import AcquisitionEI
+from optimizer.acquisition_function.lcb import AcquisitionLCB
+from optimizer.acquisition_function.pi import AcquisitionPI
 # from transopt.optimizer.acquisition_function.SMSEGO import SMSEGO
 # from transopt.optimizer.acquisition_function.MOEADEGO import MOEADEGO
 # from transopt.optimizer.acquisition_function.TAF import AcquisitionTAF_M, AcquisitionTAF_POE

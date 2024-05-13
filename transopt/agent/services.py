@@ -326,7 +326,7 @@ class Services:
         try:
             import os
             pid = os.getpid()
-            self.process_info[pid] = {'status': 'running', 'seed': seed, 'budget': None, 'task': None, 'iteration': 0, 'dataset_name': None}
+            self.process_info[pid] = {'status': 'running', 'seed': seed, 'budget': None, 'task': None, 'iteration': 0, 'dataset_name': None, 'progress':0}
             logger.info(f"Start process #{pid}")
 
             # Instantiate problems and optimizer
@@ -373,6 +373,7 @@ class Services:
                     
                     cur_iter = self.process_info[pid]['iteration']
                     self.update_process_info(pid, {'iteration': cur_iter + 1})
+                    self.update_process_info(pid, {'progress': 100 * (task_set.get_cur_budget() - task_set.get_rest_budget()) / task_set.get_cur_budget()})
                     logger.info(f"PID {pid}: Seed {seed}, Task {task_set.get_curname()}, Iteration {self.process_info[pid]['iteration']}")
                 task_set.roll()
         except Exception as e:

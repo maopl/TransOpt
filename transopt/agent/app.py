@@ -192,7 +192,7 @@ def configuration_run_progress():
         if subpross['status'] == 'running':
             data.append({
                 "name": f"{subpross['task']}_pid_{subpross_id}",
-                "progress": str(subpross['iteration'] * 100 / subpross['budget']) if subpross['budget'] != None else 0,
+                "progress": str(subpross['progress']),
             })
     
     return jsonify(data), 200

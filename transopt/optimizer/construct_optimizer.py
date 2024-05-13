@@ -21,7 +21,7 @@ def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
     ACF = acf_registry[optimizer_config['ACF']](config = optimizer_config['ACFParameters'])
     Model = model_registry[optimizer_config['Model']](config = optimizer_config['ModelParameters'])
 
-    if optimizer_config['Pretrain'] == 'default':
+    if optimizer_config['Pretrain'] == 'None':
         Pretrain = None
     else:
         Pretrain = pretrain_registry[optimizer_config['Pretrain']](optimizer_config['PretrainParameters'])

@@ -16,15 +16,15 @@ from optimizer.model.GP_BAK import PriorGP
 from transopt.optimizer.optimizer_base import OptimizerBase
 from transopt.optimizer.model.PracGP import PracGP
 from Model.MOKernel import MOKernel
-from transopt_external.transfergpbo import models
-from transopt_external.transfergpbo.models import TaskData
+from external.transfergpbo import models
+from external.transfergpbo.models import TaskData
 
 from emukit.core import ContinuousParameter
 from emukit.core import ParameterSpace
 
 from transopt.utils import Prior
 from typing import Dict, Hashable
-from transopt_external.transfergpbo.models import (
+from external.transfergpbo.models import (
     WrapperBase,
     MHGP,
     SHGP,

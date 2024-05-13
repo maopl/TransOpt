@@ -8,16 +8,16 @@ from GPy.inference.latent_function_inference import expectation_propagation
 from transopt.optimizer.optimizer_base import OptimizerBase
 # from Model.HyperBO import hyperbo
 
-from transopt_external.transfergpbo import models
+from external.transfergpbo import models
 
 from emukit.core import ContinuousParameter
 from emukit.core import ParameterSpace
 
-from transopt_external.FSBO.fsbo_modules import FSBO, DeepKernelGP
-from transopt_external.FSBO.fsbo_utils import totorch
+from external.FSBO.fsbo_modules import FSBO, DeepKernelGP
+from external.FSBO.fsbo_utils import totorch
 import os
 
-from transopt_external.transfergpbo.models import (
+from external.transfergpbo.models import (
     WrapperBase,
     MHGP,
     SHGP,

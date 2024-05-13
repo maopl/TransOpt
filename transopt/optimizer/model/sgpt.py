@@ -4,7 +4,7 @@ from typing import Dict, Hashable
 import numpy as np
 from GPy.kern import Kern
 from GPy.kern import RBF
-from transopt_external.transfergpbo.models import InputData, TaskData, Model, GPBO
+from external.transfergpbo.models import InputData, TaskData, Model, GPBO
 import sobol_seq
 from agent.registry import model_registry
 

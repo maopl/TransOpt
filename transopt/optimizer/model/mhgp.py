@@ -18,10 +18,9 @@ import numpy as np
 from typing import Dict, Hashable, Union, Sequence, Tuple, List
 
 from GPy.kern import RBF
-
+from GPy.kern import Kern, RBF
 from transopt.optimizer.model.gp import GP
 from transopt.optimizer.model.model_base import Model
-from transopt.optimizer.model.utils import is_pd, nearest_pd
 from transopt.agent.registry import model_registry
 
 @model_registry.register("MHGP")
@@ -36,7 +35,11 @@ class MHGP(Model):
     stack.
     """
 
-    def __init__(self, n_features: int, within_model_normalize: bool = True):
+    def __init__(self,         
+        kernel: Kern = None,
+        noise_variance: float = 1.0,
+        normalize: bool = True,
+        **options: dict):
         """Initialize the Method.
 
         Args:
@@ -46,19 +49,15 @@ class MHGP(Model):
         """
         super().__init__()
 
+        self._normalize = normalize
+        self._kernel = kernel
+        self._noise_variance = noise_variance
         self.n_samples = 0
-        self.n_features = n_features
-
-        self._within_model_normalize = within_model_normalize
 
         self.source_gps = []
 
         # GP on difference between target data and last source data set
-        self.target_gp = GP(
-            RBF(self.n_features, ARD=True),
-            noise_variance=0.1,
-            normalize=self._within_model_normalize,
-        )
+        self.target_gp = None
 
     def _compute_residuals(self, X: np.ndarray, Y: np.ndarray) -> np.ndarray:
         """Determine the difference between given y-values and the sum of predicted
@@ -107,7 +106,7 @@ class MHGP(Model):
         Returns:
             The newly trained GP.
         """
-        residuals = self._compute_residuals(data)
+        residuals = self._compute_residuals(X, Y)
 
         kernel = RBF(self.n_features, ARD=True)
         new_gp = GP(
@@ -165,6 +164,14 @@ class MHGP(Model):
 
         self._X = copy.deepcopy(X)
         self._y = copy.deepcopy(Y)
+        
+        if self.target_gp is None:
+            self.n_features = self._X.shape[1]
+            self.target_gp = GP(
+            RBF(self.n_features, ARD=True),
+            noise_variance=0.1,
+            normalize=self._within_model_normalize,
+        )
 
         self.n_samples, n_features = self._X.shape
         if self.n_features != n_features:

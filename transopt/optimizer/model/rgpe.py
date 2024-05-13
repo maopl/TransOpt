@@ -5,7 +5,7 @@ import numpy as np
 import GPy
 from GPy.kern import Kern
 from GPy.kern import RBF
-from transopt_external.transfergpbo.models import InputData, TaskData, Model, GPBO
+from external.transfergpbo.models import InputData, TaskData, Model, GPBO
 
 from transopt.agent.registry import model_registry
 
@@ -136,6 +136,7 @@ class RGPE(Model):
             self.kernel = kernel
         self.target_model = None
         self._target_model_weight = 1
+        
     def meta_fit(self, source_datasets: Dict[Hashable, TaskData], **kwargs):
         # metadata, _ = SourceSelection.the_k_nearest(source_datasets)
 

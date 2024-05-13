@@ -257,8 +257,3 @@ class DeepKernelPretrain(nn.Module):
         self.likelihood.load_state_dict(ckpt['likelihood'])
         self.feature_extractor.load_state_dict(ckpt['net'])
         
-    def get_fmin(self):
-        if self._normalize:
-            return np.min(self._y_normalizer.inverse_transform(self._y))
-        else:
-            return np.min(self._y)

@@ -191,7 +191,7 @@ def configuration_run_progress():
     for subpross_id, subpross  in process_info.items():
         if subpross['status'] == 'running':
             data.append({
-                "name": f"{subpross['task']}_seed_{subpross['seed']}",
+                "name": f"{subpross['task']}_pid_{subpross_id}",
                 "progress": str(subpross['iteration'] * 100 / subpross['budget']) if subpross['budget'] != None else 0,
             })
     
@@ -202,26 +202,10 @@ def configuration_stop_progress():
     message = request.json
     task_name = message['name']
     print(task_name)
-    # 停止任务
+    pid = int(task_name.split('_')[-1])
+    services.terminate_task(pid)
 
     return {"succeed": True}, 200
-
-# @app.route("/api/configuration/progress", methods=["POST"])
-# def configuration_progress():
-#     message = request.json
-#     # 获取正在运行的任务的进度
-#     data = []
-    
-#     # process_info = services.get_all_process_info()
-#     # for subpross in process_info:
-#     #     if subpross['status'] == 'Running':
-#     #         data.append({
-#     #             "name": subpross['task'],
-#     #             "progress": 50
-#     #         })
-#     with open('transopt/agent/page_service_data/configuration_progress.json', 'r') as file:
-#         data = json.load(file)
-#     return jsonify(data), 200
 
 
 @app.route("/api/comparison/selections", methods=["POST"])

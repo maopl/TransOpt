@@ -1,14 +1,14 @@
 import random
 import time
 
-from transopt_external.hyperbo.basics import definitions as defs
-from transopt_external.hyperbo.basics import params_utils
-from transopt_external.hyperbo.gp_utils import gp
-from transopt_external.hyperbo.gp_utils import kernel
-from transopt_external.hyperbo.gp_utils import mean
-from transopt_external.hyperbo.gp_utils import utils
-from transopt_external.hyperbo.bo_utils import data
-from transopt_external.hyperbo.gp_utils import objectives as obj
+from external.hyperbo.basics import definitions as defs
+from external.hyperbo.basics import params_utils
+from external.hyperbo.gp_utils import gp
+from external.hyperbo.gp_utils import kernel
+from external.hyperbo.gp_utils import mean
+from external.hyperbo.gp_utils import utils
+from external.hyperbo.bo_utils import data
+from external.hyperbo.gp_utils import objectives as obj
 import jax
 import jax.numpy as jnp
 import matplotlib

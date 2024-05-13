@@ -56,7 +56,7 @@ class Services:
         model_info = []
         sampler_info = []
         acf_info = []
-        pretrain_info = [{'name':'default'}]
+        pretrain_info = [{'name':'None'}]
         refiner_info = [{'name':'None'}]
         normalizer_info = [{'name':'default'}]
 
@@ -377,6 +377,7 @@ class Services:
                 task_set.roll()
         except Exception as e:
             logger.error(f"Error in process {pid}: {str(e)}")
+            raise e
         finally:
             self.update_process_info(pid, {'status': 'completed'})
    

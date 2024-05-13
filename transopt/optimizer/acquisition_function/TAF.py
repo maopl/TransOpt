@@ -4,7 +4,7 @@ from GPyOpt.acquisitions.base import AcquisitionBase
 from GPyOpt.core.task.cost import constant_cost_withGradients
 from GPyOpt.util.general import get_quantiles
 import numpy as np
-from transopt_external.transfergpbo.models import InputData, TaskData
+from external.transfergpbo.models import InputData, TaskData
 from agent.registry import acf_registry
 
 @acf_registry.register('TAF_P')

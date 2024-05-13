@@ -103,7 +103,7 @@ class DeepKernelGP(nn.Module):
         if len(config) == 0:
             self.config = {"kernel": "matern", 'ard': False, "nu": 2.5, 'hidden_size': [32,32,32,32], 'n_inner_steps': 1,
                            'test_batch_size':1, 'batch_size':1, 'seed':0, 'eval_batch_size':1000, 'verbose':True, 'loss_tol':0.0001,
-                           'max_patience':16, 'lr':0.001, 'epochs':10000, 'load_model': False, 'checkpoint_path': './external/model/FSBO/Seed_0_1'}
+                           'max_patience':16, 'lr':0.001, 'epochs':100, 'load_model': False, 'checkpoint_path': './external/model/FSBO/Seed_0_1'}
         else:
             self.config = config
         torch.manual_seed(self.config['seed'])
@@ -198,6 +198,7 @@ class DeepKernelGP(nn.Module):
 
     def predict(self, X_pen):
         
+        query_X = totorch(X_pen, self.device)
         self.model.eval()
         self.feature_extractor.eval()
         self.likelihood.eval()        
@@ -206,12 +207,12 @@ class DeepKernelGP(nn.Module):
         self.model.set_train_data(inputs=z_support, targets=self.y_obs, strict=False)
 
         with torch.no_grad():
-            z_query = self.feature_extractor(X_pen).detach()
+            z_query = self.feature_extractor(query_X).detach()
             pred    = self.likelihood(self.model(z_query))
 
             
-        mu    = pred.mean.detach().to("cpu").numpy().reshape(-1,)
-        stddev = pred.stddev.detach().to("cpu").numpy().reshape(-1,)
+        mu    = pred.mean.detach().to("cpu").numpy()[: ,np.newaxis]
+        stddev = pred.stddev.detach().to("cpu").numpy()[: ,np.newaxis]
         
         return mu,stddev
 
@@ -221,3 +222,5 @@ class DeepKernelGP(nn.Module):
         return result.x.reshape(-1,dim)
 
 
+    def get_fmin(self):
+        return np.min(self.y_obs.detach().to("cpu").numpy())

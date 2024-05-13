@@ -314,13 +314,14 @@ class SGPT_M(Model):
         return mean, vars_[-1]
 
     def Epanechnikov_kernel(self, X1, X2):
-        t=0.5
         diff_matrix = X1 - X2
-        weight = np.linalg.norm(diff_matrix, ord=2) / self.pha
-        weight = weight * 0.75*(1.0 - t*t)
-
+        u = np.linalg.norm(diff_matrix, ord=2) / self.bandwidth**2  # 计算归一化距离
+        if u < 1:
+            weight = 0.75 * (1 - u**2)  # 根据 Epanechnikov 核计算权重
+        else:
+            weight = 0  # 超出核宽度，权重为0
         return weight
-
+    
     def _calculate_weights(self, alpha: float = 0.0):
         if self._X is None:
             weight = 1 / len(self._source_gps)

@@ -1,6 +1,6 @@
 #Practical gaussian process
 import copy
-from typing import Dict, Hashable, Tuple, List, Union, Sequence, Tuple, List
+from typing import Dict, List, Union, Sequence
 
 import GPy
 import numpy as np
@@ -156,7 +156,7 @@ class RGPE(Model):
 
     def predict(
         self, X, return_full: bool = False, with_noise: bool = False
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ):
 
         X_test = X
         n_models = len(self._source_gp_weights)

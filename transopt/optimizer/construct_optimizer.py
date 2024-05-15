@@ -26,10 +26,10 @@ def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
         
     
     
-    if optimizer_config['Normalizer'] == 'default':
+    if optimizer_config['Normalizer'] == 'None':
         Normalizer = None
     else:
-        Normalizer = normalizer_registry(optimizer_config['Normalizer'], optimizer_config['NormalizerParameters'])
+        Normalizer = normalizer_registry[optimizer_config['Normalizer']](optimizer_config['NormalizerParameters'])
     
     if optimizer_config['SpaceRefinerDataSelector'] == 'default':
         DataSelectors['SpaceRefinerDataSelector'] = None

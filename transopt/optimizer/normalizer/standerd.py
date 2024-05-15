@@ -1,12 +1,13 @@
 
 from sklearn.preprocessing import StandardScaler
-from transopt.agent.registry import normalizer_registry
 
+from transopt.agent.registry import normalizer_registry
+from transopt.optimizer.normalizer.normalizer_base import NormalizerBase
 
 
 @normalizer_registry.register("Standard")
-class Standard_normalizer:
-    def __init__(self):
+class Standard_normalizer(NormalizerBase):
+    def __init__(self, config):
         self.y_normalizer = StandardScaler()
         self.x_normalizer = StandardScaler()
         

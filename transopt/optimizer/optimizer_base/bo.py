@@ -76,10 +76,8 @@ class BO(OptimizerBase):
             self.Model.meta_fit(source_X, source_Y)
     
     def fit(self):
-        if self.Normalizer:
-            Y = self.Normalizer.normalize(self._Y)
-        else:
-            Y = copy.deepcopy(self._Y)
+
+        Y = copy.deepcopy(self._Y)
             
         X = copy.deepcopy(self._X)
         

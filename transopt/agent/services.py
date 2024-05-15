@@ -60,7 +60,7 @@ class Services:
         acf_info = []
         pretrain_info = [{'name':'None'}]
         refiner_info = [{'name':'None'}]
-        normalizer_info = [{'name':'default'}]
+        normalizer_info = [{'name':'None'}]
 
         # tasks information
         task_names = problem_registry.list_names()
@@ -123,9 +123,10 @@ class Services:
         selector_names = selector_registry.list_names()
         for name in selector_names:
             selector_info.append({"name": name})
+        
         basic_info["DataSelector"] = selector_info
         
-        normalizer_names = selector_registry.list_names()
+        normalizer_names = normalizer_registry.list_names()
         for name in normalizer_names:
             normalizer_info.append({"name": name})
         basic_info["Normalizer"] = normalizer_info

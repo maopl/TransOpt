@@ -18,7 +18,7 @@ class GP(Model):
         self,
         kernel: Kern = None,
         noise_variance: float = 1.0,
-        normalize: bool = True,
+        normalizer: bool = True,
         **options: dict
     ):
         """Initialize the Method.
@@ -37,9 +37,9 @@ class GP(Model):
         self._noise_variance = np.array(noise_variance)
         self._gpy_model = None
 
-        self._normalize = normalize
-        self._x_normalizer = StandardScaler() if normalize else None
-        self._y_normalizer = StandardScaler() if normalize else None
+        self._normalize = normalizer
+        self._x_normalizer = StandardScaler() if normalizer else None
+        self._y_normalizer = StandardScaler() if normalizer else None
 
         self._options = options
 

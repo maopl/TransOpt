@@ -48,7 +48,9 @@ class Services:
         import transopt.optimizer.pretrain
         import transopt.optimizer.refiner
         import transopt.optimizer.sampler
-
+        import transopt.optimizer.normalizer
+        import transopt.optimizer.selector
+        
     def get_modules(self):
         basic_info = {}
         tasks_info = []

@@ -459,6 +459,22 @@ class Services:
 
         return ret
 
+
+    def get_report_traj(self, task_name):
+        all_data = self.data_manager.db.select_data(task_name)
+
+        table_info = self.data_manager.db.query_dataset_info(task_name)
+        objectives = table_info["objectives"]
+
+        obj = objectives[0]["name"]
+        obj_type = objectives[0]["type"]
+
+        obj_data = [data[obj] for data in all_data]
+        ret = {}
+        ret.update(self.construct_trajectory_data(task_name, obj_data, obj_type))
+
+        return ret
+
     def construct_footprint_data(self, name, var_data, ranges):
         # Initialize the list to store trajectory data and the best value seen so far
         fp = FootPrint(var_data, ranges)

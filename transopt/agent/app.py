@@ -57,7 +57,7 @@ def report_update_trajectory_data():
     data = request.json
     user_input = data.get("taskname", "")
     # trajectory, 数据格式和以前一样 {"TrajectoryData":...}
-    charts = services.get_report_charts(user_input)
+    charts = services.get_report_traj(user_input)
     return jsonify(charts), 200
 
 

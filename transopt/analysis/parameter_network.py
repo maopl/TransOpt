@@ -8,21 +8,16 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeRegressor
 
 
-def calculate_importances(df, objective):
+def calculate_importances(X, y):
     """
     Calculates and returns parameter importances.
     """
-    X = df.drop([objective], axis=1)
-    y = df[objective]
 
     model = DecisionTreeRegressor()
-    model.fit(np.array(X.values), np.array(y.values)[:, np.newaxis])
+    model.fit(X, y[:, np.newaxis])
     feature_importances = model.feature_importances_
 
-    parameter_importance_df = pd.DataFrame(
-        {"Parameter": X.columns, "Importance": feature_importances}
-    )
-    return parameter_importance_df
+    return feature_importances
 
 
 def calculate_interaction(X, y):
@@ -50,21 +45,57 @@ def calculate_interaction(X, y):
         h_matrix[i, j] = numerator
         h_matrix[j, i] = h_matrix[i, j]
 
-    h_matrix[h_matrix <= 0.01] = 0.01
-    log_p = np.log(h_matrix)
-    mean_log_p = np.mean(log_p)
-    scaled_matrix = log_p - mean_log_p
+    mean = np.mean(h_matrix)
+    std = np.std(h_matrix)
+
+    normalized_matrix = (h_matrix - mean) / std
+    scaled_matrix = 1 / (1 + np.exp(-normalized_matrix))
+    
     return scaled_matrix
 
 
-def plot_network(data):
+def plot_network(X, y):
     G = nx.Graph()
+    nodes = ["x1","x2","x3","x4","x5"]
+    nodes_weight = calculate_importances(X, y)
+    for node, weight in zip(nodes, nodes_weight):
+        G.add_node(node, weight=weight)
+
+    edges_weight = calculate_interaction(X, y)
+    for i in range(5):
+        for j in range(i + 1, 5):
+            weight = edges_weight[i, j]
+            G.add_edge(nodes[i], nodes[j], weight=weight)
+    
+    # 设置节点的位置为圆形布局
+    pos = nx.circular_layout(G)
+
+    # 创建颜色映射
+    node_cmap = plt.cm.Greens
+    edge_cmap = plt.cm.Blues
+
+    # 节点的颜色根据权重映射
+    node_color = [node_cmap(data['weight']) for v, data in G.nodes(data=True)]
+    node_size = [data['weight'] * 1000 + 100 for v, data in G.nodes(data=True)]
+    node_alpha = [data['weight'] for v, data in G.nodes(data=True)]  # 透明度根据权重调整
+
+    # 绘制网络图
+    edges = G.edges(data=True)
+    nx.draw_networkx_nodes(G, pos, node_color=node_color, node_size=node_size, alpha=node_alpha)
+    nx.draw_networkx_labels(G, pos)
+
+    # 单独绘制每条边，设置颜色和透明度
+    for u, v, data in edges:
+        color = edge_cmap(data['weight'])
+        nx.draw_networkx_edges(G, pos, edgelist=[(u, v)], width=1, alpha=data['weight'], edge_color=[color])
+
+    # 显示图形
+    plt.show()
+
 
 
 if __name__ == "__main__":
-    data = [{'x0': 2, 'x1': 4, 'x2': 2, 'x3': 2, 'x4': -3, 'f1': 51},
-            {'x0': 3, 'x1': 3, 'x2': 3, 'x3': 3, 'x4': -2, 'f1': 52},
-            {'x0': 4, 'x1': 2, 'x2': 4, 'x3': 4, 'x4': -1, 'f1': 53},
-            {'x0': 5, 'x1': 1, 'x2': 5, 'x3': 5, 'x4': 0, 'f1': 54},
-            {'x0': 6, 'x1': 0, 'x2': 6, 'x3': 6, 'x4': 1, 'f1': 55}]
-    plot_network(data)
+    np.random.seed(0)
+    X = np.random.normal(0, 1, (100, 5))  # 5个特征
+    y = 5 * X[:, 0] * X[:, 1] + 3 * X[:, 2] + X[:, 3] + np.random.normal(0, 0.5, 100)
+    plot_network(X, y)

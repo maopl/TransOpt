@@ -7,7 +7,7 @@ from transopt.optimizer.normalizer.normalizer_base import NormalizerBase
 
 @normalizer_registry.register("Standard")
 class Standard_normalizer(NormalizerBase):
-    def __init__(self, config):
+    def __init__(self, config, metadata =  None, metadata_info = None):
         self.y_normalizer = StandardScaler()
         self.x_normalizer = StandardScaler()
         

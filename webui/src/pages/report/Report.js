@@ -51,6 +51,7 @@ class Report extends React.Component {
         // BarData: data.BarData,
         // RadarData: data.RadarData,
         ScatterData: data.ScatterData,
+        TrajectoryData: data.TrajectoryData
       })
     })
     .catch((error) => {
@@ -60,7 +61,7 @@ class Report extends React.Component {
 
   componentDidMount() {
     // 开始定时调用 fetchData 函数
-    this.intervalId = setInterval(this.fetchData, 200000);
+    this.intervalId = setInterval(this.fetchData, 20000);
   }
 
   componentWillUnmount() {

@@ -91,9 +91,9 @@ def plot_network(X, y, nodes):
     path = os.getcwd()
     save_path = os.path.join(path, "webui/src/pictures/parameter_network.png")
     plt.savefig(save_path)
-
+    plt.clf()
     # 显示图形
-    plt.show()
+    # plt.show()
 
 
 

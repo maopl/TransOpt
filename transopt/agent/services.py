@@ -12,6 +12,7 @@ from transopt.agent.registry import *
 from transopt.benchmark.instantiate_problems import InstantiateProblems
 from transopt.datamanager.manager import Database, DataManager
 from transopt.optimizer.construct_optimizer import ConstructOptimizer, ConstructSelector
+from transopt.analysis.parameter_network import plot_network
 from transopt.utils.log import logger
 
 
@@ -453,9 +454,11 @@ class Services:
 
         obj_data = [data[obj] for data in all_data]
         var_data = [[data[var["name"]] for var in table_info["variables"]] for data in all_data]
+        variables = [var["name"] for var in table_info["variables"]]
         ret = {}
         ret.update(self.construct_footprint_data(task_name, var_data, ranges))
         ret.update(self.construct_trajectory_data(task_name, obj_data, obj_type))
+        ret.update(self.construct_importance_data(task_name, var_data, obj_data, variables))
 
         return ret
 
@@ -548,3 +551,5 @@ class Services:
 
         return {"TrajectoryData": [trajectory_data]}
     
+    def construct_importance_data(self, name, var_data, obj_data, variables):
+        plot_network(np.array(var_data), np.array(obj_data), variables)

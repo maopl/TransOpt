@@ -54,9 +54,8 @@ def calculate_interaction(X, y):
     return scaled_matrix
 
 
-def plot_network(X, y):
+def plot_network(X, y, nodes):
     G = nx.Graph()
-    nodes = ["x1","x2","x3","x4","x5"]
     nodes_weight = calculate_importances(X, y)
     for node, weight in zip(nodes, nodes_weight):
         G.add_node(node, weight=weight)
@@ -89,6 +88,10 @@ def plot_network(X, y):
         color = edge_cmap(data['weight'])
         nx.draw_networkx_edges(G, pos, edgelist=[(u, v)], width=1, alpha=data['weight'], edge_color=[color])
 
+    path = os.getcwd()
+    save_path = os.path.join(path, "webui/src/pictures/parameter_network.png")
+    plt.savefig(save_path)
+
     # 显示图形
     plt.show()
 
@@ -98,4 +101,4 @@ if __name__ == "__main__":
     np.random.seed(0)
     X = np.random.normal(0, 1, (100, 5))  # 5个特征
     y = 5 * X[:, 0] * X[:, 1] + 3 * X[:, 2] + X[:, 3] + np.random.normal(0, 0.5, 100)
-    plot_network(X, y)
+    plot_network(X, y, nodes=['X1', 'X2', 'X3', 'X4', 'X5'])

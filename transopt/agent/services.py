@@ -11,7 +11,7 @@ from transopt.agent.config import Config, RunningConfig
 from transopt.agent.registry import *
 from transopt.benchmark.instantiate_problems import InstantiateProblems
 from transopt.datamanager.manager import Database, DataManager
-from transopt.optimizer.construct_optimizer import ConstructOptimizer
+from transopt.optimizer.construct_optimizer import ConstructOptimizer, ConstructSelector
 from transopt.utils.log import logger
 
 
@@ -295,7 +295,7 @@ class Services:
                 metadata_info[dataset_name] = self.data_manager.db.query_dataset_info(dataset_name)
             return metadata, metadata_info
         else:
-            return None, None
+            return {}, {}
     
     def save_data(self, dataset_name, parameters, observations, iteration):
         data = [{} for i in range(len(parameters))]
@@ -335,6 +335,7 @@ class Services:
             # Instantiate problems and optimizer
             task_set = InstantiateProblems(self.running_config.tasks, seed)
             optimizer = ConstructOptimizer(self.running_config.optimizer, seed)
+            dataselector = ConstructSelector(self.running_config.optimizer, seed)
 
             while (task_set.get_unsolved_num()):
                 search_space = task_set.get_cur_searchspace()
@@ -346,11 +347,16 @@ class Services:
                 optimizer.link_task(task_name=task_set.get_curname(), search_space=search_space)
                     
                 metadata, metadata_info = self.get_metadata('SpaceRefiner')
+                if dataselector['SpaceRefinerDataSelector']:
+                    metadata, metadata_info = dataselector['SpaceRefinerDataSelector'].fetch_data(dataset_info)
                 optimizer.search_space_refine(metadata, metadata_info)
                     
                 metadata, metadata_info = self.get_metadata('Sampler')
+                if dataselector['SamplerDataSelector']:
+                    metadata, metadata_info = dataselector['SamplerDataSelector'].fetch_data(dataset_info)
                 samples = optimizer.sample_initial_set(metadata, metadata_info)
-                    
+                
+                
                 parameters = [search_space.map_to_design_space(sample) for sample in samples]
                 observations = task_set.f(parameters)
                 self.save_data(dataset_name, parameters, observations, self.process_info[pid]['iteration'])
@@ -359,9 +365,14 @@ class Services:
                     
                 # Pretrain
                 metadata, metadata_info = self.get_metadata('Pretrain')
+                if dataselector['PretrainDataSelector']:
+                    metadata, metadata_info = dataselector['PretrainDataSelector'].fetch_data(dataset_info)
                 optimizer.pretrain(metadata, metadata_info)
                 
+                
                 metadata, metadata_info = self.get_metadata('Model')
+                if dataselector['ModelDataSelector']:
+                    metadata, metadata_info = dataselector['ModelDataSelector'].fetch_data(dataset_info)
                 optimizer.meta_fit(metadata, metadata_info)
             
                 while (task_set.get_rest_budget()):

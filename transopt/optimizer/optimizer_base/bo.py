@@ -19,7 +19,7 @@ class BO(OptimizerBase):
     The abstract Model for Bayesian Optimization
     """
 
-    def __init__(self, Refiner, Sampler, ACF, Pretrain, Model, Normalizer, DataSelectors, config):
+    def __init__(self, Refiner, Sampler, ACF, Pretrain, Model, Normalizer, config):
         super(BO, self).__init__(config=config)
         self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
         self._Y = np.empty((0,))
@@ -32,7 +32,6 @@ class BO(OptimizerBase):
         self.ACF = ACF
         self.Pretrain = Pretrain
         self.Model = Model
-        self.DataSelectors = DataSelectors
         self.Normalizer = Normalizer
 
         

@@ -1,13 +1,16 @@
 
 
 from transopt.datamanager.manager import DataManager
-
+from abc import ABC, abstractmethod
 
 class SelectorBase:
     def __init__(self, config):
         self.data_manager = DataManager()
+        
 
-    def select(self, tasks_info, selector_info, model_info, sampler_info, acf_info, pretrain_info, refiner_info):
+
+    @abstractmethod
+    def fetch_data(self, tasks_info):
         raise NotImplementedError
     
     

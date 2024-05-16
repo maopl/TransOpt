@@ -7,7 +7,6 @@ from transopt.optimizer.optimizer_base.bo import BO
 
 
 def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
-    DataSelectors = {}
     """Create the optimizer object."""
     if optimizer_config['SpaceRefiner'] == 'None':
         SpaceRefiner = None
@@ -30,40 +29,52 @@ def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
         Normalizer = None
     else:
         Normalizer = normalizer_registry[optimizer_config['Normalizer']](optimizer_config['NormalizerParameters'])
-    
-    if optimizer_config['SpaceRefinerDataSelector'] == 'default':
-        DataSelectors['SpaceRefinerDataSelector'] = None
-    else:
-        DataSelectors['SpaceRefinerDataSelector'] = selector_registry(optimizer_config['SpaceRefinerDataSelector'], optimizer_config['SpaceRefinerDataSelectorParameters'])
-    
-    if optimizer_config['SamplerDataSelector'] == 'default':
-        DataSelectors['SamplerDataSelector'] = None
-    else:
-        DataSelectors['SamplerDataSelector'] = selector_registry(optimizer_config['SamplerDataSelector'], optimizer_config['SamplerDataSelectorParameters'])
-    
-    if optimizer_config['ACFDataSelector'] == 'default':
-        DataSelectors['ACFDataSelector'] = None
-    else:
-        DataSelectors['ACFDataSelector'] = selector_registry(optimizer_config['ACFDataSelector'], optimizer_config['ACFDataSelectorParameters'])
-    
-    if optimizer_config['PretrainDataSelector'] == 'default':
-        DataSelectors['PretrainDataSelector'] = None
-    else:
-        DataSelectors['PretrainDataSelector'] = selector_registry(optimizer_config['PretrainDataSelector'], optimizer_config['PretrainDataSelectorParameters'])
-    
-    if optimizer_config['ModelDataSelector'] == 'default':
-        DataSelectors['ModelDataSelector'] = None
-    else:
-        DataSelectors['ModelDataSelector'] = selector_registry(optimizer_config['ModelDataSelector'], optimizer_config['ModelDataSelectorParameters'])
-
-    if optimizer_config['NormalizerDataSelector'] == 'default':
-        DataSelectors['NormalizerDataSelector'] = None
-    else:
-        DataSelectors['NormalizerDataSelector'] = selector_registry(optimizer_config['NormalizerDataSelector'], optimizer_config['NormalizerDataSelectorParameters'])
-    
         
     
-    optimizer = BO(SpaceRefiner, Sampler, ACF, Pretrain, Model, Normalizer, DataSelectors, optimizer_config)
+    optimizer = BO(SpaceRefiner, Sampler, ACF, Pretrain, Model, Normalizer, optimizer_config)
     
     
     return optimizer
+
+def ConstructSelector(optimizer_config, dict = None, seed: int = 0):
+    DataSelectors = {}
+    
+    
+    # if optimizer_config['SpaceRefinerDataSelector'] == 'None':
+    #     DataSelectors['SpaceRefinerDataSelector'] = None
+    # else:
+    #     DataSelectors['SpaceRefinerDataSelector'] = selector_registry(optimizer_config['SpaceRefinerDataSelector'], optimizer_config['SpaceRefinerDataSelectorParameters'])
+    
+    # if optimizer_config['SamplerDataSelector'] == 'None':
+    #     DataSelectors['SamplerDataSelector'] = None
+    # else:
+    #     DataSelectors['SamplerDataSelector'] = selector_registry(optimizer_config['SamplerDataSelector'], optimizer_config['SamplerDataSelectorParameters'])
+    
+    # if optimizer_config['ACFDataSelector'] == 'None':
+    #     DataSelectors['ACFDataSelector'] = None
+    # else:
+    #     DataSelectors['ACFDataSelector'] = selector_registry(optimizer_config['ACFDataSelector'], optimizer_config['ACFDataSelectorParameters'])
+    
+    # if optimizer_config['PretrainDataSelector'] == 'None':
+    #     DataSelectors['PretrainDataSelector'] = None
+    # else:
+    #     DataSelectors['PretrainDataSelector'] = selector_registry(optimizer_config['PretrainDataSelector'], optimizer_config['PretrainDataSelectorParameters'])
+    
+    # if optimizer_config['ModelDataSelector'] == 'None':
+    #     DataSelectors['ModelDataSelector'] = None
+    # else:
+    #     DataSelectors['ModelDataSelector'] = selector_registry(optimizer_config['ModelDataSelector'], optimizer_config['ModelDataSelectorParameters'])
+
+    # if optimizer_config['NormalizerDataSelector'] == 'None':
+    #     DataSelectors['NormalizerDataSelector'] = None
+    # else:
+    #     DataSelectors['NormalizerDataSelector'] = selector_registry(optimizer_config['NormalizerDataSelector'], optimizer_config['NormalizerDataSelectorParameters'])
+    
+    
+    for key in optimizer_config.keys():
+        if key.endswith('DataSelector'):
+            if optimizer_config[key] == 'None':
+                DataSelectors[key] = None
+            else:
+                DataSelectors[key] = selector_registry[optimizer_config[key]](optimizer_config[key + 'Parameters'])
+    return DataSelectors

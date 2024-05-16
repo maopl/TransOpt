@@ -1,8 +1,9 @@
-import GPy
 import numpy as np
+from GPy.kern import RBF, Kern
 from sklearn.preprocessing import StandardScaler
 
 from transopt.agent.registry import model_registry
+from transopt.optimizer.model.gp import GP
 from transopt.optimizer.model.model_base import Model
 from transopt.utils.weights import init_weight, tchebycheff
 
@@ -46,9 +47,16 @@ class MoeadEGO(Model):
         self.models = []
         ideal_point = np.min(Y.T, axis=0)
         for i, weight in enumerate(self.weights):
-            kernel = GPy.kern.RBF(input_dim=X.shape[1])
+            kernel = RBF(input_dim=X.shape[1])
             Y_weighted = tchebycheff(Y.T, weight, ideal=ideal_point)
-            model = GPy.models.GPRegression(X, Y_weighted, kernel=kernel)
+            model = GP(
+            kernel, noise_variance=self._noise_variance
+            )
+            model.fit(
+                X = X,
+                Y = Y_weighted,
+                optimize = True,
+            )
             model[".*Gaussian_noise.variance"].constrain_fixed(1.0e-4)
             model[".*rbf.variance"].constrain_fixed(1.0)
             self.models.append(model)

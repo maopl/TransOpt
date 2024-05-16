@@ -18,7 +18,7 @@ class GP(Model):
         self,
         kernel: Kern = None,
         noise_variance: float = 1.0,
-        normalizer: bool = True,
+        normalizer: bool = False,
         **options: dict
     ):
         """Initialize the Method.
@@ -104,9 +104,9 @@ class GP(Model):
         _X = np.copy(self._X)
         _y = np.copy(self._y)
 
-        if self._normalize:
-            _X = self._x_normalizer.fit_transform(_X)
-            _y = self._y_normalizer.fit_transform(_y)
+        # if self._normalize:
+        #     _X = self._x_normalizer.fit_transform(_X)
+        #     _y = self._y_normalizer.fit_transform(_y)
 
         if self._gpy_model is None:
             self._gpy_model = GPRegression(
@@ -171,8 +171,8 @@ class GP(Model):
         if self._X is None:
             return mean, var
 
-        if self._normalize:
-            mean, var = self._denormalize(mean, var, return_full=return_full)
+        # if self._normalize:
+        #     mean, var = self._denormalize(mean, var, return_full=return_full)
 
         return mean, var
 
@@ -193,8 +193,8 @@ class GP(Model):
             var = np.diag(cov)[:, None]
             return mu, cov if return_full else var
 
-        if self._normalize:
-            _X_test = self._x_normalizer.transform(_X_test)
+        # if self._normalize:
+        #     _X_test = self._x_normalizer.transform(_X_test)
 
         # ensure that no negative variance is predicted
         mu, cov = self._gpy_model.predict(
@@ -226,12 +226,12 @@ class GP(Model):
         if self._X is None:
             return np.zeros(_x.shape)
         _X = self._X.copy()
-        if self._normalize:
-            _x = self._x_normalizer.transform(_x)
-            _X = self._x_normalizer.transform(_X)
+        # if self._normalize:
+        #     _x = self._x_normalizer.transform(_x)
+        #     _X = self._x_normalizer.transform(_X)
         mu = self._kernel.K(_x, _X) @ self._gpy_model.posterior.woodbury_vector
-        if self._normalize:
-            mu = self._y_normalizer.inverse_transform(mu)
+        # if self._normalize:
+        #     mu = self._y_normalizer.inverse_transform(mu)
         return mu
 
     def predict_posterior_covariance(self, x1, x2) -> np.ndarray:
@@ -255,16 +255,16 @@ class GP(Model):
             cov = self._kernel.K(_X1, _X2)
             return cov
 
-        if self._normalize:
-            _X1 = self._x_normalizer.transform(_X1)
-            _X2 = self._x_normalizer.transform(_X2)
+        # if self._normalize:
+        #     _X1 = self._x_normalizer.transform(_X1)
+        #     _X2 = self._x_normalizer.transform(_X2)
 
         cov = self._gpy_model.posterior_covariance_between_points(
             _X1, _X2, include_likelihood=False
         )
 
-        if self._normalize:
-            cov *= self._y_normalizer.var_
+        # if self._normalize:
+        #     cov *= self._y_normalizer.var_
 
         return cov
 
@@ -282,9 +282,9 @@ class GP(Model):
             Kernel values at `(x1, x2)`. `shape = (n_points_1, n_points_2)`
         """
         _x1, _x2 = np.copy(x1), np.copy(x2)
-        if self._normalize and self._X is not None:
-            _x1 = self._x_normalizer.transform(_x1)
-            _x2 = self._x_normalizer.transform(_x2)
+        # if self._normalize and self._X is not None:
+        #     _x1 = self._x_normalizer.transform(_x1)
+        #     _x2 = self._x_normalizer.transform(_x2)
         return self._kernel.K(_x1, _x2)
 
     def compute_kernel_diagonal(self, X) -> np.ndarray:
@@ -301,8 +301,8 @@ class GP(Model):
             Kernel diagonal. `shape = (n_points, 1)`
         """
         _x = np.copy(X)
-        if self._normalize and self._X is not None:
-            _x = self._x_normalizer.transform(_x)
+        # if self._normalize and self._X is not None:
+        #     _x = self._x_normalizer.transform(_x)
         return self._kernel.Kdiag(_x).reshape(-1, 1)
 
     def sample(
@@ -328,8 +328,8 @@ class GP(Model):
         return sample
     
     def get_fmin(self):
-        if self._normalize:
-            return np.min(self._y_normalizer.inverse_transform(self._y))
-        else:
-            return np.min(self._y)
+        # if self._normalize:
+        #     return np.min(self._y_normalizer.inverse_transform(self._y))
+        
+        return np.min(self._y)
          

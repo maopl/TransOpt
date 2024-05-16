@@ -86,17 +86,23 @@ class BO(OptimizerBase):
         suggested_sample, acq_value = self.evaluator.compute_batch(None, context_manager=None)
         # suggested_sample = self.search_space.zip_inputs(suggested_sample)
 
+        if self.Normalizer:
+            suggested_sample = self.Normalizer.inverse_transform(X=suggested_sample)[0]
+        
         return suggested_sample
 
         
-
     def observe(self, X: np.ndarray, Y: List[Dict]) -> None:
-
         # Check if the lists are empty and return if they are
         if X.shape[0] == 0 or len(Y) == 0:
             return
 
+        Y = np.array(output_to_ndarray(Y))
+        if self.Normalizer:
+            self.Normalizer.fit(X, Y)
+            X, Y = self.Normalizer.transform(X, Y)
+        
         self._X = np.vstack((self._X, X)) if self._X.size else X
-        self._Y = np.vstack((self._Y, np.array(output_to_ndarray(Y)))) if self._Y.size else np.array(output_to_ndarray(Y))
+        self._Y = np.vstack((self._Y, Y)) if self._Y.size else Y
 
 

@@ -60,7 +60,7 @@ class Report extends React.Component {
 
   componentDidMount() {
     // 开始定时调用 fetchData 函数
-    this.intervalId = setInterval(this.fetchData, 3000);
+    this.intervalId = setInterval(this.fetchData, 2000);
   }
 
   componentWillUnmount() {

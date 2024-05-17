@@ -8,11 +8,15 @@ class FuzzySelector(SelectorBase):
         super(FuzzySelector, self).__init__(config)
 
     def fetch_data(self, tasks_info):
-        task_name = tasks_info["additional_config"]["problem_name"]
-        dimensions = tasks_info["additional_config"]["dimensions"]
+        task_name = tasks_info["additional_config"]["problem_name"]        
+        variable_names = [var['name'] for var in tasks_info["variables"]] 
+        dimensions = len(variable_names)
+        objectives = len(tasks_info["objectives"])
+        
         conditions = {
             "task_name": task_name,
             "dimensions": dimensions,
+            "objectives": objectives,
         }
 
         datasets_list = self.data_manager.db.search_tables_by_metadata(conditions)

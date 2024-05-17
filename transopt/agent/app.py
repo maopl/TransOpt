@@ -212,14 +212,8 @@ def configuration_stop_progress():
 def comparison_send_selections():
     info = request.json
     # Comparison初始化时，请求可选择的搜索选项
-    current_directory = os.path.dirname(__file__)
-    json_file_path = os.path.join(
-        current_directory, "page_service_data", "ComparisonSelection.json"
-    )
-    with open(json_file_path, "r") as file:
-        data = json.load(file)
-        
-    
+    data = services.get_comparision_modules()
+
     return jsonify(data), 200
 
 

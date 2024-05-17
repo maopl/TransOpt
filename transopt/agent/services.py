@@ -133,6 +133,48 @@ class Services:
         basic_info["Normalizer"] = normalizer_info
 
         return basic_info
+    
+    
+    def get_comparision_modules(self):
+        module_info = {}
+        model_info = []
+        sampler_info = []
+        acf_info = []
+        pretrain_info = ['None']
+        refiner_info = ['None']
+        normalizer_info = ['None']
+
+        sampler_names = sampler_registry.list_names()
+        for name in sampler_names:
+            sampler_info.append(name)
+        module_info["Sampler"] = sampler_info
+
+        refiner_names = space_refiner_registry.list_names()
+        for name in refiner_names:
+            refiner_info.append(name)
+        module_info["Refiner"] = refiner_info
+
+        pretrain_names = pretrain_registry.list_names()
+        for name in pretrain_names:
+            pretrain_info.append(name)
+        module_info["Pretrain"] = pretrain_info
+
+        model_names = model_registry.list_names()
+        for name in model_names:
+            model_info.append(name)
+        module_info["Model"] = model_info
+
+        acf_names = acf_registry.list_names()
+        for name in acf_names:
+            acf_info.append(name)
+        module_info["ACF"] = acf_info
+        
+        normalizer_names = normalizer_registry.list_names()
+        for name in normalizer_names:
+            normalizer_info.append(name)
+        module_info["Normalizer"] = normalizer_info
+
+        return module_info
 
     def search_dataset(self, search_method, dataset_name, dataset_info):
         if search_method == 'Fuzzy':

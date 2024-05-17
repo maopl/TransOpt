@@ -56,6 +56,8 @@ def calculate_interaction(X, y):
 
 def plot_network(X, y, nodes):
     G = nx.Graph()
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, 9))
+    
     nodes_weight = calculate_importances(X, y)
     for node, weight in zip(nodes, nodes_weight):
         G.add_node(node, weight=weight)
@@ -75,22 +77,26 @@ def plot_network(X, y, nodes):
 
     # 节点的颜色根据权重映射
     node_color = [node_cmap(data['weight']) for v, data in G.nodes(data=True)]
-    node_size = [data['weight'] * 1000 + 100 for v, data in G.nodes(data=True)]
+    node_size = [data['weight'] * 2000 + 1000 for v, data in G.nodes(data=True)]
     node_alpha = [data['weight'] for v, data in G.nodes(data=True)]  # 透明度根据权重调整
 
     # 绘制网络图
     edges = G.edges(data=True)
     nx.draw_networkx_nodes(G, pos, node_color=node_color, node_size=node_size, alpha=node_alpha)
-    nx.draw_networkx_labels(G, pos)
+    nx.draw_networkx_labels(G, pos, font_color='white', font_size=16)
 
     # 单独绘制每条边，设置颜色和透明度
     for u, v, data in edges:
         color = edge_cmap(data['weight'])
-        nx.draw_networkx_edges(G, pos, edgelist=[(u, v)], width=1, alpha=data['weight'], edge_color=[color])
+        nx.draw_networkx_edges(G, pos, edgelist=[(u, v)], width=3, alpha=data['weight'], edge_color=[color])
+
+    fig.set_facecolor("None")
+    ax.set_facecolor("#191C36")
+    # ax.axis('off')
 
     path = os.getcwd()
     save_path = os.path.join(path, "webui/src/pictures/parameter_network.png")
-    plt.savefig(save_path)
+    plt.savefig(save_path, bbox_inches='tight')
     plt.clf()
     plt.close()
     # 显示图形

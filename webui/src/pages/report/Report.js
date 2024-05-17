@@ -9,7 +9,7 @@ import Trajectory from "./charts/Trajectory";
 import Radar from "./charts/Radar";
 import Scatter from "./charts/Scatter";
 import Bar from "./charts/Bar";
-import network from "../../pictures/parameter_network.png";
+import Importance from "./charts/Importance";
 
 
 class Report extends React.Component {
@@ -51,6 +51,7 @@ class Report extends React.Component {
         // BarData: data.BarData,
         // RadarData: data.RadarData,
         ScatterData: data.ScatterData,
+        TrajectoryData: data.TrajectoryData
       })
     })
     .catch((error) => {
@@ -291,7 +292,7 @@ class Report extends React.Component {
                       }
                       collapse
                     >
-                      <img src={network} alt="network" style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%' }} /> 
+                      <Importance />
                     </Widget>
                   </Col>
                 </Row>

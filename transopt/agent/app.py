@@ -31,7 +31,7 @@ def generate_yaml():
     #     return jsonify({"error": str(e)}), 500
 
 
-@app.route("/api/report/tasks", methods=["POST"])
+@app.route("/api/Dashboard/tasks", methods=["POST"])
 def report_send_tasks_information():
     all_info = services.get_experiment_datasets()
     all_tasks_info = []
@@ -44,7 +44,7 @@ def report_send_tasks_information():
     return jsonify(all_tasks_info), 200
 
 
-@app.route("/api/report/charts", methods=["POST"])
+@app.route("/api/Dashboard/charts", methods=["POST"])
 def report_update_charts_data():
     data = request.json
     user_input = data.get("taskname", "")
@@ -52,7 +52,7 @@ def report_update_charts_data():
     return jsonify(charts), 200
 
 
-@app.route("/api/report/trajectory", methods=["POST"])
+@app.route("/api/Dashboard/trajectory", methods=["POST"])
 def report_update_trajectory_data():
     data = request.json
     user_input = data.get("taskname", "")

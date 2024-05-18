@@ -5,7 +5,9 @@ import { Switch, Route, withRouter, Redirect } from 'react-router';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import Hammer from 'rc-hammerjs';
 
-import Report from '../../pages/report/Report';
+import Dashboard from '../../pages/dashboard/Dashboard';
+import Configuration from '../../pages/configuration/Configuration';
+import Comparision from '../../pages/comparison/Comparison';
 
 import Sidebar from '../Sidebar';
 import BreadcrumbHistory from '../BreadcrumbHistory';
@@ -70,8 +72,10 @@ class Layout extends React.Component {
                   timeout={200}
                 >
                   <Switch>
-                    <Route path="/app/main" exact render={() => <Redirect to="/app/main/Report" />} />
-                    <Route path="/app/report" exact component={Report} />
+                    <Route path="/app/main" exact render={() => <Redirect to="/app/main/Dashboard" />} />
+                    <Route path="/app/Dashboard" exact component={Dashboard} />
+                    <Route path="/app/Configuration" exact component={Configuration} />
+                    <Route path="/app/Comparision" exact component={Comparision} />
                   </Switch>
                 </CSSTransition>
               </TransitionGroup>

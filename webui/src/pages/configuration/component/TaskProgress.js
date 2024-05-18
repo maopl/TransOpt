@@ -4,7 +4,7 @@ import {
     Progress,
     ConfigProvider
 } from "antd";
-import Trajectory from "../../report/charts/Trajectory";
+import Trajectory from "../../dashboard/charts/Trajectory";
 
 
 class TaskProgress extends React.Component {

@@ -11,7 +11,6 @@ import Widget from "../../components/Widget/Widget";
 
 import SelectTask from "./component/SelectTask";
 import SelectPlugins from "./component/SelectPlugin";
-import ChatUI from "./component/ChatUI";
 import SelectData from "./component/SelectData";
 import SearchData from "./component/SearchData"
 import Run from "./component/Run"
@@ -154,7 +153,7 @@ class Configuration extends React.Component {
               </Col>
             </Row>
             </Col>
-            <Col lg={6} sm={4}>
+            {/* <Col lg={6} sm={4}>
               <Row>
                 <Col lg={12} sm={12}>
                 <Widget
@@ -181,7 +180,7 @@ class Configuration extends React.Component {
                 </Widget>
                 </Col>
               </Row>
-            </Col>
+            </Col> */}
           </Row>
         </div>
       );

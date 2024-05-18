@@ -94,50 +94,31 @@ class Sidebar extends React.Component {
                     <LinksGroup
                         onActiveSidebarItemChange={activeItem => this.props.dispatch(changeActiveSidebarItem(activeItem))}
                         activeItem={this.props.activeItem}
-                        header="Typography"
+                        header="Configuration"
                         isHeader
                         iconName={<TypographyIcon className={s.menuIcon} />}
-                        link="/app/typography"
+                        link="/app/Configuration"
                         index="core"
                     />
                     <LinksGroup
                         onActiveSidebarItemChange={t => this.props.dispatch(changeActiveSidebarItem(t))}
                         activeItem={this.props.activeItem}
-                        header="Tables Basic"
+                        header="Comparision"
                         isHeader
                         iconName={<TablesIcon className={s.menuIcon} />}
-                        link="/app/tables"
+                        link="/app/Comparision"
                         index="tables"
                     />
                     <LinksGroup
                         onActiveSidebarItemChange={activeItem => this.props.dispatch(changeActiveSidebarItem(activeItem))}
                         activeItem={this.props.activeItem}
-                        header="Notifications"
+                        header="Chatbot"
                         isHeader
                         iconName={<NotificationsIcon className={s.menuIcon}/>}
-                        link="/app/notifications"
+                        link="/app/Chatbot"
                         index="ui"
                     />
-                    <LinksGroup
-                        onActiveSidebarItemChange={activeItem => this.props.dispatch(changeActiveSidebarItem(activeItem))}
-                        activeItem={this.props.activeItem}
-                        header="Components"
-                        isHeader
-                        iconName={<ComponentsIcon className={s.menuIcon}/>}
-                        link="/app/components"
-                        index="components"
-                        childrenLinks={[
-                            {
-                                header: 'Charts', link: '/app/components/charts',
-                            },
-                            {
-                                header: 'Icons', link: '/app/components/icons',
-                            },
-                            {
-                                header: 'Maps', link: '/app/components/maps',
-                            },
-                        ]}
-                    />
+                    
                 </ul>
             </nav>
         );

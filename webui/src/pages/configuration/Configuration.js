@@ -14,7 +14,6 @@ import SelectPlugins from "./component/SelectPlugin";
 import SelectData from "./component/SelectData";
 import SearchData from "./component/SearchData"
 import Run from "./component/Run"
-import TaskProgress from "./component/TaskProgress"
 import RunProgress from "./component/RunProgress"
 
 
@@ -123,7 +122,7 @@ class Configuration extends React.Component {
                   <SelectData DatasetData={this.state.DatasetData} set_dataset={this.set_dataset}/>
                 </Widget>
               </Col>
-              <Col lg={12} sm={12}>
+              {/* <Col lg={12} sm={12}>
                 <Widget
                   title={
                     <h5>
@@ -135,7 +134,7 @@ class Configuration extends React.Component {
                   <Run />
                   <RunProgress />
                 </Widget>
-              </Col>
+              </Col> */}
             </Row>
         </div>
       );

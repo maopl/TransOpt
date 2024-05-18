@@ -6,8 +6,9 @@ import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import Hammer from 'rc-hammerjs';
 
 import Dashboard from '../../pages/dashboard/Dashboard';
-import Configuration from '../../pages/configuration/Configuration';
 import Problem from '../../pages/problem/problem';
+import Configuration from '../../pages/configuration/Configuration';
+import RunPage from '../../pages/run_page/RunPage';
 import Comparision from '../../pages/comparison/Comparison';
 import Chatbot from '../../pages/chatbot/Chatbot';
 
@@ -75,6 +76,7 @@ class Layout extends React.Component {
                     <Route path="/app/Dashboard" exact component={Dashboard} />
                     <Route path="/app/Problem" exact component={Problem} />
                     <Route path="/app/Configuration" exact component={Configuration} />
+                    <Route path="/app/Run" exact component={RunPage} />
                     <Route path="/app/Comparision" exact component={Comparision} />
                     <Route path="/app/chatbot" exact component={Chatbot} />
                   </Switch>

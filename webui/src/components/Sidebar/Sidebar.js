@@ -86,8 +86,8 @@ class Sidebar extends React.Component {
                         header="Dashboard"
                         isHeader
                         iconName={<HomeIcon className={s.menuIcon} />}
-                        link="/app/main"
-                        index="main"
+                        link="/app/Dashboard"
+                        index="dashboard"
                     />
                     <h5 className={[s.navTitle, s.groupTitle].join(' ')}>FUNCTIONS</h5>
                     <LinksGroup
@@ -97,7 +97,7 @@ class Sidebar extends React.Component {
                         isHeader
                         iconName={<TypographyIcon className={s.menuIcon} />}
                         link="/app/Problem"
-                        index="tables"
+                        index="problem"
                     />
 
                     <LinksGroup
@@ -107,7 +107,16 @@ class Sidebar extends React.Component {
                         isHeader
                         iconName={<TypographyIcon className={s.menuIcon} />}
                         link="/app/Configuration"
-                        index="core"
+                        index="configuration"
+                    />
+                    <LinksGroup
+                        onActiveSidebarItemChange={t => this.props.dispatch(changeActiveSidebarItem(t))}
+                        activeItem={this.props.activeItem}
+                        header="Run"
+                        isHeader
+                        iconName={<TypographyIcon className={s.menuIcon} />}
+                        link="/app/Run"
+                        index="run"
                     />
                     <LinksGroup
                         onActiveSidebarItemChange={t => this.props.dispatch(changeActiveSidebarItem(t))}
@@ -116,7 +125,7 @@ class Sidebar extends React.Component {
                         isHeader
                         iconName={<TablesIcon className={s.menuIcon} />}
                         link="/app/Comparision"
-                        index="tables"
+                        index="comparision"
                     />
                     <LinksGroup
                         onActiveSidebarItemChange={activeItem => this.props.dispatch(changeActiveSidebarItem(activeItem))}

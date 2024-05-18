@@ -208,6 +208,17 @@ def configuration_stop_progress():
     return {"succeed": True}, 200
 
 
+@app.route("/api/RunPage/get_info", methods=["POST"])
+def run_page_get_info():
+    data = request.json
+    user_input = data.get("action", "")
+
+    task_data = services.get_modules()
+    with open('transopt/agent/page_service_data/configuration_info.json', 'r') as file:
+        data = json.load(file)
+    return jsonify(data), 200
+
+
 @app.route("/api/comparison/selections", methods=["POST"])
 def comparison_send_selections():
     info = request.json

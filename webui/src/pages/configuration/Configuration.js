@@ -16,7 +16,6 @@ import SearchData from "./component/SearchData"
 import Run from "./component/Run"
 import TaskProgress from "./component/TaskProgress"
 import RunProgress from "./component/RunProgress"
-import picture1 from "../../pictures/configuration.png"
 
 
 
@@ -88,8 +87,6 @@ class Configuration extends React.Component {
           <h1 className="page-title">
             Experiment - <span className="fw-semi-bold">Configuration</span>
           </h1>
-          <Row>
-            <Col lg={6} sm={8}>
             <Row>
               <Col lg={12} sm={12}>
                 <Widget
@@ -152,36 +149,6 @@ class Configuration extends React.Component {
                 </Widget>
               </Col>
             </Row>
-            </Col>
-            {/* <Col lg={6} sm={4}>
-              <Row>
-                <Col lg={12} sm={12}>
-                <Widget
-                  title={
-                    <h5>
-                      Chat<span className="fw-semi-bold">TOS</span>
-                    </h5>
-                  }
-                >
-                  <div className={s.chatui}>
-                    <ChatUI />
-                  </div>
-                </Widget>
-                </Col>
-                <Col lg={12} sm={12}>
-                <Widget
-                  title={
-                    <h5>
-                      <span className="fw-semi-bold">Process</span>
-                    </h5>
-                  }
-                >
-                  <img src={picture1} alt="picture3" style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%' }} /> 
-                </Widget>
-                </Col>
-              </Row>
-            </Col> */}
-          </Row>
         </div>
       );
     }

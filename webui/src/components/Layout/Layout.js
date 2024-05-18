@@ -8,6 +8,7 @@ import Hammer from 'rc-hammerjs';
 import Dashboard from '../../pages/dashboard/Dashboard';
 import Configuration from '../../pages/configuration/Configuration';
 import Comparision from '../../pages/comparison/Comparison';
+import Chatbot from '../../pages/chatbot/Chatbot';
 
 import Sidebar from '../Sidebar';
 import BreadcrumbHistory from '../BreadcrumbHistory';
@@ -58,9 +59,6 @@ class Layout extends React.Component {
         ].join(' ')}
       >
         <div className={s.wrap}>
-          {/* <Header /> */}
-          {/* <Chat chatOpen={this.state.chatOpen} /> */}
-          {/* <Helper /> */}
           <Sidebar />
           <Hammer onSwipe={this.handleSwipe}>
             <main className={s.content}>
@@ -76,6 +74,7 @@ class Layout extends React.Component {
                     <Route path="/app/Dashboard" exact component={Dashboard} />
                     <Route path="/app/Configuration" exact component={Configuration} />
                     <Route path="/app/Comparision" exact component={Comparision} />
+                    <Route path="/app/chatbot" exact component={Chatbot} />
                   </Switch>
                 </CSSTransition>
               </TransitionGroup>

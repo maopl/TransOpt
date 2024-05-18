@@ -9,6 +9,7 @@ import Trajectory from "./charts/Trajectory";
 import Radar from "./charts/Radar";
 import Scatter from "./charts/Scatter";
 import Bar from "./charts/Bar";
+import Importance from "./charts/Importance";
 
 
 class Dashboard extends React.Component {
@@ -291,7 +292,7 @@ class Dashboard extends React.Component {
                       }
                       collapse
                     >
-                      {/* <Importance /> */}
+                      <Importance />
                     </Widget>
                   </Col>
                 </Row>

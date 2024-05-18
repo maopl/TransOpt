@@ -77,8 +77,7 @@ class Sidebar extends React.Component {
                 }}
             >
                 <header className={s.logo}>
-                    <a href="https://demo.flatlogic.com/light-blue-react/">Light <span
-                        className="fw-bold">Blue</span></a>
+                    <span className="fw-bold">Transfer Optimization System</span>
                 </header>
                 <ul className={s.nav}>
                     <LinksGroup
@@ -90,7 +89,7 @@ class Sidebar extends React.Component {
                         link="/app/main"
                         index="main"
                     />
-                    <h5 className={[s.navTitle, s.groupTitle].join(' ')}>TEMPLATE</h5>
+                    <h5 className={[s.navTitle, s.groupTitle].join(' ')}>FUNCTIONS</h5>
                     <LinksGroup
                         onActiveSidebarItemChange={activeItem => this.props.dispatch(changeActiveSidebarItem(activeItem))}
                         activeItem={this.props.activeItem}

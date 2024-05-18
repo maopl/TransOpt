@@ -2,11 +2,8 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Switch, Route, Redirect } from 'react-router';
 import { HashRouter } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
 
-/* eslint-disable */
-import ErrorPage from '../pages/error/ErrorPage';
-/* eslint-enable */
+
 
 import '../styles/theme.scss';
 import LayoutComponent from '../components/Layout';
@@ -17,17 +14,10 @@ const PrivateRoute = ({dispatch, component, ...rest }) => {
         );
 };
 
-const CloseButton = ({closeToast}) => <i onClick={closeToast} className="la la-close notifications-close"/>
-
 class App extends React.PureComponent {
   render() {
     return (
         <div>
-            <ToastContainer
-                autoClose={5000}
-                hideProgressBar
-                closeButton={<CloseButton/>}
-            />
             <HashRouter>
                 <Switch>
                     <Route path="/" exact render={() => <Redirect to="/app/main"/>}/>

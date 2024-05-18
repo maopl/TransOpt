@@ -91,6 +91,16 @@ class Sidebar extends React.Component {
                     />
                     <h5 className={[s.navTitle, s.groupTitle].join(' ')}>FUNCTIONS</h5>
                     <LinksGroup
+                        onActiveSidebarItemChange={t => this.props.dispatch(changeActiveSidebarItem(t))}
+                        activeItem={this.props.activeItem}
+                        header="Problem specification"
+                        isHeader
+                        iconName={<TypographyIcon className={s.menuIcon} />}
+                        link="/app/Problem"
+                        index="tables"
+                    />
+
+                    <LinksGroup
                         onActiveSidebarItemChange={activeItem => this.props.dispatch(changeActiveSidebarItem(activeItem))}
                         activeItem={this.props.activeItem}
                         header="Configuration"

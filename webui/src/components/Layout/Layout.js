@@ -7,6 +7,7 @@ import Hammer from 'rc-hammerjs';
 
 import Dashboard from '../../pages/dashboard/Dashboard';
 import Configuration from '../../pages/configuration/Configuration';
+import Problem from '../../pages/problem/problem';
 import Comparision from '../../pages/comparison/Comparison';
 import Chatbot from '../../pages/chatbot/Chatbot';
 
@@ -72,6 +73,7 @@ class Layout extends React.Component {
                   <Switch>
                     <Route path="/app/main" exact render={() => <Redirect to="/app/Dashboard" />} />
                     <Route path="/app/Dashboard" exact component={Dashboard} />
+                    <Route path="/app/Problem" exact component={Problem} />
                     <Route path="/app/Configuration" exact component={Configuration} />
                     <Route path="/app/Comparision" exact component={Comparision} />
                     <Route path="/app/chatbot" exact component={Chatbot} />

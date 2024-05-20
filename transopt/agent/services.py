@@ -23,6 +23,7 @@ class Services:
         
         # DataManager for general tasks, not specific optimization tasks
         self.data_manager = DataManager()
+        self.tasks_info = []
 
         self.openai_chat = OpenAIChat(
             api_key=self.config.OPENAI_API_KEY,
@@ -250,9 +251,11 @@ class Services:
     
     def set_metadata(self, dataset_names):
         self.running_config.set_metadata(dataset_names)
+        pass
 
     def receive_tasks(self, tasks_info):
         tasks = {}
+        self.tasks_info = tasks_info
         for task in tasks_info:
             workloads = [int(item) for item in task["workloads"].split(",")]
             tasks[task["name"]] = {
@@ -595,3 +598,10 @@ class Services:
     
     def construct_importance_data(self, name, var_data, obj_data, variables):
         plot_network(np.array(var_data), np.array(obj_data), variables)
+
+    def get_configuration(self):
+        configuration_info = {}
+        configuration_info["tasks"] = self.tasks_info
+        configuration_info["optimizer"] = self.running_config.optimizer
+        configuration_info["datasets"] = self.running_config.metadata
+        return configuration_info

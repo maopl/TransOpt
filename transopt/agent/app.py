@@ -130,6 +130,10 @@ def configuration_dataset():
     #     "object": "Space refiner",
     #     "datasets": ["dataset1", "dataset2]
     # }
+    if metadata_info['object'] == 'Space refiner':
+        metadata_info['object'] = 'SpaceRefiner'
+    if metadata_info['object'] == 'Acquisition function':
+        metadata_info['object'] = 'ACF'
     try:
         services.set_metadata(metadata_info)
     except Exception as e:
@@ -213,10 +217,10 @@ def run_page_get_info():
     data = request.json
     user_input = data.get("action", "")
 
-    task_data = services.get_modules()
+    task_data = services.get_configuration()
     with open('transopt/agent/page_service_data/configuration_info.json', 'r') as file:
         data = json.load(file)
-    return jsonify(data), 200
+    return jsonify(task_data), 200
 
 
 @app.route("/api/comparison/selections", methods=["POST"])

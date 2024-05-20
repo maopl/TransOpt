@@ -126,7 +126,7 @@ function SelectData({DatasetData, set_dataset}) {
             },
           }}        
         >
-          <div style={{ overflowY: 'auto', maxHeight: '150px' }}>
+          <div style={{ overflowY: 'auto', maxHeight: '300px' }}>
             <Checkbox indeterminate={indeterminate} onChange={onCheckAllChange} checked={checkAll}>
                 Check all
             </Checkbox>

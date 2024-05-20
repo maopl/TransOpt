@@ -7,7 +7,8 @@ import Hammer from 'rc-hammerjs';
 
 import Dashboard from '../../pages/dashboard/Dashboard';
 import Problem from '../../pages/problem/problem';
-import Configuration from '../../pages/configuration/Configuration';
+import Optimizer from '../../pages/optimizer/Optimizer';
+import Dataselector from '../../pages/dataselector/Dataselector';
 import RunPage from '../../pages/run_page/RunPage';
 import Comparision from '../../pages/comparison/Comparison';
 import Chatbot from '../../pages/chatbot/Chatbot';
@@ -75,7 +76,8 @@ class Layout extends React.Component {
                     <Route path="/app/main" exact render={() => <Redirect to="/app/Dashboard" />} />
                     <Route path="/app/Dashboard" exact component={Dashboard} />
                     <Route path="/app/Problem" exact component={Problem} />
-                    <Route path="/app/Configuration" exact component={Configuration} />
+                    <Route path="/app/Optimizer" exact component={Optimizer} />
+                    <Route path="/app/Dataselector" exact component={Dataselector} />
                     <Route path="/app/Run" exact component={RunPage} />
                     <Route path="/app/Comparision" exact component={Comparision} />
                     <Route path="/app/chatbot" exact component={Chatbot} />

@@ -3,22 +3,15 @@ import {
   Row,
   Col,
 } from "reactstrap";
-import { Button, Modal } from "antd";
 
-import s from "./Configuration.module.scss"
+import s from "./Optimizer.module.scss"
 
 import Widget from "../../components/Widget/Widget";
 
-import SelectTask from "./component/SelectTask";
 import SelectPlugins from "./component/SelectPlugin";
-import SelectData from "./component/SelectData";
-import SearchData from "./component/SearchData"
-import Run from "./component/Run"
-import RunProgress from "./component/RunProgress"
 
 
-
-class Configuration extends React.Component {
+class Optimizer extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -76,7 +69,7 @@ class Configuration extends React.Component {
       return (
         <div className={s.root}>
           <h1 className="page-title">
-            Experiment - <span className="fw-semi-bold">Configuration</span>
+            Experiment - <span className="fw-semi-bold">Optimizer</span>
           </h1>
         </div>
       )
@@ -84,7 +77,7 @@ class Configuration extends React.Component {
       return (
         <div className={s.root}>
           <h1 className="page-title">
-            Experiment - <span className="fw-semi-bold">Configuration</span>
+            Experiment - <span className="fw-semi-bold">Optimizer</span>
           </h1>
             <Row>
               <Col lg={12} sm={12}>
@@ -106,35 +99,6 @@ class Configuration extends React.Component {
                   />
                 </Widget>
               </Col>
-              <Col lg={12} sm={12}> 
-                <Widget
-                  title={
-                    <h5>
-                      3. <span className="fw-semi-bold">Choose Datasets</span>
-                    </h5>
-                  }
-                  collapse
-                >
-                  <SearchData set_dataset={this.set_dataset}/>
-                  <p>
-                    Choose the datasets you want to use in the experiment.
-                  </p>
-                  <SelectData DatasetData={this.state.DatasetData} set_dataset={this.set_dataset}/>
-                </Widget>
-              </Col>
-              {/* <Col lg={12} sm={12}>
-                <Widget
-                  title={
-                    <h5>
-                      4. <span className="fw-semi-bold">Run</span>
-                    </h5>
-                  }
-                  collapse
-                >
-                  <Run />
-                  <RunProgress />
-                </Widget>
-              </Col> */}
             </Row>
         </div>
       );
@@ -142,4 +106,4 @@ class Configuration extends React.Component {
   }
 }
 
-export default Configuration;
+export default Optimizer;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Row, Col } from 'reactstrap';
-import s from '../configuration/Configuration.module.scss';
+import s from '../optimizer/Optimizer.module.scss';
 import Widget from '../../components/Widget/Widget';
 import ChatUI from './ChatUI'
 

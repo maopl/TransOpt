@@ -168,7 +168,7 @@ function SelectTask({data}) {
       <Form.List name="Tasks">
         {(fields, { add, remove }) => (
           <>
-            <div style={{ overflowY: 'auto', maxHeight: '150px' }}>
+            <div>
             {fields.map(({ key, name, ...restField }) => (
               <ATask key={key} name={name} restField={restField} remove={remove} data={data} />
             ))}

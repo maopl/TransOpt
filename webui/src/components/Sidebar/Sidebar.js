@@ -13,8 +13,6 @@ import HomeIcon from '../Icons/SidebarIcons/HomeIcon';
 import TypographyIcon from '../Icons/SidebarIcons/TypographyIcon';
 import TablesIcon from '../Icons/SidebarIcons/TablesIcon';
 import NotificationsIcon from '../Icons/SidebarIcons/NotificationsIcon';
-import ComponentsIcon from '../Icons/SidebarIcons/ComponentsIcon';
-
 
 
 class Sidebar extends React.Component {
@@ -99,15 +97,23 @@ class Sidebar extends React.Component {
                         link="/app/Problem"
                         index="problem"
                     />
-
                     <LinksGroup
                         onActiveSidebarItemChange={activeItem => this.props.dispatch(changeActiveSidebarItem(activeItem))}
                         activeItem={this.props.activeItem}
-                        header="Configuration"
+                        header="Optimizer"
                         isHeader
                         iconName={<TypographyIcon className={s.menuIcon} />}
-                        link="/app/Configuration"
-                        index="configuration"
+                        link="/app/Optimizer"
+                        index="optimizer"
+                    />
+                    <LinksGroup
+                        onActiveSidebarItemChange={activeItem => this.props.dispatch(changeActiveSidebarItem(activeItem))}
+                        activeItem={this.props.activeItem}
+                        header="Dataselector"
+                        isHeader
+                        iconName={<TypographyIcon className={s.menuIcon} />}
+                        link="/app/Dataselector"
+                        index="dataselector"
                     />
                     <LinksGroup
                         onActiveSidebarItemChange={t => this.props.dispatch(changeActiveSidebarItem(t))}

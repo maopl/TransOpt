@@ -91,7 +91,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
               NormalizerDataSelectorParameters: '',
             }}
         >
-          <div style={{ overflowY: 'auto', maxHeight: '200px' }}>
+          <div>
             <div>
                 <h5 style={{color:"#f4f4f599"}}>
                   <span className="fw-semi-bold">Space refiner</span>

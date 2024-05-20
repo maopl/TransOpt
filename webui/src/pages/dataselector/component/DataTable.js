@@ -3,8 +3,8 @@ import {
   Table,
 } from "reactstrap";
 
-function DataTable({datasets}) {
-    // console.log("datasets",datasets);
+function DataTable({ SpaceRefiner, Sampler, Pretrain, Model, ACF, Normalizer}) {
+    console.log("SpaceRefiner",SpaceRefiner);
     return (
         <Table lg={12} md={12} sm={12} striped>
             <thead>
@@ -16,27 +16,27 @@ function DataTable({datasets}) {
             <tbody>
                 <tr key="SpaceRefiner">
                     <td>Space Refiner</td>
-                    <td>{datasets.SpaceRefiner}</td>
+                    <td>{SpaceRefiner.join(', ')}</td>
                 </tr>
                 <tr key="Sampler">
                     <td>Sampler</td>
-                    <td>{datasets.Sampler}</td>
+                    <td>{Sampler.join(', ')}</td>
                 </tr>
                 <tr key="Pretrain">
                     <td>Pretrain</td>
-                    <td>{datasets.Pretrain}</td>
+                    <td>{Pretrain.join(', ')}</td>
                 </tr>
                 <tr key="Model">
                     <td>Model</td>
-                    <td>{datasets.Model}</td>
+                    <td>{Model.join(', ')}</td>
                 </tr>
                 <tr key="ACF">
                     <td>ACF</td>
-                    <td>{datasets.ACF}</td>
+                    <td>{ACF.join(', ')}</td>
                 </tr>
                 <tr key="Normalizer">
                     <td>Normalizer</td>
-                    <td>{datasets.Normalizer}</td>
+                    <td>{Normalizer.join(', ')}</td>
                 </tr>
             </tbody>
         </Table>

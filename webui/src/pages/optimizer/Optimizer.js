@@ -28,9 +28,8 @@ class Optimizer extends React.Component {
     };
   }
 
-  set_dataset = (datasets) => {
-    console.log(datasets)
-    this.setState({ DatasetData: datasets })
+  updateTable = (newOptimizer) => {
+    this.setState({ optimizer: newOptimizer });
   }
 
   render() {
@@ -118,6 +117,7 @@ class Optimizer extends React.Component {
                                     ACF={this.state.ACF}
                                     DataSelector={this.state.DataSelector}
                                     Normalizer={this.state.Normalizer}
+                                    updateTable={this.updateTable}
                   />
                 </Widget>
               </Col>

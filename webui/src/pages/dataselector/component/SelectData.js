@@ -10,7 +10,7 @@ import {
 
 const CheckboxGroup = Checkbox.Group;
 
-function SelectData({DatasetData, set_dataset}) {
+function SelectData({DatasetData, set_dataset, updateTable}) {
     var data = []
     if (DatasetData.isExact) {
       data = [DatasetData.datasets.name]
@@ -38,6 +38,7 @@ function SelectData({DatasetData, set_dataset}) {
         object: selectedOption,
         datasets: datasetList,
       }
+      updateTable(messageToSend)
       console.log(messageToSend)
       fetch('http://localhost:5000/api/configuration/dataset', {
         method: 'POST',

@@ -16,27 +16,27 @@ function DataTable({datasets}) {
             <tbody>
                 <tr key="SpaceRefiner">
                     <td>Space Refiner</td>
-                    <td>{datasets.SpaceRefiner}</td>
+                    <td>{datasets.SpaceRefiner.join(', ')}</td>
                 </tr>
                 <tr key="Sampler">
                     <td>Sampler</td>
-                    <td>{datasets.Sampler}</td>
+                    <td>{datasets.Sampler.join(', ')}</td>
                 </tr>
                 <tr key="Pretrain">
                     <td>Pretrain</td>
-                    <td>{datasets.Pretrain}</td>
+                    <td>{datasets.Pretrain.join(', ')}</td>
                 </tr>
                 <tr key="Model">
                     <td>Model</td>
-                    <td>{datasets.Model}</td>
+                    <td>{datasets.Model.join(', ')}</td>
                 </tr>
                 <tr key="ACF">
                     <td>ACF</td>
-                    <td>{datasets.ACF}</td>
+                    <td>{datasets.ACF.join(', ')}</td>
                 </tr>
                 <tr key="Normalizer">
                     <td>Normalizer</td>
-                    <td>{datasets.Normalizer}</td>
+                    <td>{datasets.Normalizer.join(', ')}</td>
                 </tr>
             </tbody>
         </Table>

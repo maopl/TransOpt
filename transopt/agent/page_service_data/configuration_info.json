@@ -46,11 +46,11 @@
         "NormalizerDataSelectorParameters": ""
     },
     "datasets": {
-        "SpaceRefiner": "",
-        "Sampler": "",
-        "Pretrain": "",
-        "Model": "",
-        "ACF": "",
-        "Normalizer": ""
+        "SpaceRefiner": [],
+        "Sampler": [],
+        "Pretrain": [],
+        "Model": [],
+        "ACF": [],
+        "Normalizer": []
     }
 }

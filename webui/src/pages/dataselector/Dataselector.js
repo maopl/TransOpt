@@ -18,9 +18,31 @@ class Dataselector extends React.Component {
     super(props);
     this.state = {
       get_info: false,
-      datasets: {},
-      DatasetData: {"isExact": false, "datasets": []}
+      DatasetData: {"isExact": false, "datasets": []},
+      SpaceRefiner: [],
+      Sampler: [],
+      Pretrain: [],
+      Model: [],
+      ACF: [],
+      Normalizer: [],
     };
+  }
+
+  updateTable = (newDatasets) => {
+    const { object, datasets } = newDatasets;
+    if (object === "Space refiner") {
+      this.setState({ SpaceRefiner: datasets })
+    } else if (object === "Sampler") {
+      this.setState({ Sampler: datasets })
+    } else if (object === "Pretrain") {
+      this.setState({ Pretrain: datasets })
+    } else if (object === "Model") {
+      this.setState({ Model: datasets })
+    } else if (object === "Acquisition function") {
+      this.setState({ ACF: datasets })
+    } else if (object === "Normalizer") {
+      this.setState({ Normalizer: datasets })
+    }
   }
 
   set_dataset = (datasets) => {
@@ -50,7 +72,13 @@ class Dataselector extends React.Component {
       .then(data => {
         console.log('Configuration infomation from back-end:', data);
         this.setState({ get_info: true,  
-                        datasets: data.datasets});
+                        SpaceRefiner: data.datasets.SpaceRefiner,
+                        Sampler: data.datasets.Sampler,
+                        Pretrain: data.datasets.Pretrain,
+                        Model: data.datasets.Model,
+                        ACF: data.datasets.ACF,
+                        Normalizer: data.datasets.Normalizer,
+                      });
       })
       .catch((error) => {
         console.error('Error sending message:', error);
@@ -82,7 +110,7 @@ class Dataselector extends React.Component {
                   <p>
                     Choose the datasets you want to use in the experiment.
                   </p>
-                  <SelectData DatasetData={this.state.DatasetData} set_dataset={this.set_dataset}/>
+                  <SelectData DatasetData={this.state.DatasetData} set_dataset={this.set_dataset} updateTable={this.updateTable} />
                 </Widget>
               </Col>
               <Col lg={12} xs={12}>
@@ -94,7 +122,13 @@ class Dataselector extends React.Component {
                   }
                   collapse
                 >
-                  <DataTable datasets={this.state.datasets} />
+                  <DataTable SpaceRefiner={this.state.SpaceRefiner} 
+                              Sampler={this.state.Sampler} 
+                              Pretrain={this.state.Pretrain} 
+                              Model={this.state.Model} 
+                              ACF={this.state.ACF} 
+                              Normalizer={this.state.Normalizer}
+                  />
                 </Widget>
               </Col>
             </Row>

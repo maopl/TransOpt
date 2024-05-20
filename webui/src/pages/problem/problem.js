@@ -21,9 +21,8 @@ class Problem extends React.Component {
     };
   }
 
-  set_dataset = (datasets) => {
-    console.log(datasets)
-    this.setState({ DatasetData: datasets })
+  updateTable = (newTasks) => {
+    this.setState({ tasks: newTasks });
   }
 
   render() {
@@ -96,7 +95,7 @@ class Problem extends React.Component {
                   }
                   collapse
                 >
-                  <SelectTask data={this.state.TasksData}/>
+                  <SelectTask data={this.state.TasksData} updateTable={this.updateTable}/>
                 </Widget>
               </Col>
               <Col lg={12} sm={12}>

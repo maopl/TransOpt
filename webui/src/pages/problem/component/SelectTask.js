@@ -114,7 +114,7 @@ function ATask({key, name, restField, remove, data}) {
     )
 }
 
-function SelectTask({data}) {
+function SelectTask({data, updateTable}) {
   const onFinish = (values) => {
     // 构造要发送到后端的数据
     const messageToSend = values.Tasks.map(task => ({
@@ -126,6 +126,7 @@ function SelectTask({data}) {
       budget_type: task.budget_type,
       budget: task.budget,
     }));
+    updateTable(messageToSend);
     console.log('Request data:', messageToSend);
     // 向后端发送请求...
     fetch('http://localhost:5000/api/configuration/select_task', {

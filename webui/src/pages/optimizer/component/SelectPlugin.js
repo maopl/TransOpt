@@ -9,12 +9,13 @@ import {
     Modal,
 } from "antd";
 
-function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelector, Normalizer}) {
+function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelector, Normalizer, updateTable}) {
     const [form] = Form.useForm()
 
     const onFinish = (values) => {
         // 构造要发送到后端的数据
         const messageToSend = values;
+        updateTable(messageToSend)
         console.log('Request data:', messageToSend);
         // 向后端发送请求...
         fetch('http://localhost:5000/api/configuration/select_algorithm', {

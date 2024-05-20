@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Row, Col, Button } from "reactstrap";
+import { Row, Col } from "reactstrap";
 
 import s from "./RunPage.module.scss";
 import Widget from "../../components/Widget/Widget";
@@ -83,7 +83,7 @@ class RunPage extends React.Component {
                   collapse
                 >
                   <h4>
-                    Tasks
+                    Problems
                   </h4>
                   <TaskTable tasks={this.state.tasks} />
                   <h4>

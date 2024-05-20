@@ -9,6 +9,7 @@ import s from "./Optimizer.module.scss"
 import Widget from "../../components/Widget/Widget";
 
 import SelectPlugins from "./component/SelectPlugin";
+import OptTable from "./component/OptTable";
 
 
 class Optimizer extends React.Component {
@@ -23,7 +24,7 @@ class Optimizer extends React.Component {
       ACF: [],
       DataSelector: [],
       Normalizer: [],
-      DatasetData: {"isExact": false, "datasets": []}
+      optimizer: {},
     };
   }
 
@@ -66,6 +67,27 @@ class Optimizer extends React.Component {
         console.error('Error sending message:', error);
       });
 
+      fetch('http://localhost:5000/api/RunPage/get_info', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(messageToSend),
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        } 
+        return response.json();
+      })
+      .then(data => {
+        console.log('Configuration infomation from back-end:', data);
+        this.setState({ optimizer: data.optimizer });
+      })
+      .catch((error) => {
+        console.error('Error sending message:', error);
+      });
+
       return (
         <div className={s.root}>
           <h1 className="page-title">
@@ -97,6 +119,18 @@ class Optimizer extends React.Component {
                                     DataSelector={this.state.DataSelector}
                                     Normalizer={this.state.Normalizer}
                   />
+                </Widget>
+              </Col>
+              <Col lg={12} sm={12}>
+                <Widget
+                  title={
+                    <h5>
+                      <span className="fw-semi-bold">Selected Optimizer</span>
+                    </h5>
+                  }
+                  collapse
+                >
+                  <OptTable optimizer={this.state.optimizer} />
                 </Widget>
               </Col>
             </Row>

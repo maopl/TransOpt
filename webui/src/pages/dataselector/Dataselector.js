@@ -10,20 +10,15 @@ import Widget from "../../components/Widget/Widget";
 
 import SelectData from "./component/SelectData";
 import SearchData from "./component/SearchData"
+import DataTable from "./component/DataTable";
 
 
 class Dataselector extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      TasksData: [],
-      SpaceRefiner: [],
-      Sampler: [],
-      Pretrain: [],
-      Model: [],
-      ACF: [],
-      DataSelector: [],
-      Normalizer: [],
+      get_info: false,
+      datasets: {},
       DatasetData: {"isExact": false, "datasets": []}
     };
   }
@@ -34,11 +29,12 @@ class Dataselector extends React.Component {
   }
 
   render() {
-    if (this.state.TasksData.length === 0) {
+    if (this.state.get_info === false) {
+      // TODO: ask for task list from back-end
       const messageToSend = {
-        action: 'ask for basic information',
+        action: 'ask for information',
       }
-      fetch('http://localhost:5000/api/configuration/basic_information', {
+      fetch('http://localhost:5000/api/RunPage/get_info', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,21 +48,13 @@ class Dataselector extends React.Component {
         return response.json();
       })
       .then(data => {
-        console.log('Message from back-end:', data);
-        this.setState({ TasksData: data.TasksData,
-                        SpaceRefiner: data.SpaceRefiner,
-                        Sampler: data.Sampler,
-                        Pretrain: data.Pretrain,
-                        Model: data.Model,
-                        ACF: data.ACF,
-                        DataSelector: data.DataSelector,
-                        Normalizer: data.Normalizer,
-                      });
+        console.log('Configuration infomation from back-end:', data);
+        this.setState({ get_info: true,  
+                        datasets: data.datasets});
       })
       .catch((error) => {
         console.error('Error sending message:', error);
       });
-
       return (
         <div className={s.root}>
           <h1 className="page-title">
@@ -74,7 +62,7 @@ class Dataselector extends React.Component {
           </h1>
         </div>
       )
-    } else {
+  } else {
       return (
         <div className={s.root}>
           <h1 className="page-title">
@@ -95,6 +83,18 @@ class Dataselector extends React.Component {
                     Choose the datasets you want to use in the experiment.
                   </p>
                   <SelectData DatasetData={this.state.DatasetData} set_dataset={this.set_dataset}/>
+                </Widget>
+              </Col>
+              <Col lg={12} xs={12}>
+                <Widget
+                  title={
+                    <h5>
+                      <span className="fw-semi-bold">Selected Datasets</span>
+                    </h5>
+                  }
+                  collapse
+                >
+                  <DataTable datasets={this.state.datasets} />
                 </Widget>
               </Col>
             </Row>

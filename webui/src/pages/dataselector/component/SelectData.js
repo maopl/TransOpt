@@ -160,7 +160,7 @@ function SelectData({DatasetData, updateTable, DatasetSelector}) {
             <Select
             style={{minWidth: 90, margin:5}}
             placeholder = "Dataset Selector"
-            options = {DatasetSelector.map(item => ({ value: item.name }))}
+            options = {DatasetSelector.map(item => ({ value: item.name })).concat({ value: "None" })}
             onChange={handleSelectorChange}
             />
             <Input style={{width: 400, margin:5}} placeholder="Parameters" onChange={handleParameterChange}/>

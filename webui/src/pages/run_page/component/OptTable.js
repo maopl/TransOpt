@@ -37,24 +37,6 @@ function OptTable({optimizer}) {
                     <td>{optimizer.ACFParameters}</td>
                     <td>{optimizer.NormalizerParameters}</td>
                 </tr>
-                <tr key="DataSelector">
-                    <td>DataSelector</td>
-                    <td>{optimizer.SpaceRefinerDataSelector}</td>
-                    <td>{optimizer.SamplerDataSelector}</td>
-                    <td>{optimizer.PretrainDataSelector}</td>
-                    <td>{optimizer.ModelDataSelector}</td>
-                    <td>{optimizer.ACFDataSelector}</td>
-                    <td>{optimizer.NormalizerDataSelector}</td>
-                </tr>
-                <tr key="DataSelectorParameters">
-                    <td>Parameters</td>
-                    <td>{optimizer.SpaceRefinerDataSelectorParameters}</td>
-                    <td>{optimizer.SamplerDataSelectorParameters}</td>
-                    <td>{optimizer.PretrainDataSelectorParameters}</td>
-                    <td>{optimizer.ModelDataSelectorParameters}</td>
-                    <td>{optimizer.ACFDataSelectorParameters}</td>
-                    <td>{optimizer.NormalizerDataSelectorParameters}</td>
-                </tr>
             </tbody>
         </Table>
     );

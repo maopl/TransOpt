@@ -6,11 +6,12 @@ import {
     ConfigProvider,
     Modal,
     Select,
+    Input,
 } from "antd";
 
 const CheckboxGroup = Checkbox.Group;
 
-function SelectData({DatasetData, set_dataset, updateTable}) {
+function SelectData({DatasetData, updateTable, DatasetSelector}) {
     var data = []
     if (DatasetData.isExact) {
       data = [DatasetData.datasets.name]
@@ -19,6 +20,8 @@ function SelectData({DatasetData, set_dataset, updateTable}) {
     }
     const [checkedList, setCheckedList] = useState([]);
     const [selectedOption, setSelectedOption] = useState();
+    const [selector, setSelector] = useState("None");
+    const [parameter, setParameter] = useState("");
     const checkAll = data.length === checkedList.length;
     const indeterminate = checkedList.length > 0 && checkedList.length < data.length;
     const onChange = (list) => {
@@ -30,12 +33,20 @@ function SelectData({DatasetData, set_dataset, updateTable}) {
     const handleSelectChange = (value) => {
       setSelectedOption(value); // 当选择发生变化时更新选项
     };
+    const handleSelectorChange = (value) => {
+      setSelector(value); 
+    };
+    const handleParameterChange = (event) => {
+      setParameter(event.target.value);
+    };
     const handleClick = () => {
       const datasetList = checkedList.map(item => {
         return item;
       });
       const messageToSend = {
         object: selectedOption,
+        DatasetSelector: selector,
+        parameter: parameter,
         datasets: datasetList,
       }
       updateTable(messageToSend)
@@ -136,7 +147,7 @@ function SelectData({DatasetData, set_dataset, updateTable}) {
           <Info  isExact={DatasetData.isExact} data={DatasetData.datasets}/>
           <div style={{marginTop:"20px"}}>
             <Select
-            style={{minWidth: 170}}
+            style={{minWidth: 170, margin: 5}}
             options={[ {value: "Narrow Search Space"},
                         {value: "Initialization"},
                         {value: "Pre-train"},
@@ -146,10 +157,17 @@ function SelectData({DatasetData, set_dataset, updateTable}) {
                     ]}
             onChange={handleSelectChange}
             />
-            <Button type="primary" htmlType="submit" style={{width:"120px", marginLeft:10}} onClick={handleClick}>
+            <Select
+            style={{minWidth: 90, margin:5}}
+            placeholder = "Dataset Selector"
+            options = {DatasetSelector.map(item => ({ value: item.name }))}
+            onChange={handleSelectorChange}
+            />
+            <Input style={{width: 400, margin:5}} placeholder="Parameters" onChange={handleParameterChange}/>
+            <Button type="primary" htmlType="submit" style={{width:"120px", margin:5}} onClick={handleClick}>
               Submit
             </Button>
-            <Button danger style={{width:"120px", marginLeft:10}} onClick={handleDelete}>
+            <Button danger style={{width:"120px", margin:5}} onClick={handleDelete}>
               Delete
             </Button>
           </div>

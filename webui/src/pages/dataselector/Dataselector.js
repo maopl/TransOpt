@@ -20,28 +20,42 @@ class Dataselector extends React.Component {
       get_info: false,
       DatasetData: {"isExact": false, "datasets": []},
       SpaceRefiner: [],
+      SpaceRefinerDataSelector: "",
+      SpaceRefinerDataSelectorParameters: "",
       Sampler: [],
+      SamplerDataSelector: "",
+      SamplerDataSelectorParameters: "",
       Pretrain: [],
+      PretrainDataSelector: "",
+      PretrainDataSelectorParameters: "",
       Model: [],
+      ModelDataSelector: "",
+      ModelDataSelectorParameters: "",
       ACF: [],
+      ACFDataSelector: "",
+      ACFDataSelectorParameters: "",
       Normalizer: [],
+      NormalizerDataSelector: "",
+      NormalizerDataSelectorParameters: "",
+      DatasetSelector: [],
     };
   }
 
   updateTable = (newDatasets) => {
-    const { object, datasets } = newDatasets;
-    if (object === "Space refiner") {
-      this.setState({ SpaceRefiner: datasets })
-    } else if (object === "Sampler") {
-      this.setState({ Sampler: datasets })
-    } else if (object === "Pretrain") {
-      this.setState({ Pretrain: datasets })
-    } else if (object === "Model") {
-      this.setState({ Model: datasets })
-    } else if (object === "Acquisition function") {
-      this.setState({ ACF: datasets })
+    console.log("newDatasets", newDatasets)
+    const { object, DatasetSelector, parameter, datasets } = newDatasets;
+    if (object === "Narrow Search Space") {
+      this.setState({ SpaceRefiner: datasets, SpaceRefinerDataSelector: DatasetSelector, SpaceRefinerDataSelectorParameters: parameter})
+    } else if (object === "Initialization") {
+      this.setState({ Sampler: datasets, SamplerDataSelector: DatasetSelector, SamplerDataSelectorParameters: parameter})
+    } else if (object === "Pre-train") {
+      this.setState({ Pretrain: datasets, PretrainDataSelector: DatasetSelector, PretrainDataSelectorParameters: parameter})
+    } else if (object === "Surrogate Model") {
+      this.setState({ Model: datasets, ModelDataSelector: DatasetSelector, ModelDataSelectorParameters: parameter})
+    } else if (object === "Acquisition Function") {
+      this.setState({ ACF: datasets, ACFDataSelector: DatasetSelector, ACFDataSelectorParameters: parameter})
     } else if (object === "Normalizer") {
-      this.setState({ Normalizer: datasets })
+      this.setState({ Normalizer: datasets, NormalizerDataSelector: DatasetSelector, NormalizerDataSelectorParameters: parameter})
     }
   }
 
@@ -78,11 +92,24 @@ class Dataselector extends React.Component {
                         Model: data.datasets.Model,
                         ACF: data.datasets.ACF,
                         Normalizer: data.datasets.Normalizer,
+                        SpaceRefinerDataSelector: data.optimizer.SpaceRefinerDataSelector,
+                        SpaceRefinerDataSelectorParameters: data.optimizer.SpaceRefinerDataSelectorParameters,
+                        SamplerDataSelector: data.optimizer.SamplerDataSelector,
+                        SamplerDataSelectorParameters: data.optimizer.SamplerDataSelectorParameters,
+                        PretrainDataSelector: data.optimizer.PretrainDataSelector,
+                        PretrainDataSelectorParameters: data.optimizer.PretrainDataSelectorParameters,
+                        ModelDataSelector: data.optimizer.ModelDataSelector,
+                        ModelDataSelectorParameters: data.optimizer.ModelDataSelectorParameters,
+                        ACFDataSelector: data.optimizer.ACFDataSelector,
+                        ACFDataSelectorParameters: data.optimizer.ACFDataSelectorParameters,
+                        NormalizerDataSelector: data.optimizer.NormalizerDataSelector,
+                        NormalizerDataSelectorParameters: data.optimizer.NormalizerDataSelectorParameters,
                       });
       })
       .catch((error) => {
         console.error('Error sending message:', error);
       });
+
       return (
         <div className={s.root}>
           <h1 className="page-title">
@@ -103,7 +130,7 @@ class Dataselector extends React.Component {
                   <p>
                     Choose the datasets you want to use in the experiment.
                   </p>
-                  <SelectData DatasetData={this.state.DatasetData} set_dataset={this.set_dataset} updateTable={this.updateTable} />
+                  <SelectData DatasetData={this.state.DatasetData} updateTable={this.updateTable} DatasetSelector={this.state.DatasetSelector}/>
                 </Widget>
               </Col>
               <Col lg={12} xs={12}>
@@ -116,11 +143,23 @@ class Dataselector extends React.Component {
                   collapse
                 >
                   <DataTable SpaceRefiner={this.state.SpaceRefiner} 
+                              SpaceRefinerDataSelector={this.state.SpaceRefinerDataSelector}
+                              SpaceRefinerDataSelectorParameters={this.state.SpaceRefinerDataSelectorParameters}
                               Sampler={this.state.Sampler} 
+                              SamplerDataSelector={this.state.SamplerDataSelector}
+                              SamplerDataSelectorParameters={this.state.SamplerDataSelectorParameters}
                               Pretrain={this.state.Pretrain} 
+                              PretrainDataSelector={this.state.PretrainDataSelector}
+                              PretrainDataSelectorParameters={this.state.PretrainDataSelectorParameters}
                               Model={this.state.Model} 
+                              ModelDataSelector={this.state.ModelDataSelector}
+                              ModelDataSelectorParameters={this.state.ModelDataSelectorParameters}
                               ACF={this.state.ACF} 
+                              ACFDataSelector={this.state.ACFDataSelector}
+                              ACFDataSelectorParameters={this.state.ACFDataSelectorParameters}
                               Normalizer={this.state.Normalizer}
+                              NormalizerDataSelector={this.state.NormalizerDataSelector}
+                              NormalizerDataSelectorParameters={this.state.NormalizerDataSelectorParameters}
                   />
                 </Widget>
               </Col>

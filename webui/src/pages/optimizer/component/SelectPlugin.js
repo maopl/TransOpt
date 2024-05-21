@@ -101,7 +101,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
               <Form.Item
                 name={'SpaceRefiner'}
-                style={{ marginRight: 8 , width: 150}}
+                style={{ marginRight: 8 , width: 300}}
               >
                 <Select 
                   placeholder="name"
@@ -115,21 +115,16 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
               >
                 <Input placeholder="Parameters"/>
               </Form.Item>
-              <h7 style={{color:"white", marginRight:8}}>DataSelector: </h7>
+              {/* <h7 style={{color:"white", marginRight:8}}>DataSelector: </h7> */}
               <Form.Item
                 name={'SpaceRefinerDataSelector'}
-                style={{ marginRight: 8 , width: 150}}
               >
-                <Select
-                  placeholder="DataSelector"
-                  options={DataSelector.map(item => ({ value: item.name }))}
-                />
+                
               </Form.Item>
               <Form.Item
                 name={'SpaceRefinerDataSelectorParameters'}
-                style={{ flex: 1 }}
               >
-                <Input placeholder="Parameters"/>
+                
               </Form.Item>
             </div>
 
@@ -141,7 +136,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
               <Form.Item
                 name={'Sampler'}
-                style={{ marginRight: 8 , width: 150}}
+                style={{ marginRight: 8 , width: 300}}
               >
                 <Select
                   placeholder="name"
@@ -161,21 +156,14 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
               >
                 <Input placeholder="Initial Sample Size"/>
               </Form.Item>
-              <h7 style={{color:"white", marginRight:8}}>DataSelector: </h7>
+              {/* <h7 style={{color:"white", marginRight:8}}>DataSelector: </h7> */}
               <Form.Item
                 name={'SamplerDataSelector'}
-                style={{ marginRight: 8 , width: 150}}
               >
-                <Select
-                  placeholder="DataSelector"
-                  options={DataSelector.map(item => ({ value: item.name }))}
-                />
               </Form.Item>
               <Form.Item
                 name={'SamplerDataSelectorParameters'}
-                style={{ flex: 1 }}
               >
-                <Input placeholder="Parameters"/>
               </Form.Item>
             </div>
 
@@ -187,7 +175,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
               <Form.Item
                 name={'Pretrain'}
-                style={{ marginRight: 8 , width: 150}}
+                style={{ marginRight: 8 , width: 300}}
               >
                 <Select
                   placeholder="name"
@@ -201,21 +189,14 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
               >
                 <Input placeholder="Parameters"/>
               </Form.Item>
-              <h7 style={{color:"white", marginRight:8}}>DataSelector: </h7>
+              {/* <h7 style={{color:"white", marginRight:8}}>DataSelector: </h7> */}
               <Form.Item
                 name={'PretrainDataSelector'}
-                style={{ marginRight: 8 , width: 150}}
               >
-                <Select
-                  placeholder="DataSelector"
-                  options={DataSelector.map(item => ({ value: item.name }))}
-                />
               </Form.Item>
               <Form.Item
                 name={'PretrainDataSelectorParameters'}
-                style={{ flex: 1 }}
               >
-                <Input placeholder="Parameters"/>
               </Form.Item>
             </div>
 
@@ -227,7 +208,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
               <Form.Item
                 name={'Model'}
-                style={{ marginRight: 8 , width: 150}}
+                style={{ marginRight: 8 , width: 300}}
               >
                 <Select
                   placeholder="name"
@@ -241,21 +222,14 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
               >
                 <Input placeholder="Parameters" />
               </Form.Item>
-              <h7 style={{color:"white", marginRight:8}}>DataSelector: </h7>
+              {/* <h7 style={{color:"white", marginRight:8}}>DataSelector: </h7> */}
               <Form.Item
                 name={'ModelDataSelector'}
-                style={{ marginRight: 8 , width: 150}}
               >
-                <Select
-                  placeholder="DataSelector"
-                  options={DataSelector.map(item => ({ value: item.name }))}
-                />
               </Form.Item>
               <Form.Item
                 name={'ModelDataSelectorParameters'}
-                style={{ flex: 1 }}
               >
-                <Input placeholder="Parameters" />
               </Form.Item>
             </div>
 
@@ -267,7 +241,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
               <Form.Item
                 name={'ACF'}
-                style={{ marginRight: 8 , width: 150}}
+                style={{ marginRight: 8 , width: 300}}
               >
                 <Select
                   placeholder="name"
@@ -281,21 +255,14 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
               >
                 <Input placeholder="Parameters" />
               </Form.Item>
-              <h7 style={{color:"white", marginRight:8}}>DataSelector: </h7>
+              {/* <h7 style={{color:"white", marginRight:8}}>DataSelector: </h7> */}
               <Form.Item
                 name={'ACFDataSelector'}
-                style={{ marginRight: 8 , width: 150}}
               >
-                <Select
-                  placeholder="DataSelector"
-                  options={DataSelector.map(item => ({ value: item.name }))}
-                />
               </Form.Item>
               <Form.Item
                 name={'ACFDataSelectorParameters'}
-                style={{ flex: 1 }}
               >
-                <Input placeholder="Parameters" />
               </Form.Item>
             </div>
 
@@ -307,7 +274,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
               <Form.Item
                 name={'Normalizer'}
-                style={{ marginRight: 8 , width: 150}}
+                style={{ marginRight: 8 , width: 300}}
               >
                 <Select
                   placeholder="name"
@@ -321,21 +288,14 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
               >
                 <Input placeholder="Parameters"/>
               </Form.Item>
-              <h7 style={{color:"white", marginRight:8}}>DataSelector: </h7>
+              {/* <h7 style={{color:"white", marginRight:8}}>DataSelector: </h7> */}
               <Form.Item
                 name={'NormalizerDataSelector'}
-                style={{ marginRight: 8 , width: 150}}
               >
-                <Select
-                  placeholder="DataSelector"
-                  options={DataSelector.map(item => ({ value: item.name }))}
-                />
               </Form.Item>
               <Form.Item
                 name={'NormalizerDataSelectorParameters'}
-                style={{ flex: 1 }}
               >
-                <Input placeholder="Parameters"/>
               </Form.Item>
             </div>
           </div>

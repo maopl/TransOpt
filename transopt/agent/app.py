@@ -130,10 +130,17 @@ def configuration_dataset():
     #     "object": "Space refiner",
     #     "datasets": ["dataset1", "dataset2]
     # }
-    if metadata_info['object'] == 'Space refiner':
+    if metadata_info['object'] == 'Narrow Search Space':
         metadata_info['object'] = 'SpaceRefiner'
-    if metadata_info['object'] == 'Acquisition function':
+    elif metadata_info['object'] == 'Initialization':
+        metadata_info['object'] = 'Sampler'
+    elif metadata_info['object'] == 'Pre-train':
+        metadata_info['object'] = 'Pretrain'
+    elif metadata_info['object'] == 'Surrogate Model':
+        metadata_info['object'] = 'Model'
+    elif metadata_info['object'] == 'Acquisition Function':
         metadata_info['object'] = 'ACF'
+    
     try:
         services.set_metadata(metadata_info)
     except Exception as e:

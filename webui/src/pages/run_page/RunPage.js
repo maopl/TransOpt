@@ -93,7 +93,7 @@ class RunPage extends React.Component {
                   <h4>
                     Datasets
                   </h4>
-                  <DataTable datasets={this.state.datasets} />
+                  <DataTable datasets={this.state.datasets} optimizer={this.state.optimizer}/>
                   <Run />
                   <RunProgress />
                 </Widget>

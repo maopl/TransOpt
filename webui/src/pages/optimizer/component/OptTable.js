@@ -10,11 +10,11 @@ function OptTable({optimizer}) {
             <thead>
                 <tr className="fs-sm">
                 <th className="hidden-sm-down">#</th>
-                <th className="hidden-sm-down">Space Refiner</th>
-                <th className="hidden-sm-down">Sampler</th>
-                <th className="hidden-sm-down">Pretrain</th>
-                <th className="hidden-sm-down">Model</th>
-                <th className="hidden-sm-down">Acquisition function</th>
+                <th className="hidden-sm-down">Narrow Search Space</th>
+                <th className="hidden-sm-down">Initialization</th>
+                <th className="hidden-sm-down">Pre-train</th>
+                <th className="hidden-sm-down">Surrogate Model</th>
+                <th className="hidden-sm-down">Acquisition Function</th>
                 <th className="hidden-sm-down">Normalizer</th>
                 </tr>
             </thead>

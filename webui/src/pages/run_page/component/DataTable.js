@@ -15,23 +15,23 @@ function DataTable({datasets}) {
             </thead>
             <tbody>
                 <tr key="SpaceRefiner">
-                    <td>Space Refiner</td>
+                    <td>Narrow Search Space</td>
                     <td>{datasets.SpaceRefiner.join(', ')}</td>
                 </tr>
                 <tr key="Sampler">
-                    <td>Sampler</td>
+                    <td>Initialization</td>
                     <td>{datasets.Sampler.join(', ')}</td>
                 </tr>
                 <tr key="Pretrain">
-                    <td>Pretrain</td>
+                    <td>Pre-train</td>
                     <td>{datasets.Pretrain.join(', ')}</td>
                 </tr>
                 <tr key="Model">
-                    <td>Model</td>
+                    <td>Surrogate Model</td>
                     <td>{datasets.Model.join(', ')}</td>
                 </tr>
                 <tr key="ACF">
-                    <td>ACF</td>
+                    <td>Acquisition Function</td>
                     <td>{datasets.ACF.join(', ')}</td>
                 </tr>
                 <tr key="Normalizer">

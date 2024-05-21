@@ -18,8 +18,6 @@ class Dashboard extends React.Component {
     this.state = {
       selectedTaskIndex: -1,
       tasksInfo: [],
-      // BarData: [],
-      // RadarData: [],
       ScatterData: [],
       TrajectoryData: []
     };

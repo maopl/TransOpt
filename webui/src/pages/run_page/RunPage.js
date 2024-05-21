@@ -77,7 +77,7 @@ class RunPage extends React.Component {
                 <Widget
                   title={
                     <h5>
-                      <span className="fw-semi-bold">Configurations</span>
+                      <span className="fw-semi-bold">Experimental Setting</span>
                     </h5>
                   }
                   collapse

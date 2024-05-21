@@ -20,7 +20,7 @@ function SelectDim({anyDim, num_vars, name, restField}) {
            {...restField}
            name={[name, 'num_vars']}
          >
-        <Input placeholder="num_vars" style={{width:"70px"}} />
+        <Input placeholder="number of variables" />
         </Form.Item>
       )
   } else {
@@ -30,9 +30,8 @@ function SelectDim({anyDim, num_vars, name, restField}) {
            name={[name, 'num_vars']}
          >
            <Select
-             placeholder="num_vars"
+             placeholder="number of variables"
              options={num_vars}
-             style={{width:"70px"}}
            />
          </Form.Item>
       )
@@ -56,7 +55,7 @@ function ATask({key, name, restField, remove, data}) {
            >
              <Select
                showSearch
-               placeholder="name"
+               placeholder="problem name"
                optionFilterProp="value"
                filterOption={filterOption}
                options={data.map(item => ({ value: item.name}))}
@@ -71,7 +70,7 @@ function ATask({key, name, restField, remove, data}) {
              name={[name, 'num_objs']}           
             >
             <Select
-              placeholder="num_objs"
+              placeholder="number of objectives"
               options={selectedTask.num_objs.map(item => ({value: item}))}
             />
            </Form.Item>
@@ -88,18 +87,18 @@ function ATask({key, name, restField, remove, data}) {
              {...restField}
              name={[name, 'workloads']}
            >
-             <Input placeholder="workloads" style={{width:"80px"}} />
+             <Input placeholder="specify workloads" />
            </Form.Item>
            <Form.Item
              {...restField}
              name={[name, 'budget_type']}
            >
              <Select
-               placeholder="budget_type"
-               options={[ {value: "Num_FEs"},
-                          {value: "Hours"},
-                          {value: "Minutes"},
-                          {value: "Seconds"},
+               placeholder="budget type"
+               options={[ {value: "evaluations"},
+                          {value: "hours"},
+                          {value: "minutes"},
+                          {value: "seconds"},
                         ]}
              />
            </Form.Item>
@@ -107,7 +106,7 @@ function ATask({key, name, restField, remove, data}) {
              {...restField}
              name={[name, 'budget']}
            >
-             <Input placeholder="budget" style={{width:"80px"}} />
+             <Input placeholder="budget" />
            </Form.Item>
            <MinusCircleOutlined style={{color: 'white'}} onClick={() => remove(name)} />
         </Space>
@@ -175,8 +174,8 @@ function SelectTask({data, updateTable}) {
             ))}
             </div>
             <Form.Item style={{marginTop:10}}>
-              <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />} style={{width:"120px"}}>
-                Add Task
+              <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />} style={{width:"150px"}}>
+                Add Problem
               </Button>
             </Form.Item>
             <Form.Item>

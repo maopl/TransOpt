@@ -72,7 +72,7 @@ function SearchData({set_dataset}) {
           name="task_name"
           style={{flexGrow: 1}}
         >
-          <Input addonBefore={"Task Name"}/>
+          <Input addonBefore={"Dataset Name"}/>
         </Form.Item>
         <Form.Item
           name="num_variables"
@@ -86,7 +86,7 @@ function SearchData({set_dataset}) {
           name="variables_name"
           style={{flexGrow: 1}}
         >
-          <Input addonBefore={"Variables Name"}/>
+          <Input addonBefore={"Variable Name"}/>
         </Form.Item>
         <Form.Item
           name="num_objectives"

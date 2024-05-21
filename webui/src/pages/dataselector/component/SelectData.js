@@ -137,11 +137,11 @@ function SelectData({DatasetData, set_dataset, updateTable}) {
           <div style={{marginTop:"20px"}}>
             <Select
             style={{minWidth: 170}}
-            options={[ {value: "Space refiner"},
-                        {value: "Sampler"},
-                        {value: "Pretrain"},
-                        {value: "Model"},
-                        {value: "Acquisition function"},
+            options={[ {value: "Narrow Search Space"},
+                        {value: "Initialization"},
+                        {value: "Pre-train"},
+                        {value: "Surrogate Model"},
+                        {value: "Acquisition Function"},
                         {value: "Normalizer"}
                     ]}
             onChange={handleSelectChange}

@@ -95,7 +95,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
           <div>
             <div>
                 <h5 style={{color:"#f4f4f599"}}>
-                  <span className="fw-semi-bold">Space refiner</span>
+                  <span className="fw-semi-bold">Narrow Search Space</span>
                 </h5>
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
@@ -135,7 +135,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
 
             <div>
                 <h5 style={{color:"#f4f4f599"}}>
-                  <span className="fw-semi-bold">Sampler</span>
+                  <span className="fw-semi-bold">Initialization</span>
                 </h5>
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
@@ -181,7 +181,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
 
             <div>
                 <h5 style={{color:"#f4f4f599"}}>
-                  <span className="fw-semi-bold">Pretrain</span>
+                  <span className="fw-semi-bold">Pre-train</span>
                 </h5>
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
@@ -221,7 +221,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
 
             <div>
                 <h5 style={{color:"#f4f4f599"}}>
-                  <span className="fw-semi-bold">Model</span>
+                  <span className="fw-semi-bold">Surrogate Model</span>
                 </h5>
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
@@ -261,7 +261,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
 
             <div>
                 <h5 style={{color:"#f4f4f599"}}>
-                  <span className="fw-semi-bold">Acquisition function</span>
+                  <span className="fw-semi-bold">Acquisition Function</span>
                 </h5>
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline' }}>

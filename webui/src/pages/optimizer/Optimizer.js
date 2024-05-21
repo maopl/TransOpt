@@ -90,7 +90,7 @@ class Optimizer extends React.Component {
       return (
         <div className={s.root}>
           <h1 className="page-title">
-            Experiment - <span className="fw-semi-bold">Optimizer</span>
+            <span className="fw-semi-bold">Composite Algorithm</span>
           </h1>
         </div>
       )
@@ -98,18 +98,11 @@ class Optimizer extends React.Component {
       return (
         <div className={s.root}>
           <h1 className="page-title">
-            Experiment - <span className="fw-semi-bold">Optimizer</span>
+            <span className="fw-semi-bold">Composite Algorithm</span>
           </h1>
             <Row>
               <Col lg={12} sm={12}>
-                <Widget
-                  title={
-                    <h5>
-                      2. <span className="fw-semi-bold">Choose Optimization Plugins</span>
-                    </h5>
-                  }
-                  collapse
-                >
+                <Widget>
                   <SelectPlugins SpaceRefiner={this.state.SpaceRefiner}
                                     Sampler={this.state.Sampler}
                                     Pretrain={this.state.Pretrain}

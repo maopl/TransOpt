@@ -91,7 +91,7 @@ class Sidebar extends React.Component {
                     <LinksGroup
                         onActiveSidebarItemChange={t => this.props.dispatch(changeActiveSidebarItem(t))}
                         activeItem={this.props.activeItem}
-                        header="Problem specification"
+                        header="Specify Problem"
                         isHeader
                         iconName={<TypographyIcon className={s.menuIcon} />}
                         link="/app/Problem"
@@ -100,7 +100,7 @@ class Sidebar extends React.Component {
                     <LinksGroup
                         onActiveSidebarItemChange={activeItem => this.props.dispatch(changeActiveSidebarItem(activeItem))}
                         activeItem={this.props.activeItem}
-                        header="Optimizer"
+                        header="Composite Algorithm"
                         isHeader
                         iconName={<TypographyIcon className={s.menuIcon} />}
                         link="/app/Optimizer"
@@ -109,7 +109,7 @@ class Sidebar extends React.Component {
                     <LinksGroup
                         onActiveSidebarItemChange={activeItem => this.props.dispatch(changeActiveSidebarItem(activeItem))}
                         activeItem={this.props.activeItem}
-                        header="Dataselector"
+                        header="Select Data"
                         isHeader
                         iconName={<TypographyIcon className={s.menuIcon} />}
                         link="/app/Dataselector"
@@ -118,7 +118,7 @@ class Sidebar extends React.Component {
                     <LinksGroup
                         onActiveSidebarItemChange={t => this.props.dispatch(changeActiveSidebarItem(t))}
                         activeItem={this.props.activeItem}
-                        header="Run"
+                        header="Run Experiment"
                         isHeader
                         iconName={<TypographyIcon className={s.menuIcon} />}
                         link="/app/Run"
@@ -127,7 +127,7 @@ class Sidebar extends React.Component {
                     <LinksGroup
                         onActiveSidebarItemChange={t => this.props.dispatch(changeActiveSidebarItem(t))}
                         activeItem={this.props.activeItem}
-                        header="Comparision"
+                        header="Compare Results"
                         isHeader
                         iconName={<TablesIcon className={s.menuIcon} />}
                         link="/app/Comparision"

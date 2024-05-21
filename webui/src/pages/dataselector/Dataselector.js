@@ -86,7 +86,7 @@ class Dataselector extends React.Component {
       return (
         <div className={s.root}>
           <h1 className="page-title">
-            Experiment - <span className="fw-semi-bold">Dataselector</span>
+            <span className="fw-semi-bold">Select Data</span>
           </h1>
         </div>
       )
@@ -94,18 +94,11 @@ class Dataselector extends React.Component {
       return (
         <div className={s.root}>
           <h1 className="page-title">
-            Experiment - <span className="fw-semi-bold">Dataselector</span>
+            <span className="fw-semi-bold">Select Data</span>
           </h1>
             <Row>
               <Col lg={12} sm={12}> 
-                <Widget
-                  title={
-                    <h5>
-                      3. <span className="fw-semi-bold">Choose Datasets</span>
-                    </h5>
-                  }
-                  collapse
-                >
+                <Widget>
                   <SearchData set_dataset={this.set_dataset}/>
                   <p>
                     Choose the datasets you want to use in the experiment.

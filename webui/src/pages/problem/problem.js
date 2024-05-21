@@ -75,7 +75,7 @@ class Problem extends React.Component {
       return (
         <div className={s.root}>
           <h1 className="page-title">
-            Experiment - <span className="fw-semi-bold">Problem specification</span>
+            <span className="fw-semi-bold">Specify Problem</span>
           </h1>
         </div>
       )
@@ -83,18 +83,11 @@ class Problem extends React.Component {
       return (
         <div className={s.root}>
           <h1 className="page-title">
-            Experiment - <span className="fw-semi-bold">Problem specification</span>
+            <span className="fw-semi-bold">Specify Problem</span>
           </h1>
             <Row>
               <Col lg={12} sm={12}>
-                <Widget
-                  title={
-                    <h5>
-                      1.<span className="fw-semi-bold">Choose Tasks</span>
-                    </h5>
-                  }
-                  collapse
-                >
+                <Widget>
                   <SelectTask data={this.state.TasksData} updateTable={this.updateTable}/>
                 </Widget>
               </Col>
@@ -102,7 +95,7 @@ class Problem extends React.Component {
                 <Widget
                   title={
                     <h5>
-                      <span className="fw-semi-bold">Selected Problems</span>
+                      <span className="fw-semi-bold">Problem Information</span>
                     </h5>
                   }
                   collapse

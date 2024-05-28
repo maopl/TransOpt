@@ -69,7 +69,7 @@ class RunPage extends React.Component {
       return (
         <div className={s.root}>
           <h1 className="page-title">
-          <span className="fw-semi-bold">Run</span>
+          <span className="fw-semi-bold">Run Experiments</span>
           </h1>
           <div>
             <Row>
@@ -77,7 +77,7 @@ class RunPage extends React.Component {
                 <Widget
                   title={
                     <h5>
-                      <span className="fw-semi-bold">Experimental Setting</span>
+                      <span className="fw-semi-bold">Experiment Set-up</span>
                     </h5>
                   }
                   collapse
@@ -87,11 +87,11 @@ class RunPage extends React.Component {
                   </h4>
                   <TaskTable tasks={this.state.tasks} />
                   <h4>
-                    Optimizer
+                    Algorithm
                   </h4>
                   <OptTable optimizer={this.state.optimizer} />
                   <h4>
-                    Datasets
+                    Data
                   </h4>
                   <DataTable datasets={this.state.datasets} optimizer={this.state.optimizer}/>
                   <Run />

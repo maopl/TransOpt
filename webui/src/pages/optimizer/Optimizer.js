@@ -118,7 +118,7 @@ class Optimizer extends React.Component {
                 <Widget
                   title={
                     <h5>
-                      <span className="fw-semi-bold">Selected Optimizer</span>
+                      <span className="fw-semi-bold">Composition</span>
                     </h5>
                   }
                   collapse

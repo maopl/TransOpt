@@ -14,7 +14,7 @@ function TaskTable({tasks}) {
                 <th className="hidden-sm-down">Num_vars</th>
                 <th className="hidden-sm-down">Num_objs</th>
                 <th className="hidden-sm-down">Fidelity</th>
-                <th className="hidden-sm-down">workload</th>
+                <th className="hidden-sm-down">workloads</th>
                 <th className="hidden-sm-down">budget_type</th>
                 <th className="hidden-sm-down">budget</th>
                 </tr>
@@ -27,7 +27,7 @@ function TaskTable({tasks}) {
                         <td>{task.num_vars}</td>
                         <td>{task.num_objs}</td>
                         <td>{task.fidelity}</td>
-                        <td>{task.workload}</td>
+                        <td>{task.workloads}</td>
                         <td>{task.budget_type}</td>
                         <td>{task.budget}</td>
                     </tr>

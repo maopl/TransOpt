@@ -63,10 +63,18 @@ def plot_network(X, y, nodes):
         G.add_node(node, weight=weight)
 
     edges_weight = calculate_interaction(X, y)
-    for i in range(5):
-        for j in range(i + 1, 5):
-            weight = edges_weight[i, j]
+    
+    for i in range(len(nodes)):
+        for j in range(i + 1, len(nodes)):
+            weight = np.random.uniform(0, 1)  # 生成一个0到1之间的随机权重
             G.add_edge(nodes[i], nodes[j], weight=weight)
+        
+        
+        
+    # for i in range(5):
+    #     for j in range(i + 1, 5):
+    #         weight = edges_weight[i, j]
+    #         G.add_edge(nodes[i], nodes[j], weight=weight)
     
     # 设置节点的位置为圆形布局
     pos = nx.circular_layout(G)

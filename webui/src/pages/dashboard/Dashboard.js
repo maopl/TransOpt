@@ -140,7 +140,7 @@ class Dashboard extends React.Component {
       return (
         <div className={s.root}>
           <h1 className="page-title">
-          Dashboard - <span className="fw-semi-bold">Tasks</span>
+           <span className="fw-semi-bold">Dashboard</span>
           </h1>
           <div>
             <Row>
@@ -150,7 +150,7 @@ class Dashboard extends React.Component {
                     <Widget
                       title={
                         <h5>
-                          Choose <span className="fw-semi-bold">Task</span>
+                          Choose <span className="fw-semi-bold">Dataset</span>
                         </h5>
                       }
                       collapse
@@ -180,9 +180,9 @@ class Dashboard extends React.Component {
                       <div style={{ overflowY: 'auto', maxHeight: '650px' }}>
                       <h4><strong>Task</strong></h4>
                       <ul>
-                        <li><h5><span className="fw-semi-bold">Name</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].problem_name}</h5></li>
-                        <li><h5><span className="fw-semi-bold">Dim</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].dim}</h5></li>
-                        <li><h5><span className="fw-semi-bold">Obj</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].obj}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Problem Name</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].problem_name}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Variable num</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].dim}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Objective num</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].obj}</h5></li>
                         <li><h5><span className="fw-semi-bold">Fidelity</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].fidelity}</h5></li>
                         <li><h5><span className="fw-semi-bold">Workloads</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].workloads}</h5></li>
                         <li><h5><span className="fw-semi-bold">Budget type</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].budget_type}</h5></li>
@@ -191,17 +191,17 @@ class Dashboard extends React.Component {
                       </ul>
                       <h4 className="mt-5"><strong>Algorithm</strong></h4>
                       <ul>
-                        <li><h5><span className="fw-semi-bold">Space refiner</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].SpaceRefiner}</h5></li>
-                        <li><h5><span className="fw-semi-bold">Sampler</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].Sampler}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Narrow Search Space</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].SpaceRefiner}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Initialization</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].Sampler}</h5></li>
                         <li><h5><span className="fw-semi-bold">Pre-train</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].Pretrain}</h5></li>
-                        <li><h5><span className="fw-semi-bold">Model</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].Model}</h5></li>
-                        <li><h5><span className="fw-semi-bold">ACF</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].ACF}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Surrogate Model</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].Model}</h5></li>
+                        <li><h5><span className="fw-semi-bold">Acquisition Function</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].ACF}</h5></li>
                         <li><h5><span className="fw-semi-bold">DatasetSelector</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].DatasetSelector}</h5></li>
                         <li><h5><span className="fw-semi-bold">Normalizer</span>: {this.state.tasksInfo[this.state.selectedTaskIndex].Normalizer}</h5></li>
                       </ul>
-                      <h4 className="mt-5"><strong>Auxiliary Data List</strong></h4>
+                      <h4 className="mt-5"><strong>Data List</strong></h4>
                       <ul>
-                        <li><h5><span className="fw-semi-bold">Space refiner</span>:</h5></li>
+                        <li><h5><span className="fw-semi-bold">Narrow Search Space</span>:</h5></li>
                         <div>
                           <ul>
                             {this.state.tasksInfo[this.state.selectedTaskIndex].metadata.SpaceRefiner.map((dataset, index) => (
@@ -209,7 +209,7 @@ class Dashboard extends React.Component {
                             ))}
                           </ul>
                         </div>
-                        <li><h5><span className="fw-semi-bold">Sampler</span>:</h5></li>
+                        <li><h5><span className="fw-semi-bold">Initialization</span>:</h5></li>
                         <div>
                           <ul>
                             {this.state.tasksInfo[this.state.selectedTaskIndex].metadata.Sampler.map((dataset, index) => (
@@ -225,7 +225,7 @@ class Dashboard extends React.Component {
                             ))}
                           </ul>
                         </div>
-                        <li><h5><span className="fw-semi-bold">Model</span>:</h5></li>
+                        <li><h5><span className="fw-semi-bold">Surrogate Model</span>:</h5></li>
                         <div>
                           <ul>
                             {this.state.tasksInfo[this.state.selectedTaskIndex].metadata.Model.map((dataset, index) => (
@@ -233,7 +233,7 @@ class Dashboard extends React.Component {
                             ))}
                           </ul>
                         </div>
-                        <li><h5><span className="fw-semi-bold">ACF</span>:</h5></li>
+                        <li><h5><span className="fw-semi-bold">Acquisition Function</span>:</h5></li>
                         <div>
                           <ul>
                             {this.state.tasksInfo[this.state.selectedTaskIndex].metadata.ACF.map((dataset, index) => (
@@ -261,7 +261,7 @@ class Dashboard extends React.Component {
                     <Widget
                       title={
                         <h5>
-                          <span className="fw-semi-bold">Optimization Trajectory</span>
+                          <span className="fw-semi-bold">Convergence Curve</span>
                         </h5>
                       }
                       collapse
@@ -273,7 +273,7 @@ class Dashboard extends React.Component {
                     <Widget
                       title={
                         <h5>
-                            <span className="fw-semi-bold">Configuration Footprint</span>
+                            <span className="fw-semi-bold">Footprint</span>
                         </h5>
                       }
                       collapse
@@ -285,7 +285,7 @@ class Dashboard extends React.Component {
                     <Widget
                       title={
                         <h5>
-                          <span className="fw-semi-bold">Parameter network</span>
+                          <span className="fw-semi-bold">Variables Network</span>
                         </h5>
                       }
                       collapse

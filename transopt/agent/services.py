@@ -256,8 +256,13 @@ class Services:
     def receive_tasks(self, tasks_info):
         tasks = {}
         self.tasks_info = tasks_info
+        workloads = []
         for task in tasks_info:
-            workloads = [int(item) for item in task["workloads"].split(",")]
+            for item in task["workloads"].split(","):
+                try:
+                    workloads.append(int(item))
+                except:
+                    workloads.append(item)
             tasks[task["name"]] = {
                 "budget_type": task["budget_type"],
                 "budget": int(task["budget"]),
@@ -528,7 +533,7 @@ class Services:
         fp = FootPrint(var_data, ranges)
         fp.calculate_distances()
         fp.get_mds()
-        scatter_data = {'parameters': fp._reduced_data[:len(fp.X)], 'boundary': fp._reduced_data[len(fp.X):]}
+        scatter_data = {'Decision vectors': fp._reduced_data[:len(fp.X)], 'Boundary vectors': fp._reduced_data[len(fp.X):]}
 
         return {"ScatterData": scatter_data}
     

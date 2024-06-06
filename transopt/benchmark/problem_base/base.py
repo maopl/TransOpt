@@ -60,6 +60,23 @@ class ProblemBase(abc.ABC):
         """Implement this method in subclasses to define specific evaluation logic."""
         raise NotImplementedError
 
+
+    @staticmethod
+    @abc.abstractmethod
+    def get_configuration_space(self) -> SearchSpace:
+        """Defines the configuration space for each benchmark.
+        Parameters
+        ----------
+        seed: int, None
+            Seed for the configuration space.
+
+        Returns
+        -------
+        ConfigSpace.ConfigurationSpace
+            A valid configuration space for the benchmark's parameters
+        """
+        raise NotImplementedError()
+
     def check_validity(self, configuration, fidelity):
         # Check if each configuration key and value is valid
         for key, value in configuration.items():
@@ -97,21 +114,7 @@ class ProblemBase(abc.ABC):
 
 
     
-    @staticmethod
-    @abc.abstractmethod
-    def get_configuration_space(self) -> SearchSpace:
-        """Defines the configuration space for each benchmark.
-        Parameters
-        ----------
-        seed: int, None
-            Seed for the configuration space.
 
-        Returns
-        -------
-        ConfigSpace.ConfigurationSpace
-            A valid configuration space for the benchmark's parameters
-        """
-        raise NotImplementedError()
 
     @abc.abstractmethod
     def get_fidelity_space(self) -> FidelitySpace:

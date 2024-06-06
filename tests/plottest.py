@@ -59,6 +59,7 @@ def calculate_importances(df, objective):
     return feature_importance_df
 
 
+X,Y=[],[]
 
     
     

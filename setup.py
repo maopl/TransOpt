@@ -45,7 +45,19 @@ req = [
     "oslo.concurrency>=4.2.0",
     'GPy @ git+https://github.com/SheffieldML/GPy.git@devel'
     'mmh3',
-    'rich'
+    'rich',
+    
+    # Analysis
+    "pandas",
+    "tikzplotlib",
+    "pdf2image",
+    "seaborn",
+    "Pillow",
+    
+    # Remote
+    "flask",
+    "requests",
+    "celery",
 ]
 
 setup(
@@ -65,4 +77,9 @@ setup(
     packages=find_packages(exclude=["hpobench"]),
     install_requires=req,
     extras_require=extra_requirements,
+    entry_points={
+        'console_scripts': [
+            'transopt-server = transopt.agent.app:main',
+        ],
+    }
 )

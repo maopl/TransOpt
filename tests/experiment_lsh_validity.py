@@ -5,6 +5,7 @@ import uuid
 import pandas as pd
 
 from transopt.datamanager.manager import DataManager
+from transopt.datamanager.database import Database
 from transopt.utils.path import get_library_path
 
 base_strings = {
@@ -116,11 +117,12 @@ def cal_jacard_similarity(cfg1, cfg2):
 
 def validity_experiment(n_tables, num_replicates=3, jacard_lower_bound = 0.35):
     # Clean up the database
-    db_path = get_library_path() / "database.db"
+    db_path = get_library_path() / "exp_database.db"
     if db_path.exists():
         db_path.unlink()
 
-    dm = DataManager(num_hashes=100, char_ngram=5, num_bands=50)
+    db = Database(db_path)
+    dm = DataManager(db, num_hashes=100, char_ngram=5, num_bands=50)
     setup_start = time.time()
     create_experiment_datasets(dm, n_tables)
     setup_end = time.time()
@@ -191,7 +193,7 @@ def validity_experiment(n_tables, num_replicates=3, jacard_lower_bound = 0.35):
 
 if __name__ == "__main__":
     num_replicates = 3
-    n_tables_list = [1000]
+    n_tables_list = [1000,2000,3000,4000,5000]
     
     results = []
     for n_tables in n_tables_list:

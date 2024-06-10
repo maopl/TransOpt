@@ -114,7 +114,7 @@ def cal_jacard_similarity(cfg1, cfg2):
     return len(shingles1.intersection(shingles2)) / len(shingles1.union(shingles2))
 
 
-def validity_experiment(n_tables, num_replicates=3):
+def validity_experiment(n_tables, num_replicates=3, jacard_lower_bound = 0.35):
     # Clean up the database
     db_path = get_library_path() / "database.db"
     if db_path.exists():
@@ -138,8 +138,6 @@ def validity_experiment(n_tables, num_replicates=3):
         task_name, var_names, num_var, num_obj = dm._construct_vector(
             target_dataset_cfg
         )
-
-        jacard_lower_bound = 0.35
 
         start_jacard = time.time()
         similar_datasets_by_jacard = set()

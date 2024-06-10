@@ -183,6 +183,7 @@ def validity_experiment(n_tables, num_replicates=3, jacard_lower_bound = 0.35):
         print(
             f"Found {len(similar_datasets_by_lsh)} similar datasets by lsh in {end_lsh - start_lsh} seconds"
         )
+        print()
 
     dm.teardown()
     return sum(exec_time_jacard) / num_replicates, sum(exec_time_lsh) / num_replicates

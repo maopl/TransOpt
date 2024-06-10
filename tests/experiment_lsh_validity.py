@@ -131,7 +131,7 @@ def validity_experiment(n_tables, num_replicates=3):
     for _ in range(num_replicates):
         target_dataset_name, target_dataset_cfg = generate_dataset_config()
         print(
-            f"Searching for similar datasets to {target_dataset_name} with config {target_dataset_cfg}"
+            f"Searching for similar datasets to {target_dataset_name}"
         )
         print("=====================================")
 

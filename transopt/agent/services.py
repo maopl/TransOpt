@@ -392,7 +392,7 @@ class Services:
                 search_space = task_set.get_cur_searchspace()
                 dataset_info, dataset_name = self.construct_dataset_info(task_set, self.running_config, seed=seed)
                 
-                self.data_manager.db.create_table(dataset_name, dataset_info, overwrite=True)
+                self.data_manager.create_dataset(dataset_name, dataset_info, overwrite=True)
                 self.update_process_info(pid, {'dataset_name': dataset_name, 'task': task_set.get_curname(), 'budget': task_set.get_cur_budget()})
 
                 optimizer.link_task(task_name=task_set.get_curname(), search_space=search_space)

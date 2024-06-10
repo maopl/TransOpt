@@ -3,7 +3,6 @@ import string
 import time
 import uuid
 import pandas as pd
-from multiprocessing import Manager, Process
 
 from transopt.datamanager.manager import DataManager
 from transopt.utils.path import get_library_path
@@ -52,14 +51,6 @@ def generate_random_string(length):
     return "".join(random.choice(letters) for i in range(length))
 
 
-def generate_comma_separated_numbers(count):
-    return ",".join(str(random.randint(1, 100)) for _ in range(count))
-
-
-def choose_random_from_registry(registry):
-    return random.choice(registry.list_names() + ["default"])
-
-
 def generate_dataset_config():
     domain = random.choice(list(base_strings.keys()))
     num_variables = random.randint(3, 5)
@@ -106,44 +97,7 @@ def generate_dataset_config():
 def create_experiment_datasets(dm, num_datasets):
     for _ in range(num_datasets):
         dataset_name, dataset_cfg = generate_dataset_config()
-        dm.db.create_table(dataset_name, dataset_cfg, is_experiment=True)
-        # dm.create_dataset(dataset_name, dataset_cfg)
-
-
-def create_exported_datasets(db, num_datasets):
-    for _ in range(num_datasets):
-        dataset_name, dataset_cfg = generate_dataset_config()
-        db.create_table(dataset_name, dataset_cfg, is_experiment=False)
-
-
-def generate_random_value(data_type):
-    if data_type == "continuous":
-        return round(random.uniform(0, 100), 2)
-    elif data_type == "integer":
-        return random.randint(1, 100)
-
-
-def generate_and_insert_data(db, dataset_name, dataset_cfg, num_rows=100):
-    variables = dataset_cfg["variables"]
-    objectives = dataset_cfg["objectives"]
-    fidelities = dataset_cfg["fidelities"]
-
-    # Generate data
-    data = []
-    for _ in range(num_rows):
-        row = {}
-        for var in variables:
-            row[var["name"]] = generate_random_value(var["type"])
-        for obj in objectives:
-            row[obj["name"]] = generate_random_value(
-                "continuous"
-            )  # Assuming objectives are continuous
-        for fid in fidelities:
-            row[fid["name"]] = generate_random_value(fid["type"])
-        data.append(row)
-
-    # Insert data into the database
-    db.insert_data(dataset_name, data)
+        dm.create_dataset(dataset_name, dataset_cfg)
 
 
 def get_shingles(text, ngram=5):
@@ -237,9 +191,10 @@ def validity_experiment(n_tables, num_replicates=3):
 
 
 if __name__ == "__main__":
-    results = []
     num_replicates = 3
     n_tables_list = [1000]
+    
+    results = []
     for n_tables in n_tables_list:
         exec_time_jacard, exec_time_lsh = validity_experiment(n_tables, num_replicates)
         results.append(

@@ -19,6 +19,7 @@ from transopt.benchmark.problem_base.non_tab_problem import NonTabularProblem
 from transopt.space.search_space import SearchSpace
 from transopt.space.fidelity_space import FidelitySpace
 
+from transopt.optimizer.sampler.random import RandomSampler
 
 os.environ['OMP_NUM_THREADS'] = "1"
 logger = logging.getLogger('XGBBenchmark')
@@ -26,7 +27,7 @@ logger = logging.getLogger('XGBBenchmark')
 
 @problem_registry.register('XGB')
 class XGBoostBenchmark(NonTabularProblem):
-    task_lists = [167149, 167152, 126029, 167178, 167177]
+    task_lists = [167149, 167152, 126029, 167178, 167177, 167153, 167154, 167155, 167156]
     problem_type = 'hpo'
     num_variables = 10
     num_objectives = 1
@@ -396,8 +397,26 @@ class XGBoostBenchmark(NonTabularProblem):
 
 
 if __name__ == '__main__':
-    task_lists = [167149, 167152, 126029, 167178, 167177]
-    problem = XGBoostBenchmark(task_name='XGB', budget=20, task_id=167149)
-    a = problem.f({'eta':-0.2, 'max_depth':0.3, 'min_child_weight':0.4, 'colsample_bytree':0.4, 'colsample_bylevel':0.4,
-                'reg_lambda':0.5, 'reg_alpha':-0.2, 'subsample_per_it':-0.7, 'n_estimators':-0.9, 'gamma':0.9})
-    print(a)
+    task_lists = [167149, 167152, 126029, 167178, 167177, 167153, 167154, 167155, 167156]
+    workload = 8
+    problem = XGBoostBenchmark(task_name='XGB', budget=20, budget_type = 'fes', workload=workload, seed = 0)
+    sampler = RandomSampler(3000, config=None)
+    space = problem.configuration_space
+    samples = sampler.sample(space,3000)
+    
+    parameters = [space.map_to_design_space(sample) for sample in samples]
+    import tqdm
+    for para_id in tqdm.tqdm(range(len(parameters))):
+        parameters[para_id]['score'] = problem.f(parameters[para_id])['train_loss']
+    import pandas as pd
+    
+
+    
+    df  = pd.DataFrame(parameters)
+    df.to_csv(f'XGB_{workload}.csv')
+
+    # a = problem.f({'eta':-0.2, 'max_depth':5, 'min_child_weight':2, 'colsample_bytree':0.4, 'colsample_bylevel':0.4,
+    #             'reg_lambda':0.5, 'reg_alpha':-0.2, 'subsample_per_it':0.7, 'n_estimators':20, 'gamma':0.9})
+    
+
+

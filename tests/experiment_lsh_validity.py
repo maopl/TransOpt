@@ -188,23 +188,32 @@ def validity_experiment(n_tables, num_replicates=3, jacard_lower_bound = 0.35):
         print()
 
     dm.teardown()
-    return sum(exec_time_jacard) / num_replicates, sum(exec_time_lsh) / num_replicates
+    return exec_time_jacard, exec_time_lsh
 
 
 if __name__ == "__main__":
-    num_replicates = 3
-    n_tables_list = [1000,2000,3000,4000,5000]
-    
-    results = []
+    num_replicates = 20
+    n_tables_list = [1000,2000, 3000,4000,5000,6000,7000,8000,10000]
+    results_jacard = {}
+    results_lsh = {}
+    # results = []
     for n_tables in n_tables_list:
         exec_time_jacard, exec_time_lsh = validity_experiment(n_tables, num_replicates)
-        results.append(
-            {
-                "n_tables": n_tables,
-                "exec_time_jacard": exec_time_jacard,
-                "exec_time_lsh": exec_time_lsh,
-            }
-        )
+        # results.append(
+        #     {
+        #         "n_tables": n_tables,
+        #         "exec_time_jacard": exec_time_jacard,
+        #         "exec_time_lsh": exec_time_lsh,
+        #     }
+        # )
+        print(f"n_tables: {n_tables} exec_time_jacard: {exec_time_jacard} exec_time_lsh {exec_time_lsh}")
 
-    df = pd.DataFrame(results)
-    df.to_csv("jacard_vs_lsh.csv", index=False)
+        results_jacard[n_tables] = exec_time_jacard
+        results_lsh[n_tables] = exec_time_lsh
+        
+        jacard_df = pd.DataFrame(results_jacard)
+        lsh_df = pd.DataFrame(results_lsh)
+        # 保存为CSV文件
+        jacard_df.to_csv('jacard_exec_times.csv', index=False)
+        lsh_df.to_csv('lsh_exec_times.csv', index=False)
+        

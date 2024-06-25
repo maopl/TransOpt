@@ -53,6 +53,7 @@ class Services:
         import transopt.optimizer.normalizer
         import transopt.optimizer.selector
         
+        
     def get_modules(self):
         basic_info = {}
         tasks_info = []
@@ -318,6 +319,7 @@ class Services:
             "fidelity": ', '.join([d['name'] for d in dataset_info["fidelities"] if 'name' in d]) if dataset_info["fidelities"] else '',
             "workloads": task_set.get_cur_workload(),
             "budget_type": task_set.get_cur_budgettype(),
+            "initial_number": running_config.optimizer['SamplerInitNum'],
             "budget": task_set.get_cur_budget(),
             "seeds": seed,
             "SpaceRefiner": running_config.optimizer['SpaceRefiner'],
@@ -498,7 +500,7 @@ class Services:
         table_info = self.data_manager.db.query_dataset_info(task_name)
         objectives = table_info["objectives"]
         ranges = [tuple(var['range']) for var in table_info["variables"]]
-
+        initial_number = table_info["additional_config"]["initial_number"]
         obj = objectives[0]["name"]
         obj_type = objectives[0]["type"]
 
@@ -506,7 +508,7 @@ class Services:
         var_data = [[data[var["name"]] for var in table_info["variables"]] for data in all_data]
         variables = [var["name"] for var in table_info["variables"]]
         ret = {}
-        ret.update(self.construct_footprint_data(task_name, var_data, ranges))
+        ret.update(self.construct_footprint_data(task_name, var_data, ranges, initial_number))
         ret.update(self.construct_trajectory_data(task_name, obj_data, obj_type))
         self.construct_importance_data(task_name, var_data, obj_data, variables)
 
@@ -528,12 +530,12 @@ class Services:
 
         return ret
 
-    def construct_footprint_data(self, name, var_data, ranges):
+    def construct_footprint_data(self, name, var_data, ranges, initial_number):
         # Initialize the list to store trajectory data and the best value seen so far
         fp = FootPrint(var_data, ranges)
         fp.calculate_distances()
         fp.get_mds()
-        scatter_data = {'Decision vectors': fp._reduced_data[:len(fp.X)], 'Boundary vectors': fp._reduced_data[len(fp.X):]}
+        scatter_data = {'Initial vectors': fp._reduced_data[:initial_number], 'Decision vectors': fp._reduced_data[initial_number:len(fp.X)], 'Boundary vectors': fp._reduced_data[len(fp.X):]}
 
         return {"ScatterData": scatter_data}
     

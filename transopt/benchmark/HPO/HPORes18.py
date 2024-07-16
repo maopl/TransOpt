@@ -92,7 +92,7 @@ class ResNet(nn.Module):
 
 @problem_registry.register("Res")
 class HPOResNet(NonTabularProblem):
-    DATASET_NAME = ["svhn", "cifar10", "cifar100"]
+    DATASET_NAME = ["svhn", "cifar10", "cifar100, minist"]
     problem_type = 'hpo'
     num_variables = 10
     num_objectives = 1

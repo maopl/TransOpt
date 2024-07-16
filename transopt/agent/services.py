@@ -486,8 +486,10 @@ class Services:
                 table_info = self.data_manager.db.query_dataset_info(task_name)
                 objectives = table_info["objectives"]
                 obj = objectives[0]["name"]
-                best_obj = min([d[obj] for d in data])
-                
+                try:
+                    best_obj = min([d[obj] for d in data])
+                except:
+                    pass
                 all_data[str(group_id)].append(best_obj)
 
         return all_data
@@ -532,11 +534,11 @@ class Services:
 
     def construct_footprint_data(self, name, var_data, ranges, initial_number):
         # Initialize the list to store trajectory data and the best value seen so far
-        fp = FootPrint(var_data, ranges)
-        fp.calculate_distances()
-        fp.get_mds()
-        scatter_data = {'Initial vectors': fp._reduced_data[:initial_number], 'Decision vectors': fp._reduced_data[initial_number:len(fp.X)], 'Boundary vectors': fp._reduced_data[len(fp.X):]}
-
+        # fp = FootPrint(var_data, ranges)
+        # fp.calculate_distances()
+        # fp.get_mds()
+        # scatter_data = {'Initial vectors': fp._reduced_data[:initial_number], 'Decision vectors': fp._reduced_data[initial_number:len(fp.X)], 'Boundary vectors': fp._reduced_data[len(fp.X):]}
+        scatter_data = {}
         return {"ScatterData": scatter_data}
     
     def construct_statistic_trajectory_data(self, task_names):

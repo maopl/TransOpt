@@ -5,7 +5,7 @@ from transopt.datamanager.database import Database
 from transopt.datamanager.lsh import LSHCache
 from transopt.datamanager.minhash import MinHasher
 
-from utils.log import logger
+from transopt.utils.log import logger
 
 
 class DataManager:

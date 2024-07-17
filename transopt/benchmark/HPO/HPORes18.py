@@ -1,7 +1,6 @@
 import time
 import logging
 import numpy as np
-import ConfigSpace as CS
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -115,7 +114,7 @@ class HPOResNet(NonTabularProblem):
 
     def get_configuration_space(
         self, seed: Union[int, None] = None
-    ) -> CS.ConfigurationSpace:
+    ):
         """
         Creates a ConfigSpace.ConfigurationSpace containing all parameters for
         the XGBoost Model
@@ -138,7 +137,7 @@ class HPOResNet(NonTabularProblem):
 
     def get_fidelity_space(
         self, seed: Union[int, None] = None
-    ) -> CS.ConfigurationSpace:
+    ):
         """
         Creates a ConfigSpace.ConfigurationSpace containing all fidelity parameters for
         the XGBoost Benchmark
@@ -281,8 +280,8 @@ class HPOResNet(NonTabularProblem):
 
     def objective_function(
         self,
-        configuration: Union[CS.Configuration, Dict],
-        fidelity: Union[Dict, CS.Configuration, None] = None,
+        configuration: Union[Dict],
+        fidelity: Union[Dict, None] = None,
         seed: Union[np.random.RandomState, int, None] = None,
         **kwargs
     ) -> Dict:

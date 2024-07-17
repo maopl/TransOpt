@@ -3,7 +3,6 @@ import time
 import logging
 import torch
 import numpy as np
-import ConfigSpace as CS
 import xgboost as xgb
 from typing import Union, Tuple, Dict, List
 from sklearn import pipeline
@@ -175,8 +174,8 @@ class XGBoostBenchmark(NonTabularProblem):
         return results
 
     # pylint: disable=arguments-differ
-    def objective_function_test(self, configuration: Union[CS.Configuration, Dict],
-                                fidelity: Union[CS.Configuration, Dict, None] = None,
+    def objective_function_test(self, configuration: Union[Dict],
+                                fidelity: Union[Dict, None] = None,
                                 shuffle: bool = False,
                                 seed: Union[np.random.RandomState, int, None] = None, **kwargs) -> Dict:
         """
@@ -233,7 +232,7 @@ class XGBoostBenchmark(NonTabularProblem):
                 'cost': cost,
                 'info': {'fidelity': fidelity}}
 
-    def get_configuration_space(self, seed: Union[int, None] = None) -> CS.ConfigurationSpace:
+    def get_configuration_space(self, seed: Union[int, None] = None):
         """
         Creates a ConfigSpace.ConfigurationSpace containing all parameters for
         the XGBoost Model
@@ -262,7 +261,7 @@ class XGBoostBenchmark(NonTabularProblem):
         return ss
 
 
-    def get_fidelity_space(self, seed: Union[int, None] = None) -> CS.ConfigurationSpace:
+    def get_fidelity_space(self, seed: Union[int, None] = None):
         """
         Creates a ConfigSpace.ConfigurationSpace containing all fidelity parameters for
         the XGBoost Benchmark

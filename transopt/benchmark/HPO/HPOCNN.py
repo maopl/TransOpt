@@ -8,6 +8,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torchvision
+import tqdm
+
 from torchvision import datasets, transforms
 
 from transopt.agent.registry import problem_registry
@@ -284,7 +286,7 @@ class HPOCNN(NonTabularProblem):
             weight_decay = weight_decay,
         )
         start_time = time.time()
-        for e in range(epochs):
+        for e in tqdm.tqdm(range(epochs)):
             running_loss = 0.0
             for i, data in enumerate(trainloader, 0):
                 inputs, labels = data[0].to(device), data[1].to(device)

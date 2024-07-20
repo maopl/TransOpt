@@ -4,15 +4,15 @@ import time
 from multiprocessing import Manager, Process
 
 import numpy as np
-from agent.chat.openai_chat import OpenAIChat
-from analysis.mds import FootPrint
 
+from transopt.agent.chat.openai_chat import OpenAIChat
 from transopt.agent.config import Config, RunningConfig
 from transopt.agent.registry import *
+from transopt.analysis.parameter_network import plot_network
 from transopt.benchmark.instantiate_problems import InstantiateProblems
 from transopt.datamanager.manager import Database, DataManager
-from transopt.optimizer.construct_optimizer import ConstructOptimizer, ConstructSelector
-from transopt.analysis.parameter_network import plot_network
+from transopt.optimizer.construct_optimizer import (ConstructOptimizer,
+                                                    ConstructSelector)
 from transopt.utils.log import logger
 
 
@@ -47,10 +47,10 @@ class Services:
         import transopt.benchmark.synthetic
         import transopt.optimizer.acquisition_function
         import transopt.optimizer.model
+        import transopt.optimizer.normalizer
         import transopt.optimizer.pretrain
         import transopt.optimizer.refiner
         import transopt.optimizer.sampler
-        import transopt.optimizer.normalizer
         import transopt.optimizer.selector
         
         

@@ -28,6 +28,7 @@ def set_optimizer(services, args):
         "SpaceRefinerDataSelector": args.space_refiner_data_selector,
         "SpaceRefinerDataSelectorParameters": args.space_refiner_data_selector_parameters,
         "Sampler": args.sampler,
+        "SamplerInitNum": args.sampler_init_num,
         "SamplerParameters": args.sampler_parameters,
         "SamplerDataSelector": args.sampler_data_selector,
         "SamplerDataSelectorParameters": args.sampler_data_selector_parameters,
@@ -53,48 +54,50 @@ def set_optimizer(services, args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # Task
-    parser.add_argument("-n", "--task_name", type=str, default="Rastrigin")
-    parser.add_argument("-v", "--num_vars", type=int, default=5)
+    parser.add_argument("-n", "--task_name", type=str, default="CNN")
+    parser.add_argument("-v", "--num_vars", type=int, default=3)
     parser.add_argument("-o", "--num_objs", type=int, default=1)
     parser.add_argument("-f", "--fidelity", type=str, default="")
-    parser.add_argument("-w", "--workloads", type=str, default="1")
+    parser.add_argument("-w", "--workloads", type=str, default="4")
     parser.add_argument("-bt", "--budget_type", type=str, default="Num_FEs")
-    parser.add_argument("-b", "--budget", type=int, default=22*5)
+    parser.add_argument("-b", "--budget", type=int, default=100)
     # Optimizer
-    parser.add_argument("-sr", "--space_refiner", type=str, default="default")
+    parser.add_argument("-sr", "--space_refiner", type=str, default="None")
     parser.add_argument("-srp", "--space_refiner_parameters", type=str, default="")
-    parser.add_argument("-srd", "--space_refiner_data_selector", type=str, default="default")
+    parser.add_argument("-srd", "--space_refiner_data_selector", type=str, default="None")
     parser.add_argument("-srdp", "--space_refiner_data_selector_parameters", type=str, default="")
-    parser.add_argument("-sp", "--sampler", type=str, default="default")
+    parser.add_argument("-sp", "--sampler", type=str, default="random")
+    parser.add_argument("-spi", "--sampler_init_num", type=int, default=33)
     parser.add_argument("-spp", "--sampler_parameters", type=str, default="")
-    parser.add_argument("-spd", "--sampler_data_selector", type=str, default="default")
+    parser.add_argument("-spd", "--sampler_data_selector", type=str, default="None")
     parser.add_argument("-spdp", "--sampler_data_selector_parameters", type=str, default="")
-    parser.add_argument("-pt", "--pre_train", type=str, default="default")
+    parser.add_argument("-pt", "--pre_train", type=str, default="None")
     parser.add_argument("-ptp", "--pre_train_parameters", type=str, default="")
-    parser.add_argument("-ptd", "--pre_train_data_selector", type=str, default="default")
+    parser.add_argument("-ptd", "--pre_train_data_selector", type=str, default="None")
     parser.add_argument("-ptdp", "--pre_train_data_selector_parameters", type=str, default="")
-    parser.add_argument("-m", "--model", type=str, default="RBFN")
+    parser.add_argument("-m", "--model", type=str, default="GP")
     parser.add_argument("-mp", "--model_parameters", type=str, default="")
-    parser.add_argument("-md", "--model_data_selector", type=str, default="default")
+    parser.add_argument("-md", "--model_data_selector", type=str, default="None")
     parser.add_argument("-mdp", "--model_data_selector_parameters", type=str, default="")
-    parser.add_argument("-acf", "--acquisition_function", type=str, default="DE-Best")
-    parser.add_argument("-acfp", "--acquisition_function_parameters", type=str, default="n:3")
-    parser.add_argument("-acfd", "--acquisition_function_data_selector", type=str, default="default")
+    parser.add_argument("-acf", "--acquisition_function", type=str, default="EI")
+    parser.add_argument("-acfp", "--acquisition_function_parameters", type=str, default="")
+    parser.add_argument("-acfd", "--acquisition_function_data_selector", type=str, default="None")
     parser.add_argument("-acfdp", "--acquisition_function_data_selector_parameters", type=str, default="")
-    parser.add_argument("-norm", "--normalizer", type=str, default="default")
+    parser.add_argument("-norm", "--normalizer", type=str, default="Standard")
     parser.add_argument("-normp", "--normalizer_parameters", type=str, default="")
-    parser.add_argument("-normd", "--normalizer_data_selector", type=str, default="default")
+    parser.add_argument("-normd", "--normalizer_data_selector", type=str, default="None")
     parser.add_argument("-normdp", "--normalizer_data_selector_parameters", type=str, default="")
     # Seed
-    parser.add_argument("-s", "--seeds", type=str, default="1,2,3,4,5,6,7,8,9,10")
+    parser.add_argument("-s", "--seeds", type=list, default=[1])
     # parser.add_argument("-s", "--seeds", type=str, default="5")
 
 
     args = parser.parse_args()
-    services = Services()
+    services = Services(None, None, None)
+    services._initialize_modules()
     set_task(services, args)
     set_optimizer(services, args)
     try:
-        services.run_optimize(seeds_info = args.seeds)
+        services.run_optimize(seeds = args.seeds)
     except Exception as e:
         traceback.print_exc()

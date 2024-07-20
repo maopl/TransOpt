@@ -140,15 +140,19 @@ class HPOCNN(NonTabularProblem):
     fidelity = None
     
     def __init__(
-        self, task_name, budget_type, budget, seed, workload, **kwargs
+        self, task_name,task_id, budget_type, budget, seed, workload, **kwargs
     ):
         super(HPOCNN, self).__init__(
             task_name=task_name,
             budget=budget,
             budget_type=budget_type,
-            seed=seed,
+            seed = seed,
+            task_id = task_id,
             workload=workload,
         )
+        
+    
+        
         np.random.seed(seed)
         torch.manual_seed(seed)
         self.dataset_name = HPOCNN.DATASET_NAME[workload]
@@ -239,7 +243,7 @@ class HPOCNN(NonTabularProblem):
             testset = datasets.MNIST(
                 root="./data", train=False, download=True, transform=transforms.Compose(
                     [
-                        BGGreen(),
+                        BGRed(),
                         transforms.ToTensor(),
                         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                     ]
@@ -303,6 +307,12 @@ class HPOCNN(NonTabularProblem):
 
         correct = 0
         total = 0
+        import os
+        os.makedirs(f'./temp_model/{self.task_name}_{self.seed}', exist_ok=True)
+
+        model_save_path = f'./temp_model/{self.task_name}_{self.seed}/lr_{lr}_momentum_{momentum}_weight_decay_{weight_decay}_model.pth'  # 自定义保存路径
+        torch.save(net.state_dict(), model_save_path)
+
         with torch.no_grad():
             for data in testloader:
                 images, labels = data[0].to(device), data[1].to(device)

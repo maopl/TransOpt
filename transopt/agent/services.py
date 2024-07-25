@@ -370,7 +370,7 @@ class Services:
         # Create a separate process for each seed
         process_list = []
         for seed in seeds:
-            p = Process(target=self._run_optimize_process, args=(seed,))
+            p = Process(target=self._run_optimize_process, args=(int(seed),))
             process_list.append(p)
             p.start()
         

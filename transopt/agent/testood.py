@@ -109,9 +109,14 @@ if __name__ == "__main__":
     epochs = 30
     batch_size = 64
 
-    lr = 0.0017607943222948076
-    momentum = 0.6997583600209312
-    weight_decay = 0.004643925899318933
+    # lr = 0.0017607943222948076
+    # momentum = 0.6997583600209312
+    # weight_decay = 0.004643925899318933
+    
+    lr = parameters[0][0]
+    momentum = parameters[0][1]
+    weight_decay = parameters[0][2]
+    print(lr, momentum, weight_decay)
 
     net = Learner(target_classes=10).to(device)
     criterion = nn.NLLLoss()

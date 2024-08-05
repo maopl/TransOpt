@@ -156,6 +156,17 @@ def create_app():
         return {"succeed": True}, 200
 
 
+    @app.route("/api/Dashboard/errorsubmit", methods=["POST"])
+    def errorsubmit():
+        try:
+            print(11111111111)
+
+
+            return {"succeed": True}, 200
+        except Exception as e:
+            logger.error(f"Error in searching dataset: {e}")
+            return {"error": False}, 200
+    
     @app.route("/api/configuration/search_dataset", methods=["POST"])
     def configuration_search_dataset():
         try:

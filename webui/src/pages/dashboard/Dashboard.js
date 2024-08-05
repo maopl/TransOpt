@@ -10,6 +10,7 @@ import Radar from "./charts/Radar";
 import Scatter from "./charts/Scatter";
 import Bar from "./charts/Bar";
 import Importance from "./charts/Importance";
+import {Input, Modal } from "antd";  
 
 
 class Dashboard extends React.Component {
@@ -19,7 +20,9 @@ class Dashboard extends React.Component {
       selectedTaskIndex: -1,
       tasksInfo: [],
       ScatterData: [],
-      TrajectoryData: []
+      TrajectoryData: [],
+      isModalVisible: false,  // 控制Modal显示
+      errorMessage: ""  // 存储输入的错误信息
     };
   }
 
@@ -56,6 +59,53 @@ class Dashboard extends React.Component {
       console.error('Error sending message:', error);
     });
   }
+
+  // 处理按钮点击事件
+  showModal = () => {
+    this.setState({ isModalVisible: true });
+  };
+
+  handleOk = () => {
+    console.log(this.state.errorMessage);
+    this.setState({ isModalVisible: false });
+
+    const messageToSend = {
+    errorMessage: this.state.errorMessage
+  };
+
+  fetch("http://localhost:5000/api/Dashboard/errorsubmit", {  // 根据实际的API端点进行调整
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(messageToSend),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log("Message sent successfully:", data);
+      this.setState({ isModalVisible: false, errorMessage: "" });
+    })
+    .catch((error) => {
+      console.error("Error sending message:", error);
+    });
+};
+
+
+  
+
+
+  handleCancel = () => {
+    this.setState({ isModalVisible: false });
+  };
+
+  handleInputChange = (e) => {
+    this.setState({ errorMessage: e.target.value });
+  };
 
   componentDidMount() {
     // 开始定时调用 fetchData 函数
@@ -155,6 +205,19 @@ class Dashboard extends React.Component {
                       }
                       collapse
                     >
+
+                    <div style={{ overflowY: "auto", maxHeight: "300px" }}>
+                        {this.state.tasksInfo.map((task, index) => (
+                          <Button
+                            key={index}
+                            className={s.btn}
+                            onClick={() => this.handleTaskClick(index)}
+                          >
+                            {task.problem_name}
+                          </Button>
+                        ))}
+                      </div>
+
                     <div style={{ overflowY: 'auto', maxHeight: '300px' }}>
                     {this.state.tasksInfo.map((task, index) => (
                       <Button
@@ -294,6 +357,33 @@ class Dashboard extends React.Component {
                     </Widget>
                   </Col>
                 </Row>
+              </Col>
+
+              <Col lg={3} xs={3}>
+                <Widget
+                  title={
+                    <h5>
+                      <span className="fw-semi-bold">Error Submission</span>
+                    </h5>
+                  }
+                  collapse
+                >
+                  <Button type="primary" onClick={this.showModal}>
+                  Error submission
+                  </Button>
+                  <Modal
+                    title="Error submission"
+                    visible={this.state.isModalVisible}
+                    onOk={this.handleOk}
+                    onCancel={this.handleCancel}
+                  >
+                    <Input
+                      placeholder="Error submission"
+                      value={this.state.errorMessage}
+                      onChange={this.handleInputChange}
+                    />
+                  </Modal>
+                </Widget>
               </Col>
             </Row>
           </div>

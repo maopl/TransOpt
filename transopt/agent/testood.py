@@ -50,6 +50,7 @@ if __name__ == "__main__":
         print(table[1]['data_number'])
         if table[1]['data_number'] == 100:
             task_name = table[0]
+            print(task_name)
 
             all_data = services.data_manager.db.select_data(task_name)
             table_info = services.data_manager.db.query_dataset_info(task_name)
@@ -61,7 +62,7 @@ if __name__ == "__main__":
             obj_type = objectives[0]["type"]
 
             obj_data = [data[obj] for data in all_data]
-            max_id = np.argmax(obj_data[:33])
+            max_id = np.argmax(obj_data)
             
             var_data = [[data[var["name"]] for var in table_info["variables"]] for data in all_data]
             variables = [var["name"] for var in table_info["variables"]]
@@ -93,6 +94,7 @@ if __name__ == "__main__":
         root="./data", train=False, download=True, transform=transforms.Compose(
             [
                 BGGreen(),
+                transforms.Resize((32, 32)),
                 transforms.ToTensor(),
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
             ]
@@ -109,42 +111,50 @@ if __name__ == "__main__":
     epochs = 30
     batch_size = 64
 
-    lr = 0.0017607943222948076
-    momentum = 0.6997583600209312
-    weight_decay = 0.004643925899318933
+    # lr = 0.0017607943222948076
+    # momentum = 0.6997583600209312
+    # weight_decay = 0.004643925899318933
+    
+    lr = parameters[2][0]
+    momentum = parameters[2][1]
+    weight_decay = parameters[2][2]
+    print(lr, momentum, weight_decay)
 
     net = Learner(target_classes=10).to(device)
-    criterion = nn.NLLLoss()
-    optimizer = optim.SGD(
-        net.parameters(),
-        lr=lr,
-        momentum=momentum,
-        weight_decay = weight_decay,
-    )
-    start_time = time.time()
-    for e in tqdm.tqdm(range(epochs)):
-        running_loss = 0.0
-        for i, data in enumerate(trainloader, 0):
-            inputs, labels = data[0].to(device), data[1].to(device)
-            optimizer.zero_grad()
+    net.load_state_dict(torch.load(f'./temp_model/CNN_101/lr_0.9022972086386453_momentum_0.9987180709134317_weight_decay_0.006041134854023943_model.pth'))
+    # criterion = nn.NLLLoss()
+    # optimizer = optim.SGD(
+    #     net.parameters(),
+    #     lr=lr,
+    #     momentum=momentum,
+    #     weight_decay = weight_decay,
+    # )
+    # start_time = time.time()
+    # for e in tqdm.tqdm(range(epochs)):
+    #     running_loss = 0.0
+    #     for i, data in enumerate(trainloader, 0):
+    #         inputs, labels = data[0].to(device), data[1].to(device)
+    #         optimizer.zero_grad()
 
-            outputs = net(inputs)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
+    #         outputs = net(inputs)
+    #         loss = criterion(outputs, labels)
+    #         loss.backward()
+    #         optimizer.step()
 
-            running_loss += loss.item()
+    #         running_loss += loss.item()
 
-        print("Epoch %d, Loss: %.3f" % (e + 1, running_loss / len(trainloader)))
+    #     print("Epoch %d, Loss: %.3f" % (e + 1, running_loss / len(trainloader)))
 
     correct = 0
     total = 0
     import os
 
-    os.makedirs(f'./temp_model/test', exist_ok=True)
+    # os.makedirs(f'./temp_model/test', exist_ok=True)
 
-    model_save_path = f'./temp_model/test/lr_{lr}_momentum_{momentum}_weight_decay_{weight_decay}_model.pth'  # 自定义保存路径
-    torch.save(net.state_dict(), model_save_path)
+    # model_save_path = f'./temp_model/test/lr_{lr}_momentum_{momentum}_weight_decay_{weight_decay}_model.pth'  # 自定义保存路径
+    # torch.save(net.state_dict(), model_save_path)
+
+
 
     with torch.no_grad():
         for data in testloader:

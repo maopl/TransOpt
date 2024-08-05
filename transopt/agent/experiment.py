@@ -88,7 +88,7 @@ if __name__ == "__main__":
     parser.add_argument("-normd", "--normalizer_data_selector", type=str, default="None")
     parser.add_argument("-normdp", "--normalizer_data_selector_parameters", type=str, default="")
     # Seed
-    parser.add_argument("-s", "--seeds", type=list, default=[1])
+    parser.add_argument("-s", "--seeds", type=list, default=[101])
     # parser.add_argument("-s", "--seeds", type=str, default="5")
 
 

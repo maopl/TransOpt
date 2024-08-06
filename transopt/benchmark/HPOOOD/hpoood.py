@@ -7,6 +7,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torchvision
+import os
+import random
+
 from torchvision import datasets, transforms
 
 from typing import Dict, Union
@@ -18,7 +21,7 @@ from transopt.optimizer.sampler.random import RandomSampler
 from transopt.space.fidelity_space import FidelitySpace
 from transopt.space.search_space import SearchSpace
 from transopt.space.variable import *
-from transopt.benchmark.HPOOOD.hparams_registry import hparams_registry
+from transopt.benchmark.HPOOOD.hparams_registry import random_hparams, default_hparams, get_hparams
 
 
 
@@ -54,10 +57,48 @@ class HPOOOD_base(NonTabularProblem):
     num_objectives = 1
     workloads = []
     fidelity = None
+    
+    ALGORITHMS = [
+        'ERM',
+        'Fish',
+        'IRM',
+        'GroupDRO',
+        'Mixup',
+        'MLDG',
+        'CORAL',
+        'MMD',
+        'DANN',
+        'CDANN',
+        'MTL',
+        'SagNet',
+        'ARM',
+        'VREx',
+        'RSC',
+        'SD',
+        'ANDMask',
+        'SANDMask',
+        'IGA',
+        'SelfReg',
+        "Fishr",
+        'TRM',
+        'IB_ERM',
+        'IB_IRM',
+        'CAD',
+        'CondCAD',
+        'Transfer',
+        'CausIRL_CORAL',
+        'CausIRL_MMD',
+        'EQRM',
+        'RDM',
+        'ADRMX',
+    ]
 
     def __init__(
         self, task_name, budget_type, budget, seed, workload, **kwargs
         ):
+        self.dataset = HPOOOD_base.DATASETS[workload]
+        self.algorithm = kwargs['algorithm']
+        self.test_envs = [0]
         super(HPOOOD_base, self).__init__(
             task_name=task_name,
             budget=budget,
@@ -65,10 +106,35 @@ class HPOOOD_base(NonTabularProblem):
             seed=seed,
             workload=workload,
         )
+            
+        random.seed(seed)
         np.random.seed(seed)
         torch.manual_seed(seed)
-        self.dataset = HPOOOD_base.DATASETS[workload]
-        self.algorithm = kwargs['algorithm']
+        
+        hparams = default_hparams(self.algorithm, self.dataset)
+        
+        if self.dataset in vars(datasets):
+            dataset = vars(datasets)[self.dataset](self.data_dir,
+                self.test_envs, hparams)
+        else:
+            raise NotImplementedError
+        
+        in_splits = []
+        out_splits = []
+        uda_splits = []
+        
+        # for env_i, env in enumerate(dataset):
+        #     uda = []
+
+        #     out, in_ = misc.split_dataset(env,
+        #         int(len(env)*args.holdout_fraction),
+        #         misc.seed_hash(args.trial_seed, env_i))
+
+        #     if env_i in args.test_envs:
+        #         uda, in_ = misc.split_dataset(in_,
+        #             int(len(in_)*args.uda_holdout_fraction),
+        #             misc.seed_hash(args.trial_seed, env_i))
+
 
 
     def get_configuration_space(
@@ -86,17 +152,9 @@ class HPOOOD_base(NonTabularProblem):
         -------
         ConfigSpace.ConfigurationSpace
         """
-        
-        hparams = hparams_registry.default_hparams(self.algorithm, self.dataset)
-        variables=[Continuous('lr', [-10.0, 0.0]),
-                Continuous('weight_decay', [-10.0, -5.0]),
-                ]
-
-        print('HParams:')
-        for k, v in sorted(hparams.items()):
-            print('\t{}: {}'.format(k, v))
-            
-        
+        variables=[Continuous('lr', [-8.0, 0.0]),
+            Continuous('weight_decay', [-10.0, -5.0]),
+            ]
         ss = SearchSpace(variables)
         self.hparam = ss
         return ss
@@ -121,12 +179,25 @@ class HPOOOD_base(NonTabularProblem):
         fs = FidelitySpace([])
         return fs
     def get_score(self, configuration: dict):
+        
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
+        
         if torch.cuda.is_available():
             device = "cuda"
         else:
             device = "cpu"
+        
+        hparams = default_hparams(self.algorithm, self.dataset)
+        hparams['lr'] = configuration["lr"]
+        hparams['weight_decay'] = configuration["weight_decay"]
+        
+    
+            
+
+
+        
+        os.makedirs(args.output_dir, exist_ok=True)
             
         if self.dataset in vars(datasets):
             dataset = vars(datasets)[self.dataset](self.data_dir, args.test_envs, hparams)
@@ -196,4 +267,9 @@ class HPOOOD_base(NonTabularProblem):
 class ERMOOD(HPOOOD_base):
     pass
 
+
+
+if __name__ == "__main__":
+    p = ERMOOD(task_name='', budget_type='FEs', budget=100, seed = 0, workload = 2, algorithm='ERM')
+    
 

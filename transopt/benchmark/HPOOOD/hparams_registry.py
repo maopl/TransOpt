@@ -227,3 +227,9 @@ def default_hparams(algorithm, dataset):
 
 def random_hparams(algorithm, dataset, seed):
     return {a: c for a, (b, c) in _hparams(algorithm, dataset, seed).items()}
+
+def get_hparams(algorithm, dataset):
+    hp =  _hparams(algorithm, dataset,0)
+    pass
+
+

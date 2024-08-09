@@ -47,72 +47,11 @@ def make_record(step, hparams_seed, envs):
         result[f'env{i}_in_acc'] = in_acc
         result[f'env{i}_out_acc'] = out_acc
     return result
-
-
-class Job:
-    NOT_LAUNCHED = 'Not launched'
-    INCOMPLETE = 'Incomplete'
-    DONE = 'Done'
-
-    def __init__(self, train_args, sweep_output_dir):
-        args_str = json.dumps(train_args, sort_keys=True)
-        args_hash = hashlib.md5(args_str.encode('utf-8')).hexdigest()
-        self.output_dir = os.path.join(sweep_output_dir, args_hash)
-
-        self.train_args = copy.deepcopy(train_args)
-        self.train_args['output_dir'] = self.output_dir
-        command = ['python', '-m', 'domainbed.scripts.train']
-        for k, v in sorted(self.train_args.items()):
-            if isinstance(v, list):
-                v = ' '.join([str(v_) for v_ in v])
-            elif isinstance(v, str):
-                v = shlex.quote(v)
-            command.append(f'--{k} {v}')
-        self.command_str = ' '.join(command)
-
-        if os.path.exists(os.path.join(self.output_dir, 'done')):
-            self.state = Job.DONE
-        elif os.path.exists(self.output_dir):
-            self.state = Job.INCOMPLETE
-        else:
-            self.state = Job.NOT_LAUNCHED
-
-    def __str__(self):
-        job_info = (self.train_args['dataset'],
-            self.train_args['algorithm'],
-            self.train_args['test_envs'],
-            self.train_args['hparams_seed'])
-        return '{}: {} {}'.format(
-            self.state,
-            self.output_dir,
-            job_info)
-
-    @staticmethod
-    def launch(jobs, launcher_fn):
-        print('Launching...')
-        jobs = jobs.copy()
-        np.random.shuffle(jobs)
-        print('Making job directories:')
-        for job in tqdm.tqdm(jobs, leave=False):
-            os.makedirs(job.output_dir, exist_ok=True)
-        commands = [job.command_str for job in jobs]
-        launcher_fn(commands)
-        print(f'Launched {len(jobs)} jobs!')
-
-    @staticmethod
-    def delete(jobs):
-        print('Deleting...')
-        for job in jobs:
-            shutil.rmtree(job.output_dir)
-        print(f'Deleted {len(jobs)} jobs!')
         
         
 
 class HPOOOD_base(NonTabularProblem):
     DATASETS = [
-    # Debug
-    "Debug28",
-    "Debug224",
     # Small images
     "ColoredMNIST",
     "RotatedMNIST",
@@ -177,15 +116,16 @@ class HPOOOD_base(NonTabularProblem):
     ]
 
     def __init__(
-        self, task_name, budget_type, budget, seed, workload, **kwargs
+        self, task_name, budget_type, budget, seed, workload, algorithm
         ):
         self.dataset_name = HPOOOD_base.DATASETS[workload]
-        self.algorithm_name = kwargs['algorithm']
-        self.test_envs = [0]
+        self.algorithm_name = algorithm
+        self.test_envs = [0,1]
         self.data_dir = '/home/cola/transopt_files/data/'
-        self.output_dir = '/home/cola/transopt_files/output/'
+        self.output_dir = f'/home/cola/transopt_files/output/'
         self.holdout_fraction = 0.2
-        self.uda_holdout_fraction = 0
+        self.validate_fraction = 0.1
+        self.uda_holdout_fraction = 0.8
         self.task = 'domain_generalization'
         self.steps = 500
         self.checkpoint_freq = 50
@@ -194,11 +134,15 @@ class HPOOOD_base(NonTabularProblem):
         
         self.skip_model_save = False
         
-        self.trial_seed = 0
+        self.trial_seed = seed
+        
+        self.model_save_dir = self.output_dir + f'models/{algorithm}_{dataset}_{seed}/'
+        self.results_save_dir = self.output_dir + f'results/{algorithm}_{dataset}_{seed}/'
         
         print(f"Selected algorithm: {self.algorithm_name}, dataset: {self.dataset_name}")
         
-        os.makedirs(self.output_dir, exist_ok=True)
+        os.makedirs(self.model_save_dir, exist_ok=True)
+        os.makedirs(self.results_save_dir, exist_ok=True)
         super(HPOOOD_base, self).__init__(
             task_name=task_name,
             budget=budget,
@@ -220,6 +164,7 @@ class HPOOOD_base(NonTabularProblem):
             raise NotImplementedError
         
         in_splits = []
+        val_splits = []
         out_splits = []
         uda_splits = []
         
@@ -229,6 +174,10 @@ class HPOOOD_base(NonTabularProblem):
             out, in_ = misc.split_dataset(env,
                 int(len(env)*self.holdout_fraction),
                 misc.seed_hash(self.seed, env_i))
+            
+            val, in_ = misc.split_dataset(in_,
+                int(len(in_)*self.validate_fraction),
+                misc.seed_hash(self.seed, env_i))
 
             if env_i in self.test_envs:
                 uda, in_ = misc.split_dataset(in_,
@@ -237,12 +186,14 @@ class HPOOOD_base(NonTabularProblem):
 
             if self.hparams['class_balanced']:
                 in_weights = misc.make_weights_for_balanced_classes(in_)
+                val_weights = misc.make_weights_for_balanced_classes(val)
                 out_weights = misc.make_weights_for_balanced_classes(out)
                 if uda is not None:
                     uda_weights = misc.make_weights_for_balanced_classes(uda)
             else:
-                in_weights, out_weights, uda_weights = None, None, None
+                in_weights, val_weights, out_weights, uda_weights = None, None, None, None
             in_splits.append((in_, in_weights))
+            val_splits.append((val, val_weights))
             out_splits.append((out, out_weights))
             if len(uda):
                 uda_splits.append((uda, uda_weights))
@@ -254,7 +205,15 @@ class HPOOOD_base(NonTabularProblem):
             weights=env_weights,
             batch_size=self.hparams['batch_size'],
             num_workers=self.dataset.N_WORKERS)
-            for i, (env, env_weights) in enumerate(in_splits)
+            for i, (env, env_weights) in enumerate(in_splits) 
+            if i not in self.test_envs]
+        
+        self.val_loaders = [InfiniteDataLoader(
+            dataset=env,
+            weights=env_weights,
+            batch_size=self.hparams['batch_size'],
+            num_workers=self.dataset.N_WORKERS)
+            for i, (env, env_weights) in enumerate(val_splits)
             if i not in self.test_envs]
 
         self.uda_loaders = [InfiniteDataLoader(
@@ -268,11 +227,15 @@ class HPOOOD_base(NonTabularProblem):
             dataset=env,
             batch_size=64,
             num_workers=self.dataset.N_WORKERS)
-            for env, _ in (in_splits + out_splits + uda_splits)]
+            for env, _ in (in_splits + val_splits + out_splits + uda_splits)]
+    
+    
          
-        self.eval_weights = [None for _, weights in (in_splits + out_splits + uda_splits)]
+        self.eval_weights = [None for _, weights in (in_splits + val_splits + out_splits + uda_splits)]
         self.eval_loader_names = ['env{}_in'.format(i)
             for i in range(len(in_splits))]
+        self.eval_loader_names += ['env{}_val'.format(i)
+            for i in range(len(val_splits))]
         self.eval_loader_names += ['env{}_out'.format(i)
             for i in range(len(out_splits))]
         self.eval_loader_names += ['env{}_uda'.format(i)
@@ -307,7 +270,7 @@ class HPOOOD_base(NonTabularProblem):
             "model_hparams": self.hparams,
             "model_dict": self.algorithm.state_dict()
         }
-        torch.save(save_dict, os.path.join(self.output_dir, filename))
+        torch.save(save_dict, os.path.join(self.model_save_dir, filename))
 
     def get_configuration_space(
         self, seed: Union[int, None] = None):
@@ -407,30 +370,35 @@ class HPOOOD_base(NonTabularProblem):
                     'hparams': self.hparams,
                 })
 
-                epochs_path = os.path.join(self.output_dir, 'results.jsonl')
-                with open(epochs_path, 'a') as f:
-                    f.write(json.dumps(results, sort_keys=True) + "\n")
-
                 start_step = step + 1
-                
+
                 if self.save_model_every_checkpoint:
                     self.save_checkpoint(f'model_step{step}.pkl')
         
         self.save_checkpoint('model.pkl')
-        with open(os.path.join(self.output_dir, 'done'), 'w') as f:
+        with open(os.path.join(self.model_save_dir, 'done'), 'w') as f:
             f.write('done')
-            
+        
+        return results
+    
+    
     def get_score(self, configuration: dict):
-        self.train(configuration)
+        results = self.train(configuration)
+        
+        epochs_path = os.path.join(self.results_save_dir, f"results_lr_{configuration['lr']}_weight_decay_{configuration['weight_decay']}.jsonl")
+        with open(epochs_path, 'a') as f:
+            f.write(json.dumps(results, sort_keys=True) + "\n")
+
+
+        val_acc = [i[1] for i in results.items() if 'val' in i[0]]
+        avg_val_acc = np.mean(val_acc)
+        
+        test_acc = [i[1] for i in results.items() if 'out' in i[0]]
+        avg_test_acc = np.mean(test_acc)
+        
+        return avg_val_acc, avg_test_acc
         
 
-
-
-        
-
-
-    
-    
     def objective_function(
         self,
         configuration,
@@ -459,15 +427,47 @@ class HPOOOD_base(NonTabularProblem):
     def get_problem_type(self):
         return "hpo"
     
-
 @problem_registry.register("ERMOOD")
-class ERMOOD(HPOOOD_base):
-    pass
+class ERMOOD(HPOOOD_base):    
+    def __init__(
+        self, task_name, budget_type, budget, seed, workload, **kwargs
+        ):
+        super(ERMOOD, self).__init__(task_name=task_name, budget_type=budget_type, budget=budget, seed = seed, workload = workload, algorithm='ERM')
+
+@problem_registry.register("IRMOOD")
+class IRMOOD(HPOOOD_base):
+    def __init__(
+        self, task_name, budget_type, budget, seed, workload, **kwargs
+        ):
+        super(IRMOOD, self).__init__(task_name=task_name, budget_type=budget_type, budget=budget, seed = seed, workload = workload, algorithm='IRM')
+
+@problem_registry.register("ARMOOD")
+class ARMOOD(HPOOOD_base):
+    def __init__(
+        self, task_name, budget_type, budget, seed, workload, **kwargs
+        ):
+        super(ARMOOD, self).__init__(task_name=task_name, budget_type=budget_type, budget=budget, seed = seed, workload = workload, algorithm='ARM')
+
+@problem_registry.register("MixupOOD")
+class MixupOOD(HPOOOD_base):
+    def __init__(
+        self, task_name, budget_type, budget, seed, workload, **kwargs
+        ):
+        super(MixupOOD, self).__init__(task_name=task_name, budget_type=budget_type, budget=budget, seed = seed, workload = workload, algorithm='Mixup')
+
+@problem_registry.register("DANNOOD")
+class DANNOOD(HPOOOD_base):
+    def __init__(
+        self, task_name, budget_type, budget, seed, workload, **kwargs
+        ):
+        super(DANNOOD, self).__init__(task_name=task_name, budget_type=budget_type, budget=budget, seed = seed, workload = workload, algorithm='DANN')
+        
+
 
 
 
 if __name__ == "__main__":
-    p = ERMOOD(task_name='', budget_type='FEs', budget=100, seed = 0, workload = 4, algorithm='ERM')
+    p = MixupOOD(task_name='', budget_type='FEs', budget=100, seed = 0, workload = 2)
     configuration = {
         "lr": -0.3,
         "weight_decay": -5,

@@ -54,8 +54,8 @@ def set_optimizer(services, args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # Task
-    parser.add_argument("-n", "--task_name", type=str, default="CNN")
-    parser.add_argument("-v", "--num_vars", type=int, default=3)
+    parser.add_argument("-n", "--task_name", type=str, default="ERMOOD")
+    parser.add_argument("-v", "--num_vars", type=int, default=2)
     parser.add_argument("-o", "--num_objs", type=int, default=1)
     parser.add_argument("-f", "--fidelity", type=str, default="")
     parser.add_argument("-w", "--workloads", type=str, default="4")
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     parser.add_argument("-srd", "--space_refiner_data_selector", type=str, default="None")
     parser.add_argument("-srdp", "--space_refiner_data_selector_parameters", type=str, default="")
     parser.add_argument("-sp", "--sampler", type=str, default="random")
-    parser.add_argument("-spi", "--sampler_init_num", type=int, default=33)
+    parser.add_argument("-spi", "--sampler_init_num", type=int, default=22)
     parser.add_argument("-spp", "--sampler_parameters", type=str, default="")
     parser.add_argument("-spd", "--sampler_data_selector", type=str, default="None")
     parser.add_argument("-spdp", "--sampler_data_selector_parameters", type=str, default="")

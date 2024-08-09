@@ -152,6 +152,7 @@ def split_dataset(dataset, n, seed=0):
     keys_2 = keys[n:]
     return _SplitDataset(dataset, keys_1), _SplitDataset(dataset, keys_2)
 
+
 def random_pairs_of_minibatches(minibatches):
     perm = torch.randperm(len(minibatches)).tolist()
     pairs = []

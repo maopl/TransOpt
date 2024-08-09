@@ -31,6 +31,7 @@ Please install these prerequisites if they are not already installed on your sys
    $ cd TransOpt
    $ pip install -r requirements.txt
    $ python setup.py install
+   $ bash scripts/init_docker.sh
    ```
 
 ### Frontend Installation

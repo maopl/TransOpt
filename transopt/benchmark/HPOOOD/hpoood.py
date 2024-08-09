@@ -182,8 +182,8 @@ class HPOOOD_base(NonTabularProblem):
         self.dataset_name = HPOOOD_base.DATASETS[workload]
         self.algorithm_name = kwargs['algorithm']
         self.test_envs = [0]
-        self.data_dir = '~/transopt_files/data/'
-        self.output_dir = '~/transopt_files/output/'
+        self.data_dir = '/home/cola/transopt_files/data/'
+        self.output_dir = '/home/cola/transopt_files/output/'
         self.holdout_fraction = 0.2
         self.uda_holdout_fraction = 0
         self.task = 'domain_generalization'
@@ -195,6 +195,8 @@ class HPOOOD_base(NonTabularProblem):
         self.skip_model_save = False
         
         self.trial_seed = 0
+        
+        print(f"Selected algorithm: {self.algorithm_name}, dataset: {self.dataset_name}")
         
         os.makedirs(self.output_dir, exist_ok=True)
         super(HPOOOD_base, self).__init__(
@@ -208,9 +210,9 @@ class HPOOOD_base(NonTabularProblem):
         random.seed(seed)
         np.random.seed(seed)
         torch.manual_seed(seed)
-        
+
         self.hparams = default_hparams(self.algorithm_name, self.dataset_name)
-        
+
         if self.dataset_name in vars(datasets):
             self.dataset = vars(datasets)[self.dataset_name](self.data_dir,
                 self.test_envs, self.hparams)
@@ -465,7 +467,7 @@ class ERMOOD(HPOOOD_base):
 
 
 if __name__ == "__main__":
-    p = ERMOOD(task_name='', budget_type='FEs', budget=100, seed = 0, workload = 2, algorithm='ERM')
+    p = ERMOOD(task_name='', budget_type='FEs', budget=100, seed = 0, workload = 4, algorithm='ERM')
     configuration = {
         "lr": -0.3,
         "weight_decay": -5,

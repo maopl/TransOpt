@@ -15,7 +15,7 @@ class AbsolutContainerManager:
         self.docker_client = docker.from_env()
     
     def prepare_antigen(self, antigen):
-        logger.debug(f"Preparing antigen data for {antigen}...")
+        logger.info(f"Preparing antigen data for {antigen}...")
 
         try:
             container = self.docker_client.containers.run(
@@ -43,7 +43,7 @@ class AbsolutContainerManager:
         
         self.prepare_antigen(antigen)
 
-        logger.debug(f"Predicting energy for antigen {antigen} with sequence {sequence}...")
+        logger.info(f"Predicting energy for antigen {antigen} with sequence {sequence}...")
 
         try:
             container = self.docker_client.containers.run(

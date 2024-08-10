@@ -17,7 +17,7 @@ RUN git clone $REPO_URL $TEMP_DIR && \
 
 RUN rm -rf $TEMP_DIR
 
-COPY download_antigen.sh /usr/local/bin/download_antigen.sh
-RUN chmod +x /usr/local/bin/download_antigen.sh
+COPY prepare_antigen.sh /usr/local/bin/prepare_antigen.sh
+RUN chmod +x /usr/local/bin/prepare_antigen.sh
 
 WORKDIR $INSTALL_DIR

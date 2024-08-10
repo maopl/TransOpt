@@ -1,8 +1,7 @@
 #!/bin/bash
-git clone https://github.com/neeetman/csstuning.git && cd csstuning
-pip install .
+pip install transopt_external/csstuning
 
-bash cssbench/compiler/docker/build_docker.sh
-bash cssbench/dbms/docker/build_docker.sh
+bash transopt_external/csstuning/cssbench/compiler/docker/build_docker.sh
+bash transopt_external/csstuning/cssbench/dbms/docker/build_docker.sh
 
 csstuing_dbms_init -h

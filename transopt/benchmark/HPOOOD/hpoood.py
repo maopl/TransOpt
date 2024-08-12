@@ -129,15 +129,16 @@ class HPOOOD_base(NonTabularProblem):
         self.task = 'domain_generalization'
         self.steps = 500
         self.checkpoint_freq = 50
+        self.query = 0
         
-        self.save_model_every_checkpoint = True
+        self.save_model_every_checkpoint = False
         
         self.skip_model_save = False
         
         self.trial_seed = seed
         
-        self.model_save_dir = self.output_dir + f'models/{algorithm}_{dataset}_{seed}/'
-        self.results_save_dir = self.output_dir + f'results/{algorithm}_{dataset}_{seed}/'
+        self.model_save_dir = self.output_dir + f'models/{self.algorithm_name}_{self.dataset_name}_{seed}/'
+        self.results_save_dir = self.output_dir + f'results/{self.algorithm_name}_{self.dataset_name}_{seed}/'
         
         print(f"Selected algorithm: {self.algorithm_name}, dataset: {self.dataset_name}")
         
@@ -229,8 +230,7 @@ class HPOOOD_base(NonTabularProblem):
             num_workers=self.dataset.N_WORKERS)
             for env, _ in (in_splits + val_splits + out_splits + uda_splits)]
     
-    
-         
+     
         self.eval_weights = [None for _, weights in (in_splits + val_splits + out_splits + uda_splits)]
         self.eval_loader_names = ['env{}_in'.format(i)
             for i in range(len(in_splits))]
@@ -241,10 +241,6 @@ class HPOOOD_base(NonTabularProblem):
         self.eval_loader_names += ['env{}_uda'.format(i)
             for i in range(len(uda_splits))]
         
-        algorithm_class = algorithms.get_algorithm_class(self.algorithm_name)
-        self.algorithm = algorithm_class(self.dataset.input_shape, self.dataset.num_classes,
-            len(self.dataset) - len(self.test_envs), self.hparams)
-        
         self.train_minibatches_iterator = zip(*self.train_loaders)
         self.uda_minibatches_iterator = zip(*self.uda_loaders)
         self.checkpoint_vals = collections.defaultdict(lambda: [])
@@ -252,11 +248,11 @@ class HPOOOD_base(NonTabularProblem):
         self.steps_per_epoch = min([len(env)/self.hparams['batch_size'] for env,_ in in_splits])
         
         if torch.cuda.is_available():
-            self.device = "cuda"
+            self.device = torch.device(f"cuda:{self.trial_seed}")
+
         else:
             self.device = "cpu"
         
-        self.algorithm.to(self.device)
 
 
 
@@ -383,9 +379,15 @@ class HPOOOD_base(NonTabularProblem):
     
     
     def get_score(self, configuration: dict):
+        algorithm_class = algorithms.get_algorithm_class(self.algorithm_name)
+        self.algorithm = algorithm_class(self.dataset.input_shape, self.dataset.num_classes,
+            len(self.dataset) - len(self.test_envs), self.hparams)
+        self.algorithm.to(self.device)
+        
+        self.query += 1
         results = self.train(configuration)
         
-        epochs_path = os.path.join(self.results_save_dir, f"results_lr_{configuration['lr']}_weight_decay_{configuration['weight_decay']}.jsonl")
+        epochs_path = os.path.join(self.results_save_dir, f"{self.query}_lr_{configuration['lr']}_weight_decay_{configuration['weight_decay']}.jsonl")
         with open(epochs_path, 'a') as f:
             f.write(json.dumps(results, sort_keys=True) + "\n")
 
@@ -414,9 +416,9 @@ class HPOOOD_base(NonTabularProblem):
             "batch_size": 64,
             "epoch": fidelity["epoch"],
         }
-        acc, time = self.get_score(c)
+        val_acc, test_acc = self.get_score(c)
 
-        results = {list(self.objective_info.keys())[0]: float(1 - acc)}
+        results = {list(self.objective_info.keys())[0]: float(1 - val_acc)}
         for fd_name in self.fidelity_space.fidelity_names:
             results[fd_name] = fidelity[fd_name] 
         return results
@@ -426,6 +428,8 @@ class HPOOOD_base(NonTabularProblem):
     
     def get_problem_type(self):
         return "hpo"
+    
+    
     
 @problem_registry.register("ERMOOD")
 class ERMOOD(HPOOOD_base):    

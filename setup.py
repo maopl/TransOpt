@@ -1,6 +1,7 @@
 import os
 import json
 from setuptools import setup, find_packages
+import subprocess
 
 def get_extra_requirements(folder='./extra_requirements'):
     """ Helper function to read in all extra requirement files in the specified
@@ -20,6 +21,22 @@ def get_extra_requirements(folder='./extra_requirements'):
     return extra_requirements
 
 extra_requirements = get_extra_requirements()
+
+
+def build_docker_image(image_name, docker_dir):
+    dockerfile_path = os.path.join(docker_dir, 'Dockerfile')
+    
+    if os.path.exists(dockerfile_path):
+        print(f"Building Docker image {image_name}...")
+        subprocess.run(['docker', 'build', '-t', image_name, docker_dir], check=True)
+        print(f"Docker image '{image_name}' created successfully.")
+    else:
+        print(f"Dockerfile not found at {dockerfile_path}")
+        raise FileNotFoundError(f"Dockerfile not found at {dockerfile_path}")
+
+def init_absolut_docker():
+    docker_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources/docker/absolut_image')
+    build_docker_image('absolut_image', docker_dir)
 
 req = [
     "scipy>=1.4.1",
@@ -80,6 +97,7 @@ setup(
     entry_points={
         'console_scripts': [
             'transopt-server = transopt.agent.app:main',
+            'init-absolut-docker = transopt.scripts.init_docker:init_absolut_docker',
         ],
     }
 )

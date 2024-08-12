@@ -54,7 +54,7 @@ def set_optimizer(services, args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # Task
-    parser.add_argument("-n", "--task_name", type=str, default="ERMOOD")
+    parser.add_argument("-n", "--task_name", type=str, default="MixupOOD")
     parser.add_argument("-v", "--num_vars", type=int, default=2)
     parser.add_argument("-o", "--num_objs", type=int, default=1)
     parser.add_argument("-f", "--fidelity", type=str, default="")
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     parser.add_argument("-normd", "--normalizer_data_selector", type=str, default="None")
     parser.add_argument("-normdp", "--normalizer_data_selector_parameters", type=str, default="")
     # Seed
-    parser.add_argument("-s", "--seeds", type=list, default=[0,1])
+    parser.add_argument("-s", "--seeds", type=int, default=0)
     # parser.add_argument("-s", "--seeds", type=str, default="5")
 
 
@@ -98,6 +98,6 @@ if __name__ == "__main__":
     set_task(services, args)
     set_optimizer(services, args)
     try:
-        services._run_optimize_process(seeds = args.seeds)
+        services._run_optimize_process(seed = args.seeds)
     except Exception as e:
         traceback.print_exc()

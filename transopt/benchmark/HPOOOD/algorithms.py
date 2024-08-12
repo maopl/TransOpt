@@ -11,6 +11,10 @@ from collections import OrderedDict
 
 
 from transopt.benchmark.HPOOOD import networks
+from transopt.benchmark.HPOOOD.misc import (
+    random_pairs_of_minibatches, split_meta_train_test, ParamDict,
+    MovingAverage, l2_between_dicts, proj, Nonparametric, SupConLossLambda
+)
 
 
 

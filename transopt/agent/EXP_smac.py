@@ -11,7 +11,7 @@ from transopt.benchmark.HPOOOD.hpoood import ERMOOD, IRMOOD, MixupOOD, DANNOOD
 class formal_obj:
     def __init__(self, f):
         self.f = f
-    def new_f(self, configuration):
+    def new_f(self, configuration, seed: int = 0):
         start = time.time()
         results = self.f(configuration)
         return results['function_value']

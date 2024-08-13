@@ -317,6 +317,8 @@ class HPOOOD_base(NonTabularProblem):
         self.hparams = default_hparams(self.algorithm_name, self.dataset_name)
         self.hparams['lr'] = configuration["lr"]
         self.hparams['weight_decay'] = configuration["weight_decay"]
+        self.steps = configuration['epoch']
+        print(self.steps)
 
         n_steps = self.steps or self.dataset.N_STEPS
         
@@ -408,8 +410,15 @@ class HPOOOD_base(NonTabularProblem):
         seed = None,
         **kwargs
     ) -> Dict:
+
+            
+        if 'epoch' in kwargs:
+            epoch = kwargs['epoch']
+        else:
+            epoch = 500
+            
         if fidelity is None:
-            fidelity = {"epoch": 30, "data_frac": 0.8}
+            fidelity = {"epoch": epoch, "data_frac": 0.8}
         c = {
             "lr": np.exp2(configuration["lr"]),
             "weight_decay": np.exp2(configuration["weight_decay"]),

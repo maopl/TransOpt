@@ -30,7 +30,7 @@ def num_environments(dataset_name):
 class MultipleDomainDataset:
     N_STEPS = 5001           # Default, subclasses may override
     CHECKPOINT_FREQ = 100    # Default, subclasses may override
-    N_WORKERS = 8            # Default, subclasses may override
+    N_WORKERS = 2            # Default, subclasses may override
     ENVIRONMENTS = None      # Subclasses should override
     INPUT_SHAPE = None       # Subclasses should override
 

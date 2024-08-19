@@ -48,6 +48,7 @@ req = [
     "torch",
     "torchvision",
     "gpytorch",
+    
     # "GPy",
     "GPyOpt",
     "gym",
@@ -63,18 +64,6 @@ req = [
     'GPy @ git+https://github.com/SheffieldML/GPy.git@devel'
     'mmh3',
     'rich',
-    
-    # Analysis
-    "pandas",
-    "tikzplotlib",
-    "pdf2image",
-    "seaborn",
-    "Pillow",
-    
-    # Remote
-    "flask",
-    "requests",
-    "celery",
 ]
 
 setup(

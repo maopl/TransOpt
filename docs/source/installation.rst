@@ -3,9 +3,6 @@ Installation Guide
 
 This section will guide you through the steps required to install TransOpt on your system.
 
-Prerequisites
--------------
-
 Before installing, ensure you have the following installed:
 
 - Python 3.10
@@ -31,3 +28,42 @@ Before installing, ensure you have the following installed:
    ::
 
      $ cd webui && npm install
+
+4. (Optional) Install additional extensions:
+
+   You can enhance the functionality of the system by installing the following optional packages:
+
+   - **Extension 1**: Provides advanced results analysis.
+
+     ::
+
+       $ python setup.py install [analysis]
+
+   - **Extension 2**: Adds support for distributed computing.
+
+     ::
+
+       $ python setup.py install[remote]
+
+
+5. (Optional) Install optional Docker containers:
+
+   The following Docker containers are available to provide additional problem generators:
+
+   - **Inverse RNA Design**: Provides inverse RNA design problem generators:
+
+     ::
+
+       $    bash scripts/init_docker.sh
+
+   - **Protein Design**: Adds support for distributed computing.
+
+     ::
+
+       $    bash scripts/init_csstuning.sh
+
+   - **Configurable Software Tuning**: Enables integration with external APIs.
+
+     ::
+
+       $    bash scripts/init_csstuning.sh

@@ -5,5 +5,8 @@ TransOpt comes with a powerful CLI that allows you to interact with the platform
 
 Common Commands
 ---------------
-- `transopt-server start`: Start the backend server.
+- `python transopt/agent/app.py`: Start the backend server.
+
+Common Commands
+---------------
 - `transopt-server status`: Check the status of the server.

@@ -3,16 +3,16 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to TransOpt's documentation!
-====================================
+Welcome to the documentation of TransOpt!
+=========================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Getting Started
 
    installation
    quickstart
-   usage/overview
+   usage/features
    usage/examples
    usage/cli
    development/api_reference

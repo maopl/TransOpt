@@ -1,8 +1,5 @@
-TransOpt Documentation
+Quick Start
 ======================
-
-Overview
---------
 
 TransOpt is a sophisticated web-based platform designed to facilitate optimization experiments...
 
@@ -30,7 +27,7 @@ To start using TransOpt, run the following commands:
 
 ::
 
-  $ transopt-server
+  $ python transopt/agent/app.py
   $ cd webui && npm start
 
 More detailed instructions can be found in the sections below.

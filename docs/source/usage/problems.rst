@@ -80,9 +80,6 @@ The synthetic problems in this section are widely used in the optimization liter
 
 These problems collectively provide a comprehensive suite for evaluating optimization algorithms across a broad range of difficulties, including convexity, multi-modality, separability, and conditioning.
 
-
-Synthetic Problems
-------------------
 +--------------------------+---------------------------------------------------------------------------------------------+--------------------------------------------------+
 | Problem name             | Mathematical formulation                                                                     | Decision space                                   |
 +==========================+=============================================================================================+==================================================+

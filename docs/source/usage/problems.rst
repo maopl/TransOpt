@@ -156,6 +156,250 @@ These problems collectively provide a comprehensive suite for evaluating optimiz
 +--------------------------+---------------------------------------------------------------------------------------------+--------------------------------------------------+
 | Moving Peak              | :math:`f(\mathbf{x}) = \sum_{i=1}^D \left(10^6\right)^{\frac{i-1}{D-1}} x_i^2`               | :math:`x_i \in [0, 100]`                         |
 +--------------------------+---------------------------------------------------------------------------------------------+--------------------------------------------------+
+| PERM 2                   | :math:`f(\mathbf{x}) = \sum_{i=1}^d\left(\sum_{j=1}^d\left(j^i+\beta\right)\left(\left(\frac{x_j}{j}\right)^i-1\right)\right)^2`| :math:`x_i \in [-d, d]`                 |
+
+
+Real-World Problems
+-------------------
+
+This section provides an overview of the hyperparameters used for various machine learning models and real-world problems. These hyperparameters can be tuned to optimize the performance of the models on specific tasks. Each section includes a brief description of the problem or task, followed by a table of relevant hyperparameters.
+
+Hyperparameters for Support Vector Machine (SVM)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Support Vector Machines (SVM) are widely used for classification and regression tasks. They are particularly effective in high-dimensional spaces and situations where the number of dimensions exceeds the number of samples. The hyperparameters for SVM control the regularization and the kernel function, which are crucial for model performance.
+
++------------------+--------------------+------------------+
+| **Hyperparameter** | **Range**          | **Type**         |
++==================+====================+==================+
+| C                | [-10, 10]           | Continuous       |
++------------------+--------------------+------------------+
+| gamma            | [-10, 10]           | Continuous       |
++------------------+--------------------+------------------+
+
+Hyperparameters for AdaBoost
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+AdaBoost is a popular ensemble method that combines multiple weak learners to create a strong classifier. It is particularly useful for boosting the performance of decision trees. The hyperparameters control the number of estimators and the learning rate, which affects the contribution of each classifier.
+
++---------------------+--------------------+------------------+
+| **Hyperparameter**  | **Range**          | **Type**         |
++=====================+====================+==================+
+| n_estimators        | [1, 100]           | Integer          |
++---------------------+--------------------+------------------+
+| learning_rate       | [0.01, 1]          | Continuous       |
++---------------------+--------------------+------------------+
+
+Hyperparameters for Random Forest
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Random Forest is an ensemble learning method that builds multiple decision trees and merges them to get a more accurate and stable prediction. It is widely used for both classification and regression tasks. The hyperparameters include the number of trees, the depth of the trees, and various criteria for splitting nodes.
+
++------------------------------+---------------------+------------------+
+| **Hyperparameter**            | **Range**           | **Type**         |
++==============================+=====================+==================+
+| n_estimators                  | [1, 1000]           | Integer          |
++------------------------------+---------------------+------------------+
+| max_depth                     | [1, 100]            | Integer          |
++------------------------------+---------------------+------------------+
+| criterion                     | {gini, entropy}     | Categorical      |
++------------------------------+---------------------+------------------+
+| min_samples_leaf              | [1, 20]             | Integer          |
++------------------------------+---------------------+------------------+
+| min_weight_fraction_leaf      | [0.0, 0.5]          | Continuous       |
++------------------------------+---------------------+------------------+
+| min_impurity_decrease         | [0.0, 1.0]          | Continuous       |
++------------------------------+---------------------+------------------+
+
+Hyperparameters for XGBoost
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+XGBoost is an efficient and scalable implementation of gradient boosting, designed for speed and performance. It is widely used in machine learning competitions and industry for classification and regression tasks. The hyperparameters include learning rates, tree depths, and regularization parameters, which control the complexity of the model and its ability to generalize.
+
++----------------------------+--------------------+------------------+
+| **Hyperparameter**          | **Range**          | **Type**         |
++============================+====================+==================+
+| eta                         | [-10.0, 0.0]       | Continuous       |
++----------------------------+--------------------+------------------+
+| max_depth                   | [1, 15]            | Integer          |
++----------------------------+--------------------+------------------+
+| min_child_weight            | [0.0, 7.0]         | Continuous       |
++----------------------------+--------------------+------------------+
+| colsample_bytree            | [0.01, 1.0]        | Continuous       |
++----------------------------+--------------------+------------------+
+| colsample_bylevel           | [0.01, 1.0]        | Continuous       |
++----------------------------+--------------------+------------------+
+| reg_lambda                  | [-10.0, 10.0]      | Continuous       |
++----------------------------+--------------------+------------------+
+| reg_alpha                   | [-10.0, 10.0]      | Continuous       |
++----------------------------+--------------------+------------------+
+| subsample_per_it            | [0.1, 1.0]         | Continuous       |
++----------------------------+--------------------+------------------+
+| n_estimators                | [1, 50]            | Integer          |
++----------------------------+--------------------+------------------+
+| gamma                       | [0.0, 1.0]         | Continuous       |
++----------------------------+--------------------+------------------+
+
+Hyperparameters for GLMNet
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+GLMNet is a regularized regression model that supports both LASSO and ridge regression. It is particularly useful for high-dimensional datasets where regularization is necessary to prevent overfitting. The hyperparameters control the strength of the regularization and the balance between L1 and L2 penalties.
+
++---------------------+--------------------+------------------+
+| **Hyperparameter**  | **Range**          | **Type**         |
++=====================+====================+==================+
+| lambda              | [0, 10^5]          | Log-integer      |
++---------------------+--------------------+------------------+
+| alpha               | [0, 1]             | Continuous       |
++---------------------+--------------------+------------------+
+| nlambda             | [1, 100]           | Integer          |
++---------------------+--------------------+------------------+
+
+Hyperparameters for AlexNet
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+AlexNet is a convolutional neural network (CNN) architecture that revolutionized the field of computer vision by achieving significant improvements on the ImageNet dataset. The hyperparameters include learning rate, dropout rate, weight decay, and the choice of activation function, all of which are crucial for training deep neural networks.
+
++--------------------------+--------------------+------------------+
+| **Hyperparameter**        | **Range**          | **Type**         |
++==========================+====================+==================+
+| learning_rate             | [10^-5, 10^-1]     | Continuous       |
++--------------------------+--------------------+------------------+
+| dropout_rate              | [0.0, 0.5]         | Continuous       |
++--------------------------+--------------------+------------------+
+| weight_decay              | [10^-5, 10^-2]     | Continuous       |
++--------------------------+--------------------+------------------+
+| activation_function       | {ReLU, Leaky ReLU, ELU} | Categorical |
++--------------------------+--------------------+------------------+
+
+Hyperparameters for 2-Layer Bayesian Neural Network (BNN)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Bayesian Neural Networks (BNNs) provide a probabilistic interpretation of deep learning models by introducing uncertainty in the weights. This allows BNNs to express model uncertainty, which is crucial for tasks where uncertainty quantification is important. The hyperparameters include layer sizes, step length, burn-in period, and momentum decay.
+
++-------------------------+---------------------+------------------+
+| **Hyperparameter**       | **Range**           | **Type**         |
++=========================+=====================+==================+
+| layer 1                 | [2^4, 2^9]          | Log-integer      |
++-------------------------+---------------------+------------------+
+| layer 2                 | [2^4, 2^9]          | Log-integer      |
++-------------------------+---------------------+------------------+
+| step_length             | [10^-6, 10^-1]      | Log-continuous   |
++-------------------------+---------------------+------------------+
+| burn_in                 | [0, 8]              | Integer          |
++-------------------------+---------------------+------------------+
+| momentum_decay          | [0, 1]              | Log-continuous   |
++-------------------------+---------------------+------------------+
+
+Hyperparameters for CNNs
+~~~~~~~~~~~~~~~~~~~~~~~~
+Convolutional Neural Networks (CNNs) are the backbone of most modern computer vision systems. They are designed to automatically and adaptively learn spatial hierarchies of features through backpropagation. The hyperparameters include learning rate, momentum, regularization parameter, dropout rate, and activation function.
+
++----------------------------+---------------------+------------------+
+| **Hyperparameter**          | **Range**           | **Type**         |
++============================+=====================+==================+
+| learning_rate               | [10^-6, 10^-1]      | Continuous       |
++----------------------------+---------------------+------------------+
+| momentum                    | [0.0, 0.9]          | Continuous       |
++----------------------------+---------------------+------------------+
+| regularization_parameter    | [10^-6, 10^-2]      | Continuous       |
++----------------------------+---------------------+------------------+
+| dropout_rate                | [0, 0.5]            | Continuous       |
++----------------------------+---------------------+------------------+
+| activation_function         | {ReLU, Leaky ReLU, Tanh, Sigmoid} | Categorical |
++----------------------------+---------------------+------------------+
+
+Hyperparameters for ResNet18
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ResNet18 is a residual network architecture that introduced the concept of residual connections, allowing for the training of very deep networks by mitigating the vanishing gradient problem. The hyperparameters include learning rate, momentum, dropout rate, and weight decay.
+
++-------------------------+---------------------+------------------+
+| **Hyperparameter**       | **Range**           | **Type**         |
++=========================+=====================+==================+
+| learning_rate           | [2^3, 2^8]          | Integer          |
++-------------------------+---------------------+------------------+
+| momentum                | [0, 1]              | Continuous       |
++-------------------------+---------------------+------------------+
+| dropout_rate            | [0, 0.5]            | Continuous       |
++-------------------------+---------------------+------------------+
+| weight_decay            | [10^-5, 10^-1]      | Continuous       |
++-------------------------+---------------------+------------------+
+
+Hyperparameters for DenseNet
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+DenseNet is a densely connected convolutional network that connects each layer to every other layer in a feed-forward fashion. This architecture improves the flow of information and gradients throughout the network, making it easier to train. The hyperparameters include learning rate, momentum, dropout rate, and weight decay.
+
++-------------------------+---------------------+------------------+
+| **Hyperparameter**       | **Range**           | **Type**         |
++=========================+=====================+==================+
+| learning_rate           | [2^3, 2^8]          | Integer          |
++-------------------------+---------------------+------------------+
+| momentum                | [0, 1]              | Continuous       |
++-------------------------+---------------------+------------------+
+| dropout_rate            | [0, 0.5]            | Continuous       |
++-------------------------+---------------------+------------------+
+| weight_decay            | [10^-5, 10^-1]      | Continuous       |
++-------------------------+---------------------+------------------+
+
+Machine Learning Tasks
+~~~~~~~~~~~~~~~~~~~~~~
+This section lists the various datasets used for machine learning tasks, including classification and regression problems. These datasets are widely recognized in the machine learning community and are used for benchmarking algorithms.
+
++----------------------------------+-----------------------+-----------------+-----------------+
+| **Source**                       | **Type**              | **Number**      | **IDs**         |
++==================================+=======================+=================+=================+
+| [OpenML-CC18](https://www.openml.org/s/99) | Classification       | 78              | 1-78           |
++----------------------------------+-----------------------+-----------------+-----------------+
+| [UC Irvine Repository](https://archive.ics.uci.edu/) | Classification/Regression | 10              | 79-88          |
++----------------------------------+-----------------------+-----------------+-----------------+
+| [NAS-Bench-360](https://archive.ics.uci.edu/) | Classification/Regression | 5               | 89-93          |
++----------------------------------+-----------------------+-----------------+-----------------+
+| [NATS-Bench](https://github.com/D-X-Y/NATS-Bench) | Classification       | 3               | 94-96          |
++----------------------------------+-----------------------+-----------------+-----------------+
+| [SVHN](https://github.com/D-X-Y/NATS-Bench) | Classification       | 1               | 97             |
++----------------------------------+-----------------------+-----------------+-----------------+
+
+List of CSO Tasks
+~~~~~~~~~~~~~~~~~
+This section provides a summary of the Compiler and System Optimization (CSO) tasks, which involve optimizing various software systems. The tasks are characterized by the number of variables, objectives, and workloads, along with the sources of these workloads.
+
++---------------------+-----------------+------------------+-----------------+-------------------------+
+| **Software Name**   | **Variables**   | **Objectives**   | **Workloads**   | **Workloads Source**     |
++=====================+=================+==================+=================+=========================+
+| LLVM                | 93              | 8                | 50              | [PolyBench](https://web.cs.ucla.edu/~pouchet/software/polybench/), [mibench](https://github.com/embecosm/mibench?tab=readme-ov-file) |
++---------------------+-----------------+------------------+-----------------+-------------------------+
+| GCC                 | 105             | 8                | 50              | [PolyBench](https://web.cs.ucla.edu/~pouchet/software/polybench/), [mibench](https://github.com/embecosm/mibench?tab=readme-ov-file) |
++---------------------+-----------------+------------------+-----------------+-------------------------+
+| Mysql               | 28              | 14               | 18              | [benchbase](https://github.com/cmu-db/benchbase.git), [sysbench](https://github.com/akopytov/sysbench) |
++---------------------+-----------------+------------------+-----------------+-------------------------+
+| Hadoop              | 206             | 1                | 29              | [HiBench](https://github.com/Intel-bigdata/HiBench) |
++---------------------+-----------------+------------------+-----------------+-------------------------+
+
+RNA Inverse Design Problems
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+RNA inverse design involves designing RNA sequences that fold into specific secondary structures. This task is crucial for understanding and manipulating RNA function in various biological processes. The datasets listed here are commonly used benchmarks for RNA design algorithms.
+
++--------------------------+----------------------------+---------------------+
+| **Source**               | **Min-Max Length (nt)**    | **Samples**         |
++==========================+============================+=====================+
+| [Eterna100](https://github.com/eternagame/eterna100-benchmarking) | 11-399                    | 100                 |
++--------------------------+----------------------------+---------------------+
+| [Rfam-learn test](https://rfam.org/) | 50-446                    | 100                 |
++--------------------------+----------------------------+---------------------+
+| [RNA-Strand](http://www.rnasoft.ca/strand/) | 4-4381                   | 50                  |
++--------------------------+----------------------------+---------------------+
+| [RNAStralign](https://github.com/D-X-Y/NATS-Bench) | 30-1851                  | 37149               |
++--------------------------+----------------------------+---------------------+
+| [ArchiveII](https://github.com/D-X-Y/NATS-Bench) | 28-2968                  | 2975                |
++--------------------------+----------------------------+---------------------+
+
+Protein Design Problems
+~~~~~~~~~~~~~~~~~~~~~~~
+Protein design involves creating new protein sequences with specific structural or functional properties. These problems are essential for applications in drug design, biotechnology, and synthetic biology. The datasets listed here are widely used in protein design research.
+
++--------------------------+--------------------------+--------------------+
+| **Source**               | **Type**                 | **Numbers**        |
++==========================+==========================+====================+
+| [Absolute](https://github.com/csi-greifflab/Absolut) | Antibody design    | 159                |
++--------------------------+--------------------------+--------------------+
+| [CATH](https://www.cathdb.info/) | Single-chain protein design | 19752              |
++--------------------------+--------------------------+--------------------+
+| [Protein Data Bank](https://www.rcsb.org/) | Multi-chain protein design | 26361              |
++--------------------------+--------------------------+--------------------+
+
 
 
 

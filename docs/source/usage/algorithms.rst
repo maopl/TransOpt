@@ -14,6 +14,7 @@ Register
 
 List of Algorithmic Objects
 ---------------------------
+The optimization framework includes a variety of state-of-the-art algorithms, each designed with specific features to address different classes of optimization problems. The table below provides a summary of the key algorithms available, categorized by their class, convenience for use, targeted objective(s), and any constraints they impose.
 
 +------------------------+-----------+-----------------+------------------+-----------------------------------------------------+
 | **Algorithm**          | **Class** | **Convenience** | **Objective(s)** | **Constraints**                                     |

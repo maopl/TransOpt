@@ -73,7 +73,7 @@ If you find our work helpful to your research, please consider citing our:
 
 ```bibtex
 @software{TransOpt,
-  title = {{TransOpt}: Multi-Objective Optimization Experiment Platform},
+  title = {{TransOpt}: Tansfer Optimization System For Automated Configuration},
   author = {Author Name and Collaborator Name},
   url = {https://github.com/maopl/TransOpt},
   year = {2024}

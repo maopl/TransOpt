@@ -1,8 +1,20 @@
-Frequently Asked Questions (FAQ)
+FAQ
 ================================
 
 This section addresses common questions and issues that users might encounter when using TransOpt.
 
 How do I submit the error information to the maintainer?
 --------------------------------------------------------
-If you've forgotten your password, follow these steps to reset it...
+Click on the `Submit error` button on the top right corner of the page. Type in the error information and click on the `Submit` button, the error 
+information will be sent to the maintainer.
+
+
+
+How do I report a bug?
+----------------------
+1. Clone the repository:
+
+   ::
+
+     $ export NODE_OPTIONS=--openssl-legacy-provider
+

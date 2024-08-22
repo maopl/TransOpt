@@ -43,6 +43,7 @@ class Services:
     def _initialize_modules(self):
         # import transopt.benchmark.CPD
         # import transopt.benchmark.CPD
+        import transopt.benchmark.HPOOOD
         import transopt.benchmark.HPO
         import transopt.benchmark.synthetic
         import transopt.optimizer.acquisition_function

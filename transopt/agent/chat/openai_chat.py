@@ -1,5 +1,6 @@
 import json
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -366,7 +367,7 @@ class OpenAIChat:
             'set_metadata': lambda: self.set_metadata(kwargs['module_name'], kwargs['dataset_name']),
             'run_optimization': self.run_optimization,
             'show_configuration': self.show_configuration,
-            "install_package": self.install_package,
+            "install_package": lambda: self.install_package(kwargs['package_name']),
         }
         function_to_call = available_functions[function_name]
         return json.dumps({"result": function_to_call()})

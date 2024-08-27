@@ -3,6 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. _home:
+
+
 TransOpt: Transfer Optimization System for Automated Configuration
 ==================================================================
 Our framework offers state of the art transfer optimization algorithms and many more features related to transfer optimization such as data management, benchmark test problems and visualization. TransOpt can be installed by:
@@ -14,7 +17,7 @@ Our framework offers state of the art transfer optimization algorithms and many 
 
    installation
    quickstart
-   usage/features
+   features
    usage/algorithms
    usage/problems
    usage/performance

@@ -5,15 +5,107 @@ This
 .. admonition:: Overview
    :class: info
 
-   - `Register <https://link-to-definition>`_: How to register a new optimization problem to TransOpt
-   - `The list of the Test Problems <https://link-to-test-problems>`_: Diverse Test Problems available in `TransOpt <https://link-to-pymoo>`_
-   - `Parallelization <https://link-to-parallelization>`_: How to parallelize function evaluations
+   - :ref:`Register <registering-new-problem>`: How to register a new optimization problem to :ref:`TransOpt <home>`
+   - :ref:`Synthetic Problem <synthetic-problems>`: The list of the synthetic problems available in :ref:`TransOpt <home>`
+   - :ref:`Hyperparameter Optimization Problem <hpo-problems>`: The list of the HPO problems available in :ref:`TransOpt <home>`
+   - :ref:`Configurable Software Optimization Problem <cso-problems>`: The list of the configurable software optimization problems available in :ref:`TransOpt <home>`
+   - :ref:`RNA Inverse Design Problem <rna-problems>`: The list of the RNA Inverse design problems available in :ref:`TransOpt <home>`
+   - :ref:`Protein Inverse Folding Problem <pif-problems>`: The list of the protein inverse folding problems available in :ref:`TransOpt <home>`
+   - :ref:`Parallelization <parallelization>`: How to parallelize function evaluations
 
 
-Register
---------
+.. _registering-new-problem:
 
-Synthetic Problems
+
+Registering a New Benchmark Problem
+-----------------------------------
+
+To register a new benchmark problem in the TransOpt framework, follow the steps below.
+
+### 1. Import the Problem Registry
+
+First, you need to import the `problem_registry` from the `transopt.agent.registry` module:
+
+.. code-block:: python
+
+    from transopt.agent.registry import problem_registry
+
+### 2. Define a New Problem Class
+
+Next, define a new problem class. This class should be decorated with the `@problem_registry.register("ProblemName")` decorator, where `"ProblemName"` is the unique identifier for the problem. The new problem class must inherit from one of the following base classes:
+
+- `NonTabularProblem`
+- `TabularProblem`
+
+For example, to create a new problem named "new_problem", you would define the class as follows:
+
+.. code-block:: python
+
+    @problem_registry.register("new_problem")
+    class new_problem(NonTabularProblem):
+        pass  # Further implementation required
+
+### 3. Implement Required Methods
+
+After defining the class, you need to implement the following three abstract methods:
+
+1. **get_configuration_space**: 
+   This method is responsible for defining the configuration space of the new problem.
+
+   .. code-block:: python
+
+       def get_configuration_space(self):
+           # Define and return the configuration space
+           pass
+
+2. **get_fidelity_space**: 
+   This method should define the fidelity space for the problem, if applicable.
+
+   .. code-block:: python
+
+       def get_fidelity_space(self):
+           # Define and return the fidelity space
+           pass
+
+3. **objective_function**: 
+   This method evaluates the problem's objective function based on the provided configuration and other parameters.
+
+   .. code-block:: python
+
+       def objective_function(self, configuration, fidelity=None, seed=None, **kwargs) -> Dict:
+           # Evaluate the configuration and return the results as a dictionary
+           pass
+
+Here’s an example outline of the `sphere` class:
+
+.. code-block:: python
+
+    @problem_registry.register("sphere")
+    class sphere(NonTabularProblem):
+        
+      def get_configuration_space(self):
+            # Define the configuration space here
+         variables =  [Continuous(f'x{i}', (-5.12, 5.12)) for i in range(self.input_dim)]
+         ss = SearchSpace(variables)
+         return ss
+        
+      def get_fidelity_space(self) -> FidelitySpace:
+         fs = FidelitySpace([])
+         return fs
+
+      def objective_function(self, configuration, fidelity=None, seed=None, **kwargs) -> Dict:
+         # Implement the evaluation logic and return the results as a dictionary
+         X = np.array([[configuration[k] for idx, k in enumerate(configuration.keys())]])
+         y = np.sum((X) ** 2, axis=1)
+         results = {'function_value': float(y)}
+
+         return results
+
+By following these steps, you can successfully register a new benchmark problem in the TransOpt framework.
+
+.. _synthetic-problems:
+
+Synthetic Problem
 ------------------
 
 The synthetic problems in this section are widely used in the optimization literature for benchmarking optimization algorithms. These problems exhibit diverse characteristics and levels of complexity, making them ideal for testing the robustness and efficiency of different optimization strategies. Below is an overview of the synthetic problems included in this benchmark suite:
@@ -81,13 +173,13 @@ The synthetic problems in this section are widely used in the optimization liter
 These problems collectively provide a comprehensive suite for evaluating optimization algorithms across a broad range of difficulties, including convexity, multi-modality, separability, and conditioning.
 
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------+-------------------------------+-----------------------------+
-|      Problem name       |                                                                       Mathematical formulation                                                                        |              Decision space              |                               |                             |
+|      Problem name       |                                                                       Mathematical formulation                                                                        |              Range                       |                               |                             |
 +=========================+=======================================================================================================================================================================+==========================================+===============================+=============================+
 | Sphere                  | :math:`f(\mathbf{x}) = \sum_{i=1}^d x_i^2`                                                                                                                            | :math:`x_i \in [-5.12, 5.12]`            |                               |                             |
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------+-------------------------------+-----------------------------+
 | Rastrigin               | :math:`f(\mathbf{x}) = 10 d + \sum_{i=1}^d \left[ x_i^2 - 10 \cos(2 \pi x_i) \right]`                                                                                 | :math:`x_i \in [-32.768, 32.768]`        |                               |                             |
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------+-------------------------------+-----------------------------+
-| Schwefel                | :math:`f(\mathbf{x}) = 418.9829 d - \sum_{i=1}^d x_i \sin\left(\sqrt{\left                                                                                            | x_i\right                                | }\right)`                     | :math:`x_i \in [-500, 500]` |
+| Schwefel                | :math:`f(\mathbf{x}) = 418.9829 d - \sum_{i=1}^d x_i \sin\left(\sqrt{\left{x_i\right}\right)`                                                                          | :math:`x_i \in [-500, 500]`             |                               |                             |
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------+-------------------------------+-----------------------------+
 | Ackley                  | :math:`f(\mathbf{x}) = -a \exp \left(-b \sqrt{\frac{1}{d} \sum_{i=1}^d x_i^2}\right)`                                                                                 | :math:`x_i \in [-32.768, 32.768]`        |                               |                             |
 |                         | :math:`-\exp \left(\frac{1}{d} \sum_{i=1}^d \cos \left(c x_i\right)\right) + a + \exp(1)`                                                                             |                                          |                               |                             |
@@ -107,7 +199,7 @@ These problems collectively provide a comprehensive suite for evaluating optimiz
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------+-------------------------------+-----------------------------+
 | Rotated Hyper-Ellipsoid | :math:`f(\mathbf{x}) = \sum_{i=1}^d \sum_{j=1}^i x_j^2`                                                                                                               | :math:`x_i \in [-65.536, 65.536]`        |                               |                             |
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------+-------------------------------+-----------------------------+
-| Sum of Different Powers | :math:`f(\mathbf{x}) = \sum_{i=1}^d\left                                                                                                                              | x_i\right                                | ^{i+1}`                       | :math:`x_i \in [-1, 1]`     |
+| Sum of Different Powers | :math:`f(\mathbf{x}) = \sum_{i=1}^d x_i^{i+1}`                                                                                                                        | :math:`x_i \in [-1, 1]`                  |                               |                             |
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------+-------------------------------+-----------------------------+
 | Styblinski-Tang         | :math:`f(\mathbf{x}) = \frac{1}{2} \sum_{i=1}^d\left(x_i^4 - 16 x_i^2 + 5 x_i\right)`                                                                                 | :math:`x_i \in [-5, 5]`                  |                               |                             |
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------+-------------------------------+-----------------------------+
@@ -126,17 +218,17 @@ These problems collectively provide a comprehensive suite for evaluating optimiz
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------+-------------------------------+-----------------------------+
 | SharpRidge              | :math:`f(\mathbf{x}) = x_1^2 + 100 \sqrt{\sum_{i=2}^D x_i^2}`                                                                                                         | :math:`x_i \in [-5, 5]`                  |                               |                             |
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------+-------------------------------+-----------------------------+
-| Katsuura                | :math:`f(\mathbf{x}) = \frac{10}{D^2} \prod_{i=1}^D \left(1 + i \sum_{j=1}^{32} \frac{\left                                                                           | 2^j x_i - \left[2^j x_i\right]\right     | }{2^j}\right)^{10 / D^{1.2}}` | :math:`x_i \in [-5, 5]`     |
+| Katsuura                | :math:`f(\mathbf{x}) = \frac{10}{D^2} \prod_{i=1}^D \left(1 + i \sum_{j=1}^{32} \frac{2^j x_i - \left[2^j x_i\right]}{2^j}\right)^{10 / D^{1.2}}`                     | :math:`x_i \in [-5, 5]`                  |                               |                             |
 |                         | :math:`- \frac{10}{D^2} + f_{\mathrm{pen}}(\mathbf{x})`                                                                                                               |                                          |                               |                             |
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------+-------------------------------+-----------------------------+
 | Weierstrass             | :math:`f_{16}(\mathbf{x}) = 10 \left(\frac{1}{D} \sum_{i=1}^D \sum_{k=0}^{11} \frac{1}{2^k} \cos \left(2 \pi 3^k\left(z_i + \frac{1}{2}\right)\right) - f_0\right)^3` | :math:`x_i \in [-5, 5]`                  |                               |                             |
 |                         | :math:`+ \frac{10}{D} f_{\mathrm{pen}}(\mathbf{x})`                                                                                                                   |                                          |                               |                             |
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------+-------------------------------+-----------------------------+
-| DifferentPowers         | :math:`f(\mathbf{x}) = \sqrt{\sum_{i=1}^D\left                                                                                                                        | x_i\right                                | ^{2 + 4 \frac{i-1}{D-1}}}`    | :math:`x_i \in [-5, 5]`     |
+| DifferentPowers         | :math:`f(\mathbf{x}) = \sqrt{\sum_{i=1}^D x_i^{2 + 4 \frac{i-1}{D-1}}}`                                                                                               | :math:`x_i \in [-5, 5]`                  |                               |                             |
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------+-------------------------------+-----------------------------+
 | Trid                    | :math:`f(\mathbf{x}) = \sum_{i=1}^d \left(x_i - 1\right)^2 - \sum_{i=2}^d x_i x_{i-1}`                                                                                | :math:`x_i \in [-d^2, d^2]`              |                               |                             |
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------+-------------------------------+-----------------------------+
-| LinearSlope             | :math:`f(\mathbf{x}) = \sum_{i=1}^D 5\left                                                                                                                            | s_i\right                                | - s_i x_i`                    | :math:`x_i \in [-5, 5]`     |
+| LinearSlope             | :math:`f(\mathbf{x}) = \sum_{i=1}^D 5 s_i - s_i x_i`                                                                                                                  | :math:`x_i \in [-5, 5]`                  |                               |                             |
 |                         | :math:`s_i = \operatorname{sign}\left(x_i^{\mathrm{opt}}\right) 10^{\frac{i-1}{D-1}},`                                                                                |                                          |                               |                             |
 |                         | :math:`\text{for } i=1, \ldots, D`                                                                                                                                    |                                          |                               |                             |
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------+-------------------------------+-----------------------------+
@@ -160,13 +252,15 @@ These problems collectively provide a comprehensive suite for evaluating optimiz
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------+-------------------------------+-----------------------------+
 
 
-Real-World Problems
--------------------
+.. _hpo-problems:
 
-This section provides an overview of the hyperparameters used for various machine learning models and real-world problems. These hyperparameters can be tuned to optimize the performance of the models on specific tasks. Each section includes a brief description of the problem or task, followed by a table of relevant hyperparameters.
+Hyperparameter Optimization Problem
+------------------------------------
+
+This section provides an overview of the hyperparameter optimization problem including the hyperparameters used for various machine learning models and machine learning tasks used for generate problem instances.
 
 Hyperparameters for Support Vector Machine (SVM)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Support Vector Machines (SVM) are widely used for classification and regression tasks. They are particularly effective in high-dimensional spaces and situations where the number of dimensions exceeds the number of samples. The hyperparameters for SVM control the regularization and the kernel function, which are crucial for model performance.
 
 +--------------------+-----------+------------+
@@ -178,7 +272,7 @@ Support Vector Machines (SVM) are widely used for classification and regression 
 +--------------------+-----------+------------+
 
 Hyperparameters for AdaBoost
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 AdaBoost is a popular ensemble method that combines multiple weak learners to create a strong classifier. It is particularly useful for boosting the performance of decision trees. The hyperparameters control the number of estimators and the learning rate, which affects the contribution of each classifier.
 
 +---------------------+--------------------+------------------+
@@ -190,7 +284,7 @@ AdaBoost is a popular ensemble method that combines multiple weak learners to cr
 +---------------------+--------------------+------------------+
 
 Hyperparameters for Random Forest
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Random Forest is an ensemble learning method that builds multiple decision trees and merges them to get a more accurate and stable prediction. It is widely used for both classification and regression tasks. The hyperparameters include the number of trees, the depth of the trees, and various criteria for splitting nodes.
 
 +--------------------------+-----------------+-------------+
@@ -210,7 +304,7 @@ Random Forest is an ensemble learning method that builds multiple decision trees
 +--------------------------+-----------------+-------------+
 
 Hyperparameters for XGBoost
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 XGBoost is an efficient and scalable implementation of gradient boosting, designed for speed and performance. It is widely used in machine learning competitions and industry for classification and regression tasks. The hyperparameters include learning rates, tree depths, and regularization parameters, which control the complexity of the model and its ability to generalize.
 
 +--------------------+---------------+------------+
@@ -238,7 +332,7 @@ XGBoost is an efficient and scalable implementation of gradient boosting, design
 +--------------------+---------------+------------+
 
 Hyperparameters for GLMNet
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 GLMNet is a regularized regression model that supports both LASSO and ridge regression. It is particularly useful for high-dimensional datasets where regularization is necessary to prevent overfitting. The hyperparameters control the strength of the regularization and the balance between L1 and L2 penalties.
 
 +--------------------+-----------+-------------+
@@ -252,7 +346,7 @@ GLMNet is a regularized regression model that supports both LASSO and ridge regr
 +--------------------+-----------+-------------+
 
 Hyperparameters for AlexNet
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 AlexNet is a convolutional neural network (CNN) architecture that revolutionized the field of computer vision by achieving significant improvements on the ImageNet dataset. The hyperparameters include learning rate, dropout rate, weight decay, and the choice of activation function, all of which are crucial for training deep neural networks.
 
 +---------------------+-------------------------+-------------+
@@ -268,7 +362,7 @@ AlexNet is a convolutional neural network (CNN) architecture that revolutionized
 +---------------------+-------------------------+-------------+
 
 Hyperparameters for 2-Layer Bayesian Neural Network (BNN)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Bayesian Neural Networks (BNNs) provide a probabilistic interpretation of deep learning models by introducing uncertainty in the weights. This allows BNNs to express model uncertainty, which is crucial for tasks where uncertainty quantification is important. The hyperparameters include layer sizes, step length, burn-in period, and momentum decay.
 
 +--------------------+----------------+----------------+
@@ -286,7 +380,7 @@ Bayesian Neural Networks (BNNs) provide a probabilistic interpretation of deep l
 +--------------------+----------------+----------------+
 
 Hyperparameters for CNNs
-~~~~~~~~~~~~~~~~~~~~~~~~
+
 Convolutional Neural Networks (CNNs) are the backbone of most modern computer vision systems. They are designed to automatically and adaptively learn spatial hierarchies of features through backpropagation. The hyperparameters include learning rate, momentum, regularization parameter, dropout rate, and activation function.
 
 +--------------------------+-----------------------------------+-------------+
@@ -304,7 +398,7 @@ Convolutional Neural Networks (CNNs) are the backbone of most modern computer vi
 +--------------------------+-----------------------------------+-------------+
 
 Hyperparameters for ResNet18
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ResNet18 is a residual network architecture that introduced the concept of residual connections, allowing for the training of very deep networks by mitigating the vanishing gradient problem. The hyperparameters include learning rate, momentum, dropout rate, and weight decay.
 
 +--------------------+----------------+------------+
@@ -320,7 +414,7 @@ ResNet18 is a residual network architecture that introduced the concept of resid
 +--------------------+----------------+------------+
 
 Hyperparameters for DenseNet
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 DenseNet is a densely connected convolutional network that connects each layer to every other layer in a feed-forward fashion. This architecture improves the flow of information and gradients throughout the network, making it easier to train. The hyperparameters include learning rate, momentum, dropout rate, and weight decay.
 
 +--------------------+----------------+------------+
@@ -336,7 +430,7 @@ DenseNet is a densely connected convolutional network that connects each layer t
 +--------------------+----------------+------------+
 
 Machine Learning Tasks
-~~~~~~~~~~~~~~~~~~~~~~
+
 This section lists the various datasets used for machine learning tasks, including classification and regression problems. These datasets are widely recognized in the machine learning community and are used for benchmarking algorithms.
 
 +------------------------------------------------------+---------------------------+------------+---------+
@@ -353,9 +447,13 @@ This section lists the various datasets used for machine learning tasks, includi
 | [SVHN](https://github.com/D-X-Y/NATS-Bench)          | Classification            | 1          | 97      |
 +------------------------------------------------------+---------------------------+------------+---------+
 
-List of CSO Tasks
-~~~~~~~~~~~~~~~~~
-This section provides a summary of the Compiler and System Optimization (CSO) tasks, which involve optimizing various software systems. The tasks are characterized by the number of variables, objectives, and workloads, along with the sources of these workloads.
+
+.. _cso-problems:
+
+Configurable Software Optimization Problem
+------------------------------------------
+
+This section provides a summary of the configurable software optimization (CSO) tasks, which involve optimizing various software systems. The tasks are characterized by the number of variables, objectives, and workloads, along with the sources of these workloads.
 
 +-------------------+---------------+----------------+---------------+--------------------------------------------------------------------------------------------------------------------------------------+
 | **Software Name** | **Variables** | **Objectives** | **Workloads** |                                                         **Workloads Source**                                                         |
@@ -369,8 +467,11 @@ This section provides a summary of the Compiler and System Optimization (CSO) ta
 | Hadoop            | 206           | 1              | 29            | [HiBench](https://github.com/Intel-bigdata/HiBench)                                                                                  |
 +-------------------+---------------+----------------+---------------+--------------------------------------------------------------------------------------------------------------------------------------+
 
-RNA Inverse Design Problems
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _rna-problems:
+
+RNA Inverse Design Problem
+---------------------------
+
 RNA inverse design involves designing RNA sequences that fold into specific secondary structures. This task is crucial for understanding and manipulating RNA function in various biological processes. The datasets listed here are commonly used benchmarks for RNA design algorithms.
 
 +-------------------------------------------------------------------+-------------------------+-------------+
@@ -387,9 +488,13 @@ RNA inverse design involves designing RNA sequences that fold into specific seco
 | [ArchiveII](https://github.com/D-X-Y/NATS-Bench)                  | 28-2968                 | 2975        |
 +-------------------------------------------------------------------+-------------------------+-------------+
 
-Protein Design Problems
-~~~~~~~~~~~~~~~~~~~~~~~
-Protein design involves creating new protein sequences with specific structural or functional properties. These problems are essential for applications in drug design, biotechnology, and synthetic biology. The datasets listed here are widely used in protein design research.
+
+.. _pif-problems:
+
+Protein Inverse Folding Problem
+--------------------------------
+
+Protein Inverse Folding involves creating new amino acids sequence folding into desiered backbone structure. These problems are essential for applications in drug design, biotechnology, and synthetic biology. The datasets listed here are widely used in protein inverse folding research.
 
 +------------------------------------------------------+-----------------------------+-------------+
 |                      **Source**                      |          **Type**           | **Numbers** |
@@ -401,6 +506,9 @@ Protein design involves creating new protein sequences with specific structural 
 | [Protein Data Bank](https://www.rcsb.org/)           | Multi-chain protein design  | 26361       |
 +------------------------------------------------------+-----------------------------+-------------+
 
+.. _parallelization:
 
+Parallelization
+---------------
 
-
+To-do

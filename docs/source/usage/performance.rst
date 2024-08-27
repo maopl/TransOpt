@@ -1,16 +1,31 @@
-Performance Indicators
-======================
+Results Analysis
+================
 
 
 .. admonition:: Overview
    :class: info
 
-   - `List of Algorithmic objects <https://link-to-parallelization>`_: Transfer learning for BO, .
+   - :ref:`Register a New Results Analysis Method <registering-new-analysis>`: How to add a new results analysis method to :ref:`TransOpt <home>`.
+   - :ref:`Customization Analysis Pipline<customization>`: How to customize your own results analysis pipline or add your own analysis method into the pipline.
+   - :ref:`Performance Evaluation Metrics <performance-evaluation-metrics>`: The list of the performance evaluation metrics available in :ref:`TransOpt <home>`
+   - :ref:`Statistical Measures <statistical-measures>`: The list of the statistical measures supportede in :ref:`TransOpt <home>`
 
 
-Register
---------
 
+.. _registering-new-analysis:
+
+Register a New Results Analysis Method
+--------------------------------------
+
+
+.. _customization:
+
+
+Customization Analysis Pipline
+------------------------------
+
+
+.. _performance-evaluation-metrics:
 
 List of Performance Evaluation Metrics
 --------------------------------------
@@ -79,4 +94,12 @@ For each type of task instance, the framework offers performance evaluation metr
 +--------------------------+--------------------+--------------------------------------------------------------+-----------+--------------+
 | **Hadoop**               | Execution Time     | The execution time of a big data task.                       | [0, ∞]    | Minimization |
 +--------------------------+--------------------+--------------------------------------------------------------+-----------+--------------+
+
+
+.. _statistical-measures:
+
+
+Statistical Measures
+--------------------
+
 

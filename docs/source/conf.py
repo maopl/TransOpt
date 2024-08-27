@@ -18,11 +18,13 @@ extensions =[
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'sphinx_rtd_theme',
+    'sphinxcontrib.bibtex',
     ]
 
 templates_path = ['_templates']
 exclude_patterns = []
 
+bibtex_bibfiles = ['TOS.bib']
 
 
 # -- Options for HTML output -------------------------------------------------

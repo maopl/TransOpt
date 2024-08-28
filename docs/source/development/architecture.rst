@@ -26,7 +26,7 @@ The workflow for using TransOpt is illustrated below. This diagram shows the typ
 Optimizer Architecture
 ----------------------
 
-TransOpt includes different optimization algorithms. The following diagram highlights the difference between the standard Bayesian Optimization (BO) and Transfer Bayesian Optimization (Transfer BO).
+TransOpt includes different optimization algorithms. The following diagram highlights the difference between the standard Bayesian Optimization (BO) and Transfer Learning for Bayesian Optimization (TLBO).
 
 ### BO vs. Transfer BO
 

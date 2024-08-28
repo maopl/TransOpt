@@ -6,13 +6,13 @@ Furthermore, TransOpt offers a variety of different features which cover various
 .. admonition:: Composite Algorithm Design
    :class: important
 
-   **Problem Specification**: `Drop area that has no potential to generate promising points <#>`_.
+   **Problem Specification**:  :ref:`Drop area that has no potential to generate promising points <alg>`.
 
-   **Initialization**: `Learn the optimal initial points from past experience <#>`_.
+   **Initialization**: :ref:`Learn the optimal initial points from past experience <alg>`.
 
-   **Surrogate Model**: `Advanced model which can leverage history data <#>`_.
+   **Surrogate Model**: :ref:`Advanced model which can leverage history data <alg>`.
 
-   **Acquisition Function**: `More robust acquisition function which considering past query experience <#>`_.
+   **Acquisition Function**: :ref:`More robust acquisition function which considering past query experience <alg>`.
 
 
 
@@ -27,15 +27,15 @@ Furthermore, TransOpt offers a variety of different features which cover various
 .. admonition:: Benchmark Problems
    :class: important
 
-   **Synthetic Problems**: `Sphere <#>`_, `Rastrigin <#>`_, `Schwefel <#>`_, `Ackley <#>`_, `Levy <#>`_, `Griewank <#>`_, `Rosenbrock <#>`_, `Dropwave <#>`_, `Langermann <#>`_, `Rotated Hyper-Ellipsoid <#>`_, `Sum of Different Powers <#>`_, `Styblinski-Tang <#>`_, `Powell <#>`_, `Dixon-Price <#>`_, ...
+   **Synthetic Problems**: :ref:`Sphere <synthetic-problems>`, :ref:`Rastrigin <synthetic-problems>`, :ref:`Schwefel <synthetic-problems>`, :ref:`Ackley <synthetic-problems>`, :ref:`Levy <synthetic-problems>`, :ref:`Griewank <synthetic-problems>`, :ref:`Rosenbrock <synthetic-problems>`, :ref:`Dropwave <synthetic-problems>`, :ref:`Langermann <synthetic-problems>`, :ref:`Rotated Hyper-Ellipsoid <synthetic-problems>`, :ref:`Sum of Different Powers <synthetic-problems>`, :ref:`Styblinski-Tang <synthetic-problems>`, :ref:`Powell <synthetic-problems>`, :ref:`Dixon-Price <synthetic-problems>`, ...
 
-   **Configurable Software Optimization**: `LLVM <#>`_, `GCC <#>`_, `Mysql <#>`_, `Hadoop <#>`_, ...
+   **Configurable Software Optimization**: :ref:`LLVM <cso-problems>`, :ref:`GCC <cso-problems>`, :ref:`Mysql <cso-problems>`, :ref:`Hadoop <cso-problems>`, ...
 
-   **Hyperparameter Optimization**: `Support Vector Machine (SVM) <#>`_, `AdaBoost <#>`_, `Random Forest <#>`_, `XGBoost <#>`_, `GLMNet <#>`_, `AlexNet <#>`_, `2-Layer Bayesian Neural Network (BNN) <#>`_, `CNN <#>`_, `ResNet18 <#>`_, `DenseNet <#>`_, ...
+   **Hyperparameter Optimization**: :ref:`Support Vector Machine (SVM) <hpo-problems>`, :ref:`AdaBoost <hpo-problems>`, :ref:`Random Forest <hpo-problems>`, :ref:`XGBoost <hpo-problems>`, :ref:`GLMNet <hpo-problems>`, :ref:`AlexNet <hpo-problems>`, :ref:`2-Layer Bayesian Neural Network (BNN) <hpo-problems>`, :ref:`CNN <hpo-problems>`, :ref:`ResNet18 <hpo-problems>`, :ref:`DenseNet <hpo-problems>`, ...
 
-   **Protein Inverse Folding**: `Absolute <#>`_, `CATH <#>`_, `Protein Data Bank <#>`_, ...
+   **Protein Inverse Folding**: :ref:`Absolute <pif-problems>`, :ref:`CATH <pif-problems>`, :ref:`Protein Data Bank <pif-problems>`, ...
 
-   **RNA Inverse Design**: `Eterna100 <#>`_, `Rfam-learn test <#>`_, `RNA-Strand <#>`_, `RNAStralign <#>`_, `ArchiveII <#>`_, ...
+   **RNA Inverse Design**: :ref:`Eterna100 <rna-problems>`, :ref:`Rfam-learn test <rna-problems>`, :ref:`RNA-Strand <rna-problems>`, :ref:`RNAStralign <rna-problems>`, :ref:`ArchiveII <rna-problems>`, ...
 
 
 .. admonition:: Web Interface
@@ -52,8 +52,8 @@ Furthermore, TransOpt offers a variety of different features which cover various
 .. admonition:: Results Analysis
    :class: important
 
-   **Statistical Measure**: `Wilcoxon signed-rank test <#>`_, `Scott-Knott test <#>`_, `A12 effect size <#>`_, `Critical difference <#>`_ , ...
+   **Statistical Measure**: :ref:`Wilcoxon signed-rank test <statistical-measures>`, :ref:`Scott-Knott test <statistical-measures>`, :ref:`A12 effect size <statistical-measures>`, :ref:`Critical difference <#>`, ...
 
-   **Visualization**: `Optimization trajectory <#>`_, `Footprint <#>`_, `Boxplot <#>`_, ...
+   **Visualization**: :ref:`Optimization trajectory <#>`, :ref:`Footprint <#>`, :ref:`Boxplot <#>`, ...
 
 

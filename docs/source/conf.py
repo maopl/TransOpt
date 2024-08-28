@@ -24,7 +24,7 @@ extensions =[
 templates_path = ['_templates']
 exclude_patterns = []
 
-bibtex_bibfiles = ['TOS.bib']
+bibtex_bibfiles = ['usage/TOS.bib']
 
 
 # -- Options for HTML output -------------------------------------------------

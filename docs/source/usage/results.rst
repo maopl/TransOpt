@@ -103,3 +103,77 @@ Statistical Measures
 --------------------
 
 
+This section provides detailed explanations of the statistical methods used for analyzing the performance of different algorithms. Each method is accompanied by the relevant formulas and calculation procedures.
+
+Wilcoxon Signed-Rank Test
+--------------------------
+
+The **Wilcoxon signed-rank test** is a non-parametric statistical test used to compare two paired samples. Unlike the paired t-test, the Wilcoxon signed-rank test does not assume that the differences between pairs are normally distributed. It is particularly useful when dealing with small sample sizes or non-normally distributed data.
+
+Given two related samples :math:`X` and :math:`Y`, the steps to perform the Wilcoxon signed-rank test are:
+
+1. **Compute the differences** between each pair of observations: :math:`d_i = X_i - Y_i`.
+2. **Rank the absolute values** of the differences, assigning ranks from the smallest to the largest difference.
+3. **Assign signs** to the ranks based on the sign of the original differences :math:`d_i`.
+4. **Calculate the test statistic** :math:`W`, which is the sum of the ranks corresponding to the positive differences:
+
+   .. math::
+
+      W = \sum_{d_i > 0} \text{Rank}(d_i)
+
+5. Compare the computed test statistic :math:`W` against the critical value from the Wilcoxon signed-rank table or calculate the p-value to determine the significance of the result.
+
+Scott-Knott Test
+----------------
+
+The **Scott-Knott test** is a statistical method used to rank the performance of different techniques across multiple runs on each benchmark instance. It is particularly effective in scenarios where multiple comparisons are being made, and it controls the family-wise error rate.
+
+The procedure involves:
+
+1. **Partitioning the data**: Initially, all techniques are considered in one group. The group is then split into two subgroups if the mean difference between them is statistically significant.
+2. **Calculating the mean difference** between the groups using an appropriate test (e.g., ANOVA or t-test).
+3. **Assigning ranks**: If a significant difference is found, the techniques are ranked within their respective subgroups. If no significant difference is found, the techniques are considered to be in the same rank.
+4. **Repeating the process** until no further significant splits can be made.
+
+The Scott-Knott test is particularly useful for determining the relative performance of multiple techniques, providing a clear ranking based on statistically significant differences.
+
+A12 Effect Size
+---------------
+
+The **A12 effect size** is a non-parametric measure used to evaluate the probability that one algorithm outperforms another. It is particularly useful in understanding whether observed differences are practically significant, beyond just being statistically significant.
+
+The A12 statistic is calculated as follows:
+
+1. Let :math:`A` and :math:`B` be the two sets of performance measures for two algorithms.
+2. **Calculate the A12 statistic**:
+
+   .. math::
+
+      A_{12} = \frac{\sum_{x \in A} \sum_{y \in B} \mathbf{I}(x > y) + 0.5 \cdot \mathbf{I}(x = y)}{|A| \cdot |B|}
+
+
+Critical Difference (CD)
+------------------------
+
+The **Critical Difference (CD)** is a statistical measure used to assess whether performance differences between algorithms are derived from randomness. It is typically used in conjunction with methods like the Friedman test or Nemenyi post-hoc test to evaluate multiple algorithms across multiple datasets.
+
+The steps involved in calculating the Critical Difference are:
+
+1. **Perform a Friedman test** to rank the algorithms for each dataset.
+2. **Calculate the average ranks** for each algorithm across all datasets.
+3. **Compute the Critical Difference (CD)** using the following formula:
+
+   .. math::
+
+      \text{CD} = q_{\alpha} \sqrt{\frac{k(k+1)}{6N}}
+
+   where:
+   - :math:`q_{\alpha}` is the critical value for a given significance level :math:`\alpha` from the studentized range statistic.
+   - :math:`k` is the number of algorithms.
+   - :math:`N` is the number of datasets.
+
+
+4. If the difference in average ranks between two algorithms exceeds the CD, the performance difference is considered statistically significant, and not due to random variation.
+
+These statistical methods provide robust tools for comparing algorithm performance across various benchmarks, ensuring that conclusions drawn are both statistically and practically significant.
+

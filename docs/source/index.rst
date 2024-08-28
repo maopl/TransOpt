@@ -18,10 +18,9 @@ Our framework offers state of the art transfer optimization algorithms and many 
    installation
    quickstart
    features
-   examples
    usage/algorithms
    usage/problems
-   usage/performance
+   usage/results
    usage/visualization
    usage/cli
    development/architecture
@@ -37,8 +36,4 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-References
-==========
 
-.. bibliography:: TOS.bib
-   :style: plain

@@ -3,18 +3,82 @@ Algorithmic objects
 
 .. admonition:: Overview
    :class: info
-
-Register new Algorithmic Object
-   - :ref:`Register <registering-new-algorithm>`: How to register a new algorithmic Object to :ref:`TransOpt <home>`
+   
+   - :ref:`Register <register-new-algorithm>`: How to register a new algorithmic Object to :ref:`TransOpt <home>`
    - :ref:`Supported Algorithms <alg>`: The list of the synthetic problems available in :ref:`TransOpt <home>`
    - :ref:`Algorithmic Objects<alg-obj>`: The list of the protein inverse folding problems available in :ref:`TransOpt <home>`
 
 
+.. _register_new_algorithm:
 
-.. _registering-new-algorithm:
+Registering a New Algorithm in TransOpt
+---------------------------------------
 
-Registering a new Algorithmic Object
-------------------------------------
+To register a new algorithm object in TransOpt, follow the steps outlined below:
+
+1. **Import the Model Registry**
+
+   First, you need to import the `model_registry` from the `transopt.agent.registry` module:
+
+   .. code-block:: python
+
+      from transopt.agent.registry import model_registry
+
+2. **Define the Algorithm Object Name**
+
+   Next, use the registry to define the name of your algorithm object. For example:
+
+   .. code-block:: python
+
+      @model_registry.register("MHGP")
+      class MHGP(Model):
+          pass
+
+   In this example, the algorithm object is named "MHGP".
+
+3. **Choose the Appropriate Base Class**
+
+   Depending on the type of algorithm object you are creating, you must inherit from a specific base class. TransOpt provides several algorithm modules, each corresponding to a different base class:
+
+   - **Surrogate Model**: Inherit from the `Model` class.
+   - **Initialization Design**: Inherit from the `Sampler` class.
+   - **Acquisition Function**: Inherit from the `AcquisitionBase` class.
+   - **Pretrain Module**: Inherit from the `PretrainBase` class.
+   - **Normalizer Module**: Inherit from the `NormalizerBase` class.
+
+   For instance, in the example provided, we are creating a surrogate model, so the `MHGP` class inherits from the `Model` base class.
+
+4. **Implement the Required Abstract Methods**
+
+   Once the class is defined, you need to implement several abstract methods that are required by the `Model` base class. These methods include:
+
+   .. code-block:: python
+
+      def meta_fit(
+          self,
+          source_X : List[np.ndarray],
+          source_Y : List[np.ndarray],
+          optimize: Union[bool, Sequence[bool]] = True,
+      ):
+          pass
+
+      def fit(
+          self,
+          X: np.ndarray,
+          Y: np.ndarray,
+          optimize: bool = False,
+      ):
+          pass
+
+      def predict(
+          self, X: np.ndarray, return_full: bool = False, with_noise: bool = False
+      ) -> Tuple[np.ndarray, np.ndarray]:
+          pass
+
+   - **meta_fit**: This method is used to fit meta-data. If your transfer optimization algorithm requires meta-data, this is where you should leverage it.
+   - **fit**: This method is used to fit the data for the current task.
+
+By following these steps, you can successfully register a new algorithm object in TransOpt and implement the necessary functionality to integrate it into the framework.
 
 
 
@@ -22,6 +86,8 @@ Registering a new Algorithmic Object
 
 Supported Algorithms
 --------------------
+
+
 
 **Multi-Task Bayesian Optimization**  
 This method extends multi-task Gaussian processes to transfer knowledge from previous optimizations to new tasks, improving the efficiency of Bayesian optimization. It leverages correlations between tasks to accelerate the optimization process, particularly useful in scenarios like hyperparameter tuning across different datasets. :cite:`SwerskySA13`
@@ -107,5 +173,57 @@ The optimization framework includes a variety of state-of-the-art algorithms, ea
 +-----------------------------+----------------------------------------+
 
 
-.. bibliography:: TOS.bib
-   :style: plain
+
++-------------------------+-------------------+---------------------------------------------------------------------------------------------------+
+| **Component**           | **Method**        | **Description**                                                                                   |
++=========================+===================+===================================================================================================+
+| Problem Specification   | S0 [1]            | Drop area that has no potential to generate promising points.                                     |
+|                         | S1 [1]            | Drop area that has no potential to generate promising points.                                     |
+|                         | S2 [2]            | Narrow the search space to cover all best points in similar Datasets.                             |
++-------------------------+-------------------+---------------------------------------------------------------------------------------------------+
+| Initialization Design   | I0 [3]            | Random/Sobol sequence/ The typical initialization design without the use of any                   |
+|                         |                   | information from data.                                                                            |
+|                         | I1 [3]            | Use the evolutionary algorithm to find a set of points that can perform better on all             |
+|                         |                   | similar datasets.                                                                                 |
+|                         | I2 [4]            | Learn the optimal initial points by iteratively minimizing the meta loss defined as               |
+|                         |                   | the average minimum loss across similar datasets.                                                 |
+|                         | I3 [4]            | Learn the optimal initial points by iteratively minimizing the meta loss defined as               |
+|                         |                   | the average minimum loss across similar datasets.                                                 |
++-------------------------+-------------------+---------------------------------------------------------------------------------------------------+
+| Surrogate Model         | M0                | The two most commonly used surrogate models in conventional BO.                                   |
+|                         | M1 [5]            | Model the data from the current task and similar datasets jointly through a                       |
+|                         |                   | coregionalization kernel.                                                                         |
+|                         | M2 [6]            | Learn a GP model using the residuals of predictions from models built on similar datasets.        |
+|                         | M3 [7]            | Learn better parameters of GP from similar datasets.                                              |
+|                         | M4 [3]            | A GP model with a kernel that includes a neural network, trained on similar datasets.             |
+|                         | M5 [8]            | A transformer-based deep neural network that provides predictions and uncertainty                 |
+|                         |                   | estimates.                                                                                        |
+|                         | M6 [9]            | A model that ensembles GPs trained on similar datasets, with weights based on the                 |
+|                         |                   | rank accuracy of their predictions on the current task.                                           |
+|                         | M7 [10]           | A model that ensembles GPs trained on similar datasets, with weights based on the                 |
+|                         |                   | kernel methods.                                                                                   |
+|                         | M8 [10]           | A model that ensembles GPs trained on similar datasets, with weights based on the                 |
+|                         |                   | kernel methods.                                                                                   |
+|                         | M9 [10]           | A model that ensembles GPs trained on similar datasets, with weights based on the                 |
+|                         |                   | kernel methods.                                                                                   |
+|                         | M10 [10]          | A model that ensembles GPs trained on similar datasets, with weights based on the                 |
+|                         |                   | kernel methods.                                                                                   |
++-------------------------+-------------------+---------------------------------------------------------------------------------------------------+
+| Acquisition Function    | A0                | Typical acquisition functions only consider the model’s predictions.                              |
+|                         | A1 [9, 10]        | Transfer acquisition functions leverage individual GP models trained on source tasks              |
+|                         |                   | to improve the evaluation of new points.                                                          |
+|                         | A2 [11]           | Train a neural network on similar datasets using reinforcement learning methods,                  |
+|                         |                   | then use it as the acquisition function.                                                          |
+|                         | A3 [11]           | Train a neural network on similar datasets using reinforcement learning methods,                  |
+|                         |                   | then use it as the acquisition function.                                                          |
+|                         | A4 [11]           | Train a neural network on similar datasets using reinforcement learning methods,                  |
+|                         |                   | then use it as the acquisition function.                                                          |
+|                         | A5 [11]           | Train a neural network on similar datasets using reinforcement learning methods,                  |
+|                         |                   | then use it as the acquisition function.                                                          |
+|                         | A6 [11]           | Train a neural network on similar datasets using reinforcement learning methods,                  |
+|                         |                   | then use it as the acquisition function.                                                          |
+|                         | A7 [11]           | Train a neural network on similar datasets using reinforcement learning methods,                  |
+|                         |                   | then use it as the acquisition function.                                                          |
+|                         | A8 [11]           | Train a neural network on similar datasets using reinforcement learning methods,                  |
+|                         |                   | then use it as the acquisition function.                                                          |
++-------------------------+-------------------+---------------------------------------------------------------------------------------------------+

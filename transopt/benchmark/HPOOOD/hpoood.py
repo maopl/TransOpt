@@ -29,7 +29,7 @@ from transopt.space.fidelity_space import FidelitySpace
 from transopt.space.search_space import SearchSpace
 from transopt.space.variable import *
 from transopt.benchmark.HPOOOD.hparams_registry import random_hparams, default_hparams, get_hparams
-from benchmark.HPOOOD import ooddatasets
+from transopt.benchmark.HPOOOD import ooddatasets
 from transopt.benchmark.HPOOOD import misc
 from transopt.benchmark.HPOOOD import algorithms
 from transopt.benchmark.HPOOOD.fast_data_loader import InfiniteDataLoader, FastDataLoader

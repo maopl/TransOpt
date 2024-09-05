@@ -32,6 +32,31 @@ class Identity(nn.Module):
         return x
 
 
+class Decoder(nn.Module):
+    """
+    Decoder network to reconstruct the input image from the features.
+    """
+    def __init__(self, input_dim, output_shape):
+        super(Decoder, self).__init__()
+        self.input_dim = input_dim
+        self.output_shape = output_shape
+
+        # Simple decoder structure: Fully connected layers followed by reshaping to the original input shape
+        self.decoder = nn.Sequential(
+            nn.Linear(input_dim, 256),
+            nn.ReLU(),
+            nn.Linear(256, 512),
+            nn.ReLU(),
+            nn.Linear(512, int(torch.prod(torch.tensor(output_shape)))),
+            nn.Sigmoid()  # Assuming normalized input values
+        )
+
+    def forward(self, x):
+        # Reshape the flattened output to match the original input dimensions
+        x = self.decoder(x)
+        return x.view(-1, *self.output_shape)
+    
+    
 class MLP(nn.Module):
     """Just  an MLP"""
     def __init__(self, n_inputs, n_outputs, hparams):

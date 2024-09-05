@@ -29,7 +29,7 @@ from transopt.space.fidelity_space import FidelitySpace
 from transopt.space.search_space import SearchSpace
 from transopt.space.variable import *
 from transopt.benchmark.HPOOOD.hparams_registry import random_hparams, default_hparams, get_hparams
-from transopt.benchmark.HPOOOD import datasets
+from benchmark.HPOOOD import ooddatasets
 from transopt.benchmark.HPOOOD import misc
 from transopt.benchmark.HPOOOD import algorithms
 from transopt.benchmark.HPOOOD.fast_data_loader import InfiniteDataLoader, FastDataLoader
@@ -158,8 +158,8 @@ class HPOOOD_base(NonTabularProblem):
 
         self.hparams = default_hparams(self.algorithm_name, self.dataset_name)
 
-        if self.dataset_name in vars(datasets):
-            self.dataset = vars(datasets)[self.dataset_name](self.data_dir,
+        if self.dataset_name in vars(ooddatasets):
+            self.dataset = vars(ooddatasets)[self.dataset_name](self.data_dir,
                 self.test_envs, self.hparams)
         else:
             raise NotImplementedError

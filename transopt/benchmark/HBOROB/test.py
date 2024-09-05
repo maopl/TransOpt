@@ -1,16 +1,22 @@
-from robustbench.data import load_cifar10c
-from robustbench.utils import clean_accuracy
-from robustbench.utils import load_model
-
-from transopt.benchmark.HBOROB.algorithms import ERM
-
-from robustbench.data import load_cifar10
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from robustbench.data import load_cifar10, load_cifar10c
+from robustbench.utils import clean_accuracy, load_model
+
+import transopt.benchmark.HPO.networks
+from transopt.benchmark.HPO.algorithms import ERM
+from transopt.benchmark.HPO.wide_resnet import WideResNet
+
+
+
+
+
+
+
 
 # 加载 CIFAR-10 数据集
-x_test, y_test = load_cifar10(n_examples=1000)
+x_test, y_test = load_cifar10(load_cifar10='~/transopt_files/data/')
 
 # 转换为 Tensor
 x_test = torch.tensor(x_test, dtype=torch.float32)

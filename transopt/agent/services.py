@@ -14,7 +14,7 @@ from transopt.datamanager.manager import Database, DataManager
 from transopt.optimizer.construct_optimizer import (ConstructOptimizer,
                                                     ConstructSelector)
 from transopt.utils.log import logger
-
+from transopt.analysis.mds import FootPrint
 
 class Services:
     def __init__(self, task_queue, result_queue, lock):
@@ -535,11 +535,11 @@ class Services:
 
     def construct_footprint_data(self, name, var_data, ranges, initial_number):
         # Initialize the list to store trajectory data and the best value seen so far
-        # fp = FootPrint(var_data, ranges)
-        # fp.calculate_distances()
-        # fp.get_mds()
-        # scatter_data = {'Initial vectors': fp._reduced_data[:initial_number], 'Decision vectors': fp._reduced_data[initial_number:len(fp.X)], 'Boundary vectors': fp._reduced_data[len(fp.X):]}
-        scatter_data = {}
+        fp = FootPrint(var_data, ranges)
+        fp.calculate_distances()
+        fp.get_mds()
+        scatter_data = {'Initial vectors': fp._reduced_data[:initial_number], 'Decision vectors': fp._reduced_data[initial_number:len(fp.X)], 'Boundary vectors': fp._reduced_data[len(fp.X):]}
+        # scatter_data = {}
         return {"ScatterData": scatter_data}
     
     def construct_statistic_trajectory_data(self, task_names):

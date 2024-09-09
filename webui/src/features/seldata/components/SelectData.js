@@ -133,7 +133,7 @@ function SelectData({DatasetData, updateTable, DatasetSelector}) {
           theme={{
             components: {
               Checkbox: {
-                colorText:"white"
+                colorText:"black"
               },
             },
           }}        

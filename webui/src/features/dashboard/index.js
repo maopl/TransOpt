@@ -1,25 +1,15 @@
 import React from "react";
 
 import { Row, Col, Button } from "reactstrap";
-
-import Trajectory from "./components/Trajectory";
-// import Radar from "./charts/Radar";
-import Scatter from "./components/Scatter";
-// import Bar from "./charts/Bar";
 import Importance from "./components/Importance";
 import {Input, Modal } from "antd";  
 import TitleCard from "../../components/Cards/TitleCard"
 
 
-import UserGroupIcon  from '@heroicons/react/24/outline/UserGroupIcon'
-import UsersIcon  from '@heroicons/react/24/outline/UsersIcon'
-import CircleStackIcon  from '@heroicons/react/24/outline/CircleStackIcon'
-import CreditCardIcon  from '@heroicons/react/24/outline/CreditCardIcon'
-import UserChannels from './components/UserChannels'
 import LineChart from './components/LineChart'
 import BarChart from './components/BarChart'
-import ScatterChart from "./components/ScatterChart";
-import DashboardTopBar from './components/DashboardTopBar'
+import Footprint from "./components/Footprint";
+
 
 
 
@@ -119,7 +109,7 @@ class Dashboard extends React.Component {
 
   componentDidMount() {
     // 开始定时调用 fetchData 函数
-    this.intervalId = setInterval(this.fetchData, 2000);
+    this.intervalId = setInterval(this.fetchData, 1000000);
   }
 
   componentWillUnmount() {
@@ -148,7 +138,7 @@ class Dashboard extends React.Component {
       this.setState({
         // BarData: data.BarData,
         // RadarData: data.RadarData,
-        // ScatterData: data.ScatterData,
+        ScatterData: data.ScatterData,
         TrajectoryData: data.TrajectoryData
       })
       // console.log('State:', this.state.BarData)
@@ -332,9 +322,9 @@ class Dashboard extends React.Component {
 
 
               <div className="grid lg:grid-cols-3 mt-4 grid-cols-1 gap-6">
-                <LineChart />
+                <LineChart  TrajectoryData={this.state.TrajectoryData}/>
                 <BarChart />
-                <ScatterChart />
+                <Footprint ScatterData={this.state.ScatterData}/>
               </div>
           
 

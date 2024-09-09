@@ -8,6 +8,8 @@ import TitleCard from "../../components/Cards/TitleCard"
 
 
 import SelectTask from "./components/SelectTask";
+import SetInstance from "./components/SetInstance";
+
 import TaskTable from "./components/TaskTable";
 
 
@@ -74,26 +76,33 @@ class Problem extends React.Component {
 
     } else {
       return (
-        <div>
-            <Row>
-              <Col lg={12} sm={12}>
-                <TitleCard>
-                  <SelectTask data={this.state.TasksData} updateTable={this.updateTable}/>
-                </TitleCard>
-              </Col>
-              <Col lg={12} sm={12}>
-                <TitleCard
-                  title={
-                    <h5>
-                      <span className="fw-semi-bold">Problem Information</span>
-                    </h5>
-                  }
-                  collapse
-                >
-                  <TaskTable tasks={this.state.tasks} />
-                </TitleCard>
-              </Col>
-            </Row>
+        <div className="grid mt-4 grid-cols-1 lg:grid-cols-[50%_50%] gap-6">
+
+            <TitleCard title={'Choose a problem generator'}>
+                      <SelectTask data={this.state.TasksData} updateTable={this.updateTable}/>
+            </TitleCard>
+
+            <TitleCard title={'Generate instances'}>
+                      <SetInstance data={this.state.TasksData} updateTable={this.updateTable}/>
+            </TitleCard>
+
+
+
+          <div className="grid mt-4 w-[1600px] grid-cols-1 gap-6">
+            <TitleCard
+              title={
+                <h5>
+                  <span className="fw-semi-bold">Problem Information</span>
+                </h5>
+              }
+              collapse
+            >
+              <TaskTable tasks={this.state.tasks} />
+            </TitleCard>
+          </div>
+        
+
+
         </div>
       );
     }

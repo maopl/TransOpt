@@ -8,9 +8,9 @@ class ChatBot extends React.Component {
 
     render() {
         return (
-            <div >
-                <Row>
-                <Col lg={12} sm={12}>
+          <div>
+          <div className="mt-4 w-[1400px] p-4 bg-gray-100">
+
                 <TitleCard
                   title={
                     <h5>
@@ -18,15 +18,10 @@ class ChatBot extends React.Component {
                     </h5>
                   }
                 >
-                  <div>
                     <ChatUI />
-                  </div>
                 </TitleCard>
-                </Col>
-                <Col lg={12} sm={12}>
-                </Col>
-              </Row>
             </div>
+          </div>
         );
     }
 }

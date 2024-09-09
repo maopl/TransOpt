@@ -13,6 +13,7 @@ from transopt.benchmark.instantiate_problems import InstantiateProblems
 from transopt.datamanager.manager import Database, DataManager
 from transopt.optimizer.construct_optimizer import (ConstructOptimizer,
                                                     ConstructSelector)
+
 from transopt.utils.log import logger
 from transopt.analysis.mds import FootPrint
 

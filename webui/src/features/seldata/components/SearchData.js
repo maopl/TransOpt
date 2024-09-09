@@ -95,7 +95,7 @@ function SearchData({set_dataset}) {
           <Input addonBefore={"Num of Objectives"}/>
         </Form.Item>
       </Space>
-      <h6 style={{color:"white"}}>Search method:</h6>
+      <h6 style={{color:"black"}}>Search method:</h6>
       <Space className="space" style={{ display: 'flex'}} align="baseline">
       <Form.Item
         name="search_method"

@@ -1,8 +1,4 @@
 import React from "react";
-import {
-  Row,
-  Col,
-} from "reactstrap";
 
 import TitleCard from "../../components/Cards/TitleCard"
 
@@ -87,8 +83,7 @@ class Algorithm extends React.Component {
     } else {
       return (
         <div>
-            <Row>
-              <Col lg={12} sm={12}>
+          <div className="grid mt-4 grid-cols-1 lg:grid-cols-[50%_50%] gap-6">
                 <TitleCard>
                   <SelectPlugins SpaceRefiner={this.state.SpaceRefiner}
                                     Sampler={this.state.Sampler}
@@ -100,8 +95,7 @@ class Algorithm extends React.Component {
                                     updateTable={this.updateTable}
                   />
                 </TitleCard>
-              </Col>
-              <Col lg={12} sm={12}>
+
                 <TitleCard
                   title={
                     <h5>
@@ -112,8 +106,7 @@ class Algorithm extends React.Component {
                 >
                   <OptTable optimizer={this.state.optimizer} />
                 </TitleCard>
-              </Col>
-            </Row>
+            </div>
         </div>
       );
     }

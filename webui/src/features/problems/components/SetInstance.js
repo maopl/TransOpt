@@ -49,33 +49,13 @@ function ATask({key, name, restField, remove, data}) {
 
     return (
         <Space className="space" key={key} style={{ display: 'flex', marginBottom: 1 }} align="baseline" >
-           <Form.Item
+            <Form.Item
              {...restField}
-             name={[name, 'name']}
+             name={[name, 'workloads']}
            >
-             <Select
-               showSearch
-               placeholder="problem name"
-               optionFilterProp="value"
-               filterOption={filterOption}
-               options={data.map(item => ({ value: item.name}))}
-               onChange={handleNameChange}
-               style={{minWidth:"120px", borderColor: 'black'}}
-
-             />
+             <Input placeholder="specify workloads" />
            </Form.Item>
-
-           <SelectDim anyDim={selectedTask.anyDim} num_vars={selectedTask.num_vars.map(item => ({value: item}))} name={name} restField={restField} />
            <Form.Item
-             {...restField}
-             name={[name, 'num_objs']}           
-            >
-            <Select
-              placeholder="number of objectives"
-              options={selectedTask.num_objs.map(item => ({value: item}))}
-            />
-           </Form.Item>
-           {/* <Form.Item
              {...restField}
              name={[name, 'fidelity']}
            >
@@ -84,12 +64,7 @@ function ATask({key, name, restField, remove, data}) {
                options={selectedTask.fidelity.map(item => ({value: item}))}
              />
            </Form.Item>
-           <Form.Item
-             {...restField}
-             name={[name, 'workloads']}
-           >
-             <Input placeholder="specify workloads" />
-           </Form.Item>
+
            <Form.Item
              {...restField}
              name={[name, 'budget_type']}
@@ -108,19 +83,18 @@ function ATask({key, name, restField, remove, data}) {
              name={[name, 'budget']}
            >
              <Input placeholder="budget" />
-           </Form.Item> */}
+           </Form.Item>
            <MinusCircleOutlined style={{color: 'white'}} onClick={() => remove(name)} />
         </Space>
     )
 }
 
-function SelectTask({data, updateTable}) {
+
+
+function SetInstance({data, updateTable}) {
   const onFinish = (values) => {
     // 构造要发送到后端的数据
     const messageToSend = values.Tasks.map(task => ({
-      name: task.name,
-      num_vars: parseInt(task.num_vars),
-      num_objs: task.num_objs,
       fidelity: task.fidelity,
       workloads: task.workloads,
       budget_type: task.budget_type,
@@ -159,8 +133,6 @@ function SelectTask({data, updateTable}) {
       });
   };
 
-
-
   return (
     <Form
       name="dynamic_form_nest_item"
@@ -193,4 +165,4 @@ function SelectTask({data, updateTable}) {
   )
 }
 
-export default SelectTask;
+export default SetInstance;

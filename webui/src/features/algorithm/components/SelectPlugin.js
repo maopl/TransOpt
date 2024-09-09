@@ -53,7 +53,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
           theme={{
             components: {
               Input: {
-                addonBg:"white"
+                addonBg:"black"
               },
             },
           }}        
@@ -94,8 +94,8 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
         >
           <div>
             <div>
-                <h5 style={{color:"#f4f4f599"}}>
-                  <span className="fw-semi-bold">Narrow Search Space</span>
+                <h5 style={{color:"#111"}}>
+                  <span className="fw-semi-bold">Search Space Prune</span>
                 </h5>
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
@@ -129,7 +129,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
             </div>
 
             <div>
-                <h5 style={{color:"#f4f4f599"}}>
+                <h5 style={{color:"#111"}}>
                   <span className="fw-semi-bold">Initialization</span>
                 </h5>
             </div>
@@ -168,7 +168,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
             </div>
 
             <div>
-                <h5 style={{color:"#f4f4f599"}}>
+                <h5 style={{color:"#111"}}>
                   <span className="fw-semi-bold">Pre-train</span>
                 </h5>
             </div>
@@ -201,7 +201,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
             </div>
 
             <div>
-                <h5 style={{color:"#f4f4f599"}}>
+                <h5 style={{color:"#111"}}>
                   <span className="fw-semi-bold">Surrogate Model</span>
                 </h5>
             </div>
@@ -234,7 +234,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
             </div>
 
             <div>
-                <h5 style={{color:"#f4f4f599"}}>
+                <h5 style={{color:"#111"}}>
                   <span className="fw-semi-bold">Acquisition Function</span>
                 </h5>
             </div>
@@ -267,7 +267,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
             </div>
 
             <div>
-                <h5 style={{color:"#f4f4f599"}}>
+                <h5 style={{color:"#111"}}>
                   <span className="fw-semi-bold">Normalizer</span>
                 </h5>
             </div>

@@ -9,6 +9,7 @@ from services import Services
 from transopt.agent.registry import *
 from transopt.utils.log import logger
 
+
 def create_app():
     app = Flask(__name__)
     
@@ -159,8 +160,6 @@ def create_app():
     @app.route("/api/Dashboard/errorsubmit", methods=["POST"])
     def errorsubmit():
         try:
-            print(11111111111)
-
 
             return {"succeed": True}, 200
         except Exception as e:
@@ -242,8 +241,8 @@ def create_app():
         user_input = data.get("action", "")
 
         task_data = services.get_configuration()
-        with open('transopt/agent/page_service_data/configuration_info.json', 'r') as file:
-            data = json.load(file)
+        # with open('transopt/agent/page_service_data/configuration_info.json', 'r') as file:
+        #     data = json.load(file)
         return jsonify(task_data), 200
 
 

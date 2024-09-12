@@ -96,7 +96,7 @@ class Analytics extends React.Component {
                 <TitleCard
                   title={
                     <h5>
-                      <span className="fw-semi-bold">Choose Tasks</span>
+                      <span className="fw-semi-bold">Filter</span>
                     </h5>
                   }
                   collapse
@@ -106,7 +106,7 @@ class Analytics extends React.Component {
 
             <div className="grid mt-4 grid-cols-1 lg:grid-cols-[50%_50%] gap-6">
 
-                <LineChart />
+                <LineChart TrajectoryData={this.state.TrajectoryData} />
 
 
                 <TitleCard

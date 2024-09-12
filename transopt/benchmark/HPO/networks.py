@@ -55,8 +55,48 @@ class Decoder(nn.Module):
         # Reshape the flattened output to match the original input dimensions
         x = self.decoder(x)
         return x.view(-1, *self.output_shape)
+
+
+class Featurizer2(nn.Module):
+    def __init__(self, input_shape, hparams):
+        super(Featurizer, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels=input_shape[0], out_channels=64, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1)
+        self.conv3 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=1, padding=1)
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.relu = nn.ReLU()
+
+        # 计算输出特征的大小
+        self.n_outputs = 256 * (input_shape[1] // 8) * (input_shape[2] // 8)
+
+    def forward(self, x):
+        x = self.relu(self.conv1(x))
+        x = self.pool(x)
+        x = self.relu(self.conv2(x))
+        x = self.pool(x)
+        x = self.relu(self.conv3(x))
+        x = self.pool(x)
+        x = x.view(x.size(0), -1)  # 展平
+        return x
     
-    
+class Decoder2(nn.Module):
+    def __init__(self, input_features, output_shape):
+        super(Decoder, self).__init__()
+        self.fc = nn.Linear(input_features, 256 * (output_shape[1] // 8) * (output_shape[2] // 8))
+        self.deconv1 = nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=4, stride=2, padding=1)
+        self.deconv2 = nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=4, stride=2, padding=1)
+        self.deconv3 = nn.ConvTranspose2d(in_channels=64, out_channels=output_shape[0], kernel_size=4, stride=2, padding=1)
+        self.relu = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()  # 输出范围 0-1
+
+    def forward(self, x):
+        x = self.fc(x)
+        x = x.view(x.size(0), 256, x.size(-1) // 256 // (x.size(-1) // 8), x.size(-1) // 8)  # 调整形状
+        x = self.relu(self.deconv1(x))
+        x = self.relu(self.deconv2(x))
+        x = self.sigmoid(self.deconv3(x))
+        return x    
+
 class MLP(nn.Module):
     """Just  an MLP"""
     def __init__(self, n_inputs, n_outputs, hparams):

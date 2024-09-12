@@ -8,6 +8,7 @@ from typing import Dict, Union
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
+import matplotlib.pyplot as plt
 
 from transopt.benchmark.HPO import datasets
 
@@ -21,7 +22,7 @@ from transopt.space.fidelity_space import FidelitySpace
 from transopt.space.search_space import SearchSpace
 from transopt.space.variable import *
 from transopt.benchmark.HPO import algorithms
-
+from transopt.benchmark.HPO.misc import LossPlotter
 
 from transopt.benchmark.HPO import hyperparameter_register
 
@@ -55,8 +56,8 @@ class HPO_base(NonTabularProblem):
         ):
         self.dataset_name = HPO_base.DATASETS[workload]
         self.algorithm_name = algorithm
-        self.data_dir = '~/transopt_files/data/'
-        self.output_dir = f'~/transopt_files/output/'
+        
+        self.output_dir = '~/transopt_tmp/output/'
         self.validate_fraction = 0.1
         self.task = 'domain_generalization'
         self.steps = 1000
@@ -70,8 +71,9 @@ class HPO_base(NonTabularProblem):
         
         self.trial_seed = seed
         
-        self.model_save_dir = self.output_dir + f'models/{self.algorithm_name}_{self.dataset_name}_{seed}/'
-        self.results_save_dir = self.output_dir + f'results/{self.algorithm_name}_{self.dataset_name}_{seed}/'
+        user_home = os.path.expanduser('~')
+        self.model_save_dir  = os.path.join(user_home, f'transopt_tmp/output/models/{self.algorithm_name}_{self.dataset_name}_{seed}/')
+        self.results_save_dir  = os.path.join(user_home, f'transopt_tmp/output/results/{self.algorithm_name}_{self.dataset_name}_{seed}/')
         
         print(f"Selected algorithm: {self.algorithm_name}, dataset: {self.dataset_name}")
         
@@ -94,7 +96,7 @@ class HPO_base(NonTabularProblem):
         self.hparams['batch_size'] = 64
 
         if self.dataset_name in vars(datasets):
-            self.dataset = vars(datasets)[self.dataset_name](self.data_dir)
+            self.dataset = vars(datasets)[self.dataset_name]()
         else:
             raise NotImplementedError
         
@@ -159,7 +161,6 @@ class HPO_base(NonTabularProblem):
             Continuous('momentum', [-10.0, 0]),
             ]
         ss = SearchSpace(variables)
-        self.hparam = ss
         return ss
     
     def get_fidelity_space(
@@ -181,6 +182,8 @@ class HPO_base(NonTabularProblem):
         
         last_results_keys = None
     
+        loss_plotter = LossPlotter()
+
         for epoch in range(self.epoches):
             start_step = 0
             for step in range(start_step, n_steps):
@@ -193,6 +196,8 @@ class HPO_base(NonTabularProblem):
 
                 for key, val in step_vals.items():
                     self.checkpoint_vals[key].append(val)
+                
+                loss_plotter.update(step_vals['classification_loss'], step_vals['reconstruction_loss'])
 
                 if (step % self.checkpoint_freq == 0) or (step == n_steps - 1):
                     results = {
@@ -205,8 +210,25 @@ class HPO_base(NonTabularProblem):
 
                     evals = zip(self.eval_loader_names, self.eval_loaders)
                     for name, loader in evals:
-                        acc = misc.accuracy(self.algorithm, loader, self.device)
-                        results[name+'_acc'] = acc
+                        correct = 0
+                        total = 0
+                        weights_offset = 0
+
+                        self.algorithm.eval()
+                        with torch.no_grad():
+                            for x, y in loader:
+                                x = x.to(self.device)
+                                y = y.to(self.device)
+                                p, d = self.algorithm.predict(x)
+                                if p.size(1) == 1:
+                                    correct += (p.gt(0).eq(y).float()).sum().item()
+                                else:
+                                    correct += (p.argmax(1).eq(y).float()).sum().item()
+                                total += torch.ones(len(x)).sum().item()
+                        self.algorithm.train()
+                        
+                        
+                        results[name+'_acc'] = correct / total
 
                     results['mem_gb'] = torch.cuda.max_memory_allocated() / (1024.*1024.*1024.)
 
@@ -222,14 +244,19 @@ class HPO_base(NonTabularProblem):
                     })
 
                     start_step = step + 1
+                    
+                    loss_plotter.show()
+
 
                 if self.save_model_every_checkpoint:
                     self.save_checkpoint(f'model_step{step}.pkl')
         
+
+        
         self.save_checkpoint('model.pkl')
         with open(os.path.join(self.model_save_dir, 'done'), 'w') as f:
             f.write('done')
-        
+
         return results
 
     def get_score(self, configuration: dict):
@@ -276,7 +303,7 @@ class HPO_base(NonTabularProblem):
         if 'epoch' in kwargs:
             epoch = kwargs['epoch']
         else:
-            epoch = 20
+            epoch = 30
             
         if fidelity is None:
             fidelity = {"epoch": epoch, "data_frac": 0.8}

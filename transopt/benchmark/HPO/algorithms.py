@@ -93,7 +93,7 @@ class ROBERM(Algorithm):
     """
 
     def __init__(self, input_shape, num_classes, num_domains, hparams):
-        super(ERMOOD, self).__init__(input_shape, num_classes, num_domains, hparams)
+        super(ROBERM, self).__init__(input_shape, num_classes, num_domains, hparams)
         # Featurizer extracts features from the input
         self.featurizer = networks.Featurizer(input_shape, self.hparams)
         # Classifier performs classification based on the extracted features
@@ -125,7 +125,7 @@ class ROBERM(Algorithm):
 
         # Reconstruction loss - the decoder tries to reconstruct the input
         reconstructed_x = self.decoder(features)
-        reconstruction_loss = F.mse_loss(reconstructed_x, all_x)
+        reconstruction_loss = 10 * F.mse_loss(reconstructed_x, all_x)
 
         # Total loss as the sum of classification and reconstruction losses
         total_loss = classification_loss + reconstruction_loss

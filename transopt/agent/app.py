@@ -160,8 +160,6 @@ def create_app():
     @app.route("/api/Dashboard/errorsubmit", methods=["POST"])
     def errorsubmit():
         try:
-            print(11111111111)
-
 
             return {"succeed": True}, 200
         except Exception as e:

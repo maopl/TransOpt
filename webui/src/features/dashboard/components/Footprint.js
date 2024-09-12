@@ -45,20 +45,12 @@ function Footprint({ ScatterData = {} }) { // 提供默认值为空对象
       x: {
         type: 'linear', // X轴类型为线性
         position: 'bottom',
-        grid: {
-          display: false, // 隐藏网格线
-          borderColor: 'white',
-        },
         ticks: {
           color: '#ffffff', // X轴标签颜色
         },
       },
       y: {
         type: 'linear', // Y轴类型为线性
-        grid: {
-          display: false, // 隐藏网格线
-          borderColor: 'white',
-        },
         ticks: {
           color: '#ffffff', // Y轴标签颜色
         },

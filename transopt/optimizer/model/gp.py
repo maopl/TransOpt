@@ -18,6 +18,7 @@ class GP(Model):
         self,
         kernel: Kern = None,
         noise_variance: float = 1.0,
+        normalize = False,
         **options: dict
     ):
         """Initialize the Method.

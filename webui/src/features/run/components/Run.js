@@ -53,7 +53,7 @@ function Run() {
           theme={{
             components: {
               Input: {
-                addonBg:"white"
+                addonBg:"black"
               },
             },
           }}  
@@ -67,11 +67,11 @@ function Run() {
         >
             <div style={{ overflowY: 'auto', maxHeight: '150px' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline' }}>
-                    <h6 style={{color:"white"}}>Seeds</h6>
+                    <h6 style={{color:"black"}}>Seeds</h6>
                     <Form.Item name="Seeds" style={{marginRight:10, marginLeft:10}}>
                         <Input />
                     </Form.Item>
-                    <h6 style={{color:"white"}}>Remote</h6>
+                    <h6 style={{color:"black"}}>Remote</h6>
                     <Form.Item name="Remote" style={{marginRight:10, marginLeft:10}}>
                       <Select
                       options={[ {value: "True"},
@@ -79,7 +79,7 @@ function Run() {
                               ]}
                       />
                     </Form.Item>
-                    <h6 style={{color:"white"}}>ServerURL</h6>
+                    <h6 style={{color:"black"}}>ServerURL</h6>
                     <Form.Item name="ServerURL" style={{marginLeft:10}}>
                         <Input />
                     </Form.Item>

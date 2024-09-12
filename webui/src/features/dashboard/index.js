@@ -8,8 +8,8 @@ import TitleCard from "../../components/Cards/TitleCard"
 
 import LineChart from './components/LineChart'
 import BarChart from './components/BarChart'
-import Footprint from "./components/Footprint";
-
+// import Footprint from "./components/Footprint";
+import Footprint from "./components/ScatterChart";
 
 
 
@@ -323,7 +323,7 @@ class Dashboard extends React.Component {
 
               <div className="grid lg:grid-cols-3 mt-4 grid-cols-1 gap-6">
                 <LineChart  TrajectoryData={this.state.TrajectoryData}/>
-                <BarChart />
+                <BarChart ImportanceData={this.state.Importance}/>
                 <Footprint ScatterData={this.state.ScatterData}/>
               </div>
           

@@ -12,7 +12,7 @@ import TitleCard from '../../../components/Cards/TitleCard';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-function BarChart(){
+function BarChart({ ImportanceData }){
 
     const options = {
         responsive: true,
@@ -23,20 +23,15 @@ function BarChart(){
         },
       };
       
-      const labels = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
+      const labels = ['x1', 'x2', 'x3', 'x4'];
       
       const data = {
         labels,
         datasets: [
           {
-            label: 'Store 1',
-            data: labels.map(() => { return Math.random() * 1000 + 500 }),
+            label: 'Importance level',
+            data: labels.map(() => { return Math.random() * 0.1 + 0.7 }),
             backgroundColor: 'rgba(255, 99, 132, 1)',
-          },
-          {
-            label: 'Store 2',
-            data: labels.map(() => { return Math.random() * 1000 + 500 }),
-            backgroundColor: 'rgba(53, 162, 235, 1)',
           },
         ],
       };

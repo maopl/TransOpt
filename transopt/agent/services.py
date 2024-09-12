@@ -514,7 +514,7 @@ class Services:
         ret = {}
         ret.update(self.construct_footprint_data(task_name, var_data, ranges, initial_number))
         ret.update(self.construct_trajectory_data(task_name, obj_data, obj_type))
-        self.construct_importance_data(task_name, var_data, obj_data, variables)
+        # ret.update(self.construct_importance_data(task_name, var_data, obj_data, variables))
 
         return ret
 
@@ -606,9 +606,10 @@ class Services:
         }
 
         return {"TrajectoryData": [trajectory_data]}
-    
+
     def construct_importance_data(self, name, var_data, obj_data, variables):
-        plot_network(np.array(var_data), np.array(obj_data), variables)
+        # plot_network(np.array(var_data), np.array(obj_data), variables)
+        return {}
 
     def get_configuration(self):
         configuration_info = {}

@@ -79,10 +79,11 @@ class RobMNIST(Dataset):
 
 
 class RobCifar10(Dataset):
-    def __init__(self, root):
+    def __init__(self, root= None):
         super().__init__()
-        if root is None:
-            raise ValueError('Data directory not specified!')
+        if root is None:        
+            user_home = os.path.expanduser('~')
+            root = os.path.join(user_home, 'transopt_tmp/data')
 
         original_dataset_tr = CIFAR10(root, train=True, download=True)
         original_dataset_te = CIFAR10(root, train=False, download=True)

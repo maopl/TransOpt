@@ -9,6 +9,7 @@ import numpy as np
 import torch
 from collections import Counter
 from itertools import cycle
+import matplotlib.pyplot as plt
 
 
 
@@ -59,6 +60,7 @@ def accuracy(network, loader, device):
     return correct / total
 
 
+
 def print_row(row, colwidth=10, latex=False):
     if latex:
         sep = " & "
@@ -72,3 +74,49 @@ def print_row(row, colwidth=10, latex=False):
             x = "{:.10f}".format(x)
         return str(x).ljust(colwidth)[:colwidth]
     print(sep.join([format_val(x) for x in row]), end_)
+    
+    
+    
+class LossPlotter:
+    def __init__(self):
+        self.classification_losses = []  # 用于存储分类损失
+        self.reconstruction_losses = []  # 用于存储重构损失
+        self.epochs = []  # 用于存储训练的 epoch 数
+        self.cur = 0
+
+        # 初始化绘图
+        plt.ion()  # 开启交互模式
+        self.fig, self.ax = plt.subplots(figsize=(10, 5))
+
+    def update(self, classification_loss, reconstruction_loss):
+        # 更新损失和 epoch 数据
+        self.cur += 1
+        self.classification_losses.append(classification_loss)
+        self.reconstruction_losses.append(reconstruction_loss)
+        self.epochs.append(self.cur)
+
+        # 清空当前的图像
+        self.ax.clear()
+
+        # 绘制分类损失曲线
+        self.ax.plot(self.epochs, self.classification_losses, label='Classification Loss', color='blue', marker='o')
+        
+        # 绘制重构损失曲线
+        self.ax.plot(self.epochs, self.reconstruction_losses, label='Reconstruction Loss', color='orange', marker='x')
+
+        # 设置图表标题和标签
+        self.ax.set_title('Loss Curves')
+        self.ax.set_xlabel('Epoch')
+        self.ax.set_ylabel('Loss')
+
+        # 显示图例
+        self.ax.legend()
+
+        # 更新图表
+        plt.draw()
+        plt.pause(0.01)  # 暂停以便更新图像
+
+    def show(self):
+        # 展示最终图像并关闭交互模式
+        plt.ioff()
+        plt.savefig('loss_curves.png')

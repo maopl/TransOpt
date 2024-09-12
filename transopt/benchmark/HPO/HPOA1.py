@@ -23,7 +23,8 @@ from transopt.space.search_space import SearchSpace
 from transopt.space.variable import *
 from transopt.benchmark.HPO import algorithms
 from transopt.benchmark.HPO.misc import LossPlotter
-
+from transopt.benchmark.HPO.hparams_registry import get_hparams
+from transopt.benchmark.HPO.datasets import RobCifar10, RobCifar100, RobImageNet
 from transopt.benchmark.HPO import hyperparameter_register
 
 
@@ -31,38 +32,34 @@ from transopt.benchmark.HPO import hyperparameter_register
 
 
 class HPO_base(NonTabularProblem):
-    problem_type = 'hpoood'
-    num_variables = 10
+    problem_type = 'hpo'
+    num_variables = 3
     num_objectives = 1
     workloads = []
     fidelity = None
     
-    
     ALGORITHMS = [
         'ERM',
-        'ROBERM'
-        
     ]
     
     DATASETS = [
-    "RobMNIST",
     "RobCifar10",
     "RobCifar100",
     "RobImageNet",
     ]
 
     def __init__(
-        self, task_name, budget_type, budget, seed, workload, algorithm
+        self, task_name, budget_type, budget, seed, workload, algorithm, network_type='densenet'
         ):
         self.dataset_name = HPO_base.DATASETS[workload]
         self.algorithm_name = algorithm
         
-        self.output_dir = '~/transopt_tmp/output/'
         self.validate_fraction = 0.1
         self.task = 'domain_generalization'
         self.steps = 1000
         self.checkpoint_freq = 50
         self.query = 0
+        self.network_type = network_type
         self.hparams = {}
         
         self.save_model_every_checkpoint = False
@@ -91,45 +88,42 @@ class HPO_base(NonTabularProblem):
         np.random.seed(seed)
         torch.manual_seed(seed)
 
-        # self.hparams = default_hparams(self.algorithm_name, self.dataset_name)
-        
         self.hparams['batch_size'] = 64
+        self.hparams['nonlinear_classifier'] = False
 
-        if self.dataset_name in vars(datasets):
-            self.dataset = vars(datasets)[self.dataset_name]()
+        if self.dataset_name in globals():
+            self.dataset = globals()[self.dataset_name](root=None, augment=True)
         else:
-            raise NotImplementedError
-        
-        val, in_ = misc.split_dataset(self.dataset,
-            int(len(self.dataset)*self.validate_fraction), self.seed)
-        
-        out = self.dataset.test
-        
-        out_ds = self.dataset.test_ds
+            raise NotImplementedError(f"Dataset {self.dataset_name} not implemented")
 
+        # Remove the splitting of the dataset
         self.train_loaders = [InfiniteDataLoader(
-            dataset=in_,
-            batch_size=self.hparams['batch_size'],
-            num_workers=self.dataset.N_WORKERS)]
-        
-        self.val_loaders = [InfiniteDataLoader(
-            dataset=val,
+            dataset=self.dataset.datasets,
             batch_size=self.hparams['batch_size'],
             num_workers=self.dataset.N_WORKERS)]
 
         self.eval_loaders = [FastDataLoader(
-            dataset=data,
+            dataset=self.dataset.get_test_set('standard'),
             batch_size=64,
-            num_workers=self.dataset.N_WORKERS)
-            for data in (in_, val, out, out_ds)]
-    
-     
-        self.eval_loader_names = ['_in']
-        self.eval_loader_names += ['_val']
-        self.eval_loader_names += ['_out']
-        self.eval_loader_names += ['_out_ds']
-        
-        
+            num_workers=self.dataset.N_WORKERS)]
+
+        self.eval_loader_names = ['standard']
+
+        # Add corruption test loaders
+        corruptions = [
+            'gaussian_noise', 'shot_noise', 'impulse_noise', 'defocus_blur',
+            'glass_blur', 'motion_blur', 'zoom_blur', 'snow', 'frost', 'fog',
+            'brightness', 'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression'
+        ]
+        for corruption in corruptions:
+            corruption_dataset = self.dataset.get_test_set(f'corruption_{corruption}')
+            if corruption_dataset is not None:
+                self.eval_loaders.append(FastDataLoader(
+                    dataset=corruption_dataset,
+                    batch_size=64,
+                    num_workers=self.dataset.N_WORKERS))
+                self.eval_loader_names.append(f'corruption_{corruption}')
+
         self.train_minibatches_iterator = zip(*self.train_loaders)
         self.checkpoint_vals = collections.defaultdict(lambda: [])
 
@@ -156,18 +150,31 @@ class HPO_base(NonTabularProblem):
     def get_configuration_space(
         self, seed: Union[int, None] = None):
 
-        variables=[Continuous('lr', [-10.0, 0.0]),
-            Continuous('weight_decay', [-10.0, -5.0]),
-            Continuous('momentum', [-10.0, 0]),
-            ]
+        hparams = get_hparams(self.algorithm_name, self.dataset_name)
+        variables = []
+
+        for name, (default, min_val, max_val) in hparams.items():
+            if min_val is not None and max_val is not None:
+                if isinstance(default, int):
+                    variables.append(Integer(name, [min_val, max_val]))
+                elif isinstance(default, float):
+                    if name in ['lr', 'weight_decay']:
+                        # Use log scale for learning rate and weight decay
+                        variables.append(Continuous(name, [np.log10(min_val), np.log10(max_val)]))
+                    else:
+                        variables.append(Continuous(name, [min_val, max_val]))
+                elif isinstance(default, bool):
+                    variables.append(Categorical(name, [True, False]))
+
         ss = SearchSpace(variables)
         return ss
     
     def get_fidelity_space(
         self, seed: Union[int, None] = None):
 
-        # return fidel_space
-        fs = FidelitySpace([])
+        fs = FidelitySpace([
+            Integer("epoch", [1, 100])  # Adjust the range as needed
+        ])
         return fs
     
     def train(self, configuration: dict):
@@ -182,7 +189,7 @@ class HPO_base(NonTabularProblem):
         
         last_results_keys = None
     
-        loss_plotter = LossPlotter()
+        # loss_plotter = LossPlotter()
 
         for epoch in range(self.epoches):
             start_step = 0
@@ -196,9 +203,8 @@ class HPO_base(NonTabularProblem):
 
                 for key, val in step_vals.items():
                     self.checkpoint_vals[key].append(val)
+                                
                 
-                loss_plotter.update(step_vals['classification_loss'], step_vals['reconstruction_loss'])
-
                 if (step % self.checkpoint_freq == 0) or (step == n_steps - 1):
                     results = {
                         'step': step,
@@ -219,14 +225,13 @@ class HPO_base(NonTabularProblem):
                             for x, y in loader:
                                 x = x.to(self.device)
                                 y = y.to(self.device)
-                                p, d = self.algorithm.predict(x)
+                                p = self.algorithm.predict(x)
                                 if p.size(1) == 1:
                                     correct += (p.gt(0).eq(y).float()).sum().item()
                                 else:
                                     correct += (p.argmax(1).eq(y).float()).sum().item()
                                 total += torch.ones(len(x)).sum().item()
                         self.algorithm.train()
-                        
                         
                         results[name+'_acc'] = correct / total
 
@@ -260,18 +265,11 @@ class HPO_base(NonTabularProblem):
         return results
 
     def get_score(self, configuration: dict):
-        
-        self.hparams['nonlinear_classifier'] = False
+        for key, value in configuration.items():
+            self.hparams[key] = value
 
-        # self.hparams['lr'] = configuration["lr"]
-        # self.hparams['weight_decay'] = configuration["weight_decay"]
-        
-        self.hparams['lr'] = 0.001
-        self.hparams['weight_decay'] = 0.00001
-        
         algorithm_class = algorithms.get_algorithm_class(self.algorithm_name)
-        self.algorithm = algorithm_class(self.dataset.input_shape, self.dataset.num_classes,
-            len(self.dataset), self.hparams)
+        self.algorithm = algorithm_class(self.dataset.input_shape, self.dataset.num_classes, self.network_type, self.hparams)
         self.algorithm.to(self.device)
         
         self.query += 1
@@ -282,13 +280,14 @@ class HPO_base(NonTabularProblem):
             f.write(json.dumps(results, sort_keys=True) + "\n")
 
 
-        val_acc = [i[1] for i in results.items() if 'val' in i[0]]
-        avg_val_acc = np.mean(val_acc)
+        val_acc = results['standard_acc']
+        test_acc = np.mean([results[f'corruption_{c}_acc'] for c in [
+            'gaussian_noise', 'shot_noise', 'impulse_noise', 'defocus_blur',
+            'glass_blur', 'motion_blur', 'zoom_blur', 'snow', 'frost', 'fog',
+            'brightness', 'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression'
+        ]])
         
-        test_acc = [i[1] for i in results.items() if 'out' in i[0]]
-        avg_test_acc = np.mean(test_acc)
-        
-        return avg_val_acc, avg_test_acc
+        return val_acc, test_acc
         
 
     def objective_function(
@@ -299,21 +298,20 @@ class HPO_base(NonTabularProblem):
         **kwargs
     ) -> Dict:
 
-            
-        if 'epoch' in kwargs:
-            epoch = kwargs['epoch']
-        else:
-            epoch = 30
-            
         if fidelity is None:
-            fidelity = {"epoch": epoch, "data_frac": 0.8}
-        c = {
-            "lr": np.exp(configuration["lr"]),
-            "weight_decay": np.exp(configuration["weight_decay"]),
-            'momentum': np.exp(configuration["momentum"]),
-            "batch_size": 64,
-            "epoch": fidelity["epoch"],
-        }
+            fidelity = {"epoch": 30}
+        
+        # Convert log scale values back to normal scale
+        c = {}
+        for key, value in configuration.items():
+            if key in ['lr', 'weight_decay']:
+                c[key] = 10 ** value
+            else:
+                c[key] = value
+        
+        # Add fidelity (epoch) to the configuration
+        c["epoch"] = fidelity["epoch"]
+        
         val_acc, test_acc = self.get_score(c)
 
         results = {list(self.objective_info.keys())[0]: float(1 - val_acc)}
@@ -333,26 +331,72 @@ class HPO_ERM(HPO_base):
     def __init__(
         self, task_name, budget_type, budget, seed, workload, **kwargs
         ):
-        super(HPO_ERM, self).__init__(task_name=task_name, budget_type=budget_type, budget=budget, seed = seed, workload = workload, algorithm='ERM')
+        super(HPO_ERM, self).__init__(task_name=task_name, budget_type=budget_type, budget=budget, seed=seed, workload=workload, algorithm='ERM')
 
-
-@problem_registry.register("HPO_ERMROB")
-class HPO_ERMROB(HPO_base):    
+@problem_registry.register("HPO_ROBERM")
+class HPO_ROBERM(HPO_base):    
     def __init__(
         self, task_name, budget_type, budget, seed, workload, **kwargs
         ):
-        super(HPO_ERMROB, self).__init__(task_name=task_name, budget_type=budget_type, budget=budget, seed = seed, workload = workload, algorithm='ROBERM')
+        super(HPO_ROBERM, self).__init__(task_name=task_name, budget_type=budget_type, budget=budget, seed=seed, workload=workload, algorithm='ERM')
 
+
+def test_hpo_roberm():
+    print("Testing HPO_ROBERM...")
+    try:
+        # Create an instance of HPO_ROBERM
+        hpo = HPO_ROBERM(task_name='test_roberm', budget_type='FEs', budget=100, seed=0, workload=0)
+        
+        # Get the configuration space
+        config_space = hpo.get_configuration_space()
+        
+        # Get the fidelity space
+        fidelity_space = hpo.get_fidelity_space()
+        
+        # Manually sample a random configuration
+        config = {}
+        for name, var in config_space.get_design_variables().items():
+            if isinstance(var, Integer):
+                config[name] = np.random.randint(var.search_space_range[0], var.search_space_range[1] + 1)
+            elif isinstance(var, Continuous):
+                config[name] = np.random.uniform(var.search_space_range[0], var.search_space_range[1])
+            elif isinstance(var, Categorical):
+                config[name] = np.random.choice(var.search_space_range)
+
+        # Manually sample a random fidelity
+        fidelity = {}
+        for name, var in fidelity_space.get_fidelity_range().items():
+            if isinstance(var, Integer):
+                fidelity[name] = np.random.randint(var.search_space_range[0], var.search_space_range[1] + 1)
+            elif isinstance(var, Continuous):
+                fidelity[name] = np.random.uniform(var.search_space_range[0], var.search_space_range[1])
+            elif isinstance(var, Categorical):
+                fidelity[name] = np.random.choice(var.search_space_range)
+        
+        # Run the objective function
+        result = hpo.objective_function(configuration=config, fidelity=fidelity)
+        
+        print(f"Configuration: {config.get_dictionary()}")
+        print(f"Fidelity: {fidelity.get_dictionary()}")
+        print(f"Result: {result}")
+        
+        assert 'function_value' in result, "Result should contain 'function_value'"
+        assert 0 <= result['function_value'] <= 1, "Function value should be between 0 and 1"
+        
+        print("HPO_ROBERM test passed successfully!")
+    except Exception as e:
+        print(f"Error occurred during HPO_ROBERM test: {str(e)}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
-    # lr = 0.03326703506193591
-    # weight_decay = 0.0015442280272030557
+    import torch
+    import numpy as np
+
+    # Set random seed for reproducibility
+    np.random.seed(0)
+    torch.manual_seed(0)
     
-    p = HPO_ERMROB(task_name='', budget_type='FEs', budget=100, seed = 0, workload = 1)
-    configuration = {
-        "lr": -3,
-        "weight_decay": -5,
-        "momentum": -3
-    }
-    p.f(configuration=configuration)
-    
+    # Run the test
+    test_hpo_roberm()
+

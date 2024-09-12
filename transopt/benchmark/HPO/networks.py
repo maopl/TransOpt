@@ -9,19 +9,17 @@ import torch.nn.functional as F
 import torch.nn.init as init
 import torchvision.models
 
+def Featurizer(input_shape, network_type, hparams):
+    """Select an appropriate featurizer based on the input shape and hparams."""
 
-def Featurizer(input_shape, hparams):
-    """Auto-select an appropriate featurizer for the given input shape."""
-    if len(input_shape) == 1:
-        return MLP(input_shape[0], hparams["mlp_width"], hparams)
-    elif input_shape[1:3] == (28, 28):
-        return MNIST_CNN(input_shape)
-    elif input_shape[1:3] == (32, 32):
-        return Wide_ResNet(input_shape, 16, 2, 0.)
-    elif input_shape[1:3] == (224, 224):
+    if network_type == 'densenet':
+        return DenseNet(input_shape, hparams)
+    elif network_type == 'resnet':
         return ResNet(input_shape, hparams)
+    elif network_type == 'wideresnet':
+        return Wide_ResNet(input_shape, 16, 2, 0.)
     else:
-        raise NotImplementedError
+        raise ValueError(f"Unsupported network type: {network_type}")
     
 class Identity(nn.Module):
     """An identity layer"""
@@ -56,46 +54,6 @@ class Decoder(nn.Module):
         x = self.decoder(x)
         return x.view(-1, *self.output_shape)
 
-
-class Featurizer2(nn.Module):
-    def __init__(self, input_shape, hparams):
-        super(Featurizer, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=input_shape[0], out_channels=64, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1)
-        self.conv3 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=1, padding=1)
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.relu = nn.ReLU()
-
-        # 计算输出特征的大小
-        self.n_outputs = 256 * (input_shape[1] // 8) * (input_shape[2] // 8)
-
-    def forward(self, x):
-        x = self.relu(self.conv1(x))
-        x = self.pool(x)
-        x = self.relu(self.conv2(x))
-        x = self.pool(x)
-        x = self.relu(self.conv3(x))
-        x = self.pool(x)
-        x = x.view(x.size(0), -1)  # 展平
-        return x
-    
-class Decoder2(nn.Module):
-    def __init__(self, input_features, output_shape):
-        super(Decoder, self).__init__()
-        self.fc = nn.Linear(input_features, 256 * (output_shape[1] // 8) * (output_shape[2] // 8))
-        self.deconv1 = nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=4, stride=2, padding=1)
-        self.deconv2 = nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=4, stride=2, padding=1)
-        self.deconv3 = nn.ConvTranspose2d(in_channels=64, out_channels=output_shape[0], kernel_size=4, stride=2, padding=1)
-        self.relu = nn.ReLU()
-        self.sigmoid = nn.Sigmoid()  # 输出范围 0-1
-
-    def forward(self, x):
-        x = self.fc(x)
-        x = x.view(x.size(0), 256, x.size(-1) // 256 // (x.size(-1) // 8), x.size(-1) // 8)  # 调整形状
-        x = self.relu(self.deconv1(x))
-        x = self.relu(self.deconv2(x))
-        x = self.sigmoid(self.deconv3(x))
-        return x    
 
 class MLP(nn.Module):
     """Just  an MLP"""
@@ -261,6 +219,45 @@ class Wide_ResNet(nn.Module):
         out = F.avg_pool2d(out, 8)
         return out[:, :, 0, 0]
 
+
+
+
+
+class DenseNet(nn.Module):
+    """DenseNet with the softmax layer removed"""
+    def __init__(self, input_shape, hparams):
+        super(DenseNet, self).__init__()
+        if 'densenet_depth' not in hparams:
+            hparams['densenet_depth'] = 121
+        if hparams['densenet_depth'] == 121:
+            self.network = torchvision.models.densenet121(pretrained=True)
+            self.n_outputs = 1024
+        elif hparams['densenet_depth'] == 169:
+            self.network = torchvision.models.densenet169(pretrained=True)
+            self.n_outputs = 1664
+        elif hparams['densenet_depth'] == 201:
+            self.network = torchvision.models.densenet201(pretrained=True)
+            self.n_outputs = 1920
+        else:
+            raise ValueError("Unsupported DenseNet depth")
+
+        # Adapt number of channels
+        nc = input_shape[0]
+        if nc != 3:
+            self.network.features.conv0 = nn.Conv2d(nc, 64, kernel_size=7, stride=2, padding=3, bias=False)
+
+        # Remove the last fully connected layer
+        self.network.classifier = Identity()
+
+        self.dropout = nn.Dropout(hparams['dropout_rate'])
+
+    def forward(self, x):
+        features = self.network(x)
+        return self.dropout(features)
+    
+    
+    
+    
 class MNIST_CNN(nn.Module):
     """
     Hand-tuned architecture for MNIST.
@@ -339,23 +336,3 @@ def Classifier(in_features, out_features, is_nonlinear=False):
     else:
         return torch.nn.Linear(in_features, out_features)
 
-
-class WholeFish(nn.Module):
-    def __init__(self, input_shape, num_classes, hparams, weights=None):
-        super(WholeFish, self).__init__()
-        featurizer = Featurizer(input_shape, hparams)
-        classifier = Classifier(
-            featurizer.n_outputs,
-            num_classes,
-            hparams['nonlinear_classifier'])
-        self.net = nn.Sequential(
-            featurizer, classifier
-        )
-        if weights is not None:
-            self.load_state_dict(copy.deepcopy(weights))
-
-    def reset_weights(self, weights):
-        self.load_state_dict(copy.deepcopy(weights))
-
-    def forward(self, x):
-        return self.net(x)

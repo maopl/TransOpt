@@ -15,7 +15,6 @@ from transopt.benchmark.HPO import networks
 
 ALGORITHMS = [
     'ERM',
-    'ROBERM',
 ]
 
 def get_algorithm_class(algorithm_name):
@@ -31,7 +30,7 @@ class Algorithm(torch.nn.Module):
     - update()
     - predict()
     """
-    def __init__(self, input_shape, num_classes, num_domains, hparams):
+    def __init__(self, input_shape, num_classes, hparams):
         super(Algorithm, self).__init__()
         self.hparams = hparams
 
@@ -53,10 +52,9 @@ class ERM(Algorithm):
     Empirical Risk Minimization (ERM)
     """
 
-    def __init__(self, input_shape, num_classes, num_domains, hparams):
-        super(ERM, self).__init__(input_shape, num_classes, num_domains,
-                                  hparams)
-        self.featurizer = networks.Featurizer(input_shape, self.hparams)
+    def __init__(self, input_shape, num_classes, network_type, hparams):
+        super(ERM, self).__init__(input_shape, num_classes, hparams)
+        self.featurizer = networks.Featurizer(input_shape, network_type, self.hparams)
         self.classifier = networks.Classifier(
             self.featurizer.n_outputs,
             num_classes,
@@ -66,8 +64,7 @@ class ERM(Algorithm):
         self.optimizer = torch.optim.Adam(
             self.network.parameters(),
             lr=self.hparams["lr"],
-            weight_decay=self.hparams['weight_decay'],
-            # momentum=self.hparams['momentum'],
+            weight_decay=self.hparams['weight_decay']
         )
 
     def update(self, minibatches, unlabeled=None):
@@ -87,61 +84,61 @@ class ERM(Algorithm):
         
         
 
-class ROBERM(Algorithm):
-    """
-    Empirical Risk Minimization (ERM) with an additional decoder for reconstruction.
-    """
+# class ROBERM(Algorithm):
+#     """
+#     Empirical Risk Minimization (ERM) with an additional decoder for reconstruction.
+#     """
 
-    def __init__(self, input_shape, num_classes, num_domains, hparams):
-        super(ROBERM, self).__init__(input_shape, num_classes, num_domains, hparams)
-        # Featurizer extracts features from the input
-        self.featurizer = networks.Featurizer(input_shape, self.hparams)
-        # Classifier performs classification based on the extracted features
-        self.classifier = networks.Classifier(
-            self.featurizer.n_outputs,
-            num_classes,
-            self.hparams['nonlinear_classifier']
-        )
-        # Decoder reconstructs the input image from the features
-        self.decoder = networks.Decoder(self.featurizer.n_outputs, input_shape)
+#     def __init__(self, input_shape, num_classes, num_domains, hparams):
+#         super(ROBERM, self).__init__(input_shape, num_classes, num_domains, hparams)
+#         # Featurizer extracts features from the input
+#         self.featurizer = networks.Featurizer(input_shape, self.hparams)
+#         # Classifier performs classification based on the extracted features
+#         self.classifier = networks.Classifier(
+#             self.featurizer.n_outputs,
+#             num_classes,
+#             self.hparams['nonlinear_classifier']
+#         )
+#         # Decoder reconstructs the input image from the features
+#         self.decoder = networks.Decoder(self.featurizer.n_outputs, input_shape)
 
-        # Combining featurizer and classifier for the classification task
-        self.network = nn.Sequential(self.featurizer, self.classifier)
+#         # Combining featurizer and classifier for the classification task
+#         self.network = nn.Sequential(self.featurizer, self.classifier)
 
-        # Define separate optimizers for the classifier and the decoder
-        self.optimizer = torch.optim.Adam(
-            list(self.network.parameters()) + list(self.decoder.parameters()),
-            lr=self.hparams["lr"],
-            weight_decay=self.hparams['weight_decay']
-        )
+#         # Define separate optimizers for the classifier and the decoder
+#         self.optimizer = torch.optim.Adam(
+#             list(self.network.parameters()) + list(self.decoder.parameters()),
+#             lr=self.hparams["lr"],
+#             weight_decay=self.hparams['weight_decay']
+#         )
 
-    def update(self, minibatches, unlabeled=None):
-        all_x = torch.cat([x for x, y in minibatches])
-        all_y = torch.cat([y for x, y in minibatches])
+#     def update(self, minibatches, unlabeled=None):
+#         all_x = torch.cat([x for x, y in minibatches])
+#         all_y = torch.cat([y for x, y in minibatches])
 
-        # Classification loss
-        features = self.featurizer(all_x)
-        classification_loss = F.cross_entropy(self.classifier(features), all_y)
+#         # Classification loss
+#         features = self.featurizer(all_x)
+#         classification_loss = F.cross_entropy(self.classifier(features), all_y)
 
-        # Reconstruction loss - the decoder tries to reconstruct the input
-        reconstructed_x = self.decoder(features)
-        reconstruction_loss = 10 * F.mse_loss(reconstructed_x, all_x)
+#         # Reconstruction loss - the decoder tries to reconstruct the input
+#         reconstructed_x = self.decoder(features)
+#         reconstruction_loss = 10 * F.mse_loss(reconstructed_x, all_x)
 
-        # Total loss as the sum of classification and reconstruction losses
-        total_loss = classification_loss + reconstruction_loss
+#         # Total loss as the sum of classification and reconstruction losses
+#         total_loss = classification_loss + reconstruction_loss
 
-        self.optimizer.zero_grad()
-        total_loss.backward()
-        self.optimizer.step()
+#         self.optimizer.zero_grad()
+#         total_loss.backward()
+#         self.optimizer.step()
 
-        return {'classification_loss': classification_loss.item(), 'reconstruction_loss': reconstruction_loss.item()}
+#         return {'classification_loss': classification_loss.item(), 'reconstruction_loss': reconstruction_loss.item()}
 
-    def predict(self, x):
-        # Extract features from input
-        features = self.featurizer(x)
-        # Get the classification output
-        labels = self.classifier(features)
-        # Get the reconstructed image from the decoder
-        reconstructed_x = self.decoder(features)
-        # Return both the classification label and the reconstructed image
-        return labels, reconstructed_x
+#     def predict(self, x):
+#         # Extract features from input
+#         features = self.featurizer(x)
+#         # Get the classification output
+#         labels = self.classifier(features)
+#         # Get the reconstructed image from the decoder
+#         reconstructed_x = self.decoder(features)
+#         # Return both the classification label and the reconstructed image
+#         return labels, reconstructed_x

@@ -2,13 +2,13 @@
 import numpy as np
 
 
-def get_hparams(algorithm, dataset, random_seed):
+def get_hparams(algorithm, dataset, random_seed, model_size=None, architecture='resnet'):
     """
     Global registry of hyperparams. Each entry is a (default, random) tuple.
     New algorithms / networks / etc. should add entries here.
     """
     hparams = {}
-    hparam_space = get_hparam_space(algorithm, dataset)
+    hparam_space = get_hparam_space(algorithm, model_size, architecture)
     random_state = np.random.RandomState(random_seed)
 
     for name, (hparam_type, range_or_values) in hparam_space.items():
@@ -31,13 +31,13 @@ def get_hparams(algorithm, dataset, random_seed):
 
     return hparams
 
-def default_hparams(algorithm, dataset):
-    return {a: b for a, (b, c) in get_hparams(algorithm, dataset, 0).items()}
+def default_hparams(algorithm, dataset, model_size='small', architecture='resnet'):
+    return {a: b for a, (b, c) in get_hparams(algorithm, dataset, 0, model_size, architecture).items()}
 
-def random_hparams(algorithm, dataset, seed):
-    return {a: c for a, (b, c) in get_hparams(algorithm, dataset, seed).items()}
+def random_hparams(algorithm, dataset, seed, model_size='small', architecture='resnet'):
+    return {a: c for a, (b, c) in get_hparams(algorithm, dataset, seed, model_size, architecture).items()}
 
-def get_hparam_space(algorithm):
+def get_hparam_space(algorithm, model_size=None, architecture='resnet'):
     """
     Returns a dictionary of hyperparameter spaces for the given algorithm and dataset.
     Each entry is a tuple of (type, range) where type is 'float', 'int', or 'categorical'.
@@ -52,7 +52,9 @@ def get_hparam_space(algorithm):
     if algorithm == 'ERM':
         # hparam_space['batch_size'] = ('categorical', [16, 32, 64, 128])
         hparam_space['dropout_rate'] = ('float', (0, 0.1))
-
+        if architecture.lower() == 'cnn':
+            hparam_space['hidden_dim1'] = ('categorical', [32, 64, 128])
+            hparam_space['hidden_dim2'] = ('categorical', [32, 64, 128])
 
     if algorithm == 'GLMNet':
         hparam_space['glmnet_alpha'] = ('log', (-4, 1))
@@ -64,6 +66,10 @@ def get_hparam_space(algorithm):
         hparam_space['bayesian_hidden_dim2'] = ('categorical', [32, 64, 128, 256])
         hparam_space['step_length'] = ('log', (-4, -1))
         hparam_space['burn_in'] = ('categorical', [500, 1000, 2000, 5000])
+
+    # Add hidden dimensions for CNN architecture
+
+
 
     return hparam_space
 

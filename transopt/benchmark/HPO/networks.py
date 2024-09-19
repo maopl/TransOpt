@@ -12,10 +12,10 @@ import torchvision.models
 
 SUPPORTED_ARCHITECTURES = {
     # 'resnet': [18, 34, 50, 101],
-    # 'densenet': [121, 169, 201],
+    'densenet': [121, 169, 201],
     # 'wideresnet': [16, 22, 28, 40],
-    'alexnet': [1],
-    'cnn': [1]
+    # 'alexnet': [1],
+    # 'cnn': [1]
 }
 
 def Featurizer(input_shape, architecture, model_size, hparams):
@@ -28,7 +28,7 @@ def Featurizer(input_shape, architecture, model_size, hparams):
     elif architecture == 'wideresnet':
         return WideResNet(input_shape, model_size, hparams)
     elif architecture == 'alexnet':
-        return AlexNet(input_shape, model_size, hparams)
+        return AlexNet(input_shape, hparams)
     elif architecture == 'cnn':
         return CNN(input_shape, hparams)
     else:
@@ -63,7 +63,7 @@ class MLP(nn.Module):
             x = hidden(x)
             x = self.dropout(x)
             x = F.relu(x)
-        x = self.output(x)
+        # x = self.output(x)
         return x
 
 class ResNet(torch.nn.Module):
@@ -103,11 +103,10 @@ class ResNet(torch.nn.Module):
 
         self.freeze_bn()
         self.hparams = hparams
-        self.dropout = nn.Dropout(hparams['dropout_rate'])
 
     def forward(self, x):
         """Encode x into a feature vector of size n_outputs."""
-        return self.dropout(self.network(x))
+        return self.network(x)
 
     def train(self, mode=True):
         """
@@ -166,50 +165,6 @@ class wide_basic(nn.Module):
         out += self.shortcut(x)
 
         return out
-
-
-# class Wide_ResNet(nn.Module):
-#     """Wide Resnet with the softmax layer chopped off"""
-#     def __init__(self, input_shape, depth, widen_factor, dropout_rate):
-#         super(Wide_ResNet, self).__init__()
-#         self.in_planes = 16
-
-#         assert ((depth - 4) % 6 == 0), 'Wide-resnet depth should be 6n+4'
-#         n = (depth - 4) / 6
-#         k = widen_factor
-
-#         # print('| Wide-Resnet %dx%d' % (depth, k))
-#         nStages = [16, 16 * k, 32 * k, 64 * k]
-
-#         self.conv1 = conv3x3(input_shape[0], nStages[0])
-#         self.layer1 = self._wide_layer(
-#             wide_basic, nStages[1], n, dropout_rate, stride=1)
-#         self.layer2 = self._wide_layer(
-#             wide_basic, nStages[2], n, dropout_rate, stride=2)
-#         self.layer3 = self._wide_layer(
-#             wide_basic, nStages[3], n, dropout_rate, stride=2)
-#         self.bn1 = nn.BatchNorm2d(nStages[3], momentum=0.9)
-
-#         self.n_outputs = nStages[3]
-
-#     def _wide_layer(self, block, planes, num_blocks, dropout_rate, stride):
-#         strides = [stride] + [1] * (int(num_blocks) - 1)
-#         layers = []
-
-#         for stride in strides:
-#             layers.append(block(self.in_planes, planes, dropout_rate, stride))
-#             self.in_planes = planes
-
-#         return nn.Sequential(*layers)
-
-#     def forward(self, x):
-#         out = self.conv1(x)
-#         out = self.layer1(out)
-#         out = self.layer2(out)
-#         out = self.layer3(out)
-#         out = F.relu(self.bn1(out))
-#         out = F.avg_pool2d(out, 8)
-#         return out[:, :, 0, 0]
 
 
 class WideResNet(nn.Module):
@@ -290,11 +245,11 @@ class DenseNet(nn.Module):
         # Remove the last fully connected layer
         self.network.classifier = Identity()
 
-        self.dropout = nn.Dropout(hparams['dropout_rate'])
+        # self.dropout = nn.Dropout(hparams['dropout_rate'])
 
     def forward(self, x):
         features = self.network(x)
-        return self.dropout(features)
+        return features
     
     
     
@@ -309,7 +264,7 @@ class ht_CNN(nn.Module):
     n_outputs = 128
 
     def __init__(self, input_shape):
-        super(MNIST_CNN, self).__init__()
+        super(ht_CNN, self).__init__()
         self.conv1 = nn.Conv2d(input_shape[0], 64, 3, 1, padding=1)
         self.conv2 = nn.Conv2d(64, 128, 3, stride=2, padding=1)
         self.conv3 = nn.Conv2d(128, 128, 3, 1, padding=1)
@@ -392,42 +347,58 @@ class ContextNet(nn.Module):
     def forward(self, x):
         return self.context_net(x)
 
-
 class AlexNet(nn.Module):
-    """AlexNet with the softmax layer removed"""
-    def __init__(self, input_shape, model_size, hparams):
+    """AlexNet with the classifier layer removed"""
+    def __init__(self, input_shape, hparams):
         super(AlexNet, self).__init__()
-        model_size = 1
-        # if model_size != 1:
-            # raise ValueError("AlexNet only supports model_size 1")
+        self.input_shape = input_shape
+        self.hparams = hparams
         
-        self.network = torchvision.models.alexnet(pretrained=True)
-        self.n_outputs = 4096  # AlexNet's last feature layer has 4096 outputs
+        self.features = nn.Sequential(
+            nn.Conv2d(input_shape[0], 64, kernel_size=3, stride=2, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2),
+            nn.Conv2d(64, 192, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2),
+            nn.Conv2d(192, 384, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(384, 256, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2),
+        )
+        self.avgpool = nn.AdaptiveAvgPool2d((6, 6))
 
-        # Adapt number of channels
-        nc = input_shape[0]
-        if nc != 3:
-            self.network.features[0] = nn.Conv2d(nc, 64, kernel_size=11, stride=4, padding=2)
-
-        # Remove the last fully connected layer (classifier)
-        self.network.classifier = self.network.classifier[:-1]
-
-        self.dropout = nn.Dropout(hparams['dropout_rate'])
+        # Calculate the correct n_outputs
+        with torch.no_grad():
+            dummy_input = torch.zeros(1, *input_shape)
+            features_output = self.features(dummy_input)
+            avgpool_output = self.avgpool(features_output)
+            self.n_outputs = avgpool_output.view(avgpool_output.size(0), -1).shape[1]
 
     def forward(self, x):
-        features = self.network(x)
-        return self.dropout(features)
+        x = self.features(x)
+        x = self.avgpool(x)
+        x = x.view(x.size(0), -1)
+        return x
 
 
 
-def Classifier(in_features, out_features, is_nonlinear=False):
+def Classifier(in_features, out_features, dropout=0.5, is_nonlinear=False):
     if is_nonlinear:
+        hidden1 = max(in_features // 2, 64)  # Ensure at least 64 neurons
+        hidden2 = max(hidden1 // 2, 32)      # Ensure at least 32 neurons
         return torch.nn.Sequential(
-            torch.nn.Linear(in_features, in_features // 2),
+            torch.nn.Dropout(p=dropout),
+            torch.nn.Linear(in_features, hidden1),
             torch.nn.ReLU(),
-            torch.nn.Linear(in_features // 2, in_features // 4),
+            torch.nn.Dropout(p=dropout),
+            torch.nn.Linear(hidden1, hidden2),
             torch.nn.ReLU(),
-            torch.nn.Linear(in_features // 4, out_features))
+            torch.nn.Linear(hidden2, out_features)
+            )
     else:
         return torch.nn.Linear(in_features, out_features)
 

@@ -63,9 +63,11 @@ class ERM(Algorithm):
     def __init__(self, input_shape, num_classes, architecture, model_size, hparams):
         super(ERM, self).__init__(input_shape, num_classes, architecture, model_size, hparams)
         self.featurizer = networks.Featurizer(input_shape, architecture, model_size, self.hparams)
+        print(self.featurizer.n_outputs)
         self.classifier = networks.Classifier(
             self.featurizer.n_outputs,
             num_classes,
+            self.hparams['dropout_rate'],
             self.hparams['nonlinear_classifier'])
 
         self.network = nn.Sequential(self.featurizer, self.classifier)

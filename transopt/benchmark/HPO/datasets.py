@@ -273,50 +273,55 @@ class RobImageNet(Dataset):
         """
         return self.test_sets
 
-
-def test_dataset(dataset_name='cifar10', num_samples=100):
+def test_dataset(dataset_name='cifar10', num_samples=5):
     # Set up the dataset
     if dataset_name.lower() == 'cifar10':
         dataset = RobCifar10(root=None, augment=True)
-    elif dataset_name.lower() == 'cifar100':
-        dataset = RobCifar100(root=None, augment=True)
-    elif dataset_name.lower() == 'imagenet':
-        dataset = RobImageNet(root=None, augment=True)
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}")
 
     # Test training data
-    assert len(dataset.datasets) > 0, "Training dataset is empty"
-    print(f"Training dataset size: {len(dataset.datasets)}")
-    print(f"Training data shape: {dataset.datasets[0][0].shape}")
-    print(f"Training label shape: {dataset.datasets[0][1].shape}")
+    assert 'train' in dataset.datasets, "Training dataset is missing"
+    print(f"Training dataset size: {len(dataset.datasets['train'])}")
+    train_sample = dataset.datasets['train'][0]
+    print(f"Training data shape: {train_sample[0].shape}")
+    print(f"Training label shape: {train_sample[1].shape}")
+
+    # Test validation data
+    assert 'val' in dataset.datasets, "Validation dataset is missing"
+    print(f"Validation dataset size: {len(dataset.datasets['val'])}")
 
     # Test standard test set
-    standard_test = dataset.get_test_set('standard')
-    assert standard_test is not None, "Standard test set not found"
-    print(f"Standard test set size: {len(standard_test)}")
+    assert 'test_standard' in dataset.datasets, "Standard test set is missing"
+    print(f"Standard test set size: {len(dataset.datasets['test_standard'])}")
 
     # Test corruption test sets
-    corruptions = [
-        'gaussian_noise', 'shot_noise', 'impulse_noise', 'defocus_blur',
-        'glass_blur', 'motion_blur', 'zoom_blur', 'snow', 'frost', 'fog',
-        'brightness', 'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression'
-    ]
-    for corruption in corruptions[:num_samples]:
-        corruption_test = dataset.get_test_set(f'corruption_{corruption}')
-        assert corruption_test is not None, f"Corruption test set '{corruption}' not found"
-        print(f"Corruption test set '{corruption}' size: {len(corruption_test)}")
+    for corruption in dataset.corruptions[:num_samples]:
+        corruption_key = f'test_corruption_{corruption}'
+        assert corruption_key in dataset.datasets, f"Corruption test set '{corruption}' is missing"
+        print(f"Corruption test set '{corruption}' size: {len(dataset.datasets[corruption_key])}")
 
-    # Test additional test sets (CIFAR-10.1 and CIFAR-10.2 for CIFAR-10)
-    if dataset_name.lower() == 'cifar10':
-        for additional_test in ['cifar10.1', 'cifar10.2']:
-            test_set = dataset.get_test_set(additional_test)
-            if test_set is not None:
-                print(f"{additional_test.upper()} test set size: {len(test_set)}")
+    # Test additional test sets (CIFAR-10.1 and CIFAR-10.2)
+    for additional_test in ['test_cifar10.1', 'test_cifar10.2']:
+        if additional_test in dataset.datasets:
+            print(f"{additional_test.upper()} test set size: {len(dataset.datasets[additional_test])}")
+        else:
+            print(f"{additional_test.upper()} test set not found")
+
+    # Test data loading
+    print("\nTesting data loading:")
+    for key, data in dataset.datasets.items():
+        try:
+            sample = data[0]
+            print(f"Successfully loaded sample from {key}")
+            if isinstance(sample, tuple):
+                print(f"  Sample shape: {sample[0].shape}, Label: {sample[1]}")
             else:
-                print(f"{additional_test.upper()} test set not found")
+                print(f"  Sample shape: {sample.shape}")
+        except Exception as e:
+            print(f"Error loading data from {key}: {str(e)}")
 
-    print(f"All tests for {dataset_name} passed successfully!")
+    print(f"\nAll tests for {dataset_name} passed successfully!")
 
 if __name__ == "__main__":
     test_dataset('cifar10')

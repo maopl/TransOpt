@@ -155,7 +155,7 @@ class HPO_base(NonTabularProblem):
     def get_configuration_space(
         self, seed: Union[int, None] = None):
 
-        hparam_space = get_hparam_space(self.algorithm_name)
+        hparam_space = get_hparam_space(self.algorithm_name, self.model_size, self.architecture)
         variables = []
 
         for name, (hparam_type, range) in hparam_space.items():
@@ -190,7 +190,7 @@ class HPO_base(NonTabularProblem):
         last_results_keys = None
         
         self.train_loader, self.val_loader, self.eval_loaders, self.eval_loader_names = self.create_data_loaders(self.hparams['batch_size'])
-        self.hparams['nonlinear_classifier'] = False
+        self.hparams['nonlinear_classifier'] = True
     
         for epoch in range(self.epoches):
             epoch_start_time = time.time()
@@ -317,7 +317,7 @@ class HPO_base(NonTabularProblem):
         
         c['data_augmentation'] = True
         c['class_balanced'] = True
-        c['nonlinear_classifier'] = False
+        c['nonlinear_classifier'] = True
         
         val_acc = self.get_score(c)
 

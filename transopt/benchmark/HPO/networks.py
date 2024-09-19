@@ -11,8 +11,8 @@ import torchvision.models
 
 
 SUPPORTED_ARCHITECTURES = {
-    # 'resnet': [18, 34, 50, 101],
-    'densenet': [121, 169, 201],
+    'resnet': [18, 34, 50, 101],
+    # 'densenet': [121, 169, 201],
     # 'wideresnet': [16, 22, 28, 40],
     # 'alexnet': [1],
     # 'cnn': [1]

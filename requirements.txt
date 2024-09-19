@@ -23,6 +23,8 @@ rich
 tqdm
 wilds
 pyro
+bohb-hpo
+HEBO
     
 # Analysis
 pandas

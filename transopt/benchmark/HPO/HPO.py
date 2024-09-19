@@ -27,7 +27,7 @@ from transopt.benchmark.HPO.networks import SUPPORTED_ARCHITECTURES
 
 class HPO_base(NonTabularProblem):
     problem_type = 'hpo'
-    num_variables = 3
+    num_variables = 4
     num_objectives = 1
     workloads = []
     fidelity = None
@@ -47,7 +47,7 @@ class HPO_base(NonTabularProblem):
     ]
 
     def __init__(
-        self, task_name, budget_type, budget, seed, workload, algorithm, architecture, model_size
+        self, task_name, budget_type, budget, seed, workload, algorithm, architecture, model_size, **kwargs
         ):
         
         # Check if algorithm is valid
@@ -67,6 +67,8 @@ class HPO_base(NonTabularProblem):
             raise ValueError(f"Invalid model_size: {model_size} for architecture: {architecture}. Must be one of {HPO_base.ARCHITECTURES[architecture]}")
         self.architecture = architecture
         self.model_size = model_size
+        
+        self.hpo_optimizer = kwargs.get('optimizer', 'random')
 
         super(HPO_base, self).__init__(
             task_name=task_name,
@@ -81,8 +83,8 @@ class HPO_base(NonTabularProblem):
         self.hparams = {}
         
         user_home = os.path.expanduser('~')
-        self.model_save_dir  = os.path.join(user_home, f'transopt_tmp/output/models/{self.algorithm_name}_{self.architecture}_{self.model_size}_{self.dataset_name}_{seed}/')
-        self.results_save_dir  = os.path.join(user_home, f'transopt_tmp/output/results/{self.algorithm_name}_{self.architecture}_{self.model_size}_{self.dataset_name}_{seed}/')
+        self.model_save_dir  = os.path.join(user_home, f'transopt_tmp/output/models/{self.hpo_optimizer}_{self.algorithm_name}_{self.architecture}_{self.model_size}_{self.dataset_name}_{seed}/')
+        self.results_save_dir  = os.path.join(user_home, f'transopt_tmp/output/results/{self.hpo_optimizer}_{self.algorithm_name}_{self.architecture}_{self.model_size}_{self.dataset_name}_{seed}/')
         
         print(f"Selected algorithm: {self.algorithm_name}, dataset: {self.dataset_name}")
         print(f"Model architecture: {self.architecture}")
@@ -103,16 +105,10 @@ class HPO_base(NonTabularProblem):
         else:
             raise NotImplementedError
 
-        # if self.dataset_name in globals():
-        #     self.dataset = globals()[self.dataset_name](root=None, augment=True)
-        # else:
-        #     raise NotImplementedError(f"Dataset {self.dataset_name} not implemented")
-
-        
         self.checkpoint_vals = collections.defaultdict(lambda: [])
         
         if torch.cuda.is_available():
-            self.device = torch.device(f"cuda:{self.trial_seed}")
+            self.device = torch.device(f"cuda")
 
         else:
             self.device = "cpu"
@@ -250,13 +246,7 @@ class HPO_base(NonTabularProblem):
             # Update results with hyperparameters
             epoch_results['hparams'] = self.hparams
             # Save epoch results
-            self.save_epoch_results(epoch_results)
-            
-
-        # Save final checkpoint and mark as done
-        self.save_checkpoint('model.pkl')
-        with open(os.path.join(self.model_save_dir, 'done'), 'w') as f:
-            f.write('done')
+            # self.save_epoch_results(epoch_results)
 
         return epoch_results
 
@@ -280,7 +270,7 @@ class HPO_base(NonTabularProblem):
     def get_score(self, configuration: dict):
         for key, value in configuration.items():
             self.hparams[key] = value
-
+        
         algorithm_class = algorithms.get_algorithm_class(self.algorithm_name)
         self.algorithm = algorithm_class(self.dataset.input_shape, self.dataset.num_classes, self.architecture, self.model_size, self.hparams)
         self.algorithm.to(self.device)
@@ -291,6 +281,13 @@ class HPO_base(NonTabularProblem):
         epochs_path = os.path.join(self.results_save_dir, f"{self.query}_lr_{configuration['lr']}_weight_decay_{configuration['weight_decay']}.jsonl")
         with open(epochs_path, 'w') as f:
             json.dump(results, f, indent=2)
+        
+        # Save final checkpoint and mark as done
+        self.save_checkpoint(f"{self.query}_lr_{configuration['lr']}_weight_decay_{configuration['weight_decay']}_model.pkl")
+        with open(os.path.join(self.model_save_dir, 'done'), 'w') as f:
+            f.write('done')
+            
+
 
         val_acc = results['val_acc']
         
@@ -306,7 +303,7 @@ class HPO_base(NonTabularProblem):
     ) -> Dict:
 
         if fidelity is None:
-            fidelity = {"epoch": 50}
+            fidelity = {"epoch": 2}
         
         # Convert log scale values back to normal scale
         c = self.configuration_space.map_to_design_space(configuration)
@@ -341,6 +338,7 @@ class HPO_ERM(HPO_base):
         algorithm = kwargs.get('algorithm', 'ERM')
         architecture = kwargs.get('architecture', 'resnet')
         model_size = kwargs.get('model_size', 18)
+        optimizer = kwargs.get('optimizer', 'random')
         
         super(HPO_ERM, self).__init__(
             task_name=task_name, 
@@ -350,7 +348,8 @@ class HPO_ERM(HPO_base):
             workload=workload, 
             algorithm=algorithm, 
             architecture=architecture, 
-            model_size=model_size
+            model_size=model_size,
+            optimizer = optimizer
         )
 
 def test_all_combinations():

@@ -51,14 +51,12 @@ class SearchSpace:
         Raises:
             ValueError: If the `values` parameter is not a 1D NumPy array.
         """
-        if not isinstance(values, np.ndarray) or values.ndim != 1:
-            raise ValueError("values must be a 1D NumPy array.")
 
         values_dict = {}
         for i, name in enumerate(self.variables_order):
             variable = self._variables[name]
-            value = values[i]
-            values_dict[name] = variable.map_from_search_space(value)
+            value = values[name]
+            values_dict[name] = variable.map2(value)
         return values_dict
     
     def map_from_design_space(self, values_dict: dict) -> np.ndarray:
@@ -75,7 +73,7 @@ class SearchSpace:
         for i, name in enumerate(self.variables_order):
             variable = self._variables[name]
             value = values_dict[name]
-            values_array[i] = variable.map_to_search_space(value)
+            values_array[i] = variable.map_inverse(value)
         return values_array
 
     def update_range(self, name, new_range: tuple):
@@ -100,3 +98,5 @@ class SearchSpace:
             self.ranges[name] = new_range
         else:
             raise ValueError(f"Variable '{name}' not found in search space.")
+
+

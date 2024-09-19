@@ -10,10 +10,10 @@ class Variable:
     def search_space_range(self):
         raise NotImplementedError
 
-    def map_to_search_space(self, value):
+    def map2(self, value):
         raise NotImplementedError
 
-    def map_from_search_space(self, value):
+    def map_inverse(self, value):
         raise NotImplementedError
 
 
@@ -28,10 +28,10 @@ class Continuous(Variable):
     def search_space_range(self):
         return self.range
 
-    def map_to_search_space(self, value):
+    def map2(self, value):
         return value
     
-    def map_from_search_space(self, value):
+    def map_inverse(self, value):
         return value
 
 
@@ -47,10 +47,10 @@ class Categorical(Variable):
     def search_space_range(self):
         return (1, len(self.categories))
 
-    def map_to_search_space(self, value):
+    def map2(self, value):
         return self.categories.index(value) + 1
 
-    def map_from_search_space(self, value):
+    def map_inverse(self, value):
         return self.categories[int(value) - 1]
 
 
@@ -65,10 +65,10 @@ class Integer(Variable):
     def search_space_range(self):
         return self.range
 
-    def map_to_search_space(self, value):
+    def map2(self, value):
         return value
 
-    def map_from_search_space(self, value):
+    def map_inverse(self, value):
         return round(value)
 
 
@@ -81,11 +81,11 @@ class LogContinuous(Variable):
 
     @property
     def search_space_range(self):
-        return (math.log(self.range[0]), math.log(self.range[1]))
+        return self.range
 
-    def map_to_search_space(self, value):
-        return math.log(value)
+    def map2(self, value):
+        return 10**value
 
-    def map_from_search_space(self, value):
-        return math.exp(value)
+    def map_inverse(self, value):
+        return math.log10(value)
 

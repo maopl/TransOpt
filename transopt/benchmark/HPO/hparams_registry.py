@@ -2,43 +2,99 @@
 import numpy as np
 
 
-
-def get_hparams(algorithm, dataset):
+def get_hparams(algorithm, dataset, random_seed):
     """
-    Returns a dictionary of hyperparameters for the given algorithm and dataset.
-    Each hyperparameter is represented by a tuple (default_value, range_min, range_max).
+    Global registry of hyperparams. Each entry is a (default, random) tuple.
+    New algorithms / networks / etc. should add entries here.
     """
     hparams = {}
+    hparam_space = get_hparam_space(algorithm, dataset)
+    random_state = np.random.RandomState(random_seed)
 
-    # Common hyperparameters
-    # hparams['data_augmentation'] = (True, None, None)  # Boolean, no range
-    # hparams['resnet18'] = (False, None, None)  # Boolean, no range
-    # hparams['resnet_dropout'] = (0., 0., 0.5)
-    # hparams['class_balanced'] = (False, None, None)  # Boolean, no range
-    # hparams['nonlinear_classifier'] = (False, None, None)  # Boolean, no range
+    for name, (hparam_type, range_or_values) in hparam_space.items():
+        if hparam_type == 'categorical':
+            default_val = range_or_values[0]
+            random_val = random_state.choice(range_or_values)
+        elif hparam_type == 'float':
+            default_val = sum(range_or_values) / 2
+            random_val = random_state.uniform(*range_or_values)
+        elif hparam_type == 'int':
+            default_val = int(sum(range_or_values) / 2)
+            random_val = random_state.randint(*range_or_values)
+        elif hparam_type == 'log':
+            default_val = 10 ** (sum(range_or_values) / 2)
+            random_val = 10 ** random_state.uniform(*range_or_values)
+        else:
+            raise ValueError(f"Unknown hparam type: {hparam_type}")
 
-
-    # Dataset-specific hyperparameters
-    if dataset in ['MNIST','RotatedMNIST', 'ColoredMNIST']:
-        hparams['lr'] = (1e-3, 1e-5, 1e-2)
-        hparams['weight_decay'] = (0., 0., 0.)
-        hparams['batch_size'] = (64, 8, 512)
-        hparams['momentum'] = (0.9, 0.0, 1.0)
-        hparams['dropout_rate'] = (0.1, 0.0, 0.5)
-    else:
-        hparams['lr'] = (5e-5, 1e-6, 1e-3)
-        hparams['weight_decay'] = (0., 1e-6, 1e-2)
-        hparams['batch_size'] = (32, 8, 128)
-        hparams['momentum'] = (0.9, 0.0, 1.0)
-        hparams['dropout_rate'] = (0.1, 0.0, 0.5)
-
-
-    # Algorithm-specific hyperparameters
-    if algorithm == 'ERM':
-        pass  # ERM doesn't have specific hyperparameters
-    elif algorithm == 'ROBERM':
-        pass
-    # Add more algorithms as needed...
+        hparams[name] = (default_val, random_val)
 
     return hparams
 
+def default_hparams(algorithm, dataset):
+    return {a: b for a, (b, c) in get_hparams(algorithm, dataset, 0).items()}
+
+def random_hparams(algorithm, dataset, seed):
+    return {a: c for a, (b, c) in get_hparams(algorithm, dataset, seed).items()}
+
+def get_hparam_space(algorithm):
+    """
+    Returns a dictionary of hyperparameter spaces for the given algorithm and dataset.
+    Each entry is a tuple of (type, range) where type is 'float', 'int', or 'categorical'.
+    """
+    hparam_space = {}
+
+    if algorithm in ['ERM', 'GLMNet', 'BayesianNN']:
+        hparam_space['lr'] = ('log', (-6, -2))
+        hparam_space['weight_decay'] = ('log', (-6, -3))
+        hparam_space['momentum'] = ('float', (0.5, 0.999))
+
+    if algorithm == 'ERM':
+        # hparam_space['batch_size'] = ('categorical', [16, 32, 64, 128])
+        hparam_space['dropout_rate'] = ('float', (0, 0.1))
+
+
+    if algorithm == 'GLMNet':
+        hparam_space['glmnet_alpha'] = ('log', (-4, 1))
+        hparam_space['glmnet_l1_ratio'] = ('float', (0, 1))
+
+    if algorithm == 'BayesianNN':
+        hparam_space['bayesian_num_samples'] = ('categorical', [5, 10, 20, 50])
+        hparam_space['bayesian_hidden_dim1'] = ('categorical', [32, 64, 128, 256])
+        hparam_space['bayesian_hidden_dim2'] = ('categorical', [32, 64, 128, 256])
+        hparam_space['step_length'] = ('log', (-4, -1))
+        hparam_space['burn_in'] = ('categorical', [500, 1000, 2000, 5000])
+
+    return hparam_space
+
+def test_hparam_registry():
+    algorithms = ['ERM', 'GLMNet', 'BayesianNN']
+    datasets = ['RobCifar10', 'RobCifar100', 'RobImageNet']
+    architectures = ['resnet', 'wideresnet', 'densenet', 'alexnet', 'cnn']
+
+    for algorithm in algorithms:
+        for dataset in datasets:
+            print(f"\nTesting: Algorithm={algorithm}, Dataset={dataset}")
+
+            # Get default hyperparameters
+            default_hparam = default_hparams(algorithm, dataset)
+            print("\nDefault hyperparameters:")
+            for hparam, value in default_hparam.items():
+                print(f"  {hparam}: {value}")
+
+            # Get random hyperparameters
+            random_hparam = random_hparams(algorithm, dataset, seed=42)
+            print("\nRandom hyperparameters:")
+            for hparam, value in random_hparam.items():
+                print(f"  {hparam}: {value}")
+
+            # Get hyperparameter space
+            hparam_space = get_hparam_space(algorithm, dataset)
+            print("\nHyperparameter space:")
+            for hparam, (htype, hrange) in hparam_space.items():
+                print(f"  {hparam}: type={htype}, range={hrange}")
+
+            print("\n" + "="*50)
+
+if __name__ == "__main__":
+    test_hparam_registry()

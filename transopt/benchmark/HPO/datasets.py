@@ -55,7 +55,6 @@ class RobCifar10(Dataset):
         original_labels = torch.tensor(original_dataset_tr.targets)
 
         shuffle = torch.randperm(len(original_images))
-
         original_images = original_images[shuffle]
         original_labels = original_labels[shuffle]
         
@@ -66,23 +65,25 @@ class RobCifar10(Dataset):
 
         self.input_shape = (3, 32, 32)
         self.num_classes = 10
-        self.datasets = TensorDataset(transformed_images, original_labels)
-        
-        # Prepare test sets
-        self.test_sets = {}
+        self.datasets = {}
+
+        # Split into train and validation sets
+        val_size = len(transformed_images) // 10
+        self.datasets['train'] = TensorDataset(transformed_images[:-val_size], original_labels[:-val_size])
+        self.datasets['val'] = TensorDataset(transformed_images[-val_size:], original_labels[-val_size:])
         
         # Standard test set
-        self.test_sets['standard'] = TensorDataset(transformed_test_images, torch.tensor(original_dataset_te.targets))
+        self.datasets['test_standard'] = TensorDataset(transformed_test_images, torch.tensor(original_dataset_te.targets))
         
         # Corruption test sets
-        corruptions = [
+        self.corruptions = [
             'gaussian_noise', 'shot_noise', 'impulse_noise', 'defocus_blur',
             'glass_blur', 'motion_blur', 'zoom_blur', 'snow', 'frost', 'fog',
             'brightness', 'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression'
         ]
-        for corruption in corruptions:
+        for corruption in self.corruptions:
             x_test_corrupt, y_test_corrupt = load_cifar10c(n_examples=10000, corruptions=[corruption], severity=5, data_dir=root)
-            self.test_sets[f'corruption_{corruption}'] = TensorDataset(x_test_corrupt, y_test_corrupt)
+            self.datasets[f'test_corruption_{corruption}'] = TensorDataset(x_test_corrupt, y_test_corrupt)
 
         # Load CIFAR-10.1 dataset
         cifar101_path = os.path.join(root, 'cifar10.1_v6_data.npy')
@@ -91,8 +92,9 @@ class RobCifar10(Dataset):
             cifar101_data = np.load(cifar101_path)
             cifar101_labels = np.load(cifar101_labels_path)
             cifar101_data = torch.from_numpy(cifar101_data).float() / 255.0
+            cifar101_data = cifar101_data.permute(0, 3, 1, 2)  # Change from (N, 32, 32, 3) to (N, 3, 32, 32)
             cifar101_labels = torch.from_numpy(cifar101_labels).long()
-            self.test_sets['cifar10.1'] = TensorDataset(cifar101_data, cifar101_labels)
+            self.datasets['test_cifar10.1'] = TensorDataset(cifar101_data, cifar101_labels)
         else:
             print("CIFAR-10.1 dataset not found. Please download it to the data directory.")
 
@@ -103,10 +105,18 @@ class RobCifar10(Dataset):
             cifar102_images = cifar102_data['images']
             cifar102_labels = cifar102_data['labels']
             cifar102_images = torch.from_numpy(cifar102_images).float() / 255.0
+            cifar102_images = cifar102_images.permute(0, 3, 1, 2)  # Change from (N, 32, 32, 3) to (N, 3, 32, 32)
+
             cifar102_labels = torch.from_numpy(cifar102_labels).long()
-            self.test_sets['cifar10.2'] = TensorDataset(cifar102_images, cifar102_labels)
+            self.datasets['test_cifar10.2'] = TensorDataset(cifar102_images, cifar102_labels)
         else:
             print("CIFAR-10.2 dataset not found. Please download it to the data directory.")
+
+    def get_available_test_set_names(self):
+        """
+        Return a list of available test set names.
+        """
+        return list(self.datasets.keys())
 
     def get_transform(self, augment):
         if augment:
@@ -309,6 +319,6 @@ def test_dataset(dataset_name='cifar10', num_samples=100):
     print(f"All tests for {dataset_name} passed successfully!")
 
 if __name__ == "__main__":
-    # test_dataset('cifar10')
+    test_dataset('cifar10')
     # test_dataset('cifar100')
-    test_dataset('imagenet')
+    # test_dataset('imagenet')

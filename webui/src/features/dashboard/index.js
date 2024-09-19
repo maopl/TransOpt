@@ -1,7 +1,6 @@
 import React from "react";
 
 import { Row, Col, Button } from "reactstrap";
-import Importance from "./components/Importance";
 import {Input, Modal } from "antd";  
 import TitleCard from "../../components/Cards/TitleCard"
 

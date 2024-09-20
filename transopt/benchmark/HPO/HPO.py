@@ -108,7 +108,7 @@ class HPO_base(NonTabularProblem):
         self.checkpoint_vals = collections.defaultdict(lambda: [])
         
         if torch.cuda.is_available():
-            self.device = torch.device(f"cuda")
+            self.device = torch.device(f"cuda:1")
 
         else:
             self.device = "cpu"
@@ -291,7 +291,7 @@ class HPO_base(NonTabularProblem):
 
         val_acc = results['val_acc']
         
-        return val_acc
+        return val_acc, results
         
 
     def objective_function(
@@ -316,12 +316,20 @@ class HPO_base(NonTabularProblem):
         c['class_balanced'] = True
         c['nonlinear_classifier'] = True
         
-        val_acc = self.get_score(c)
+        val_acc, results = self.get_score(c)
 
-        results = {list(self.objective_info.keys())[0]: float(val_acc)}
-        for fd_name in self.fidelity_space.fidelity_names:
-            results[fd_name] = fidelity[fd_name] 
-        return results
+        acc = {list(self.objective_info.keys())[0]: float(val_acc)}
+        
+        # Add standard test accuracy
+        acc['test_standard_acc'] = float(results['test_standard_acc'])
+        
+        # Calculate average of other test accuracies
+        other_test_accs = [v for k, v in results.items() if k.startswith('test_') and k != 'test_standard_acc']
+        if other_test_accs:
+            acc['test_robust_acc'] = float(sum(other_test_accs) / len(other_test_accs))
+        
+        
+        return acc
     
     def get_objectives(self) -> Dict:
         return {'function_value': 'minimize'}
@@ -365,7 +373,7 @@ def test_all_combinations():
                         hpo = HPO_base(task_name='test_combination', 
                                        budget_type='FEs', budget=100, seed=0, 
                                        workload=dataset_index, algorithm=algorithm, 
-                                       architecture=architecture, model_size=model_size)
+                                       architecture=architecture, model_size=model_size, optimizer='test_combination')
                         
                         # Get the configuration space
                         config_space = hpo.get_configuration_space()

@@ -25,13 +25,13 @@ class HPOProblem(Problem):
                 else:
                     config[param_name] = x[i]
             val_acc = self.hpo.objective_function(config)
-            f1.append(1 - val_acc['function_value'])  # Minimize 1 - accuracy
-            f2.append(x[2])  # Minimize number of epochs
+            f1.append(1 - val_acc['test_standard_acc'])  # Minimize 1 - accuracy
+            f2.append(1- val_acc['test_robust_acc'])  # Minimize number of epochs
         out["F"] = np.column_stack([f1, f2])
 
 if __name__ == "__main__":
     problem = HPOProblem(task_name='test_task', budget_type='FEs', budget=100, seed=0, workload=0)
-    algorithm = NSGA2(pop_size=4)
+    algorithm = NSGA2(pop_size=2)
     res = minimize(problem, algorithm, ('n_gen', 40), seed=1, verbose=True)
     
     print("Best solutions found:")

@@ -101,7 +101,8 @@ class HPO_base(NonTabularProblem):
         torch.manual_seed(seed)
 
         if self.dataset_name in vars(datasets):
-            self.dataset = vars(datasets)[self.dataset_name](root=None, augment=True)
+            self.dataset = vars(datasets)[self.dataset_name](root=None, augment=self.hparams.get('data_augmentation', False))
+            print(self.hparams.get('data_augmentation', False))
         else:
             raise NotImplementedError
 
@@ -312,7 +313,7 @@ class HPO_base(NonTabularProblem):
         c["epoch"] = fidelity["epoch"]
         c['batch_size'] = 64
         
-        c['data_augmentation'] = True
+        c['data_augmentation'] = False
         c['class_balanced'] = True
         c['nonlinear_classifier'] = True
         

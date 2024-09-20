@@ -1,45 +1,39 @@
-from ConfigSpace import Configuration, ConfigurationSpace
-
+from ConfigSpace import ConfigurationSpace
+import ConfigSpace as cs
 import numpy as np
 import time
 from smac import HyperparameterOptimizationFacade, Scenario
-from sklearn.model_selection import cross_val_score
+from transopt.benchmark.HPO.HPO import HPO_ERM
 
+# Create a single HPO_ERM instance
+hpo = HPO_ERM(task_name='smac_optimization', budget_type='FEs', budget=100, seed=42, workload=0, optimizer='smac')
 
-from transopt.benchmark.HPOOOD.hpoood import ERMOOD, IRMOOD, MixupOOD, DANNOOD
+# Define the objective function
+def objective(configuration, seed: int = 0):
+    start = time.time()
+    result = hpo.objective_function(configuration=configuration.get_dictionary())
+    end = time.time()
+    return 1 - result['function_value']  # SMAC minimizes, so we return 1 - accuracy
 
-class formal_obj:
-    def __init__(self, f):
-        self.f = f
-    def new_f(self, configuration, seed: int = 0):
-        start = time.time()
-        results = self.f(configuration)
-        return results['function_value']
+# Define the configuration space
+def get_configspace():
+    space = ConfigurationSpace()
+    original_ranges = hpo.configuration_space.original_ranges
+    for param_name, param_range in original_ranges.items():
+        space.add_hyperparameter(cs.UniformFloatHyperparameter(param_name, lower=param_range[0], upper=param_range[1]))
+    return space
 
-
-configspace = ConfigurationSpace({"lr": (-8, 0), "weight_decay": (-10, -5)})
-
-# Scenario object specifying the optimization environment
-scenario = Scenario(configspace, deterministic=True, n_trials=100)
-
-NN_name = ['ERMOOD', 'IRMOOD', 'MixupOOD', 'DANNOOD']
-workloads = [0, 1, 2, 3]
-seed=0
-for nn_name in NN_name:
-    for w in workloads:
-        if nn_name == 'ERMOOD':
-            p  = ERMOOD(task_name='', budget_type='FEs', budget=100, seed = seed, workload = w)
-        elif nn_name == 'IRMOOD':
-            p  = IRMOOD(task_name='', budget_type='FEs', budget=100, seed = seed, workload = w)
-        elif nn_name == 'MixupOOD':
-            p  = MixupOOD(task_name='', budget_type='FEs', budget=100, seed = seed, workload = w)
-        elif nn_name == 'DANNOOD':
-            p  = DANNOOD(task_name='', budget_type='FEs', budget=100, seed = seed, workload = w)
-        else:
-            raise ValueError('Unknown task %s' % nn_name)
-        train = formal_obj(p.f)
-        
-        # Use SMAC to find the best configuration/hyperparameters
-        smac = HyperparameterOptimizationFacade(scenario, train.new_f)
-        incumbent = smac.optimize()
-        
+if __name__ == "__main__":
+    # Create the configuration space
+    config_space = get_configspace()
+    
+    # Scenario object specifying the optimization environment
+    scenario = Scenario(config_space, deterministic=True, n_trials=100)
+    
+    # Use SMAC to find the best configuration/hyperparameters
+    smac = HyperparameterOptimizationFacade(scenario, objective)
+    incumbent = smac.optimize()
+    
+    # Print the best configuration and its performance
+    print(f"Best configuration: {incumbent}")
+    print(f"Best performance: {1 - smac.intensifier.trajectory[-1].cost}")  # Convert back to accuracy

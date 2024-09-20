@@ -303,7 +303,7 @@ class HPO_base(NonTabularProblem):
     ) -> Dict:
 
         if fidelity is None:
-            fidelity = {"epoch": 2}
+            fidelity = {"epoch": 50}
         
         # Convert log scale values back to normal scale
         c = self.configuration_space.map_to_design_space(configuration)

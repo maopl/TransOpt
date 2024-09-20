@@ -31,7 +31,7 @@ class HPOProblem(Problem):
 
 if __name__ == "__main__":
     problem = HPOProblem(task_name='test_task', budget_type='FEs', budget=100, seed=0, workload=0)
-    algorithm = NSGA2(pop_size=2)
+    algorithm = NSGA2(pop_size=100)
     res = minimize(problem, algorithm, ('n_gen', 40), seed=1, verbose=True)
     
     print("Best solutions found:")

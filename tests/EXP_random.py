@@ -30,10 +30,9 @@ def random_search(n_trials, task_name, budget_type, budget, seed, workload):
                 break
         
         # 设置固定的fidelity值
-        fidelity = {"epoch": 2}  # 你可以根据需要调整这个值
         
         # 运行目标函数
-        result = hpo.objective_function(configuration=config, fidelity=fidelity)
+        result = hpo.objective_function(configuration=config)
         val_acc = 1 - result['function_value']  # 因为我们最小化的是1-accuracy
         
         print(f"Trial {trial + 1}/{n_trials}")
@@ -58,10 +57,10 @@ if __name__ == "__main__":
     
     # 运行随机搜索
     random_search(
-        n_trials=10,  # 指定随机搜索的次数
+        n_trials=5000,  # 指定随机搜索的次数
         task_name='random_search_hpo',
         budget_type='FEs',
-        budget=100,
+        budget=5000,
         seed=0,
         workload=0  # 对应于 RobCifar10 数据集
     )

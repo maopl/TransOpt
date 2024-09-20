@@ -109,7 +109,7 @@ class HPO_base(NonTabularProblem):
         self.checkpoint_vals = collections.defaultdict(lambda: [])
         
         if torch.cuda.is_available():
-            self.device = torch.device(f"cuda:1")
+            self.device = torch.device(f"cuda:0")
 
         else:
             self.device = "cpu"

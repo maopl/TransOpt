@@ -22,7 +22,7 @@ mmh3
 rich
 tqdm
 wilds
-pyro
+pyro-ppl
 bohb-hpo
 HEBO
     

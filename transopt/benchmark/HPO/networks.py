@@ -71,19 +71,20 @@ class ResNet(torch.nn.Module):
     def __init__(self, input_shape, model_size, hparams):
         super(ResNet, self).__init__()
         if model_size == 18:
-            self.network = torchvision.models.resnet18(pretrained=True)
+            self.network = torchvision.models.resnet18(weights=torchvision.models.ResNet18_Weights.IMAGENET1K_V1)
             self.n_outputs = 512
         elif model_size == 101:
-            self.network = torchvision.models.resnet101(pretrained=True)
+            self.network = torchvision.models.resnet101(weights=torchvision.models.ResNet101_Weights.IMAGENET1K_V2)
             self.n_outputs = 2048
         elif model_size == 34:
-            self.network = torchvision.models.resnet34(pretrained=True)
+            self.network = torchvision.models.resnet34(weights=torchvision.models.ResNet34_Weights.IMAGENET1K_V1)
             self.n_outputs = 512
         elif model_size == 50:
-            self.network = torchvision.models.resnet50(pretrained=True)
+            self.network = torchvision.models.resnet50(weights=torchvision.models.ResNet50_Weights.IMAGENET1K_V2)
             self.n_outputs = 2048
         else:
             raise ValueError(f"Unsupported ResNet model size: {model_size}")
+        
 
         # adapt number of channels
         nc = input_shape[0]

@@ -26,7 +26,8 @@ pyro-ppl
 bohb-hpo
 HEBO
 git+https://github.com/RobustBench/robustbench.git
-    
+hyperopt
+
 # Analysis
 pandas
 tikzplotlib

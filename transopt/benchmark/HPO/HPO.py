@@ -309,7 +309,7 @@ class HPO_base(NonTabularProblem):
         c["epoch"] = fidelity["epoch"]
         c['batch_size'] = 64
         
-        c['data_augmentation'] = False
+        c['data_augmentation'] = True
         c['class_balanced'] = True
         c['nonlinear_classifier'] = True
         

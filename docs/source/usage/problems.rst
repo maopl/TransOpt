@@ -454,17 +454,16 @@ Configurable Software Optimization Problem
 ------------------------------------------
 
 This section provides a summary of the configurable software optimization (CSO) tasks, which involve optimizing various software systems. The tasks are characterized by the number of variables, objectives, and workloads, along with the sources of these workloads.
-
 +-------------------+---------------+----------------+---------------+--------------------------------------------------------------------------------------------------------------------------------------+
-| **Software Name** | **Variables** | **Objectives** | **Workloads** |                                                         **Workloads Source**                                                         |
+| **Software Name** | **Variables** | **Objectives** | **Workloads** | **Workloads Source**                                                                                                                   |
 +===================+===============+================+===============+======================================================================================================================================+
-| LLVM              | 93            | 8              | 50            | [PolyBench](https://web.cs.ucla.edu/~pouchet/software/polybench/), [mibench](https://github.com/embecosm/mibench?tab=readme-ov-file) |
+| LLVM              | 93            | 8              | 50            | `PolyBench <https://web.cs.ucla.edu/~pouchet/software/polybench/>`_, `mibench <https://github.com/embecosm/mibench?tab=readme-ov-file>`_ |
 +-------------------+---------------+----------------+---------------+--------------------------------------------------------------------------------------------------------------------------------------+
-| GCC               | 105           | 8              | 50            | [PolyBench](https://web.cs.ucla.edu/~pouchet/software/polybench/), [mibench](https://github.com/embecosm/mibench?tab=readme-ov-file) |
+| GCC               | 105           | 8              | 50            | `PolyBench <https://web.cs.ucla.edu/~pouchet/software/polybench/>`_, `mibench <https://github.com/embecosm/mibench?tab=readme-ov-file>`_ |
 +-------------------+---------------+----------------+---------------+--------------------------------------------------------------------------------------------------------------------------------------+
-| Mysql             | 28            | 14             | 18            | [benchbase](https://github.com/cmu-db/benchbase.git), [sysbench](https://github.com/akopytov/sysbench)                               |
+| Mysql             | 28            | 14             | 18            | `benchbase <https://github.com/cmu-db/benchbase.git>`_, `sysbench <https://github.com/akopytov/sysbench>`_                               |
 +-------------------+---------------+----------------+---------------+--------------------------------------------------------------------------------------------------------------------------------------+
-| Hadoop            | 206           | 1              | 29            | [HiBench](https://github.com/Intel-bigdata/HiBench)                                                                                  |
+| Hadoop            | 206           | 1              | 29            | `HiBench <https://github.com/Intel-bigdata/HiBench>`_                                                                                    |
 +-------------------+---------------+----------------+---------------+--------------------------------------------------------------------------------------------------------------------------------------+
 
 .. _rna-problems:

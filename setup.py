@@ -61,9 +61,11 @@ req = [
     "networkx",
     "gplearn",
     "oslo.concurrency>=4.2.0",
-    'GPy @ git+https://github.com/SheffieldML/GPy.git@devel'
+    'GPy @ git+https://github.com/SheffieldML/GPy.git@devel',
     'mmh3',
     'rich',
+    'flask_cors',
+    'openai'
 ]
 
 setup(

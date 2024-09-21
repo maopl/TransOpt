@@ -102,14 +102,13 @@ class HPO_base(NonTabularProblem):
 
         if self.dataset_name in vars(datasets):
             self.dataset = vars(datasets)[self.dataset_name](root=None, augment=self.hparams.get('data_augmentation', False))
-            print(self.hparams.get('data_augmentation', False))
         else:
             raise NotImplementedError
 
         self.checkpoint_vals = collections.defaultdict(lambda: [])
         
         if torch.cuda.is_available():
-            self.device = torch.device(f"cuda:0")
+            self.device = torch.device(f"cuda:1")
 
         else:
             self.device = "cpu"
@@ -212,44 +211,34 @@ class HPO_base(NonTabularProblem):
                 epoch_correct += step_vals.get('correct', 0)
                 epoch_total += sum(len(x) for x, _ in minibatches_device)
 
-            # Compute epoch metrics
+            # Compute and print epoch metrics
             epoch_acc = epoch_correct / epoch_total if epoch_total > 0 else 0
             epoch_loss /= len(self.train_loader)
-            epoch_time = time.time() - epoch_start_time
+            print(f"Epoch {epoch+1}/{self.epoches} - Loss: {epoch_loss:.4f}, Accuracy: {epoch_acc:.4f}")
 
-            # Evaluate on validation set
-            val_acc = self.evaluate_loader(self.val_loader)
+        # Evaluate on validation set
+        val_acc = self.evaluate_loader(self.val_loader)
 
-            # Prepare epoch results
-            epoch_results = {
-                'epoch': epoch + 1,
-                'train_loss': epoch_loss,
-                'train_acc': epoch_acc,
-                'val_acc': val_acc,
-                'epoch_time': epoch_time,
-            }
+        # Calculate final results after all epochs
+        results = {
+            'epoch': self.epoches,
+            'epoch_time': time.time() - epoch_start_time,
+            'train_loss': epoch_loss,
+            'train_acc': epoch_acc,
+            'val_acc': val_acc,
+        }
 
-            # Evaluate on all test loaders
-            for name, loader in zip(self.eval_loader_names, self.eval_loaders):
-                epoch_results[f'{name}_acc'] = self.evaluate_loader(loader)
-                
+        # Evaluate on all test loaders
+        for name, loader in zip(self.eval_loader_names, self.eval_loaders):
+            results[f'{name}_acc'] = self.evaluate_loader(loader)
 
-            # Calculate memory usage
-            epoch_results['mem_gb'] = torch.cuda.max_memory_allocated() / (1024.**3)
+        # Calculate memory usage
+        results['mem_gb'] = torch.cuda.max_memory_allocated() / (1024.**3)
 
-            # Print epoch results
-            results_keys = sorted(epoch_results.keys())
-            if results_keys != last_results_keys:
-                misc.print_row(results_keys, colwidth=12)
-                last_results_keys = results_keys
-            misc.print_row([epoch_results[key] for key in results_keys], colwidth=12)
+        results['hparams'] = self.hparams
 
-            # Update results with hyperparameters
-            epoch_results['hparams'] = self.hparams
-            # Save epoch results
-            # self.save_epoch_results(epoch_results)
 
-        return epoch_results
+        return results
 
     def save_epoch_results(self, results):
         epoch_path = os.path.join(self.results_save_dir, f"epoch_{results['epoch']}.json")
@@ -279,12 +268,19 @@ class HPO_base(NonTabularProblem):
         self.query += 1
         results = self.train(configuration)
         
-        epochs_path = os.path.join(self.results_save_dir, f"{self.query}_lr_{configuration['lr']}_weight_decay_{configuration['weight_decay']}.jsonl")
+        # Construct filename with query and all hyperparameters
+        filename_parts = [f"{self.query}"]
+        for key, value in configuration.items():
+            filename_parts.append(f"{key}_{value}")
+        filename = "_".join(filename_parts)
+
+        # Save results
+        epochs_path = os.path.join(self.results_save_dir, f"{filename}.jsonl")
         with open(epochs_path, 'w') as f:
             json.dump(results, f, indent=2)
         
         # Save final checkpoint and mark as done
-        self.save_checkpoint(f"{self.query}_lr_{configuration['lr']}_weight_decay_{configuration['weight_decay']}_model.pkl")
+        self.save_checkpoint(f"{filename}_model.pkl")
         with open(os.path.join(self.model_save_dir, 'done'), 'w') as f:
             f.write('done')
             

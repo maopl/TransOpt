@@ -81,13 +81,16 @@ class ERM(Algorithm):
     def update(self, minibatches, unlabeled=None):
         all_x = torch.cat([x for x, y in minibatches])
         all_y = torch.cat([y for x, y in minibatches])
-        loss = F.cross_entropy(self.predict(all_x), all_y)
+        predictions = self.predict(all_x)
+        loss = F.cross_entropy(predictions, all_y)
 
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
 
-        return {'loss': loss.item()}
+        correct = (predictions.argmax(1) == all_y).sum().item()
+
+        return {'loss': loss.item(), 'correct': correct}
 
     def predict(self, x):
         return self.network(x)

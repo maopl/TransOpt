@@ -73,9 +73,9 @@ class ResNet(torch.nn.Module):
         if model_size == 18:
             self.network = torchvision.models.resnet18(pretrained=False)
             self.n_outputs = 512
-        elif model_size == 20:
-            self.network = torchvision.models.resnet20(pretrained=False)
-            self.n_outputs = 512
+        elif model_size == 101:
+            self.network = torchvision.models.resnet101(pretrained=False)
+            self.n_outputs = 2048
         elif model_size == 34:
             self.network = torchvision.models.resnet34(pretrained=False)
             self.n_outputs = 512

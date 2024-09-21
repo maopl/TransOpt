@@ -25,6 +25,7 @@ wilds
 pyro-ppl
 bohb-hpo
 HEBO
+git+https://github.com/RobustBench/robustbench.git
     
 # Analysis
 pandas

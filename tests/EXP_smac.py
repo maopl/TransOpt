@@ -6,7 +6,7 @@ from smac import HyperparameterOptimizationFacade, Scenario
 from transopt.benchmark.HPO.HPO import HPO_ERM
 
 # Create a single HPO_ERM instance
-hpo = HPO_ERM(task_name='smac_optimization', budget_type='FEs', budget=100, seed=42, workload=0, optimizer='smac')
+hpo = HPO_ERM(task_name='smac_optimization', budget_type='FEs', budget=2000, seed=42, workload=0, optimizer='smac')
 
 # Define the objective function
 def objective(configuration, seed: int = 0):
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     config_space = get_configspace()
     
     # Scenario object specifying the optimization environment
-    scenario = Scenario(config_space, deterministic=True, n_trials=100)
+    scenario = Scenario(config_space, deterministic=True, n_trials=200)
     
     # Use SMAC to find the best configuration/hyperparameters
     smac = HyperparameterOptimizationFacade(scenario, objective)

@@ -51,10 +51,10 @@ if __name__ == "__main__":
     
     # 运行Sobol序列搜索
     sobol_search(
-        n_samples=10,  # 指定采样数量
+        n_samples=5000,  # 指定采样数量
         task_name='sobol_search_hpo',
         budget_type='FEs',
-        budget=100,
+        budget=5000,
         seed=0,
         workload=0  # 对应于 RobCifar10 数据集
     )

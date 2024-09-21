@@ -12,10 +12,10 @@ import torchvision.models
 
 SUPPORTED_ARCHITECTURES = {
     'resnet': [18, 34, 50, 101],
-    # 'densenet': [121, 169, 201],
-    # 'wideresnet': [16, 22, 28, 40],
-    # 'alexnet': [1],
-    # 'cnn': [1]
+    'densenet': [121, 169, 201],
+    'wideresnet': [16, 22, 28, 40],
+    'alexnet': [1],
+    'cnn': [1]
 }
 
 def Featurizer(input_shape, architecture, model_size, hparams):
@@ -71,16 +71,16 @@ class ResNet(torch.nn.Module):
     def __init__(self, input_shape, model_size, hparams):
         super(ResNet, self).__init__()
         if model_size == 18:
-            self.network = torchvision.models.resnet18(pretrained=False)
+            self.network = torchvision.models.resnet18(pretrained=True)
             self.n_outputs = 512
         elif model_size == 101:
-            self.network = torchvision.models.resnet101(pretrained=False)
+            self.network = torchvision.models.resnet101(pretrained=True)
             self.n_outputs = 2048
         elif model_size == 34:
-            self.network = torchvision.models.resnet34(pretrained=False)
+            self.network = torchvision.models.resnet34(pretrained=True)
             self.n_outputs = 512
         elif model_size == 50:
-            self.network = torchvision.models.resnet50(pretrained=False)
+            self.network = torchvision.models.resnet50(pretrained=True)
             self.n_outputs = 2048
         else:
             raise ValueError(f"Unsupported ResNet model size: {model_size}")

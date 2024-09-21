@@ -4,7 +4,7 @@ from hebo.optimizers.hebo import HEBO
 from transopt.benchmark.HPO.HPO import HPO_ERM
 
 # Create a single HPO_ERM instance
-hpo = HPO_ERM(task_name='hebo_optimization', budget_type='FEs', budget=100, seed=42, workload=0, optimizer='hebo')
+hpo = HPO_ERM(task_name='hebo_optimization', budget_type='FEs', budget=2000, seed=42, workload=0, optimizer='hebo')
 
 # Define the objective function
 def objective(config):
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     opt = HEBO(design_space)
     
     # Run optimization
-    n_iterations = 100
+    n_iterations = 200
     for i in range(n_iterations):
         rec = opt.suggest(n_suggestions=1)
         f_val = objective(rec.to_dict(orient='records')[0])

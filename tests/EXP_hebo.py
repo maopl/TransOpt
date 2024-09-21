@@ -4,7 +4,7 @@ from hebo.optimizers.hebo import HEBO
 from transopt.benchmark.HPO.HPO import HPO_ERM
 
 # Create a single HPO_ERM instance
-hpo = HPO_ERM(task_name='hebo_optimization', budget_type='FEs', budget=2000, seed=42, workload=0, optimizer='hebo')
+hpo = HPO_ERM(task_name='hebo_optimization', budget_type='FEs', budget=2000, seed=42, workload=0, algorithm='ERM',architecture='resnet', model_size=18, optimizer='hebo')
 
 # Define the objective function
 def objective(config):

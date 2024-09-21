@@ -4,7 +4,7 @@ from transopt.benchmark.HPO.HPO import HPO_ERM
 import numpy as np
 
 # Create a single HPO_ERM instance
-hpo = HPO_ERM(task_name='bohb_optimization', budget_type='FEs', budget=2000, seed=42, workload=0, optimizer='bohb')
+hpo = HPO_ERM(task_name='bohb_optimization', budget_type='FEs', budget=2000, seed=42, workload=0,algorithm='ERM',architecture='resnet', model_size=18, optimizer='bohb')
 
 # Define the objective function
 def objective(config, budget):

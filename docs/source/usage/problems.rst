@@ -5,12 +5,12 @@ This
 .. admonition:: Overview
    :class: info
 
-   - :ref:`Register <registering-new-problem>`: How to register a new optimization problem to :ref:`TransOpt <home>`
-   - :ref:`Synthetic Problem <synthetic-problems>`: The list of the synthetic problems available in :ref:`TransOpt <home>`
-   - :ref:`Hyperparameter Optimization Problem <hpo-problems>`: The list of the HPO problems available in :ref:`TransOpt <home>`
-   - :ref:`Configurable Software Optimization Problem <cso-problems>`: The list of the configurable software optimization problems available in :ref:`TransOpt <home>`
-   - :ref:`RNA Inverse Design Problem <rna-problems>`: The list of the RNA Inverse design problems available in :ref:`TransOpt <home>`
-   - :ref:`Protein Inverse Folding Problem <pif-problems>`: The list of the protein inverse folding problems available in :ref:`TransOpt <home>`
+   - :ref:`Register <registering-new-problem>`: How to register a new optimization problem to :ref:`TransOPT <home>`
+   - :ref:`Synthetic Problem <synthetic-problems>`: The list of the synthetic problems available in :ref:`TransOPT <home>`
+   - :ref:`Hyperparameter Optimization Problem <hpo-problems>`: The list of the HPO problems available in :ref:`TransOPT <home>`
+   - :ref:`Configurable Software Optimization Problem <cso-problems>`: The list of the configurable software optimization problems available in :ref:`TransOPT <home>`
+   - :ref:`RNA Inverse Design Problem <rna-problems>`: The list of the RNA Inverse design problems available in :ref:`TransOPT <home>`
+   - :ref:`Protein Inverse Folding Problem <pif-problems>`: The list of the protein inverse folding problems available in :ref:`TransOPT <home>`
    - :ref:`Parallelization <parallelization>`: How to parallelize function evaluations
 
 
@@ -20,7 +20,7 @@ This
 Registering a New Benchmark Problem
 -----------------------------------
 
-To register a new benchmark problem in the TransOpt framework, follow the steps below.
+To register a new benchmark problem in the TransOPT framework, follow the steps below.
 
 ### 1. Import the Problem Registry
 
@@ -101,7 +101,7 @@ Here’s an example outline of the `sphere` class:
 
          return results
 
-By following these steps, you can successfully register a new benchmark problem in the TransOpt framework.
+By following these steps, you can successfully register a new benchmark problem in the TransOPT framework.
 
 .. _synthetic-problems:
 
@@ -260,6 +260,7 @@ Hyperparameter Optimization Problem
 This section provides an overview of the hyperparameter optimization problem including the hyperparameters used for various machine learning models and machine learning tasks used for generate problem instances.
 
 Hyperparameters for Support Vector Machine (SVM)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Support Vector Machines (SVM) are widely used for classification and regression tasks. They are particularly effective in high-dimensional spaces and situations where the number of dimensions exceeds the number of samples. The hyperparameters for SVM control the regularization and the kernel function, which are crucial for model performance.
 
@@ -272,6 +273,7 @@ Support Vector Machines (SVM) are widely used for classification and regression 
 +--------------------+-------------------+------------+
 
 Hyperparameters for AdaBoost
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 AdaBoost is a popular ensemble method that combines multiple weak learners to create a strong classifier. It is particularly useful for boosting the performance of decision trees. The hyperparameters control the number of estimators and the learning rate, which affects the contribution of each classifier.
 
@@ -284,6 +286,7 @@ AdaBoost is a popular ensemble method that combines multiple weak learners to cr
 +--------------------+-------------------+------------+
 
 Hyperparameters for Random Forest
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Random Forest is an ensemble learning method that builds multiple decision trees and merges them to get a more accurate and stable prediction. It is widely used for both classification and regression tasks. The hyperparameters include the number of trees, the depth of the trees, and various criteria for splitting nodes.
 
@@ -304,6 +307,7 @@ Random Forest is an ensemble learning method that builds multiple decision trees
 +--------------------------+--------------------+-------------+
 
 Hyperparameters for XGBoost
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 XGBoost is an efficient and scalable implementation of gradient boosting, designed for speed and performance. It is widely used in machine learning competitions and industry for classification and regression tasks. The hyperparameters include learning rates, tree depths, and regularization parameters, which control the complexity of the model and its ability to generalize.
 
@@ -332,13 +336,14 @@ XGBoost is an efficient and scalable implementation of gradient boosting, design
 +--------------------+-----------------------+------------+
 
 Hyperparameters for GLMNet
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 GLMNet is a regularized regression model that supports both LASSO and ridge regression. It is particularly useful for high-dimensional datasets where regularization is necessary to prevent overfitting. The hyperparameters control the strength of the regularization and the balance between L1 and L2 penalties.
 
 +--------------------+---------------------------+-------------+
 | **Hyperparameter** |         **Range**         |  **Type**   |
 +====================+===========================+=============+
-| lambda             | :math:`:math:`[0, 10^5]`` | Log-integer |
+| lambda             | :math:`[0, 10^5]`         | Log-integer |
 +--------------------+---------------------------+-------------+
 | alpha              | :math:`[0, 1]`            | Continuous  |
 +--------------------+---------------------------+-------------+
@@ -346,92 +351,99 @@ GLMNet is a regularized regression model that supports both LASSO and ridge regr
 +--------------------+---------------------------+-------------+
 
 Hyperparameters for AlexNet
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 AlexNet is a convolutional neural network (CNN) architecture that revolutionized the field of computer vision by achieving significant improvements on the ImageNet dataset. The hyperparameters include learning rate, dropout rate, weight decay, and the choice of activation function, all of which are crucial for training deep neural networks.
 
-+---------------------+-------------------------+-------------+
-| **Hyperparameter**  |        **Range**        |  **Type**   |
-+=====================+=========================+=============+
-| learning_rate       | :math:`[10^-5, 10^-1]`  | Continuous  |
-+---------------------+-------------------------+-------------+
-| dropout_rate        | :math:`[0.0, 0.5]`      | Continuous  |
-+---------------------+-------------------------+-------------+
-| weight_decay        | :math:`[10^-5, 10^-2]`  | Continuous  |
-+---------------------+-------------------------+-------------+
-| activation_function | {ReLU, Leaky ReLU, ELU} | Categorical |
-+---------------------+-------------------------+-------------+
++---------------------+----------------------------+-------------+
+| **Hyperparameter**  |         **Range**          |  **Type**   |
++=====================+============================+=============+
+| learning_rate       | :math:`[10^{-5}, 10^{-1}]` | Continuous  |
++---------------------+----------------------------+-------------+
+| dropout_rate        | :math:`[0.0, 0.5]`         | Continuous  |
++---------------------+----------------------------+-------------+
+| weight_decay        | :math:`[10^{-5}, 10^{-2}]` | Continuous  |
++---------------------+----------------------------+-------------+
+| activation_function | {ReLU, Leaky ReLU, ELU}    | Categorical |
++---------------------+----------------------------+-------------+
 
 Hyperparameters for 2-Layer Bayesian Neural Network (BNN)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Bayesian Neural Networks (BNNs) provide a probabilistic interpretation of deep learning models by introducing uncertainty in the weights. This allows BNNs to express model uncertainty, which is crucial for tasks where uncertainty quantification is important. The hyperparameters include layer sizes, step length, burn-in period, and momentum decay.
 
-+--------------------+------------------------+----------------+
-| **Hyperparameter** |       **Range**        |    **Type**    |
-+====================+========================+================+
-| layer 1            | :math:`[2^4, 2^9]`     | Log-integer    |
-+--------------------+------------------------+----------------+
-| layer 2            | :math:`[2^4, 2^9]`     | Log-integer    |
-+--------------------+------------------------+----------------+
-| step_length        | :math:`[10^-6, 10^-1]` | Log-continuous |
-+--------------------+------------------------+----------------+
-| burn_in            | :math:`[0, 8]`         | Integer        |
-+--------------------+------------------------+----------------+
-| momentum_decay     | :math:`[0, 1]`         | Log-continuous |
-+--------------------+------------------------+----------------+
++--------------------+----------------------------+----------------+
+| **Hyperparameter** |         **Range**          |    **Type**    |
++====================+============================+================+
+| layer 1            | :math:`[2^4, 2^9]`         | Log-integer    |
++--------------------+----------------------------+----------------+
+| layer 2            | :math:`[2^4, 2^9]`         | Log-integer    |
++--------------------+----------------------------+----------------+
+| step_length        | :math:`[10^{-6}, 10^{-1}]` | Log-continuous |
++--------------------+----------------------------+----------------+
+| burn_in            | :math:`[0, 8]`             | Integer        |
++--------------------+----------------------------+----------------+
+| momentum_decay     | :math:`[0, 1]`             | Log-continuous |
++--------------------+----------------------------+----------------+
 
 Hyperparameters for CNNs
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 Convolutional Neural Networks (CNNs) are the backbone of most modern computer vision systems. They are designed to automatically and adaptively learn spatial hierarchies of features through backpropagation. The hyperparameters include learning rate, momentum, regularization parameter, dropout rate, and activation function.
 
-+--------------------------+-----------------------------------+-------------+
-|    **Hyperparameter**    |             **Range**             |  **Type**   |
-+==========================+===================================+=============+
-| learning_rate            | :math:`[10^-6, 10^-1]`            | Continuous  |
-+--------------------------+-----------------------------------+-------------+
-| momentum                 | :math:`[0.0, 0.9]`                | Continuous  |
-+--------------------------+-----------------------------------+-------------+
-| regularization_parameter | :math:`[10^-6, 10^-2]`            | Continuous  |
-+--------------------------+-----------------------------------+-------------+
-| dropout_rate             | :math:`[0, 0.5]`                  | Continuous  |
-+--------------------------+-----------------------------------+-------------+
-| activation_function      | {ReLU, Leaky ReLU, Tanh, Sigmoid} | Categorical |
-+--------------------------+-----------------------------------+-------------+
++--------------------------+----------------------------+-------------+
+|    **Hyperparameter**    |         **Range**          |  **Type**   |
++==========================+============================+=============+
+| learning_rate            | :math:`[10^{-6}, 10^{-1}]` | Continuous  |
++--------------------------+----------------------------+-------------+
+| momentum                 | :math:`[0.0, 0.9]`         | Continuous  |
++--------------------------+----------------------------+-------------+
+| regularization_parameter | :math:`[10^{-6}, 10^{-2}]` | Continuous  |
++--------------------------+----------------------------+-------------+
+| dropout_rate             | :math:`[0, 0.5]`           | Continuous  |
++--------------------------+----------------------------+-------------+
+| activation_function      | {ReLU, Leaky ReLU, Tanh,   | Categorical |
+|                          | Sigmoid}                   |             |
++--------------------------+----------------------------+-------------+
 
 Hyperparameters for ResNet18
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ResNet18 is a residual network architecture that introduced the concept of residual connections, allowing for the training of very deep networks by mitigating the vanishing gradient problem. The hyperparameters include learning rate, momentum, dropout rate, and weight decay.
 
-+--------------------+------------------------+------------+
-| **Hyperparameter** |       **Range**        |  **Type**  |
-+====================+========================+============+
-| learning_rate      | :math:`[2^3, 2^8]`     | Integer    |
-+--------------------+------------------------+------------+
-| momentum           | :math:`[0, 1]`         | Continuous |
-+--------------------+------------------------+------------+
-| dropout_rate       | :math:`[0, 0.5]`       | Continuous |
-+--------------------+------------------------+------------+
-| weight_decay       | :math:`[10^-5, 10^-1]` | Continuous |
-+--------------------+------------------------+------------+
++--------------------+----------------------------+------------+
+| **Hyperparameter** |         **Range**          |  **Type**  |
++====================+============================+============+
+| learning_rate      | :math:`[10^{-5}, 10^{-1}]` | Continuous |
++--------------------+----------------------------+------------+
+| momentum           | :math:`[0, 1]`             | Continuous |
++--------------------+----------------------------+------------+
+| dropout_rate       | :math:`[0, 0.5]`           | Continuous |
++--------------------+----------------------------+------------+
+| weight_decay       | :math:`[10^{-5}, 10^{-2}]` | Continuous |
++--------------------+----------------------------+------------+
 
 Hyperparameters for DenseNet
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 DenseNet is a densely connected convolutional network that connects each layer to every other layer in a feed-forward fashion. This architecture improves the flow of information and gradients throughout the network, making it easier to train. The hyperparameters include learning rate, momentum, dropout rate, and weight decay.
 
-+--------------------+------------------------+------------+
-| **Hyperparameter** |       **Range**        |  **Type**  |
-+====================+========================+============+
-| learning_rate      | :math:`[2^3, 2^8]`     | Integer    |
-+--------------------+------------------------+------------+
-| momentum           | :math:`[0, 1]`         | Continuous |
-+--------------------+------------------------+------------+
-| dropout_rate       | :math:`[0, 0.5]`       | Continuous |
-+--------------------+------------------------+------------+
-| weight_decay       | :math:`[10^-5, 10^-1]` | Continuous |
-+--------------------+------------------------+------------+
++--------------------+----------------------------+------------+
+| **Hyperparameter** |         **Range**          |  **Type**  |
++====================+============================+============+
+| learning_rate      | :math:`[2^3, 2^8]`         | Integer    |
++--------------------+----------------------------+------------+
+| momentum           | :math:`[0, 1]`             | Continuous |
++--------------------+----------------------------+------------+
+| dropout_rate       | :math:`[0, 0.5]`           | Continuous |
++--------------------+----------------------------+------------+
+| weight_decay       | :math:`[10^{-5}, 10^{-1}]` | Continuous |
++--------------------+----------------------------+------------+
 
 Machine Learning Tasks
+^^^^^^^^^^^^^^^^^^^^^^
 
-This section lists the various datasets used for machine learning tasks, including classification and regression problems. These datasets are widely recognized in the machine learning community and are used for benchmarking algorithms.
+This section lists the various sources of machine learning tasks used for hyperparameter optimization, including classification and regression problems. These datasets are widely recognized in the machine learning community and are used for benchmarking algorithms.
 
 +--------------------------------------------------------+---------------------------+------------+---------+
 |                       **Source**                       |         **Type**          | **Number** | **IDs** |

@@ -1,7 +1,7 @@
 FAQ
 ================================
 
-This section addresses common questions and issues that users might encounter when using TransOpt.
+This section addresses common questions and issues that users might encounter when using TransOPT.
 
 How do I submit the error information to the maintainer?
 --------------------------------------------------------

@@ -1,7 +1,7 @@
 Installation Guide
 ==================
 
-This section will guide you through the steps required to install TransOpt on your system.
+This section will guide you through the steps required to install TransOPT on your system.
 
 Before installing, ensure you have the following installed:
 

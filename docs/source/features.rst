@@ -1,7 +1,7 @@
 Features
 ========
 
-Furthermore, TransOpt offers a variety of different features which cover various aspects of transfer optimization. These features include: 
+Furthermore, TransOPT offers a variety of different features which cover various aspects of transfer optimization. These features include: 
 
 .. admonition:: Composite Algorithm Design
    :class: important

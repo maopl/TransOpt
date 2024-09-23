@@ -3,7 +3,7 @@ from transopt.benchmark.HPO.HPO import HPO_ERM
 import numpy as np
 
 # Create a single HPO_ERM instance
-hpo = HPO_ERM(task_name='hyperopt_optimization', budget_type='FEs', budget=2000, seed=42, workload=0,algorithm='ERM',architecture='resnet', model_size=18, optimizer='hyperopt')
+hpo = HPO_ERM(task_name='hyperopt_optimization', budget_type='FEs', budget=2000, seed=0, workload=0,algorithm='ERM',architecture='resnet', model_size=18, optimizer='hyperopt')
 
 # Define the objective function
 def objective(params):
@@ -27,11 +27,16 @@ if __name__ == "__main__":
     # Run optimization
     n_iterations = 200
     trials = Trials()
+    # Set a random seed for reproducibility
+    random_seed = 42
+    np.random.seed(random_seed)
+    
     best = fmin(fn=objective,
                 space=search_space,
                 algo=tpe.suggest,
                 max_evals=n_iterations,
-                trials=trials)
+                trials=trials,
+                rstate=np.random.default_rng(random_seed))
     
     # Print results
     print("Best hyperparameters found:", best)

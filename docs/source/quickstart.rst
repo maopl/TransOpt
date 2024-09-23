@@ -1,7 +1,7 @@
 Quick Start
 ======================
 
-TransOpt is a sophisticated system designed to facilitate transfer optimization services and experiments. It is composed of two parts: the agent and the web user interface. The agent is responsible for running the optimization algorithms and the web user interface is responsible for displaying the results and managing the experiments.
+TransOPT is a sophisticated system designed to facilitate transfer optimization services and experiments. It is composed of two parts: the agent and the web user interface. The agent is responsible for running the optimization algorithms and the web user interface is responsible for displaying the results and managing the experiments.
 
 Start the backend agent:
 
@@ -13,7 +13,7 @@ Start the backend agent:
 
 Web User Interface Mode
 -----------------------
-When TransOpt has been started successfully, go to the directory of webui and start the webui on your local machine. Enable the user interface mode with the following command:
+When TransOPT has been started successfully, go to the directory of webui and start the webui on your local machine. Enable the user interface mode with the following command:
 
 ::
 
@@ -25,9 +25,9 @@ When TransOpt has been started successfully, go to the directory of webui and st
 Command Line Mode
 -----------------
 
-In addition to the web UI mode, TransOpt also offers a Command Line (CMD) mode for users who may not have access to a display screen, such as when working on a remote server.
+In addition to the web UI mode, TransOPT also offers a Command Line (CMD) mode for users who may not have access to a display screen, such as when working on a remote server.
 
-To run TransOpt in CMD mode, use the following command:
+To run TransOPT in CMD mode, use the following command:
 
 ::
 

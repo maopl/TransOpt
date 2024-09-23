@@ -5,10 +5,10 @@ Results Analysis
 .. admonition:: Overview
    :class: info
 
-   - :ref:`Register a New Results Analysis Method <registering-new-analysis>`: How to add a new results analysis method to :ref:`TransOpt <home>`.
+   - :ref:`Register a New Results Analysis Method <registering-new-analysis>`: How to add a new results analysis method to :ref:`TransOPT <home>`.
    - :ref:`Customization Analysis Pipline<customization>`: How to customize your own results analysis pipline or add your own analysis method into the pipline.
-   - :ref:`Performance Evaluation Metrics <performance-evaluation-metrics>`: The list of the performance evaluation metrics available in :ref:`TransOpt <home>`
-   - :ref:`Statistical Measures <statistical-measures>`: The list of the statistical measures supportede in :ref:`TransOpt <home>`
+   - :ref:`Performance Evaluation Metrics <performance-evaluation-metrics>`: The list of the performance evaluation metrics available in :ref:`TransOPT <home>`
+   - :ref:`Statistical Measures <statistical-measures>`: The list of the statistical measures supportede in :ref:`TransOPT <home>`
 
 
 

@@ -4,17 +4,17 @@ Algorithmic objects
 .. admonition:: Overview
    :class: info
    
-   - :ref:`Register <register-new-algorithm>`: How to register a new algorithmic Object to :ref:`TransOpt <home>`
-   - :ref:`Supported Algorithms <alg>`: The list of the synthetic problems available in :ref:`TransOpt <home>`
-   - :ref:`Algorithmic Objects<alg-obj>`: The list of the protein inverse folding problems available in :ref:`TransOpt <home>`
+   - :ref:`Register <register-new-algorithm>`: How to register a new algorithmic Object to :ref:`TransOPT <home>`
+   - :ref:`Supported Algorithms <alg>`: The list of the synthetic problems available in :ref:`TransOPT <home>`
+   - :ref:`Algorithmic Objects<alg-obj>`: The list of the protein inverse folding problems available in :ref:`TransOPT <home>`
 
 
 .. _register-new-algorithm:
 
-Registering a New Algorithm in TransOpt
+Registering a New Algorithm in TransOPT
 ---------------------------------------
 
-To register a new algorithm object in TransOpt, follow the steps outlined below:
+To register a new algorithm object in TransOPT, follow the steps outlined below:
 
 1. **Import the Model Registry**
 
@@ -38,7 +38,7 @@ To register a new algorithm object in TransOpt, follow the steps outlined below:
 
 3. **Choose the Appropriate Base Class**
 
-   Depending on the type of algorithm object you are creating, you must inherit from a specific base class. TransOpt provides several algorithm modules, each corresponding to a different base class:
+   Depending on the type of algorithm object you are creating, you must inherit from a specific base class. TransOPT provides several algorithm modules, each corresponding to a different base class:
 
    - **Surrogate Model**: Inherit from the `Model` class.
    - **Initialization Design**: Inherit from the `Sampler` class.
@@ -78,7 +78,7 @@ To register a new algorithm object in TransOpt, follow the steps outlined below:
    - **meta_fit**: This method is used to fit meta-data. If your transfer optimization algorithm requires meta-data, this is where you should leverage it.
    - **fit**: This method is used to fit the data for the current task.
 
-By following these steps, you can successfully register a new algorithm object in TransOpt and implement the necessary functionality to integrate it into the framework.
+By following these steps, you can successfully register a new algorithm object in TransOPT and implement the necessary functionality to integrate it into the framework.
 
 
 

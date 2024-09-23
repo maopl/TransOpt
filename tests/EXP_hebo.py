@@ -25,7 +25,7 @@ if __name__ == "__main__":
     design_space = get_design_space()
     
     # Initialize HEBO
-    opt = HEBO(design_space)
+    opt = HEBO(design_space, scramble_seed=0)
     
     # Run optimization
     n_iterations = 200

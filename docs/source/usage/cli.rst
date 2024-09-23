@@ -1,9 +1,9 @@
 .. _command_line_usage:
 
-Using TransOpt via Command Line
+Using TransOPT via Command Line
 ===============================
 
-TransOpt provides a command-line interface (CLI) that allows users to define and run optimization tasks directly from the terminal. This is facilitated by the `run_cli.py` script, which supports a wide range of customizable parameters.
+TransOPT provides a command-line interface (CLI) that allows users to define and run optimization tasks directly from the terminal. This is facilitated by the `run_cli.py` script, which supports a wide range of customizable parameters.
 
 Running the Command-Line Interface
 ----------------------------------
@@ -14,7 +14,7 @@ To run the `run_cli.py` script, navigate to the directory containing the script 
 
    python transopt/agent/run_cli.py [OPTIONS]
 
-Where `[OPTIONS]` are the command-line arguments you can specify to customize the behavior of TransOpt.
+Where `[OPTIONS]` are the command-line arguments you can specify to customize the behavior of TransOPT.
 
 ### Command-Line Arguments
 
@@ -87,6 +87,6 @@ Below are some example commands demonstrating how to use the CLI to run differen
 ### Additional Notes
 
 - The **random seed** is particularly important for ensuring that the results are reproducible. Make sure to specify the `--seeds` option if you want to run experiments that can be exactly replicated.
-- TransOpt's CLI is highly flexible, allowing you to tailor the optimization process to your specific needs by adjusting the parameters and options provided.
+- TransOPT's CLI is highly flexible, allowing you to tailor the optimization process to your specific needs by adjusting the parameters and options provided.
 
-By following the instructions above, you can effectively use the TransOpt CLI to run and manage your optimization tasks.
+By following the instructions above, you can effectively use the TransOPT CLI to run and manage your optimization tasks.

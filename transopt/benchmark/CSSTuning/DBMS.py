@@ -7,7 +7,7 @@ from typing import Union, Dict, Tuple
 from pathlib import Path
 from csstuning.dbms.dbms_benchmark import MySQLBenchmark
 
-from transopt.benchmark.problem_base import NonTabularProblem
+from transopt.benchmark.problem_base.non_tab_problem import NonTabularProblem
 from agent.registry import benchmark_register
 
 ERROR_VALUE = 1e10

@@ -47,6 +47,7 @@ class Services:
         import transopt.benchmark.HPOOOD
         import transopt.benchmark.HPO
         import transopt.benchmark.synthetic
+        import transopt.benchmark.CSSTuning
         import transopt.optimizer.acquisition_function
         import transopt.optimizer.model
         import transopt.optimizer.normalizer

@@ -8,21 +8,35 @@
 
 TransOPT: Transfer Optimization System for Automated Configuration
 ==================================================================
-TransOPT is an open-source software platform designed to facilitate the design, benchmarking, and application of transfer learning for Bayesian optimization (TLBO) algorithms through a modular, data-centric framework. Start TransOPT by following the :ref:`installation guide <installation>`.
+TransOPT is an open-source software platform designed to facilitate the design, benchmarking, and application of transfer learning for Bayesian optimization (TLBO) algorithms through a modular, data-centric framework.
 
 .. raw:: html
    :file: home/guide.html
 
 Features
 ********************************************************************************
+TransOPT offers diverse features covering various aspects of transfer optimization.
 
 .. raw:: html
    :file: home/feature.html
 
 
+
+Available Algorithmic Objects
+********************************************************************************
+
+.. csv-table::
+   :header: "Algorithmic Objects", "Type", "Source Algorithm", "Description"
+   :widths: 60, 10, 60, 100
+   :file: usage/algorithms.csv
+
+
+
+Contents
+********************************************************************************
+
 .. toctree::
-   :maxdepth: 3
-   :caption: Contents
+   :maxdepth: 2
 
    installation
    quickstart
@@ -38,11 +52,32 @@ Features
 
 
 
-Indices and tables
-==================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+Contact
+********************************************************************************
+| **Peili Mao**  
+| *University of Electronic Science and Technology of China*  
+| *Department of Computer Science*  
+| **E-mail**:  
+| peili.z.mao@gmail.com
+
+
+
+Cite
+********************************************************************************
+
+If you have utilized our framework for research purposes, we kindly invite you to cite our publication as follows:
+
+BibTex:
+
+.. code-block:: bibtex
+
+    @ARTICLE{TransOPT,
+      title = {{TransOPT}: Transfer Optimization System For Automated Configuration},
+      author = {Author Name and Collaborator Name},
+      url = {https://github.com/maopl/TransOPT},
+      year = {2024}
+    }
+
 
 

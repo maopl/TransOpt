@@ -26,8 +26,8 @@ Available Algorithmic Objects
 ********************************************************************************
 
 .. csv-table::
-   :header: "Algorithmic Objects", "Type", "Source Algorithm", "Description"
-   :widths: 60, 10, 60, 100
+   :header: "Algorithmic Objects", "Type", "Source Algorithm"
+   :widths: 60, 10, 100
    :file: usage/algorithms.csv
 
 
@@ -40,10 +40,10 @@ Contents
 
    installation
    quickstart
-   features
    usage/algorithms
    usage/problems
    usage/results
+   usage/data_manage
    usage/visualization
    usage/cli
    development/architecture

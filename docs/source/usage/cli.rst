@@ -1,6 +1,6 @@
 .. _command_line_usage:
 
-Using TransOPT via Command Line
+Command Line
 ===============================
 
 TransOPT provides a command-line interface (CLI) that allows users to define and run optimization tasks directly from the terminal. This is facilitated by the `run_cli.py` script, which supports a wide range of customizable parameters.

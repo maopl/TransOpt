@@ -86,57 +86,93 @@ By following these steps, you can successfully register a new algorithm object i
 
 Supported Algorithms
 --------------------
+## Search space transform
 
+**Hyperparameter Search Space Pruning – A New Component for Sequential Model-Based Hyperparameter Optimization**:cite:`WistubaSS15b`
 
+This method prunes ineffective regions of the hyperparameter search space by using past evaluations to guide the optimization. It identifies areas with low potential by analyzing the performance of sampled configurations and employing a surrogate model to predict future outcomes. Regions that consistently show poor performance or low expected improvement are marked as low potential. The method then updates the search process to focus on more promising regions, thereby improving optimization efficiency and reducing unnecessary evaluations.
 
-**Multi-Task Bayesian Optimization**:cite:`SwerskySA13`
-This method extends multi-task Gaussian processes to transfer knowledge from previous optimizations to new tasks, improving the efficiency of Bayesian optimization. It leverages correlations between tasks to accelerate the optimization process, particularly useful in scenarios like hyperparameter tuning across different datasets.
+**Learning search spaces for Bayesian optimization- Another view of hyperparameter transfer learning**:cite:`PerroneS19`
 
----
+The method replaces predefined search space with data-driven geometrical representations (e.g., ellipsoids and boxes) by analyzing historical data to identify high-performing regions and fitting these regions with geometrical shapes. This transformation narrows the search to promising areas, improving efficiency as the search space dimension increases.
 
-**Practical Transfer Learning for Bayesian Optimization**:cite:`SnoekLA12`
-This approach enhances Bayesian optimization by using an ensemble of Gaussian processes from previous tasks. It forms a robust surrogate model that quickly adapts to new tasks without requiring task-specific hyperparameter tuning, significantly reducing optimization time.
+## Initialization Design
 
----
+**FEW-SHOT BAYESIAN OPTIMIZATION WITH DEEP KERNEL SURROGATES**:cite:`WistubaG21`
 
-**Scalable Gaussian Process-Based Transfer Surrogates**:cite:`WistubaSS18`
-This framework scales Gaussian processes for hyperparameter optimization by dividing metadata into subsets and training individual models. These models are combined into an ensemble, reducing computational complexity and improving optimization efficiency. 
+This method leverages historical task data and an evolutionary algorithm to provide a warm-start initialization. By selecting hyperparameter settings that minimize a loss function across multiple tasks, the method accelerates optimization with fewer evaluations. 
 
----
+**Initializing Bayesian Hyperparameter Optimization via Meta-Learning**:cite:`FeurerSH15`
 
-**Few-Shot Bayesian Optimization (FSBO)**:cite:`WistubaG21`
-FSBO redefines hyperparameter optimization as a few-shot learning problem using a deep kernel Gaussian process model. It quickly adapts to new tasks, achieving state-of-the-art results through efficient transfer learning. 
-
----
-
-**Initializing Bayesian Optimization via Meta-Learning**:cite:`FeurerSH15`
-This method uses meta-learning to improve the initialization of Sequential Model-based Bayesian Optimization (SMBO). By leveraging prior knowledge from similar datasets, it enhances performance, especially in complex tasks like combined algorithm selection and hyperparameter optimization. 
-
----
+This method introduces a meta-learning-based initialization for BO, improving the starting point by leveraging hyperparameter configurations that worked well on similar datasets. These similar datasets are identified through meta-features. The method calculates the distance between datasets using these meta-features, selecting the most similar ones to initialize the optimization process efficiently.
 
 **Learning Hyperparameter Optimization Initializations**:cite:`WistubaSS15a`
-This approach transfers knowledge from previous experiments to learn optimal initial hyperparameter configurations. It uses a differentiable estimator to accelerate optimization convergence, outperforming traditional initialization strategies. 
 
----
+This method proposes to use a meta-loss function that is minimized through gradient-based optimization. By optimizing for a meta-loss derived from the response functions of past datasets, it generates entirely new configurations, whereas prior methods limited themselves to reusing configurations in similar datasets.
 
-**Reinforced Few-Shot Acquisition Function Learning**:cite:`HsiehHL21`
-This method improves acquisition functions in Bayesian optimization using a deep Q-network (DQN) trained in a few-shot learning framework. A Bayesian variant of DQN is used to mitigate overfitting, enhancing the exploration-exploitation trade-off.
+## Surrogate Model
 
----
+**Pre-trained Gaussian processes for Bayesian optimization**:cite:`Wang2021`
 
-**Meta-Learning Acquisition Functions for Transfer Learning**:cite:`VolppFFDFHD20`
-This approach uses meta-learning to design acquisition functions tailored to specific objective functions. It leverages reinforcement learning to train a neural network-based acquisition function, particularly effective in transfer learning scenarios. 
+In this method, the surrogate model is built on a pre-trained GP with data from related tasks. This approach uses a KL divergence-based loss function to pre-train the GP, ensuring it captures similarities between the target function and past data. The pre-trained GP serves as the prior for BO, allowing the model to make better predictions with fewer observations by leveraging the pre-trained knowledge.
 
----
+**FEW-SHOT BAYESIAN OPTIMIZATION WITH DEEP KERNEL SURROGATES**
 
-**Hyperparameter Search Space Pruning**:cite:`WistubaSS15b`
-This technique introduces a pruning strategy to SMBO, discarding regions of the search space unlikely to contain optimal configurations. It enhances optimization efficiency by avoiding unnecessary function evaluations.
+In this method, the surrogate model is a deep kernel Gaussian process that is meta-learned across multiple past tasks. This model enables quick adaptation to new tasks with limited evaluations. The deep kernel, which combines a neural network and a Gaussian process, provides uncertainty estimates, helping the model generalize across diverse tasks while being fine-tuned for new ones.
 
----
+**Google Vizier- A Service for Black-Box Optimization**:cite:`GolovinSMKKS17`
 
-**Learning Search Spaces for Bayesian Optimization**:cite:`PerroneS19`
-This method automatically designs search spaces for Bayesian optimization by learning from historical data. It reduces the search space size, accelerating optimization and improving transfer learning capabilities. 
+This method transfers source knowledge by using the posterior mean of the source task as the prior mean for the target task. This approach simplifies the transfer process by ignoring uncertainty from the source model and only leveraging the mean, which leads to reduced computational complexity while still incorporating valuable information from the source task. 
 
+**PFNs4BO- In-Context Learning for Bayesian Optimization**:cite:`MullerFHH23`
+
+This method utilizes a Transformer-based architecture called Prior-data Fitted Networks (PFNs). These networks are trained on synthetic datasets to approximate the posterior predictive distribution (PPD) through in-context learning. PFNs can be trained on any efficiently sampled prior distribution, such as Gaussian processes or Bayesian neural networks. By learning from diverse priors, the PFN surrogate model captures complex patterns in the optimization process, allowing it to make accurate predictions while maintaining flexibility to incorporate user-defined priors or handle spurious dimensions effectively.
+
+**Scalable Gaussian process-based transfer surrogates for hyperparameter optimization**:cite:`WistubaSS18`
+
+This method introduces an ensemble of GP, where each GP is trained on a different past task. The model uses a weighted sum approach to combine the predictions from each GP. The weights are assigned based on how well each GP predicts the target task, with more relevant models receiving higher weights. 
+
+**Scalable Meta-Learning for Bayesian Optimization using Ranking-Weighted Gaussian Process Ensembles**:cite:`FeurerBE15`
+
+This method introduces Ranking-Weighted Gaussian Process Ensembles (RGPE). Similar to previous approaches, the surrogate model combines an ensemble of GPs. However, in RGPE, the weights are determined using a ranking loss function, which assesses how effectively each GP ranks the observations from the current task. GPs that rank the observations more accurately are assigned higher weights, reflecting their greater relevance to the task at hand.
+
+**Multi-Task Bayesian Optimization**:cite:`SwerskySA13`
+
+This method uses multi-task Gaussian processes (MTGP) as the surrogate model. It trains a GP for each task and uses a shared covariance structure across tasks to improve predictive accuracy. By leveraging the relationships between tasks, the MTGP reduces the need for independent function evaluations, making the optimization process faster and more efficient.
+
+**Multi-Fidelity Bayesian Optimization via Deep Neural Networks**:cite:`LiXKZ20`
+
+In this method, the surrogate model employs a deep neural network designed to handle multi-fidelity optimization tasks. The DNN surrogate models each fidelity with a neural network, and higher fidelities are conditioned on the outputs from lower fidelities. By stacking neural networks for each fidelity level, the model captures nonlinear relationships between different fidelities. This structure allows the surrogate to propagate information across fidelities, improving the accuracy of function estimation at higher fidelities while reducing computational costs.
+
+**BOHB: robust and efficient hyperparameter optimization at scale**:cite:`FalknerKH18`
+
+In this method, the surrogate model uses a Tree-structured Parzen Estimator (TPE) to model the hyperparameter space. TPE builds separate probability models for good and bad configurations using kernel density estimation. The TPE model guides the search by maximizing the ratio between these models, effectively focusing on promising regions of the search space. 
+
+## Acquisition Function
+
+**Scalable Meta-Learning for Bayesian Optimization using Ranking-Weighted Gaussian Process Ensembles**
+
+In RGPE, the acquisition function follows standard BO methods but integrates the ranking-weighted ensemble model. The ensemble combines predictions from multiple GPs, each weighted based on its ranking performance in relation to the current task. The acquisition function then uses this weighted ensemble to balance exploration and exploitation, ensuring that the most relevant past models are given greater influence when selecting the next point to evaluate 
+
+**Scalable Gaussian process-based transfer surrogates for hyperparameter optimization**
+
+This approach is referred to as the *transfer acquisition function* (TAF). The acquisition function balances exploration and exploitation by combining the predicted improvement from the new data with predicted improvements from previous tasks, weighted by their relevance. The weights are calculated the same as the model.
+
+**Multi-Task Bayesian Optimization**
+
+In this method, the acquisition function extends the standard EI criterion to the multi-task setting. It dynamically selects which task to evaluate by considering the correlation between tasks. The acquisition function maximizes information gain per unit cost by balancing the evaluation of cheaper auxiliary tasks with more expensive primary tasks, using the entropy search strategy. 
+
+**Multi-Fidelity Bayesian Optimization via Deep Neural Networks**
+
+It aims to maximize the mutual information between the predicted maximum of the objective function and the next point to be evaluated. The acquisition function selects the input location and fidelity level that provide the highest benefit-cost ratio. By employing fidelity-wise moment matching and Gauss-Hermite quadrature to approximate the posterior distributions, the acquisition function ensures that both fidelity selection and input sampling are computationally efficient and well-informed.
+
+**BOHB:Robust and Efficient Hyperparameter Optimization at Scale**
+
+It selects new configurations by maximizing the expected improvement, using kernel density estimates of good and bad configurations. BOHB combines this with a multi-fidelity approach, which allows the acquisition function to operate across different budget levels, efficiently balancing exploration and exploitation while scaling to large optimization tasks
+
+**Reinforced Few-Shot Acquisition Function Learning for Bayesian Optimization**:cite:`HsiehHL21`
+
+In this method, the acquisition function is modeled with a deep Q-network (DQN), learning to balance exploration and exploitation as a reinforcement learning task. The DQN predicts sampling utility based on the posterior mean and variance, refined by a Bayesian variant that incorporates uncertainty to avoid overfitting.
 
 
 
@@ -147,88 +183,10 @@ List of Algorithmic Objects
 ---------------------------
 The optimization framework includes a variety of state-of-the-art algorithms, each designed with specific features to address different classes of optimization problems. The table below provides a summary of the key algorithms available, categorized by their class, convenience for use, targeted objective(s), and any constraints they impose.
 
-+-----------------------------+----------------------------------------+
-| **Component**               | **Method**                             |
-+=============================+========================================+
-| Problem Specification       | Prune [54]                             |
-|                             | Box [33]                               |
-+-----------------------------+----------------------------------------+
-| Initialization Design       | Random/Sobol sequence                  |
-|                             | Latin hypercube sampling               |
-|                             | EA [53]                                |
-|                             | aLi [55]                               |
-+-----------------------------+----------------------------------------+
-| Surrogate Model             | GP/Random forest                       |
-|                             | MTGP [45]                              |
-|                             | MHGP [14]                              |
-|                             | PriorGP [50]                           |
-|                             | DeepKernelGP [53]                      |
-|                             | NeuralProcess [31]                     |
-|                             | RGPE [9]                               |
-|                             | SGPT [56]                              |
-+-----------------------------+----------------------------------------+
-| Acquisition Function        | EI/UCB/PI                              |
-|                             | TAF [9, 56]                            |
-|                             | FSAF [18]                              |
-+-----------------------------+----------------------------------------+
-
-
-
-+-------------------------+-------------------+---------------------------------------------------------------------------------------------------+
-| **Component**           | **Method**        | **Description**                                                                                   |
-+=========================+===================+===================================================================================================+
-| Problem Specification   | S0 [1]            | Drop area that has no potential to generate promising points.                                     |
-|                         | S1 [1]            | Drop area that has no potential to generate promising points.                                     |
-|                         | S2 [2]            | Narrow the search space to cover all best points in similar Datasets.                             |
-+-------------------------+-------------------+---------------------------------------------------------------------------------------------------+
-| Initialization Design   | I0 [3]            | Random/Sobol sequence/ The typical initialization design without the use of any                   |
-|                         |                   | information from data.                                                                            |
-|                         | I1 [3]            | Use the evolutionary algorithm to find a set of points that can perform better on all             |
-|                         |                   | similar datasets.                                                                                 |
-|                         | I2 [4]            | Learn the optimal initial points by iteratively minimizing the meta loss defined as               |
-|                         |                   | the average minimum loss across similar datasets.                                                 |
-|                         | I3 [4]            | Learn the optimal initial points by iteratively minimizing the meta loss defined as               |
-|                         |                   | the average minimum loss across similar datasets.                                                 |
-+-------------------------+-------------------+---------------------------------------------------------------------------------------------------+
-| Surrogate Model         | M0                | The two most commonly used surrogate models in conventional BO.                                   |
-|                         | M1 [5]            | Model the data from the current task and similar datasets jointly through a                       |
-|                         |                   | coregionalization kernel.                                                                         |
-|                         | M2 [6]            | Learn a GP model using the residuals of predictions from models built on similar datasets.        |
-|                         | M3 [7]            | Learn better parameters of GP from similar datasets.                                              |
-|                         | M4 [3]            | A GP model with a kernel that includes a neural network, trained on similar datasets.             |
-|                         | M5 [8]            | A transformer-based deep neural network that provides predictions and uncertainty                 |
-|                         |                   | estimates.                                                                                        |
-|                         | M6 [9]            | A model that ensembles GPs trained on similar datasets, with weights based on the                 |
-|                         |                   | rank accuracy of their predictions on the current task.                                           |
-|                         | M7 [10]           | A model that ensembles GPs trained on similar datasets, with weights based on the                 |
-|                         |                   | kernel methods.                                                                                   |
-|                         | M8 [10]           | A model that ensembles GPs trained on similar datasets, with weights based on the                 |
-|                         |                   | kernel methods.                                                                                   |
-|                         | M9 [10]           | A model that ensembles GPs trained on similar datasets, with weights based on the                 |
-|                         |                   | kernel methods.                                                                                   |
-|                         | M10 [10]          | A model that ensembles GPs trained on similar datasets, with weights based on the                 |
-|                         |                   | kernel methods.                                                                                   |
-+-------------------------+-------------------+---------------------------------------------------------------------------------------------------+
-| Acquisition Function    | A0                | Typical acquisition functions only consider the model’s predictions.                              |
-|                         | A1 [9, 10]        | Transfer acquisition functions leverage individual GP models trained on source tasks              |
-|                         |                   | to improve the evaluation of new points.                                                          |
-|                         | A2 [11]           | Train a neural network on similar datasets using reinforcement learning methods,                  |
-|                         |                   | then use it as the acquisition function.                                                          |
-|                         | A3 [11]           | Train a neural network on similar datasets using reinforcement learning methods,                  |
-|                         |                   | then use it as the acquisition function.                                                          |
-|                         | A4 [11]           | Train a neural network on similar datasets using reinforcement learning methods,                  |
-|                         |                   | then use it as the acquisition function.                                                          |
-|                         | A5 [11]           | Train a neural network on similar datasets using reinforcement learning methods,                  |
-|                         |                   | then use it as the acquisition function.                                                          |
-|                         | A6 [11]           | Train a neural network on similar datasets using reinforcement learning methods,                  |
-|                         |                   | then use it as the acquisition function.                                                          |
-|                         | A7 [11]           | Train a neural network on similar datasets using reinforcement learning methods,                  |
-|                         |                   | then use it as the acquisition function.                                                          |
-|                         | A8 [11]           | Train a neural network on similar datasets using reinforcement learning methods,                  |
-|                         |                   | then use it as the acquisition function.                                                          |
-+-------------------------+-------------------+---------------------------------------------------------------------------------------------------+
-
-
+.. csv-table::
+   :header: "Algorithmic Objects", "Type", "Source Algorithm"
+   :widths: 60, 10, 100
+   :file: algorithms.csv
 
 
 References

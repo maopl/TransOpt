@@ -86,8 +86,9 @@ By following these steps, you can successfully register a new algorithm object i
 
 Supported Algorithms
 --------------------
-## Search space transform
 
+Search space transform
+^^^^^^^^^^^^^^^^^^^^^^
 **Hyperparameter Search Space Pruning – A New Component for Sequential Model-Based Hyperparameter Optimization**:cite:`WistubaSS15b`
 
 This method prunes ineffective regions of the hyperparameter search space by using past evaluations to guide the optimization. It identifies areas with low potential by analyzing the performance of sampled configurations and employing a surrogate model to predict future outcomes. Regions that consistently show poor performance or low expected improvement are marked as low potential. The method then updates the search process to focus on more promising regions, thereby improving optimization efficiency and reducing unnecessary evaluations.
@@ -96,8 +97,8 @@ This method prunes ineffective regions of the hyperparameter search space by usi
 
 The method replaces predefined search space with data-driven geometrical representations (e.g., ellipsoids and boxes) by analyzing historical data to identify high-performing regions and fitting these regions with geometrical shapes. This transformation narrows the search to promising areas, improving efficiency as the search space dimension increases.
 
-## Initialization Design
-
+Initialization Design
+^^^^^^^^^^^^^^^^^^^^^^
 **FEW-SHOT BAYESIAN OPTIMIZATION WITH DEEP KERNEL SURROGATES**:cite:`WistubaG21`
 
 This method leverages historical task data and an evolutionary algorithm to provide a warm-start initialization. By selecting hyperparameter settings that minimize a loss function across multiple tasks, the method accelerates optimization with fewer evaluations. 
@@ -110,8 +111,8 @@ This method introduces a meta-learning-based initialization for BO, improving th
 
 This method proposes to use a meta-loss function that is minimized through gradient-based optimization. By optimizing for a meta-loss derived from the response functions of past datasets, it generates entirely new configurations, whereas prior methods limited themselves to reusing configurations in similar datasets.
 
-## Surrogate Model
-
+Surrogate Model
+^^^^^^^^^^^^^^^^^^^^^^
 **Pre-trained Gaussian processes for Bayesian optimization**:cite:`Wang2021`
 
 In this method, the surrogate model is built on a pre-trained GP with data from related tasks. This approach uses a KL divergence-based loss function to pre-train the GP, ensuring it captures similarities between the target function and past data. The pre-trained GP serves as the prior for BO, allowing the model to make better predictions with fewer observations by leveraging the pre-trained knowledge.
@@ -148,9 +149,9 @@ In this method, the surrogate model employs a deep neural network designed to ha
 
 In this method, the surrogate model uses a Tree-structured Parzen Estimator (TPE) to model the hyperparameter space. TPE builds separate probability models for good and bad configurations using kernel density estimation. The TPE model guides the search by maximizing the ratio between these models, effectively focusing on promising regions of the search space. 
 
-## Acquisition Function
-
-**Scalable Meta-Learning for Bayesian Optimization using Ranking-Weighted Gaussian Process Ensembles**
+Acquisition Function
+^^^^^^^^^^^^^^^^^^^^
+**Scalable Meta-Learning for Bayesian Optimization using Ranking-Weighted Gaussian Process Ensembles**:cite:`FeurerBE15`
 
 In RGPE, the acquisition function follows standard BO methods but integrates the ranking-weighted ensemble model. The ensemble combines predictions from multiple GPs, each weighted based on its ranking performance in relation to the current task. The acquisition function then uses this weighted ensemble to balance exploration and exploitation, ensuring that the most relevant past models are given greater influence when selecting the next point to evaluate 
 

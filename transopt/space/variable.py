@@ -48,7 +48,7 @@ class Categorical(Variable):
         return (1, len(self.categories))
 
     def map2(self, value):
-        return self.categories[int(value) - 1]
+        return self.categories[round(value) - 1]
 
     def map_inverse(self, value):
         return self.categories.index(value) + 1

@@ -78,7 +78,7 @@ class HPO_base(NonTabularProblem):
             workload=workload,
         )
         
-        self.query = 0
+        self.query_counter = kwargs.get('query_counter', 0)
         self.trial_seed = seed
         self.hparams = {}
         
@@ -104,6 +104,9 @@ class HPO_base(NonTabularProblem):
             self.dataset = vars(datasets)[self.dataset_name](root=None, augment=self.hparams.get('data_augmentation', False))
         else:
             raise NotImplementedError
+        
+        self.eval_loaders, self.eval_loader_names = self.create_test_loaders(128)
+
 
         self.checkpoint_vals = collections.defaultdict(lambda: [])
         
@@ -112,7 +115,10 @@ class HPO_base(NonTabularProblem):
 
         else:
             self.device = "cpu"
-    def create_data_loaders(self, batch_size):
+    def create_train_loaders(self, batch_size):
+        if not hasattr(self, 'dataset') or self.dataset is None:
+            raise ValueError("Dataset not initialized. Please ensure self.dataset is set before calling this method.")
+        
         train_loaders = FastDataLoader(
             dataset=self.dataset.datasets['train'],
             batch_size=batch_size,
@@ -123,6 +129,13 @@ class HPO_base(NonTabularProblem):
             batch_size=batch_size,
             num_workers=2)  # Assuming N_WORKERS is 2, adjust if needed
 
+        return train_loaders, val_loaders
+    
+
+    def create_test_loaders(self, batch_size):
+        if not hasattr(self, 'dataset') or self.dataset is None:
+            raise ValueError("Dataset not initialized. Please ensure self.dataset is set before calling this method.")
+        
         eval_loaders = []
         eval_loader_names = []
 
@@ -137,7 +150,8 @@ class HPO_base(NonTabularProblem):
                     num_workers=2))  # Assuming N_WORKERS is 2, adjust if needed
                 eval_loader_names.append(test_set_name)
 
-        return train_loaders, val_loaders, eval_loaders, eval_loader_names
+        return eval_loaders, eval_loader_names
+    
 
     def save_checkpoint(self, filename):
         save_dict = {
@@ -182,10 +196,9 @@ class HPO_base(NonTabularProblem):
         
         self.epoches = configuration['epoch']
         print(f"Total epochs: {self.epoches}")
+                
+        self.train_loader, self.val_loader = self.create_train_loaders(self.hparams['batch_size'])
         
-        last_results_keys = None
-        
-        self.train_loader, self.val_loader, self.eval_loaders, self.eval_loader_names = self.create_data_loaders(self.hparams['batch_size'])
         self.hparams['nonlinear_classifier'] = True
     
         for epoch in range(self.epoches):
@@ -236,8 +249,7 @@ class HPO_base(NonTabularProblem):
         results['mem_gb'] = torch.cuda.max_memory_allocated() / (1024.**3)
 
         results['hparams'] = self.hparams
-
-
+        
         return results
 
     def save_epoch_results(self, results):
@@ -265,11 +277,11 @@ class HPO_base(NonTabularProblem):
         self.algorithm = algorithm_class(self.dataset.input_shape, self.dataset.num_classes, self.architecture, self.model_size, self.hparams)
         self.algorithm.to(self.device)
         
-        self.query += 1
+        self.query_counter += 1
         results = self.train(configuration)
         
         # Construct filename with query and all hyperparameters
-        filename_parts = [f"{self.query}"]
+        filename_parts = [f"{self.query_counter}"]
         for key, value in configuration.items():
             filename_parts.append(f"{key}_{value}")
         filename = "_".join(filename_parts)
@@ -283,8 +295,6 @@ class HPO_base(NonTabularProblem):
         self.save_checkpoint(f"{filename}_model.pkl")
         with open(os.path.join(self.model_save_dir, 'done'), 'w') as f:
             f.write('done')
-            
-
 
         val_acc = results['val_acc']
         
@@ -306,10 +316,7 @@ class HPO_base(NonTabularProblem):
         c = self.configuration_space.map_to_design_space(configuration)
         
         # Add fidelity (epoch) to the configuration
-        c["epoch"] = fidelity["epoch"]
-        c['batch_size'] = 64
-        
-        c['data_augmentation'] = True
+        c["epoch"] = fidelity["epoch"]        
         c['class_balanced'] = True
         c['nonlinear_classifier'] = True
         

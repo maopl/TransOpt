@@ -59,9 +59,10 @@ class RobCifar10(Dataset):
         original_labels = original_labels[shuffle]
         
         dataset_transform = self.get_transform(augment)
+        normalized_images = self.get_transform(False)
     
         transformed_images = torch.stack([dataset_transform(img) for img in original_images])
-        transformed_test_images = torch.stack([self.get_transform(False)(img) for img in original_dataset_te.data])
+        standard_test_images = torch.stack([normalized_images(img) for img in original_dataset_te.data])
 
         self.input_shape = (3, 32, 32)
         self.num_classes = 10
@@ -73,7 +74,7 @@ class RobCifar10(Dataset):
         self.datasets['val'] = TensorDataset(transformed_images[-val_size:], original_labels[-val_size:])
         
         # Standard test set
-        self.datasets['test_standard'] = TensorDataset(transformed_test_images, torch.tensor(original_dataset_te.targets))
+        self.datasets['test_standard'] = TensorDataset(standard_test_images, torch.tensor(original_dataset_te.targets))
         
         # Corruption test sets
         self.corruptions = [
@@ -82,7 +83,7 @@ class RobCifar10(Dataset):
             'brightness', 'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression'
         ]
         for corruption in self.corruptions:
-            x_test_corrupt, y_test_corrupt = load_cifar10c(n_examples=10000, corruptions=[corruption], severity=5, data_dir=root)
+            x_test_corrupt, y_test_corrupt = load_cifar10c(n_examples=5000, corruptions=[corruption], severity=5, data_dir=root)
             self.datasets[f'test_corruption_{corruption}'] = TensorDataset(x_test_corrupt, y_test_corrupt)
 
         # Load CIFAR-10.1 dataset
@@ -120,6 +121,7 @@ class RobCifar10(Dataset):
 
     def get_transform(self, augment):
         if augment:
+            print("Data augmentation is enabled.")
             return transforms.Compose([
                 transforms.ToPILImage(),
                 transforms.RandomCrop(32, padding=4),
@@ -129,6 +131,7 @@ class RobCifar10(Dataset):
                 transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
             ])
         else:
+            print("Data augmentation is disabled.")
             return transforms.Compose([
                 transforms.ToPILImage(),
                 transforms.ToTensor(),
@@ -245,6 +248,7 @@ class RobImageNet(Dataset):
 
     def get_transform(self, augment):
         if augment:
+            print("Data augmentation is enabled.")
             return transforms.Compose([
                 transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
                 transforms.RandomHorizontalFlip(),
@@ -254,6 +258,7 @@ class RobImageNet(Dataset):
                 transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             ])
         else:
+            print("Data augmentation is disabled.")
             return transforms.Compose([
                 transforms.Resize(256),
                 transforms.CenterCrop(224),

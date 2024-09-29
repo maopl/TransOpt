@@ -6,7 +6,8 @@ from transopt.benchmark.HPO.HPO import HPO_ERM
 
 class HPOProblem(Problem):
     def __init__(self, task_name, budget_type, budget, seed, workload):
-        self.hpo = HPO_ERM(task_name=task_name, budget_type=budget_type, budget=budget, seed=seed, workload=workload, algorithm='ERM',architecture='resnet', model_size=18, optimizer='nsga2_without_augment')
+        self.hpo = HPO_ERM(task_name=task_name, budget_type=budget_type, budget=budget, seed=seed, workload=workload, algorithm='ERM', 
+                           architecture='wideresnet', model_size=16, optimizer='nsga2_without_augment', base_dir='/data2/mpl/')
 
         original_ranges = self.hpo.configuration_space.original_ranges
         n_var = len(original_ranges)

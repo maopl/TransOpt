@@ -82,9 +82,9 @@ class HPO_base(NonTabularProblem):
         self.trial_seed = seed
         self.hparams = {}
         
-        user_home = os.path.expanduser('~')
-        self.model_save_dir  = os.path.join(user_home, f'transopt_tmp/output/models/{self.hpo_optimizer}_{self.algorithm_name}_{self.architecture}_{self.model_size}_{self.dataset_name}_{seed}/')
-        self.results_save_dir  = os.path.join(user_home, f'transopt_tmp/output/results/{self.hpo_optimizer}_{self.algorithm_name}_{self.architecture}_{self.model_size}_{self.dataset_name}_{seed}/')
+        base_dir = kwargs.get('base_dir', os.path.expanduser('~'))
+        self.model_save_dir  = os.path.join(base_dir, f'transopt_tmp/output/models/{self.hpo_optimizer}_{self.algorithm_name}_{self.architecture}_{self.model_size}_{self.dataset_name}_{seed}/')
+        self.results_save_dir  = os.path.join(base_dir, f'transopt_tmp/output/results/{self.hpo_optimizer}_{self.algorithm_name}_{self.architecture}_{self.model_size}_{self.dataset_name}_{seed}/')
         
         print(f"Selected algorithm: {self.algorithm_name}, dataset: {self.dataset_name}")
         print(f"Model architecture: {self.architecture}")
@@ -101,7 +101,7 @@ class HPO_base(NonTabularProblem):
         torch.manual_seed(seed)
 
         if self.dataset_name in vars(datasets):
-            self.dataset = vars(datasets)[self.dataset_name](root=None, augment=self.hparams.get('data_augmentation', False))
+            self.dataset = vars(datasets)[self.dataset_name](root=base_dir, augment=self.hparams.get('data_augmentation', False))
         else:
             raise NotImplementedError
         

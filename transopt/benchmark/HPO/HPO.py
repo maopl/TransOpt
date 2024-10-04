@@ -297,7 +297,7 @@ class HPO_base(NonTabularProblem):
             self.hparams[key] = value
         
         algorithm_class = algorithms.get_algorithm_class(self.algorithm_name)
-        self.algorithm = algorithm_class(self.dataset.input_shape, self.dataset.num_classes, self.architecture, self.model_size, self.mixup, self.hparams)
+        self.algorithm = algorithm_class(self.dataset.input_shape, self.dataset.num_classes, self.architecture, self.model_size, self.mixup, self.device, self.hparams)
         self.algorithm.to(self.device)
         
         self.query_counter += 1
@@ -370,11 +370,11 @@ class HPO_ERM(HPO_base):
     def __init__(
         self, task_name, budget_type, budget, seed, workload, **kwargs
         ):            
-        algorithm = kwargs.get('algorithm', 'ERM')
-        architecture = kwargs.get('architecture', 'resnet')
-        model_size = kwargs.get('model_size', 18)
-        optimizer = kwargs.get('optimizer', 'random')
-        base_dir = kwargs.get('base_dir', os.path.expanduser('~'))
+        algorithm = kwargs.pop('algorithm', 'ERM')
+        architecture = kwargs.pop('architecture', 'resnet')
+        model_size = kwargs.pop('model_size', 18)
+        optimizer = kwargs.pop('optimizer', 'random')
+        base_dir = kwargs.pop('base_dir', os.path.expanduser('~'))
         
         super(HPO_ERM, self).__init__(
             task_name=task_name, 
@@ -385,8 +385,8 @@ class HPO_ERM(HPO_base):
             algorithm=algorithm, 
             architecture=architecture, 
             model_size=model_size,
-            optimizer = optimizer,
-            base_dir = base_dir,
+            optimizer=optimizer,
+            base_dir=base_dir,
             **kwargs
         )
 

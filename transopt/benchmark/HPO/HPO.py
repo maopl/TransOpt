@@ -386,7 +386,8 @@ class HPO_ERM(HPO_base):
             architecture=architecture, 
             model_size=model_size,
             optimizer = optimizer,
-            base_dir = base_dir
+            base_dir = base_dir,
+            **kwargs
         )
 
 def test_all_combinations():

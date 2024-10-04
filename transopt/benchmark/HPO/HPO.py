@@ -103,7 +103,7 @@ class HPO_base(NonTabularProblem):
         torch.manual_seed(seed)
         
         # Get the GPU ID from hparams, default to 0 if not specified
-        gpu_id = self.hparams.get('gpu_id', 0)
+        gpu_id = kwargs.get('gpu_id', 0)
         
         if torch.cuda.is_available():
             # Check if the specified GPU exists
@@ -123,7 +123,7 @@ class HPO_base(NonTabularProblem):
         print(f"Using device: {self.device}")
         
         if self.dataset_name in vars(datasets):
-            self.dataset = vars(datasets)[self.dataset_name](root=self.data_dir, augment=self.hparams.get('augment', None))
+            self.dataset = vars(datasets)[self.dataset_name](root=self.data_dir, augment=kwargs.get('augment', None))
         else:
             raise NotImplementedError
         if self.hparams.get('augment', None) == 'mixup':
@@ -131,7 +131,7 @@ class HPO_base(NonTabularProblem):
         else:
             self.mixup = False
         
-        print(f"Using augment: {elf.hparams.get('augment', None)}")
+        print(f"Using augment: {kwargs.get('augment', None)}")
         
         self.eval_loaders, self.eval_loader_names = self.create_test_loaders(128)
 

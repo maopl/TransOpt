@@ -17,6 +17,8 @@ import pyro.distributions as dist
 from pyro.infer import SVI, Trace_ELBO
 from pyro.optim import SGD
 
+from transopt.benchmark.HPO.augmentation import mixup_data, mixup_criterion
+
 ALGORITHMS = [
     'ERM',
     'GLMNet',
@@ -78,17 +80,35 @@ class ERM(Algorithm):
             momentum=self.hparams['momentum']
         )
 
+        # 检查是否使用 mixup
+        self.mixup = self.hparams.get('augment') == 'mixup'
+        if self.mixup:
+            self.mixup_alpha = self.hparams.get('mixup_alpha', 1.0)
+
     def update(self, minibatches, unlabeled=None):
         all_x = torch.cat([x for x, y in minibatches])
         all_y = torch.cat([y for x, y in minibatches])
+
+        if self.mixup:
+            all_x, all_y_a, all_y_b, lam = mixup_data(all_x, all_y, self.mixup_alpha,  self.hparams['device'])
+            all_x, all_y_a, all_y_b = map(torch.autograd.Variable, (all_x, all_y_a, all_y_b))
+
         predictions = self.predict(all_x)
-        loss = F.cross_entropy(predictions, all_y)
+
+        if self.mixup:
+            loss = mixup_criterion(F.cross_entropy, predictions, all_y_a, all_y_b, lam)
+        else:
+            loss = F.cross_entropy(predictions, all_y)
 
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
 
-        correct = (predictions.argmax(1) == all_y).sum().item()
+        if self.mixup:
+            correct = (lam * predictions.argmax(1).eq(all_y_a).float() +
+                       (1 - lam) * predictions.argmax(1).eq(all_y_b).float()).sum().item()
+        else:
+            correct = (predictions.argmax(1) == all_y).sum().item()
 
         return {'loss': loss.item(), 'correct': correct}
 

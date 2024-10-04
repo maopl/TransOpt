@@ -4,7 +4,7 @@ import random
 from transopt.benchmark.HPO.image_options import *
 
 
-def mixup_data(x, y, alpha=1.0, use_cuda=True):
+def mixup_data(x, y, alpha=1.0, device='cpu'):
     '''Returns mixed inputs, pairs of targets, and lambda'''
     if alpha > 0:
         lam = np.random.beta(alpha, alpha)
@@ -12,52 +12,18 @@ def mixup_data(x, y, alpha=1.0, use_cuda=True):
         lam = 1
 
     batch_size = x.size()[0]
-    if use_cuda:
-        index = torch.randperm(batch_size).cuda()
-    else:
-        index = torch.randperm(batch_size)
+    index = torch.randperm(batch_size).to(device)
+    print('mixup in the device:', device)
 
     mixed_x = lam * x + (1 - lam) * x[index, :]
     y_a, y_b = y, y[index]
     return mixed_x, y_a, y_b, lam
 
-
+    
 def mixup_criterion(criterion, pred, y_a, y_b, lam):
     return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
 
 
-def train(epoch):
-    print('\nEpoch: %d' % epoch)
-    net.train()
-    train_loss = 0
-    reg_loss = 0
-    correct = 0
-    total = 0
-    for batch_idx, (inputs, targets) in enumerate(trainloader):
-        if use_cuda:
-            inputs, targets = inputs.cuda(), targets.cuda()
-
-        inputs, targets_a, targets_b, lam = mixup_data(inputs, targets,
-                                                       args.alpha, use_cuda)
-        inputs, targets_a, targets_b = map(Variable, (inputs,
-                                                      targets_a, targets_b))
-        outputs = net(inputs)
-        loss = mixup_criterion(criterion, outputs, targets_a, targets_b, lam)
-        train_loss += loss.data[0]
-        _, predicted = torch.max(outputs.data, 1)
-        total += targets.size(0)
-        correct += (lam * predicted.eq(targets_a.data).cpu().sum().float()
-                    + (1 - lam) * predicted.eq(targets_b.data).cpu().sum().float())
-
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-        progress_bar(batch_idx, len(trainloader),
-                     'Loss: %.3f | Reg: %.5f | Acc: %.3f%% (%d/%d)'
-                     % (train_loss/(batch_idx+1), reg_loss/(batch_idx+1),
-                        100.*correct/total, correct, total))
-    return (train_loss/batch_idx, reg_loss/batch_idx, 100.*correct/total)
 
 
 

@@ -112,11 +112,23 @@ class HPO_base(NonTabularProblem):
 
         self.checkpoint_vals = collections.defaultdict(lambda: [])
         
+        # Get the GPU ID from hparams, default to 0 if not specified
+        gpu_id = self.hparams.get('gpu_id', 0)
+        
         if torch.cuda.is_available():
-            self.device = torch.device(f"cuda:1")
-
+            # Check if the specified GPU exists
+            if gpu_id < torch.cuda.device_count():
+                self.device = torch.device(f"cuda:{gpu_id}")
+            else:
+                print(f"Warning: GPU {gpu_id} not found. Defaulting to CPU.")
+                self.device = torch.device("cpu")
         else:
-            self.device = "cpu"
+            self.device = torch.device("cpu")
+        
+        # 将最终使用的设备写入hparams
+        self.hparams['device'] = str(self.device)
+        
+        print(f"Using device: {self.device}")
     def create_train_loaders(self, batch_size):
         if not hasattr(self, 'dataset') or self.dataset is None:
             raise ValueError("Dataset not initialized. Please ensure self.dataset is set before calling this method.")

@@ -38,11 +38,15 @@ class Algorithm(torch.nn.Module):
     - update()
     - predict()
     """
-    def __init__(self, input_shape, num_classes, architecture, model_size, hparams):
+    def __init__(self, input_shape, num_classes, architecture, model_size, mixup, device, hparams):
         super(Algorithm, self).__init__()
         self.hparams = hparams
         self.architecture = architecture
         self.model_size = model_size
+        self.device = device
+        self.mixup = mixup
+        if self.mixup:
+            self.mixup_alpha = self.hparams.get('mixup_alpha', 0.3)
 
     def update(self, minibatches, unlabeled=None):
         """
@@ -62,8 +66,8 @@ class ERM(Algorithm):
     Empirical Risk Minimization (ERM)
     """
 
-    def __init__(self, input_shape, num_classes, architecture, model_size, hparams):
-        super(ERM, self).__init__(input_shape, num_classes, architecture, model_size, hparams)
+    def __init__(self, input_shape, num_classes, architecture, model_size, mixup, device, hparams):
+        super(ERM, self).__init__(input_shape, num_classes, architecture, model_size,  mixup, device, hparams)
         self.featurizer = networks.Featurizer(input_shape, architecture, model_size, self.hparams)
         print(self.featurizer.n_outputs)
         self.classifier = networks.Classifier(
@@ -80,17 +84,12 @@ class ERM(Algorithm):
             momentum=self.hparams['momentum']
         )
 
-        # 检查是否使用 mixup
-        self.mixup = self.hparams.get('augment') == 'mixup'
-        if self.mixup:
-            self.mixup_alpha = self.hparams.get('mixup_alpha', 1.0)
-
     def update(self, minibatches, unlabeled=None):
         all_x = torch.cat([x for x, y in minibatches])
         all_y = torch.cat([y for x, y in minibatches])
 
         if self.mixup:
-            all_x, all_y_a, all_y_b, lam = mixup_data(all_x, all_y, self.mixup_alpha,  self.hparams['device'])
+            all_x, all_y_a, all_y_b, lam = mixup_data(all_x, all_y, self.mixup_alpha,  self.device)
             all_x, all_y_a, all_y_b = map(torch.autograd.Variable, (all_x, all_y_a, all_y_b))
 
         predictions = self.predict(all_x)
@@ -120,8 +119,8 @@ class GLMNet(Algorithm):
     Generalized Linear Model with Elastic Net Regularization (GLMNet)
     """
 
-    def __init__(self, input_shape, num_classes, architecture, model_size, hparams):
-        super(GLMNet, self).__init__(input_shape, num_classes, architecture, model_size, hparams)
+    def __init__(self, input_shape, num_classes, architecture, model_size, mixup, device, hparams):
+        super(GLMNet, self).__init__(input_shape, num_classes, architecture, model_size,  mixup, device, hparams)
         self.featurizer = networks.Featurizer(input_shape, architecture, model_size, self.hparams)
         self.num_classes = num_classes
         

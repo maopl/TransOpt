@@ -101,16 +101,6 @@ class HPO_base(NonTabularProblem):
         random.seed(seed)
         np.random.seed(seed)
         torch.manual_seed(seed)
-
-        if self.dataset_name in vars(datasets):
-            self.dataset = vars(datasets)[self.dataset_name](root=self.data_dir, augment=self.hparams.get('data_augmentation', False))
-        else:
-            raise NotImplementedError
-        
-        self.eval_loaders, self.eval_loader_names = self.create_test_loaders(128)
-
-
-        self.checkpoint_vals = collections.defaultdict(lambda: [])
         
         # Get the GPU ID from hparams, default to 0 if not specified
         gpu_id = self.hparams.get('gpu_id', 0)
@@ -125,10 +115,29 @@ class HPO_base(NonTabularProblem):
         else:
             self.device = torch.device("cpu")
         
+        print(f"Using device: {self.device}")
+        
         # 将最终使用的设备写入hparams
         self.hparams['device'] = str(self.device)
         
         print(f"Using device: {self.device}")
+        
+        if self.dataset_name in vars(datasets):
+            self.dataset = vars(datasets)[self.dataset_name](root=self.data_dir, augment=self.hparams.get('augment', None))
+        else:
+            raise NotImplementedError
+        if self.hparams.get('augment', None) == 'mixup':
+            self.mixup = True
+        else:
+            self.mixup = False
+        
+        print(f"Using augment: {elf.hparams.get('augment', None)}")
+        
+        self.eval_loaders, self.eval_loader_names = self.create_test_loaders(128)
+
+
+        self.checkpoint_vals = collections.defaultdict(lambda: [])
+        
     def create_train_loaders(self, batch_size):
         if not hasattr(self, 'dataset') or self.dataset is None:
             raise ValueError("Dataset not initialized. Please ensure self.dataset is set before calling this method.")
@@ -288,7 +297,7 @@ class HPO_base(NonTabularProblem):
             self.hparams[key] = value
         
         algorithm_class = algorithms.get_algorithm_class(self.algorithm_name)
-        self.algorithm = algorithm_class(self.dataset.input_shape, self.dataset.num_classes, self.architecture, self.model_size, self.hparams)
+        self.algorithm = algorithm_class(self.dataset.input_shape, self.dataset.num_classes, self.architecture, self.model_size, self.mixup, self.hparams)
         self.algorithm.to(self.device)
         
         self.query_counter += 1

@@ -4,7 +4,7 @@ import random
 from transopt.benchmark.HPO.image_options import *
 
 
-def mixup_data(x, y, alpha=1.0, device='cpu'):
+def mixup_data(x, y, alpha=0.3, device='cpu'):
     '''Returns mixed inputs, pairs of targets, and lambda'''
     if alpha > 0:
         lam = np.random.beta(alpha, alpha)

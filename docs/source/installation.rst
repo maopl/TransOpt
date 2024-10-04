@@ -37,7 +37,7 @@ Before installing, ensure you have the following installed:
 
      .. code-block:: console 
 
-       $ python setup.py install [analysis]
+       $ python setup.py install[analysis]
 
    - **Extension 2**: Adds support for distributed computing.
 

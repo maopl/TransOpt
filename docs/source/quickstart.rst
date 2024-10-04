@@ -5,7 +5,7 @@ TransOPT is a sophisticated system designed to facilitate transfer optimization 
 
 Start the backend agent:
 
-::
+.. code-block:: console 
 
   $ python transopt/agent/app.py
 
@@ -15,10 +15,9 @@ Web User Interface Mode
 -----------------------
 When TransOPT has been started successfully, go to the directory of webui and start the webui on your local machine. Enable the user interface mode with the following command:
 
-::
+.. code-block:: console 
 
   $ cd webui && npm start
-
 
 
 
@@ -29,7 +28,7 @@ In addition to the web UI mode, TransOPT also offers a Command Line (CMD) mode f
 
 To run TransOPT in CMD mode, use the following command:
 
-::
+.. code-block:: console 
 
   $ python transopt/agent/run_cli.py -n MyTask -v 3 -o 2 -m RF -acf UCB -b 300
 

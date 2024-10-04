@@ -4,19 +4,60 @@ import numpy as np
 import torch
 from PIL import Image, ImageFile
 from torchvision import transforms
-import torchvision.datasets.folder
 from torch.utils.data import TensorDataset, Subset, ConcatDataset, Dataset
 from torchvision.datasets import MNIST, ImageNet, CIFAR10, CIFAR100
 
 from robustbench.data import load_cifar10c, load_cifar100c, load_imagenetc
-from robustbench.utils import clean_accuracy
-from robustbench.utils import load_model
 
-from transopt.benchmark.HBOROB.algorithms import ERM
+from transopt.benchmark.HPO.augmentation import ImageNetPolicy, CIFAR10Policy, CIFAR10PolicyGeometric, CIFAR10PolicyPhotometric, Cutout
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
+
+def data_transform(dataset_name, augmentation_name=None):
+    if dataset_name.lower() == 'cifar10' or dataset_name.lower() == 'cifar100':
+        mean = (0.4914, 0.4822, 0.4465)
+        std = (0.2023, 0.1994, 0.2010)
+        size = 32
+    elif dataset_name.lower() == 'imagenet':
+        mean = (0.485, 0.456, 0.406)
+        std = (0.229, 0.224, 0.225)
+        size = 224
+    else:
+        raise ValueError(f"Unsupported dataset: {dataset_name}")
+
+    transform_list = [transforms.ToPILImage(), transforms.ToTensor(), transforms.Normalize(mean, std)]
+
+    if augmentation_name:
+        if dataset_name.lower() in ['cifar10', 'cifar100']:
+            if augmentation_name.lower() == 'cutout':
+                transform_list.append(Cutout(n_holes=1, length=16))
+            elif augmentation_name.lower() == 'geometric':
+                transform_list.insert(0, CIFAR10PolicyGeometric())
+            elif augmentation_name.lower() == 'photometric':
+                transform_list.insert(0, CIFAR10PolicyPhotometric())
+            elif augmentation_name.lower() == 'autoaugment':
+                transform_list.insert(0, CIFAR10Policy())
+            elif augmentation_name.lower() == 'mixup':
+                print("Mixup should be applied during training, not as part of the transform.")
+            else:
+                raise ValueError(f"Unsupported augmentation strategy for CIFAR: {augmentation_name}")
+        elif dataset_name.lower() == 'imagenet':
+            if augmentation_name.lower() == 'cutout':
+                transform_list.append(Cutout())
+            elif augmentation_name.lower() == 'autoaugment':
+                transform_list.insert(0, ImageNetPolicy())
+            elif augmentation_name.lower() == 'mixup':
+                print("Mixup should be applied during training, not as part of the transform.")
+            else:
+                raise ValueError(f"Unsupported augmentation strategy for ImageNet: {augmentation_name}")
+        else:
+            raise ValueError(f"Unsupported dataset for augmentation: {dataset_name}")
+    
+    
+
+    return transforms.Compose(transform_list)
 
 def get_dataset_class(dataset_name):
     """Return the dataset class with the given name."""
@@ -58,8 +99,8 @@ class RobCifar10(Dataset):
         original_images = original_images[shuffle]
         original_labels = original_labels[shuffle]
         
-        dataset_transform = self.get_transform(augment)
-        normalized_images = self.get_transform(False)
+        dataset_transform = data_transform('cifar10',augment)
+        normalized_images = data_transform('cifar10', None)
     
         transformed_images = torch.stack([dataset_transform(img) for img in original_images])
         standard_test_images = torch.stack([normalized_images(img) for img in original_dataset_te.data])
@@ -119,24 +160,6 @@ class RobCifar10(Dataset):
         """
         return list(self.datasets.keys())
 
-    def get_transform(self, augment):
-        if augment:
-            print("Data augmentation is enabled.")
-            return transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.RandomCrop(32, padding=4),
-                transforms.RandomHorizontalFlip(),
-                transforms.AutoAugment(transforms.AutoAugmentPolicy.CIFAR10),
-                transforms.ToTensor(),
-                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-            ])
-        else:
-            print("Data augmentation is disabled.")
-            return transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.ToTensor(),
-                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-            ])
 
     def get_test_set(self, name):
         """

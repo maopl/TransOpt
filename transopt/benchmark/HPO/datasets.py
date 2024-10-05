@@ -32,13 +32,13 @@ def data_transform(dataset_name, augmentation_name=None):
     if augmentation_name:
         if dataset_name.lower() in ['cifar10', 'cifar100']:
             if augmentation_name.lower() == 'cutout':
-                transform_list.append(Cutout(n_holes=1, length=16))
+                transform_list.insert(-1,Cutout(n_holes=1, length=16))
             elif augmentation_name.lower() == 'geometric':
-                transform_list.insert(0, CIFAR10PolicyGeometric())
+                transform_list.insert(1, CIFAR10PolicyGeometric())
             elif augmentation_name.lower() == 'photometric':
-                transform_list.insert(0, CIFAR10PolicyPhotometric())
+                transform_list.insert(1, CIFAR10PolicyPhotometric())
             elif augmentation_name.lower() == 'autoaugment':
-                transform_list.insert(0, CIFAR10Policy())
+                transform_list.insert(1, CIFAR10Policy())
             elif augmentation_name.lower() == 'mixup':
                 print("Mixup should be applied during training, not as part of the transform.")
             else:
@@ -54,9 +54,7 @@ def data_transform(dataset_name, augmentation_name=None):
                 raise ValueError(f"Unsupported augmentation strategy for ImageNet: {augmentation_name}")
         else:
             raise ValueError(f"Unsupported dataset for augmentation: {dataset_name}")
-    
-    
-
+    print(transform_list)
     return transforms.Compose(transform_list)
 
 def get_dataset_class(dataset_name):

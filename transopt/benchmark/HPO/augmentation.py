@@ -250,9 +250,9 @@ class CIFAR10PolicyGeometric(object):
         self.policies = [
             SubPolicy(0.7, "rotate", 2, 0.3, "translateX", 9, fillcolor),
             SubPolicy(0.5, "shearY", 8, 0.7, "translateY", 9, fillcolor),
-            SubPolicy(0.2, "shearY", 7, 0.3, "posterize", 7, fillcolor),
+            SubPolicy(0.5, "shearX", 7, 0.3, "posterize", 7, fillcolor),
             SubPolicy(0.9, "translateY", 9, 0.7, "translateY", 9, fillcolor),
-            SubPolicy(0.7, "translateY", 9, 0.9, "autocontrast", 1, fillcolor)
+            SubPolicy(0.7, "translateX", 9, 0.9, "autocontrast", 1, fillcolor)
         ]
 
     def __call__(self, img):

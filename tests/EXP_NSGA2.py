@@ -6,7 +6,7 @@ from transopt.benchmark.HPO.HPO import HPO_ERM
 
 class HPOProblem(Problem):
     def __init__(self, task_name, budget_type, budget, seed, workload):
-        self.hpo = HPO_ERM(task_name=task_name, budget_type=budget_type, budget=budget, seed=seed, workload=workload, algorithm='ERM', gpu_id=1, augment='geometric', architecture='wideresnet', model_size=28, optimizer='nsga2_without_augment', base_dir='/data/')
+        self.hpo = HPO_ERM(task_name=task_name, budget_type=budget_type, budget=budget, seed=seed, workload=workload, algorithm='ERM', gpu_id=0, augment='cutout', architecture='resnet', model_size=18, optimizer='nsga2_augment_cutout', base_dir='/data/')
 
         original_ranges = self.hpo.configuration_space.original_ranges
         n_var = len(original_ranges)
@@ -31,10 +31,9 @@ class HPOProblem(Problem):
 
 if __name__ == "__main__":
     problem = HPOProblem(task_name='test_task', budget_type='FEs', budget=3000, seed=0, workload=0)
-    # algorithm = NSGA2(pop_size=40)
-    problem._evaluate([-2,-3,0.3,0.4,0.5, 2.5])
-    # res = minimize(problem, algorithm, ('n_gen', 50), seed=1, verbose=True)
+    algorithm = NSGA2(pop_size=40)
+    res = minimize(problem, algorithm, ('n_gen', 50), seed=1, verbose=True)
     
-    # print("Best solutions found:")
-    # for i in range(len(res.X)):
-    #     print(f"Solution {i+1}: {res.X[i]}, Objectives: {res.F[i]}")
+    print("Best solutions found:")
+    for i in range(len(res.X)):
+        print(f"Solution {i+1}: {res.X[i]}, Objectives: {res.F[i]}")

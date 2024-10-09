@@ -29,7 +29,9 @@ class SearchSpace:
 
     def get_design_variables(self):
         return self._variables
-
+    
+    def get_design_variable(self, name):
+        return self._variables[name]
 
     def get_hyperparameter_names(self):
         return list(self._variables.keys())
@@ -56,7 +58,7 @@ class SearchSpace:
         for i, name in enumerate(self.variables_order):
             variable = self._variables[name]
             value = values[i]
-            values_dict[name] = variable.map2(value)
+            values_dict[name] = variable.map2design(value)
         return values_dict
     
     def map_from_design_space(self, values_dict: dict) -> np.ndarray:
@@ -73,7 +75,7 @@ class SearchSpace:
         for i, name in enumerate(self.variables_order):
             variable = self._variables[name]
             value = values_dict[name]
-            values_array[i] = variable.map_inverse(value)
+            values_array[i] = variable.map2search(value)
         return values_array
 
     def update_range(self, name, new_range: tuple):

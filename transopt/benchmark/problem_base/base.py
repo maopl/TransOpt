@@ -83,16 +83,16 @@ class ProblemBase(abc.ABC):
             if key not in self.configuration_space.ranges:
                 raise ValueError(f"Configuration key {key} is not valid.")
 
-            if type(self.configuration_space.get_design_variables()[key]) is Categorical:
-                if not (value in self.configuration_space.get_design_variables()[key].categories):
+            if type(self.configuration_space.get_design_variable(key)) is Categorical:
+                if not (value in self.configuration_space.get_design_variable(key).categories):
                     raise ValueError(
                         f"Value of {key}={value} is out of allowed range {range}."
                     )
             else:
-                range = self.configuration_space.ranges[key]
-                if not (range[0] <= value <= range[1]):
+                design_range = self.configuration_space.get_design_variable(key).range
+                if not (design_range[0] <= value <= design_range[1]):
                     raise ValueError(
-                        f"Value of {key}={value} is out of allowed range {range}."
+                        f"Value of {key}={value} is out of allowed range {design_range}."
                     )
 
         if fidelity is None:

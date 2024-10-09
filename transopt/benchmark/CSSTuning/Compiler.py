@@ -1,10 +1,3 @@
-import logging
-import time
-from pathlib import Path
-from typing import Dict, Tuple, Union
-
-import ConfigSpace
-import ConfigSpace as CS
 import numpy as np
 from csstuning.compiler.compiler_benchmark import GCCBenchmark, LLVMBenchmark
 
@@ -71,15 +64,9 @@ class GCCTuning(NonTabularProblem):
         }
     
     def get_problem_type(self):
-        return "compiler"
+        return self.problem_type
     
-    def objective_function(
-        self,
-        configuration: dict,
-        fidelity = None,
-        seed = None,
-        **kwargs
-    ) -> Dict:        
+    def objective_function(self, configuration: dict, fidelity = None, seed = None, **kwargs):        
         try:
             perf = self.benchmark.run(configuration)
             return {obj: perf.get(obj, 1e10) for obj in self.get_objectives()}
@@ -137,15 +124,9 @@ class LLVMTuning(NonTabularProblem):
         }
     
     def get_problem_type(self):
-        return "compiler"
+        return self.problem_type
     
-    def objective_function(
-        self,
-        configuration: dict,
-        fidelity = None,
-        seed = None,
-        **kwargs
-    ) -> Dict:  
+    def objective_function(self, configuration: dict, fidelity = None, seed = None, **kwargs): 
         try:
             perf = self.benchmark.run(configuration)
             return {obj: perf.get(obj, 1e10) for obj in self.get_objectives()}

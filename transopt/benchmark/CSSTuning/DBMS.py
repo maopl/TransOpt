@@ -26,6 +26,7 @@ class MySQLTuning(NonTabularProblem):
         super().__init__(task_name, budget_type, budget, workload, seed)
         np.random.seed(seed)
 
+
     def get_configuration_space(self):
         variables = []
         

@@ -68,7 +68,7 @@ class Dataselector extends React.Component {
       const messageToSend = {
         action: 'ask for information',
       }
-      fetch('http://localhost:5000/api/RunPage/get_info', {
+      fetch('http://localhost:5001/api/RunPage/get_info', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -108,7 +108,7 @@ class Dataselector extends React.Component {
         console.error('Error sending message:', error);
       });
 
-      fetch('http://localhost:5000/api/configuration/basic_information', {
+      fetch('http://localhost:5001/api/configuration/basic_information', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

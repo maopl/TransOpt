@@ -29,7 +29,7 @@ class Continuous(Variable):
         return self.range
 
     def map2(self, value):
-        return value
+        return float(value)  # Ensure it remains a float
     
     def map_inverse(self, value):
         return value
@@ -67,7 +67,8 @@ class Integer(Variable):
         return self.range
 
     def map2(self, value):
-        return value
+        # Ensure the mapped value is an integer
+        return int(round(value)) 
 
     def map_inverse(self, value):
         return round(value)

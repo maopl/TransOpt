@@ -41,7 +41,7 @@ class Analytics extends React.Component {
       ACF: task.ACF || '',
       Normalizer: task.Normalizer || ''
     }));
-    fetch('http://localhost:5000/api/comparison/choose_task', {
+    fetch('http://localhost:5001/api/comparison/choose_task', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ class Analytics extends React.Component {
       const messageToSend = {
         message: 'ask for selections',
       }
-      fetch('http://localhost:5000/api/comparison/selections', {
+      fetch('http://localhost:5001/api/comparison/selections', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -55,7 +55,7 @@ class SearchSpace:
         values_dict = {}
         for i, name in enumerate(self.variables_order):
             variable = self._variables[name]
-            value = values[name]
+            value = values[i]
             values_dict[name] = variable.map2(value)
         return values_dict
     

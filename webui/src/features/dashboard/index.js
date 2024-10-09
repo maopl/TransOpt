@@ -32,7 +32,7 @@ class Dashboard extends React.Component {
     const messageToSend = {
       taskname:this.state.tasksInfo[this.state.selectedTaskIndex].problem_name,
     }
-    fetch('http://localhost:5000/api/Dashboard/charts', {
+    fetch('http://localhost:5001/api/Dashboard/charts', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ class Dashboard extends React.Component {
     errorMessage: this.state.errorMessage
   };
 
-  fetch("http://localhost:5000/api/Dashboard/errorsubmit", {  // 根据实际的API端点进行调整
+  fetch("http://localhost:5001/api/Dashboard/errorsubmit", {  // 根据实际的API端点进行调整
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -121,7 +121,7 @@ class Dashboard extends React.Component {
       const messageToSend = {
         taskname:this.state.tasksInfo[this.state.selectedTaskIndex].problem_name,
       }
-      const response = await fetch('http://localhost:5000/api/Dashboard/trajectory', {
+      const response = await fetch('http://localhost:5001/api/Dashboard/trajectory', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -154,7 +154,7 @@ class Dashboard extends React.Component {
       const messageToSend = {
         action: 'ask for tasks information',
       }
-      fetch('http://localhost:5000/api/Dashboard/tasks', {
+      fetch('http://localhost:5001/api/Dashboard/tasks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

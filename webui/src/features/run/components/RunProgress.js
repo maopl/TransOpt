@@ -33,7 +33,7 @@ class RunProgress extends React.Component {
           const messageToSend = {
             message:"ask for progress"
           }
-          const response = await fetch('http://localhost:5000/api/configuration/run_progress', {
+          const response = await fetch('http://localhost:5001/api/configuration/run_progress', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ class RunProgress extends React.Component {
         const messageToSend = {
           name: task_name
         }
-        fetch('http://localhost:5000/api/configuration/stop_progress', {
+        fetch('http://localhost:5001/api/configuration/stop_progress', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -21,7 +21,7 @@ function ChatUI() {
         content: { text: val },
       };
 
-      fetch('http://localhost:5000/api/generate-yaml', {
+      fetch('http://localhost:5001/api/generate-yaml', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

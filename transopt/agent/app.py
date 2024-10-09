@@ -204,7 +204,10 @@ def create_app():
     def configuration_run():
         run_info = request.json
         
-        seeds = [int(seed) for seed in run_info['Seeds'].split(",")]
+        if "Seeds" in run_info:
+            seeds = [int(seed) for seed in run_info['Seeds'].split(",")]
+        else:
+            seeds = [0]
         services.run_optimize(seeds)  # Handle process creation within run_optimize
         
         return jsonify({"isSucceed": True}), 200
@@ -272,7 +275,7 @@ def create_app():
 
 def main():
     app = create_app()
-    app.run(debug=app.config['DEBUG'])
+    app.run(debug=app.config['DEBUG'], port=5001)
 
 if __name__ == "__main__":
     main()

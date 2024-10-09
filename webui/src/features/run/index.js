@@ -30,7 +30,7 @@ class RunPage extends React.Component {
       const messageToSend = {
         action: 'ask for information',
       }
-      fetch('http://localhost:5000/api/RunPage/get_info', {
+      fetch('http://localhost:5001/api/RunPage/get_info', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

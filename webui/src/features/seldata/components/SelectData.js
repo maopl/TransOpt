@@ -51,7 +51,7 @@ function SelectData({DatasetData, updateTable, DatasetSelector}) {
       }
       updateTable(messageToSend)
       console.log(messageToSend)
-      fetch('http://localhost:5000/api/configuration/dataset', {
+      fetch('http://localhost:5001/api/configuration/dataset', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,7 +89,7 @@ function SelectData({DatasetData, updateTable, DatasetSelector}) {
         datasets: datasetList,
       }
       console.log(messageToSend)
-      fetch('http://localhost:5000/api/configuration/delete_dataset', {
+      fetch('http://localhost:5001/api/configuration/delete_dataset', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

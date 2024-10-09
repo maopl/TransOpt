@@ -50,7 +50,7 @@ function SelectAlgorithm({ SpaceRefiner, Sampler, Pretrain, Model, ACF, Normaliz
         // Combine selectedValues with formValues
         const messageToSend = { ...selectedValues, ...formValues };
   
-        fetch('http://localhost:5000/api/configuration/select_algorithm', {
+        fetch('http://localhost:5001/api/configuration/select_algorithm', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

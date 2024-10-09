@@ -131,7 +131,7 @@ class ProblemBase(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def get_objectives(self) -> list:
+    def get_objectives(self) -> dict:
         """Defines the available fidelity parameters as a "fidelity space" for each benchmark.
         Parameters
         ----------

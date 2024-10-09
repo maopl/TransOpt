@@ -18,7 +18,7 @@ function SelectAlgorithm({SpaceRefiner, Sampler, Pretrain, Model, ACF, DataSelec
         updateTable(messageToSend)
         console.log('Request data:', messageToSend);
         // 向后端发送请求...
-        fetch('http://localhost:5000/api/configuration/select_algorithm', {
+        fetch('http://localhost:5001/api/configuration/select_algorithm', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

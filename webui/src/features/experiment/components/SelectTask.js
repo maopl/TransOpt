@@ -47,7 +47,7 @@ function SelectTask({ data, updateTable }) {
     updateTable(messageToSend);
     console.log('Request data:', messageToSend);
     // Send request to backend...
-    fetch('http://localhost:5000/api/configuration/select_task', {
+    fetch('http://localhost:5001/api/configuration/select_task', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

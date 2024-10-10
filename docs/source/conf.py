@@ -34,6 +34,8 @@ extensions =[
     'sphinx_rtd_theme',
     'sphinxcontrib.bibtex',
     
+    'sphinx_togglebutton',
+    
     'sphinx.ext.mathjax',
     'sphinx.ext.autosummary',
     # 'numpydoc',

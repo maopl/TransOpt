@@ -64,4 +64,5 @@ class MySQLTuning(NonTabularProblem):
             return {obj: 1e10 for obj in self.get_objectives()}
 
 if __name__ == "__main__":
-    a = DBMSTuning("1", 121, 0, 1)
+    # a = DBMSTuning("1", 121, 0, 1)
+    pass

@@ -151,7 +151,7 @@ In this method, the surrogate model uses a Tree-structured Parzen Estimator (TPE
 
 Acquisition Function
 ^^^^^^^^^^^^^^^^^^^^
-**Scalable Meta-Learning for Bayesian Optimization using Ranking-Weighted Gaussian Process Ensembles**:cite:`FeurerBE15`
+**Scalable Meta-Learning for Bayesian Optimization using Ranking-Weighted Gaussian Process Ensembles**
 
 In RGPE, the acquisition function follows standard BO methods but integrates the ranking-weighted ensemble model. The ensemble combines predictions from multiple GPs, each weighted based on its ranking performance in relation to the current task. The acquisition function then uses this weighted ensemble to balance exploration and exploitation, ensuring that the most relevant past models are given greater influence when selecting the next point to evaluate 
 

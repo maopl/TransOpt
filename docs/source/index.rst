@@ -6,12 +6,22 @@
 .. _home:
 
 
-TransOPT: Transfer Optimization System for Automated Configuration
-==================================================================
+TRANSOPT: Transfer Optimization System for Bayesian Optimization Using Transfer Learning
+========================================================================================
 TransOPT is an open-source software platform designed to facilitate the design, benchmarking, and application of transfer learning for Bayesian optimization (TLBO) algorithms through a modular, data-centric framework.
 
 .. raw:: html
    :file: home/guide.html
+
+
+Video Demonstration
+********************************************************************************
+Watch the following video for a quick overview of TransOPT's capabilities:
+
+.. raw:: html
+
+   <iframe width="560" height="315" src="https://www.youtube.com/embed/8I25_6fArxY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
 
 Features
 ********************************************************************************
@@ -19,16 +29,6 @@ TransOPT offers diverse features covering various aspects of transfer optimizati
 
 .. raw:: html
    :file: home/feature.html
-
-
-
-Available Algorithmic Objects
-********************************************************************************
-
-.. csv-table::
-   :header: "Algorithmic Objects", "Type", "Source Algorithm"
-   :widths: 60, 10, 100
-   :file: usage/algorithms.csv
 
 
 

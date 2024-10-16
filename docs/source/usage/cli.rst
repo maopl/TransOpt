@@ -16,8 +16,8 @@ To run the `run_cli.py` script, navigate to the directory containing the script 
 
 Where `[OPTIONS]` are the command-line arguments you can specify to customize the behavior of TransOPT.
 
-### Command-Line Arguments
-
+I. Command-Line Arguments
+^^^^^^^^^^^^^^^^^^^^^^^^^
 Here is a list of the main command-line arguments supported by the script:
 
 **Task Configuration**
@@ -62,8 +62,8 @@ Here is a list of the main command-line arguments supported by the script:
 
 - **`-s, --seeds`**: Random seed for reproducibility (default: `0`).
 
-### Example Usage
-
+II. Example Usage
+^^^^^^^^^^^^^^^^^
 Below are some example commands demonstrating how to use the CLI to run different tasks with varying configurations.
 
 **Example 1: Running a basic task with default parameters**
@@ -84,8 +84,8 @@ Below are some example commands demonstrating how to use the CLI to run differen
 
    python transopt/agent/run_cli.py -n MyTask -sr "Prune"  -sp "lhs" -spi 30 -b 300
 
-### Additional Notes
-
+III. Additional Notes
+^^^^^^^^^^^^^^^^^^^^^
 - The **random seed** is particularly important for ensuring that the results are reproducible. Make sure to specify the `--seeds` option if you want to run experiments that can be exactly replicated.
 - TransOPT's CLI is highly flexible, allowing you to tailor the optimization process to your specific needs by adjusting the parameters and options provided.
 

@@ -22,16 +22,16 @@ Registering a New Benchmark Problem
 
 To register a new benchmark problem in the TransOPT framework, follow the steps below.
 
-### 1. Import the Problem Registry
-
+I. Import the Problem Registry
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 First, you need to import the `problem_registry` from the `transopt.agent.registry` module:
 
 .. code-block:: python
 
     from transopt.agent.registry import problem_registry
 
-### 2. Define a New Problem Class
-
+II. Define a New Problem Class
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Next, define a new problem class. This class should be decorated with the `@problem_registry.register("ProblemName")` decorator, where `"ProblemName"` is the unique identifier for the problem. The new problem class must inherit from one of the following base classes:
 
 - `NonTabularProblem`
@@ -45,7 +45,8 @@ For example, to create a new problem named "new_problem", you would define the c
     class new_problem(NonTabularProblem):
         pass  # Further implementation required
 
-### 3. Implement Required Methods
+III. Implement Required Methods
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 After defining the class, you need to implement the following three abstract methods:
 

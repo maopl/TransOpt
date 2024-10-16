@@ -59,9 +59,10 @@ html_logo = "_static//figures/transopt_logo.jpg"
 
 html_theme = 'sphinx_book_theme'
 html_static_path = ['_static']
+html_css_files = [
+    'custom.css',
+]
 
-def setup(app):
-    app.add_css_file('custom.css')
 
 
 master_doc = 'index'

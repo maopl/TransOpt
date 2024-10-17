@@ -7,6 +7,14 @@ from torchvision import transforms
 from torch.utils.data import TensorDataset, Subset, ConcatDataset, Dataset
 from torchvision.datasets import MNIST, ImageNet, CIFAR10, CIFAR100
 
+
+import matplotlib.pyplot as plt
+from sklearn.manifold import TSNE
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+
+
+
 from robustbench.data import load_cifar10c, load_cifar100c, load_imagenetc
 
 from transopt.benchmark.HPO.augmentation import ImageNetPolicy, CIFAR10Policy, CIFAR10PolicyGeometric, CIFAR10PolicyPhotometric, Cutout
@@ -27,6 +35,7 @@ def data_transform(dataset_name, augmentation_name=None):
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}")
 
+    # transform_list = [transforms.ToPILImage(), transforms.ToTensor(), transforms.Normalize(mean, std)]
     transform_list = [transforms.ToPILImage(), transforms.ToTensor(), transforms.Normalize(mean, std)]
 
     if augmentation_name:
@@ -97,7 +106,7 @@ class RobCifar10(Dataset):
         original_images = original_images[shuffle]
         original_labels = original_labels[shuffle]
         
-        dataset_transform = data_transform('cifar10',augment)
+        dataset_transform = data_transform('cifar10', augment)
         normalized_images = data_transform('cifar10', None)
     
         transformed_images = torch.stack([dataset_transform(img) for img in original_images])
@@ -123,6 +132,7 @@ class RobCifar10(Dataset):
         ]
         for corruption in self.corruptions:
             x_test_corrupt, y_test_corrupt = load_cifar10c(n_examples=5000, corruptions=[corruption], severity=5, data_dir=root)
+            x_test_corrupt = torch.stack([normalized_images(img) for img in x_test_corrupt])
             self.datasets[f'test_corruption_{corruption}'] = TensorDataset(x_test_corrupt, y_test_corrupt)
 
         # Load CIFAR-10.1 dataset
@@ -133,6 +143,7 @@ class RobCifar10(Dataset):
             cifar101_labels = np.load(cifar101_labels_path)
             cifar101_data = torch.from_numpy(cifar101_data).float() / 255.0
             cifar101_data = cifar101_data.permute(0, 3, 1, 2)  # Change from (N, 32, 32, 3) to (N, 3, 32, 32)
+            cifar101_data = torch.stack([normalized_images(img) for img in cifar101_data])
             cifar101_labels = torch.from_numpy(cifar101_labels).long()
             self.datasets['test_cifar10.1'] = TensorDataset(cifar101_data, cifar101_labels)
         else:
@@ -146,7 +157,7 @@ class RobCifar10(Dataset):
             cifar102_labels = cifar102_data['labels']
             cifar102_images = torch.from_numpy(cifar102_images).float() / 255.0
             cifar102_images = cifar102_images.permute(0, 3, 1, 2)  # Change from (N, 32, 32, 3) to (N, 3, 32, 32)
-
+            cifar102_images = torch.stack([normalized_images(img) for img in cifar102_images])
             cifar102_labels = torch.from_numpy(cifar102_labels).long()
             self.datasets['test_cifar10.2'] = TensorDataset(cifar102_images, cifar102_labels)
         else:
@@ -349,8 +360,88 @@ def test_dataset(dataset_name='cifar10', num_samples=5):
             print(f"Error loading data from {key}: {str(e)}")
 
     print(f"\nAll tests for {dataset_name} passed successfully!")
+    
+def visualize_dataset_tsne(dataset_name='cifar10', n_samples=1000, perplexity=30, n_iter=1000):
+    # Set up data transformation
+    non_augment = data_transform(dataset_name, augmentation_name=None)
+    augment = data_transform(dataset_name, augmentation_name='photometric')
+
+    # Load dataset
+    if dataset_name.lower() == 'cifar10':
+        dataset = RobCifar10(root=None, augment=False)
+    else:
+        raise ValueError(f"Unsupported dataset: {dataset_name}")
+
+    # Prepare data for t-SNE
+    all_images = []
+    all_labels = []
+    dataset_types = []
+
+    for key, data in dataset.datasets.items():
+        loader = DataLoader(data, batch_size=n_samples, shuffle=True)
+        images, labels = next(iter(loader))
+
+        if key == 'train':
+            origin_images = torch.stack([non_augment(img) for img in images])
+            all_images.append(origin_images)
+            all_labels.append(labels)
+            dataset_types.extend(['train_without_aug'] * len(origin_images))
+            
+            augmented_images = torch.stack([augment(img) for img in images])
+            all_images.append(augmented_images)
+            all_labels.append(labels)
+            dataset_types.extend(['augmented'] * len(augmented_images))
+            continue
+        
+        if key.startswith('test_') and key != 'test_standard':
+            all_images.append(images)
+            all_labels.append(labels)
+            dataset_types.extend(['test_ds'] * len(images))
+        # else:
+        #     all_images.append(images)
+        #     all_labels.append(labels)
+        #     dataset_types.extend([key] * len(images))
+
+    all_images = torch.cat(all_images, dim=0)
+    all_labels = torch.cat(all_labels, dim=0)
+    all_images_flat = all_images.view(all_images.size(0), -1).numpy()
+
+    # Apply t-SNE
+    tsne = TSNE(n_components=2, perplexity=perplexity, n_iter=n_iter, random_state=42)
+    tsne_results = tsne.fit_transform(all_images_flat)
+
+    # Visualize results
+    plt.figure(figsize=(16, 12))
+    
+    # Define a fixed color map
+    fixed_color_map = {
+        'train_without_aug': '#1f77b4',  # blue
+        'augmented': '#ff7f0e',          # orange
+        'val': '#2ca02c',                # green
+        'test_standard': '#d62728',      # red
+        'test_ds': '#9467bd',            # purple
+        'test_cifar10.1': '#8c564b',     # brown
+        'test_cifar10.2': '#e377c2'      # pink
+    }
+    
+    for dtype in fixed_color_map.keys():
+        mask = np.array(dataset_types) == dtype
+        if np.any(mask):  # Only plot if there are data points for this type
+            plt.scatter(tsne_results[mask, 0], tsne_results[mask, 1], 
+                        c=fixed_color_map[dtype], label=dtype, alpha=0.6)
+
+    plt.legend()
+    plt.title(f't-SNE visualization of {dataset_name} dataset')
+    plt.savefig(f'{dataset_name}_tsne_visualization.png')
+    plt.close()
+
+    print(f"t-SNE visualization has been saved as '{dataset_name}_tsne_visualization.png'")
 
 if __name__ == "__main__":
-    test_dataset('cifar10')
+    # test_dataset('cifar10')
     # test_dataset('cifar100')
     # test_dataset('imagenet')
+
+    visualize_dataset_tsne(dataset_name='cifar10', n_samples=1000)
+
+    # ... (之后的代码保持不变)

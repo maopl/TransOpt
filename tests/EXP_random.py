@@ -1,5 +1,5 @@
 import numpy as np
-from transopt.benchmark.HPO.HPO import HPO_ERM
+from transopt.benchmark.HPO.HPO_ERM import HPO_ERM
 import random
 
 def random_search(n_trials, task_name, budget_type, budget, seed, workload):

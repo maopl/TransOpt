@@ -168,7 +168,6 @@ class HPO_base(NonTabularProblem):
         
         self.eval_loaders, self.eval_loader_names = self.create_test_loaders(128)
 
-
         self.checkpoint_vals = collections.defaultdict(lambda: [])
         
     def create_train_loaders(self, batch_size):
@@ -249,7 +248,7 @@ class HPO_base(NonTabularProblem):
         early_stopping = EarlyStopping(
             patience=configuration.get('patience', 10),
             min_delta=configuration.get('min_delta', 0.001),
-            mode='max'  # 因为我们监控准确率
+            mode='max'  
         )
         
         torch.backends.cudnn.deterministic = True
@@ -262,8 +261,8 @@ class HPO_base(NonTabularProblem):
         
         self.hparams['nonlinear_classifier'] = True
     
-        best_val_acc = 0.0  # 记录最佳验证集准确率
-        best_epoch = 0  # 记录最佳epoch
+        best_val_acc = 0.0
+        best_epoch = 0
         
         for epoch in range(self.epoches):
             epoch_start_time = time.time()
@@ -367,8 +366,6 @@ class HPO_base(NonTabularProblem):
         self.query_counter += 1
         results = self.train(configuration)
         
-
-
         # Save results
         epochs_path = os.path.join(self.results_save_dir, f"{self.filename}.jsonl")
         with open(epochs_path, 'w') as f:
@@ -379,7 +376,7 @@ class HPO_base(NonTabularProblem):
         with open(os.path.join(self.model_save_dir, 'done'), 'w') as f:
             f.write('done')
 
-        val_acc = results['val_acc']
+        val_acc = results['best_val_acc']
         
         return val_acc, results
         

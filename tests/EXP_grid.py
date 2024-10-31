@@ -1,5 +1,5 @@
 import numpy as np
-from transopt.benchmark.HPO.HPO import HPO_ERM
+from transopt.benchmark.HPO.HPO_ERM import HPO_ERM
 from scipy.stats import qmc
 
 def sobol_search(n_samples, task_name, budget_type, budget, seed, workload):

@@ -2,7 +2,7 @@ import numpy as np
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.optimize import minimize
 from pymoo.core.problem import Problem
-from transopt.benchmark.HPO.HPO import HPO_ERM
+from transopt.benchmark.HPO.HPO_ERM import HPO_ERM
 import os
 import pandas as pd
 from pymoo.util.nds.non_dominated_sorting import NonDominatedSorting

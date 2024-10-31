@@ -1,9 +1,9 @@
 from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
-from transopt.benchmark.HPO.HPO import HPO_ERM
+from transopt.benchmark.HPO.HPO_ERM import HPO_ERM
 import numpy as np
 
 # Create a single HPO_ERM instance
-hpo = HPO_ERM(task_name='hyperopt_optimization', budget_type='FEs', budget=2000, seed=0, workload=0,algorithm='ERM',architecture='resnet', model_size=18, optimizer='hyperopt')
+hpo = HPO_ERM(task_name='hyperopt_optimization', budget_type='FEs', budget=2000, seed=0, workload=0,algorithm='ERM',architecture='wideresnet', model_size=28, optimizer='hyperopt')
   
 # Define the objective function
 def objective(params):
@@ -23,7 +23,6 @@ def get_hyperopt_space():
 if __name__ == "__main__":
     # Create the search space
     search_space = get_hyperopt_space()
-    print(11111111111111)
     
     # Run optimization
     n_iterations = 200

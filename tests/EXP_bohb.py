@@ -1,6 +1,6 @@
 from bohb import BOHB
 import bohb.configspace as cs
-from transopt.benchmark.HPO.HPO import HPO_ERM
+from transopt.benchmark.HPO.HPO_ERM import HPO_ERM
 import numpy as np
 
 # Create a single HPO_ERM instance

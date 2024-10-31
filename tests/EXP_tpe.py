@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Protocol, Tuple
 
 from tpe.optimizer import TPEOptimizer
 
-from transopt.benchmark.HPO.HPO import HPO_ERM
+from transopt.benchmark.HPO.HPO_ERM import HPO_ERM
 from tpe.optimizer.base_optimizer import BaseOptimizer, ObjectiveFunc
 
 # Create a single HPO_ERM instance

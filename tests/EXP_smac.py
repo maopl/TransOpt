@@ -3,7 +3,7 @@ import ConfigSpace as cs
 import numpy as np
 import time
 from smac import HyperparameterOptimizationFacade, Scenario
-from transopt.benchmark.HPO.HPO import HPO_ERM
+from transopt.benchmark.HPO.HPO_ERM import HPO_ERM
 
 # Create a single HPO_ERM instance
 hpo = HPO_ERM(task_name='smac_optimization', budget_type='FEs', budget=2000, seed=42, workload=0,algorithm='ERM',architecture='resnet', model_size=18, optimizer='smac')

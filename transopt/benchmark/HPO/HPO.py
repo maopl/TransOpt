@@ -25,6 +25,39 @@ from transopt.benchmark.HPO import algorithms
 from transopt.benchmark.HPO.hparams_registry import get_hparam_space
 from transopt.benchmark.HPO.networks import SUPPORTED_ARCHITECTURES
 
+  
+class EarlyStopping:
+    def __init__(self, patience=10, min_delta=0.001, mode='max'):
+        self.patience = patience
+        self.min_delta = min_delta
+        self.mode = mode
+        self.counter = 0
+        self.best_value = None
+        self.early_stop = False
+
+    def __call__(self, value):
+        if self.best_value is None:
+            self.best_value = value
+            return False
+
+        if self.mode == 'max':
+            if value > self.best_value + self.min_delta:
+                self.best_value = value
+                self.counter = 0
+            else:
+                self.counter += 1
+        else:  # mode == 'min'
+            if value < self.best_value - self.min_delta:
+                self.best_value = value
+                self.counter = 0
+            else:
+                self.counter += 1
+
+        if self.counter >= self.patience:
+            self.early_stop = True
+        return self.early_stop
+
+
 class HPO_base(NonTabularProblem):
     problem_type = 'hpo'
     num_variables = 4
@@ -208,11 +241,16 @@ class HPO_base(NonTabularProblem):
         self, seed: Union[int, None] = None):
 
         fs = FidelitySpace([
-            Integer("epoch", [1, 100])  # Adjust the range as needed
+            Integer("epoch", [1, 1000])  # Adjust the range as needed
         ])
         return fs
-    
     def train(self, configuration: dict):
+
+        early_stopping = EarlyStopping(
+            patience=configuration.get('patience', 10),
+            min_delta=configuration.get('min_delta', 0.001),
+            mode='max'  # 因为我们监控准确率
+        )
         
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
@@ -224,6 +262,9 @@ class HPO_base(NonTabularProblem):
         
         self.hparams['nonlinear_classifier'] = True
     
+        best_val_acc = 0.0  # 记录最佳验证集准确率
+        best_epoch = 0  # 记录最佳epoch
+        
         for epoch in range(self.epoches):
             epoch_start_time = time.time()
             epoch_loss = 0.0
@@ -252,15 +293,32 @@ class HPO_base(NonTabularProblem):
             epoch_loss /= len(self.train_loader)
             print(f"Epoch {epoch+1}/{self.epoches} - Loss: {epoch_loss:.4f}, Accuracy: {epoch_acc:.4f}")
 
-        # Evaluate on validation set
-        val_acc = self.evaluate_loader(self.val_loader)
+            val_acc = self.evaluate_loader(self.val_loader)
+            print(f"Validation Accuracy: {val_acc:.4f}")
+
+            early_stopping(val_acc)
+            if val_acc > best_val_acc:
+                best_val_acc = val_acc
+                best_epoch = epoch
+            
+                self.save_checkpoint(f"{self.filename}_model.pkl")
+
+            if early_stopping.early_stop:
+                print(f"Early stopping triggered at epoch {epoch+1}")
+                break
+
+        checkpoint = torch.load(os.path.join(self.model_save_dir, f"{self.filename}_model.pkl"))
+        self.algorithm.load_state_dict(checkpoint['model_dict'])
 
         # Calculate final results after all epochs
         results = {
             'epoch': self.epoches,
+            'early_stop_epoch': epoch + 1,
+            'best_epoch': best_epoch + 1,
             'epoch_time': time.time() - epoch_start_time,
             'train_loss': epoch_loss,
             'train_acc': epoch_acc,
+            'best_val_acc': best_val_acc,
             'val_acc': val_acc,
         }
 
@@ -296,6 +354,12 @@ class HPO_base(NonTabularProblem):
         for key, value in configuration.items():
             self.hparams[key] = value
         
+        # Construct filename with query and all hyperparameters
+        filename_parts = [f"{self.query_counter}"]
+        for key, value in configuration.items():
+            filename_parts.append(f"{key}_{value}")
+        self.filename = "_".join(filename_parts)
+        
         algorithm_class = algorithms.get_algorithm_class(self.algorithm_name)
         self.algorithm = algorithm_class(self.dataset.input_shape, self.dataset.num_classes, self.architecture, self.model_size, self.mixup, self.device, self.hparams)
         self.algorithm.to(self.device)
@@ -303,19 +367,15 @@ class HPO_base(NonTabularProblem):
         self.query_counter += 1
         results = self.train(configuration)
         
-        # Construct filename with query and all hyperparameters
-        filename_parts = [f"{self.query_counter}"]
-        for key, value in configuration.items():
-            filename_parts.append(f"{key}_{value}")
-        filename = "_".join(filename_parts)
+
 
         # Save results
-        epochs_path = os.path.join(self.results_save_dir, f"{filename}.jsonl")
+        epochs_path = os.path.join(self.results_save_dir, f"{self.filename}.jsonl")
         with open(epochs_path, 'w') as f:
             json.dump(results, f, indent=2)
         
         # Save final checkpoint and mark as done
-        self.save_checkpoint(f"{filename}_model.pkl")
+        self.save_checkpoint(f"{self.filename}_model.pkl")
         with open(os.path.join(self.model_save_dir, 'done'), 'w') as f:
             f.write('done')
 
@@ -333,7 +393,9 @@ class HPO_base(NonTabularProblem):
     ) -> Dict:
 
         if fidelity is None:
-            fidelity = {"epoch": 50}
+            fidelity = {"epoch": 500}
+        
+        print(f'fidelity:{fidelity}')
         
         # Convert log scale values back to normal scale
         c = self.configuration_space.map_to_design_space(configuration)

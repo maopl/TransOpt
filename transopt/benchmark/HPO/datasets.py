@@ -35,8 +35,8 @@ def data_transform(dataset_name, augmentation_name=None):
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}")
 
-    # transform_list = [transforms.ToPILImage(), transforms.ToTensor(), transforms.Normalize(mean, std)]
     transform_list = [transforms.ToPILImage(), transforms.ToTensor(), transforms.Normalize(mean, std)]
+    # transform_list = [transforms.ToPILImage(), transforms.ToTensor()]
 
     if augmentation_name:
         if dataset_name.lower() in ['cifar10', 'cifar100']:

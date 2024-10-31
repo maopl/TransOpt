@@ -4,12 +4,12 @@ import numpy as np
 
 # Create a single HPO_ERM instance
 hpo = HPO_ERM(task_name='hyperopt_optimization', budget_type='FEs', budget=2000, seed=0, workload=0,algorithm='ERM',architecture='resnet', model_size=18, optimizer='hyperopt')
-
+  
 # Define the objective function
 def objective(params):
     # Convert hyperopt params to the format expected by HPO_ERM
-    config = {k: v[0] if isinstance(v, list) else v for k, v in params.items()}
-    result = hpo.objective_function(configuration=config, fidelity={'epoch': 50})
+    config = np.array([params[name] for name in hpo.configuration_space.variables_order])
+    result = hpo.objective_function(configuration=config)
     return {'loss': 1 - result['function_value'], 'status': STATUS_OK}
 
 # Define the search space
@@ -23,6 +23,7 @@ def get_hyperopt_space():
 if __name__ == "__main__":
     # Create the search space
     search_space = get_hyperopt_space()
+    print(11111111111111)
     
     # Run optimization
     n_iterations = 200

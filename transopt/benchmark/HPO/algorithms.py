@@ -17,10 +17,11 @@ import pyro.distributions as dist
 from pyro.infer import SVI, Trace_ELBO
 from pyro.optim import SGD
 
-from transopt.benchmark.HPO.augmentation import mixup_data, mixup_criterion
+from transopt.benchmark.HPO.augmentation import mixup_data, mixup_criterion, AugMixDataset
 
 ALGORITHMS = [
     'ERM',
+    'ERM_JSD'
     'GLMNet',
     'BayesianNN',
 ]
@@ -110,6 +111,85 @@ class ERM(Algorithm):
             correct = (predictions.argmax(1) == all_y).sum().item()
 
         return {'loss': loss.item(), 'correct': correct}
+
+    def predict(self, x):
+        return self.network(x)
+
+class ERM_JSD(Algorithm):
+    """ERM with additional penalty term. Currently supports JSD penalty."""
+    
+    def __init__(self, input_shape, num_classes, architecture, model_size, mixup, device, hparams, penalty='jsd'):
+        super(ERM_JSD, self).__init__(input_shape, num_classes, architecture, model_size, mixup, device, hparams)
+        self.penalty = penalty
+        self.featurizer = networks.Featurizer(input_shape, architecture, model_size, self.hparams)
+        self.classifier = networks.Classifier(
+            self.featurizer.n_outputs,
+            num_classes,
+            self.hparams['dropout_rate'],
+            self.hparams['nonlinear_classifier'])
+        
+        self.augmix = AugMixDataset(no_jsd=False, all_ops=True)
+
+        self.network = nn.Sequential(self.featurizer, self.classifier)
+        self.optimizer = torch.optim.SGD(
+            self.network.parameters(),
+            lr=self.hparams["lr"],
+            weight_decay=self.hparams['weight_decay'],
+            momentum=self.hparams['momentum']
+        )
+    def update(self, minibatches, unlabeled=None):
+        if self.penalty == 'jsd' and self.augmix:
+            # Get augmented images and labels from AugMixDataset
+            # Concatenate batches
+            all_x = torch.cat([x for x, y in minibatches])
+            all_y = torch.cat([y for x, y in minibatches])
+            
+            # Apply AugMix augmentation to each image
+            augmented_outputs = []
+            for i in range(len(all_x)):
+                aug_output, _ = self.augmix.augment(all_x[i], all_y[i])
+                augmented_outputs.append(aug_output)
+            
+            # Unpack augmented outputs
+            x_clean = torch.stack([out[0] for out in augmented_outputs])
+            x_aug1 = torch.stack([out[1] for out in augmented_outputs]) 
+            x_aug2 = torch.stack([out[2] for out in augmented_outputs])
+            
+            all_y = all_y.to(self.device)
+            x_aug1 = x_aug1.to(self.device)
+            x_aug2 = x_aug2.to(self.device)
+            x_clean = x_clean.to(self.device)
+            
+            # Get predictions for clean and augmented images
+            logits_clean = self.predict(x_clean)
+            logits_aug1 = self.predict(x_aug1)
+            logits_aug2 = self.predict(x_aug2)
+
+            # Cross entropy on clean images
+            loss = F.cross_entropy(logits_clean, all_y)
+
+            # Calculate JSD penalty
+            p_clean = F.softmax(logits_clean, dim=1)
+            p_aug1 = F.softmax(logits_aug1, dim=1) 
+            p_aug2 = F.softmax(logits_aug2, dim=1)
+
+            # Clamp mixture distribution
+            p_mixture = torch.clamp((p_clean + p_aug1 + p_aug2) / 3., 1e-7, 1).log()
+            
+            # Add JSD penalty term
+            penalty = (F.kl_div(p_mixture, p_clean, reduction='batchmean') +
+                      F.kl_div(p_mixture, p_aug1, reduction='batchmean') +
+                      F.kl_div(p_mixture, p_aug2, reduction='batchmean')) / 3.
+            
+            loss += 12 * penalty
+
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
+
+            return {'loss': loss.item(), 'penalty': penalty.item()}
+        else:
+            raise NotImplementedError(f"Penalty type {self.penalty} not implemented")
 
     def predict(self, x):
         return self.network(x)

@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import random
 from transopt.benchmark.HPO.image_options import *
+from torchvision import transforms
 
 
 def mixup_data(x, y, alpha=0.3, device='cpu'):
@@ -22,10 +23,6 @@ def mixup_data(x, y, alpha=0.3, device='cpu'):
     
 def mixup_criterion(criterion, pred, y_a, y_b, lam):
     return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
-
-
-
-
 
 
 class Cutout(object):
@@ -366,3 +363,175 @@ class SubPolicy(object):
         if random.random() < self.p2:
             img = self.operation2(img, self.magnitude2)
         return img
+
+
+class AugMixOps(object):
+    def __init__(self, all_ops=False):
+        self.all_ops = all_ops
+        self.IMAGE_SIZE = 32  # Add IMAGE_SIZE as class attribute
+        
+    def int_parameter(self, level, maxval):
+        """Helper function to scale `val` between 0 and maxval .
+
+        Args:
+            level: Level of the operation that will be between [0, `PARAMETER_MAX`].
+            maxval: Maximum value that the operation can have. This will be scaled to
+            level/PARAMETER_MAX.
+
+        Returns:
+            An int that results from scaling `maxval` according to `level`.
+        """
+        return int(level * maxval / 10)
+
+    def float_parameter(self, level, maxval):
+        """Helper function to scale `val` between 0 and maxval.
+
+        Args:
+            level: Level of the operation that will be between [0, `PARAMETER_MAX`].
+            maxval: Maximum value that the operation can have. This will be scaled to
+            level/PARAMETER_MAX.
+
+        Returns:
+            A float that results from scaling `maxval` according to `level`.
+        """
+        return float(level) * maxval / 10.
+
+    def sample_level(self, n):
+        return np.random.uniform(low=0.1, high=n)
+
+    def autocontrast(self, pil_img, _):
+        return ImageOps.autocontrast(pil_img)
+
+    def equalize(self, pil_img, _):
+        return ImageOps.equalize(pil_img)
+
+    def posterize(self, pil_img, level):
+        level = self.int_parameter(self.sample_level(level), 4)
+        return ImageOps.posterize(pil_img, 4 - level)
+
+    def rotate(self, pil_img, level):
+        degrees = self.int_parameter(self.sample_level(level), 30)
+        if np.random.uniform() > 0.5:
+            degrees = -degrees
+        return pil_img.rotate(degrees, resample=Image.BILINEAR)
+
+    def solarize(self, pil_img, level):
+        level = self.int_parameter(self.sample_level(level), 256)
+        return ImageOps.solarize(pil_img, 256 - level)
+
+    def shear_x(self, pil_img, level):
+        level = self.float_parameter(self.sample_level(level), 0.3)
+        if np.random.uniform() > 0.5:
+            level = -level
+        return pil_img.transform((self.IMAGE_SIZE, self.IMAGE_SIZE),
+                                Image.AFFINE, (1, level, 0, 0, 1, 0),
+                                resample=Image.BILINEAR)
+
+    def shear_y(self, pil_img, level):
+        level = self.float_parameter(self.sample_level(level), 0.3)
+        if np.random.uniform() > 0.5:
+            level = -level
+        return pil_img.transform((self.IMAGE_SIZE, self.IMAGE_SIZE),
+                                Image.AFFINE, (1, 0, 0, level, 1, 0),
+                                resample=Image.BILINEAR)
+
+    def translate_x(self, pil_img, level):
+        level = self.int_parameter(self.sample_level(level), self.IMAGE_SIZE / 3)
+        if np.random.random() > 0.5:
+            level = -level
+        return pil_img.transform((self.IMAGE_SIZE, self.IMAGE_SIZE),
+                                Image.AFFINE, (1, 0, level, 0, 1, 0),
+                                resample=Image.BILINEAR)
+
+    def translate_y(self, pil_img, level):
+        level = self.int_parameter(self.sample_level(level), self.IMAGE_SIZE / 3)
+        if np.random.random() > 0.5:
+            level = -level
+        return pil_img.transform((self.IMAGE_SIZE, self.IMAGE_SIZE),
+                                Image.AFFINE, (1, 0, 0, 0, 1, level),
+                                resample=Image.BILINEAR)
+
+    # operation that overlaps with ImageNet-C's test set
+    def color(self, pil_img, level):
+        level = self.float_parameter(self.sample_level(level), 1.8) + 0.1
+        return ImageEnhance.Color(pil_img).enhance(level)
+
+    # operation that overlaps with ImageNet-C's test set
+    def contrast(self, pil_img, level):
+        level = self.float_parameter(self.sample_level(level), 1.8) + 0.1
+        return ImageEnhance.Contrast(pil_img).enhance(level)
+
+    # operation that overlaps with ImageNet-C's test set
+    def brightness(self, pil_img, level):
+        level = self.float_parameter(self.sample_level(level), 1.8) + 0.1
+        return ImageEnhance.Brightness(pil_img).enhance(level)
+
+    # operation that overlaps with ImageNet-C's test set
+    def sharpness(self, pil_img, level):
+        level = self.float_parameter(self.sample_level(level), 1.8) + 0.1
+        return ImageEnhance.Sharpness(pil_img).enhance(level)
+
+    def get_ops_list(self):
+        if not self.all_ops:
+            self.augmentations = [
+                self.autocontrast, self.equalize, self.posterize, self.rotate, self.solarize, self.shear_x, self.shear_y, self.translate_x, self.translate_y]
+            return self.augmentations
+        else:
+            self.augmentations_all = [
+                self.autocontrast, self.equalize, self.posterize, self.rotate, self.solarize, self.shear_x, self.shear_y,
+                self.translate_x, self.translate_y, self.color, self.contrast, self.brightness, self.sharpness]
+            return self.augmentations_all
+
+    def aug(self, image, mixture_width=3, mixture_depth=-1, aug_severity=3):
+        """Perform AugMix augmentations and compute mixture.
+
+        Args:
+            image: PyTorch tensor input image
+            preprocess: Preprocessing function which should return a torch tensor.
+            mixture_width: Number of augmentation chains to mix per augmented example
+            mixture_depth: Depth of augmentation chains. -1 denotes stochastic depth in [1, 3]
+            aug_severity: Severity of base augmentation operators
+
+        Returns:
+            mixed: Augmented and mixed image.
+        """
+        # Convert tensor to PIL image
+        to_pil = transforms.ToPILImage()
+        pil_image = to_pil(image)
+
+        aug_list = self.get_ops_list()
+        ws = np.float32(np.random.dirichlet([1] * mixture_width))
+        m = np.float32(np.random.beta(1, 1))
+
+        # Convert back to tensor for mixing
+        to_tensor = transforms.ToTensor()
+        mix = torch.zeros_like(image)
+
+        for i in range(mixture_width):
+            image_aug = pil_image.copy()  # Use PIL image copy
+            depth = mixture_depth if mixture_depth > 0 else np.random.randint(1, 4)
+            for _ in range(depth):
+                op = np.random.choice(aug_list)
+                image_aug = op(image_aug, aug_severity)
+            # Convert augmented PIL image to tensor before mixing
+            image_aug_tensor = to_tensor(image_aug)
+            mix += ws[i] * image_aug_tensor
+
+        mixed = (1 - m) * image + m * mix
+        return mixed
+
+
+class AugMixDataset(torch.utils.data.Dataset):
+    """Dataset wrapper to perform AugMix augmentation."""
+
+    def __init__(self, no_jsd=False, all_ops=False):
+        self.augmix = AugMixOps(all_ops)
+        self.no_jsd = no_jsd
+
+    def augment(self, x, y):
+        if self.no_jsd:
+            return self.augmix.aug(x), y
+        else:
+            im_tuple = (x, self.augmix.aug(x),
+                       self.augmix.aug(x))
+            return im_tuple, y

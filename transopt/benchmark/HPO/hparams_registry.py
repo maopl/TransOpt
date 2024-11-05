@@ -44,13 +44,13 @@ def get_hparam_space(algorithm, model_size=None, architecture='resnet'):
     """
     hparam_space = {}
 
-    if algorithm in ['ERM', 'GLMNet', 'BayesianNN']:
+    if algorithm in ['ERM', 'GLMNet', 'BayesianNN', 'ERM_JSD']:
         hparam_space['lr'] = ('log', (-6, -2))
         hparam_space['weight_decay'] = ('log', (-7, -4))
         hparam_space['momentum'] = ('float', (0.5, 0.999))
         hparam_space['batch_size'] = ('categorical', [16, 32, 64, 128])
 
-    if algorithm == 'ERM':
+    if algorithm == 'ERM' or algorithm == 'ERM_JSD':
         # hparam_space['batch_size'] = ('categorical', [16, 32, 64, 128])
         hparam_space['dropout_rate'] = ('float', (0, 0.5))
         if architecture.lower() == 'cnn':

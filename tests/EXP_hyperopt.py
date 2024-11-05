@@ -1,9 +1,9 @@
 from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
-from transopt.benchmark.HPO.HPO_ERM import HPO_ERM
+from transopt.benchmark.HPO.HPO_ERM import HPO_ERM, HPO_ERM_JSD
 import numpy as np
 
 # Create a single HPO_ERM instance
-hpo = HPO_ERM(task_name='hyperopt_optimization', budget_type='FEs', budget=2000, seed=0, workload=0,algorithm='ERM',architecture='wideresnet', model_size=28, optimizer='hyperopt')
+hpo = HPO_ERM_JSD(task_name='hyperopt_optimization', budget_type='FEs', budget=2000, seed=0, workload=0,algorithm='ERM_JSD',architecture='resnet',gpu_id=1, augment='augmix', model_size=18, optimizer='hyperopt')
   
 # Define the objective function
 def objective(params):

@@ -10,7 +10,7 @@ from torchvision.datasets import MNIST, ImageNet, CIFAR10, CIFAR100
 
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
-from torchvision import datasets, transforms
+from torchvision import transforms
 from torch.utils.data import DataLoader
 
 
@@ -48,6 +48,10 @@ def data_transform(dataset_name, augmentation_name=None):
                 transform_list.insert(1, CIFAR10PolicyPhotometric())
             elif augmentation_name.lower() == 'autoaugment':
                 transform_list.insert(1, CIFAR10Policy())
+            elif augmentation_name.lower() == 'ddpm':
+                print("DDPM use generated data as training data")
+            elif augmentation_name.lower() == 'augmix':
+                print("Augmix should be applied during training, not as part of the transform.")
             elif augmentation_name.lower() == 'mixup':
                 print("Mixup should be applied during training, not as part of the transform.")
             else:
@@ -95,6 +99,7 @@ class RobCifar10(Dataset):
             user_home = os.path.expanduser('~')
             root = os.path.join(user_home, 'transopt_tmp/data')
 
+        self.datasets = {}
         # Load original CIFAR-10 dataset
         original_dataset_tr = CIFAR10(root, train=True, download=True)
         original_dataset_te = CIFAR10(root, train=False, download=True)
@@ -106,21 +111,28 @@ class RobCifar10(Dataset):
         original_images = original_images[shuffle]
         original_labels = original_labels[shuffle]
         
+        
         dataset_transform = data_transform('cifar10', augment)
         normalized_images = data_transform('cifar10', None)
-    
+        
         transformed_images = torch.stack([dataset_transform(img) for img in original_images])
-        standard_test_images = torch.stack([normalized_images(img) for img in original_dataset_te.data])
-
-        self.input_shape = (3, 32, 32)
-        self.num_classes = 10
-        self.datasets = {}
-
         # Split into train and validation sets
         val_size = len(transformed_images) // 10
         self.datasets['train'] = TensorDataset(transformed_images[:-val_size], original_labels[:-val_size])
         self.datasets['val'] = TensorDataset(transformed_images[-val_size:], original_labels[-val_size:])
         
+        if augment == 'ddpm':
+            ddpm_path = os.path.join(root, 'cifar10_ddpm.npz')
+            ddpm_data = np.load(ddpm_path)
+            ddpm_images = torch.from_numpy(ddpm_data['image']).float()
+            ddpm_images = ddpm_images.permute(0, 3, 1, 2)  # Change from (N, 32, 32, 3) to (N, 3, 32, 32)
+            ddpm_labels = torch.from_numpy(ddpm_data['label']).long()  # Convert to long tensor
+            self.datasets['train'] = TensorDataset(ddpm_images, ddpm_labels)
+
+        standard_test_images = torch.stack([normalized_images(img) for img in original_dataset_te.data])
+
+        self.input_shape = (3, 32, 32)
+        self.num_classes = 10
         # Standard test set
         self.datasets['test_standard'] = TensorDataset(standard_test_images, torch.tensor(original_dataset_te.targets))
         
@@ -363,12 +375,12 @@ def test_dataset(dataset_name='cifar10', num_samples=5):
     
 def visualize_dataset_tsne(dataset_name='cifar10', n_samples=1000, perplexity=30, n_iter=1000):
     # Set up data transformation
-    non_augment = data_transform(dataset_name, augmentation_name=None)
-    augment = data_transform(dataset_name, augmentation_name='photometric')
+    # non_augment = data_transform(dataset_name, augmentation_name=None)
+    # augment = data_transform(dataset_name, augmentation_name='photometric')
 
     # Load dataset
     if dataset_name.lower() == 'cifar10':
-        dataset = RobCifar10(root=None, augment=False)
+        dataset = RobCifar10(root=None, augment='ddpm')
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}")
 

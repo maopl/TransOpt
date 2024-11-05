@@ -2,11 +2,11 @@ import numpy as np
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.optimize import minimize
 from pymoo.core.problem import Problem
-from transopt.benchmark.HPO.HPO_ERM import HPO_ERM
+from transopt.benchmark.HPO.HPO_ERM import HPO_ERM, HPO_ERM_JSD
 
 class HPOProblem(Problem):
     def __init__(self, task_name, budget_type, budget, seed, workload):
-        self.hpo = HPO_ERM(task_name=task_name, budget_type=budget_type, budget=budget, seed=seed, workload=workload, algorithm='ERM', gpu_id=1, augment=None, architecture='wideresnet', model_size=28, optimizer='nsga2_augment_cutout')
+        self.hpo = HPO_ERM(task_name=task_name, budget_type=budget_type, budget=budget, seed=seed, workload=workload, algorithm='ERM', gpu_id=1, augment='ddpm', architecture='wideresnet', model_size=28, optimizer='nsga2_ddpm')
 
         original_ranges = self.hpo.configuration_space.original_ranges
         variables_order = self.hpo.configuration_space.variables_order

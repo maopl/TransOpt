@@ -67,6 +67,7 @@ class HPO_base(NonTabularProblem):
     
     ALGORITHMS = [
         'ERM',
+        'ERM_JSD'
         # 'BayesianNN',
         # 'GLMNet'
     ]
@@ -115,6 +116,8 @@ class HPO_base(NonTabularProblem):
         self.trial_seed = seed
         self.hparams = {}
         
+        self.verbose = True
+        
         base_dir = kwargs.get('base_dir', os.path.expanduser('~'))
         print(base_dir)
         self.data_dir = os.path.join(base_dir, 'transopt_tmp/data/')
@@ -137,6 +140,7 @@ class HPO_base(NonTabularProblem):
         
         # Get the GPU ID from hparams, default to 0 if not specified
         gpu_id = kwargs.get('gpu_id', 0)
+        
         
         if torch.cuda.is_available():
             # Check if the specified GPU exists
@@ -163,6 +167,7 @@ class HPO_base(NonTabularProblem):
             self.mixup = True
         else:
             self.mixup = False
+        
         
         print(f"Using augment: {kwargs.get('augment', None)}")
         
@@ -244,7 +249,6 @@ class HPO_base(NonTabularProblem):
         ])
         return fs
     def train(self, configuration: dict):
-
         early_stopping = EarlyStopping(
             patience=configuration.get('patience', 10),
             min_delta=configuration.get('min_delta', 0.001),
@@ -255,7 +259,9 @@ class HPO_base(NonTabularProblem):
         torch.backends.cudnn.benchmark = False
         
         self.epoches = configuration['epoch']
-        print(f"Total epochs: {self.epoches}")
+        verbose = self.verbose
+        if verbose:
+            print(f"Total epochs: {self.epoches}")
                 
         self.train_loader, self.val_loader = self.create_train_loaders(self.hparams['batch_size'])
         
@@ -263,6 +269,10 @@ class HPO_base(NonTabularProblem):
     
         best_val_acc = 0.0
         best_epoch = 0
+
+        # Lists to store metrics for plotting
+        train_losses = []
+        val_accs = []
         
         for epoch in range(self.epoches):
             epoch_start_time = time.time()
@@ -290,10 +300,16 @@ class HPO_base(NonTabularProblem):
             # Compute and print epoch metrics
             epoch_acc = epoch_correct / epoch_total if epoch_total > 0 else 0
             epoch_loss /= len(self.train_loader)
-            print(f"Epoch {epoch+1}/{self.epoches} - Loss: {epoch_loss:.4f}, Accuracy: {epoch_acc:.4f}")
+            if verbose:
+                print(f"Epoch {epoch+1}/{self.epoches} - Loss: {epoch_loss:.4f}, Accuracy: {epoch_acc:.4f}")
 
             val_acc = self.evaluate_loader(self.val_loader)
-            print(f"Validation Accuracy: {val_acc:.4f}")
+            if verbose:
+                print(f"Validation Accuracy: {val_acc:.4f}")
+
+            # Store metrics for plotting
+            train_losses.append(epoch_loss)
+            val_accs.append(val_acc)
 
             early_stopping(val_acc)
             if val_acc > best_val_acc:
@@ -303,8 +319,35 @@ class HPO_base(NonTabularProblem):
                 self.save_checkpoint(f"{self.filename}_model.pkl")
 
             if early_stopping.early_stop:
-                print(f"Early stopping triggered at epoch {epoch+1}")
+                if verbose:
+                    print(f"Early stopping triggered at epoch {epoch+1}")
                 break
+
+        if verbose:
+            # Plot training curves
+            plt.figure(figsize=(12, 5))
+            
+            # Plot training loss
+            plt.subplot(1, 2, 1)
+            plt.plot(train_losses, 'b-', label='Training Loss')
+            plt.xlabel('Epoch')
+            plt.ylabel('Loss')
+            plt.title('Training Loss vs. Epoch')
+            plt.legend()
+            plt.grid(True)
+
+            # Plot validation accuracy
+            plt.subplot(1, 2, 2)
+            plt.plot(val_accs, 'r-', label='Validation Accuracy')
+            plt.xlabel('Epoch')
+            plt.ylabel('Accuracy')
+            plt.title('Validation Accuracy vs. Epoch')
+            plt.legend()
+            plt.grid(True)
+
+            plt.tight_layout()
+            plt.savefig(os.path.join(self.results_save_dir, f"{self.filename}_training_curves.png"))
+            plt.close()
 
         checkpoint = torch.load(os.path.join(self.model_save_dir, f"{self.filename}_model.pkl"))
         self.algorithm.load_state_dict(checkpoint['model_dict'])
@@ -448,6 +491,38 @@ class HPO_ERM(HPO_base):
             base_dir=base_dir,
             **kwargs
         )
+
+@problem_registry.register("HPO_ERM_JSD")
+class HPO_ERM_JSD(HPO_base):    
+    def __init__(
+        self, task_name, budget_type, budget, seed, workload, **kwargs
+        ):            
+        algorithm = kwargs.pop('algorithm', 'ERM')
+        architecture = kwargs.pop('architecture', 'resnet')
+        model_size = kwargs.pop('model_size', 18)
+        optimizer = kwargs.pop('optimizer', 'random')
+        base_dir = kwargs.pop('base_dir', os.path.expanduser('~'))
+        
+        super(HPO_ERM_JSD, self).__init__(
+            task_name=task_name, 
+            budget_type=budget_type, 
+            budget=budget, 
+            seed=seed, 
+            workload=workload, 
+            algorithm=algorithm, 
+            architecture=architecture, 
+            model_size=model_size,
+            optimizer=optimizer,
+            base_dir=base_dir,
+            **kwargs
+        )
+        
+        if self.hparams.get('augment', None) == 'augmix':
+            self.augmix = True
+    
+        
+        
+        
 
 def test_all_combinations():
     print("Testing all combinations of architectures, algorithms, and datasets...")

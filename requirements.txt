@@ -29,6 +29,7 @@ git+https://github.com/RobustBench/robustbench.git
 hyperopt
 flask_cors
 openai
+ViennaRNA
 
 # Analysis
 pandas

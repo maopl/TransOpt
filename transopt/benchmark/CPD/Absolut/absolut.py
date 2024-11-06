@@ -49,7 +49,9 @@ class Absolut(NonTabularProblem):
         seed: Union[np.random.RandomState, int, None] = None,
         **kwargs
     ) -> Dict:
-        CDR3 = ''.join(configuration.values())
+        parameter_order = [f'aa{i}' for i in range(self.num_variables)]
+        CDR3 = ''.join(configuration[param] for param in parameter_order)
+        
         energy = self.manager.predict_energy(self.antigen, CDR3)
 
         results = {list(self.objective_info.keys())[0]: float(energy)}
@@ -61,7 +63,7 @@ class Absolut(NonTabularProblem):
         variables = [Categorical(
             f'aa{i}',
             ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
-        ) for i in range(11)]
+        ) for i in range(self.num_variables)]
         ss = SearchSpace(variables)
         return ss
 
@@ -75,4 +77,4 @@ class Absolut(NonTabularProblem):
     def get_problem_type(self) -> str:
         return "CPD"
     
-    
+     

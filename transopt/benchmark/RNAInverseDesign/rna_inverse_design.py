@@ -10,12 +10,26 @@ from transopt.space.fidelity_space import FidelitySpace
 from transopt.space.search_space import SearchSpace
 from transopt.space.variable import *
 
+file_list = [
+    "inverse_rna_folding_benchmark_dotbracket.pkl.gz",
+    "inverse_rna_folding_train_dotbracket.pkl.gz",
+    "inverse_rna_folding_valid_dotbracket.pkl.gz",
+]
+
 def get_structures():
-    """Load RNA target structures from a pre-defined file if not already loaded."""
     base_dir = os.path.dirname(__file__)
-    file_path = os.path.join(base_dir, 'inverse_rna_folding_benchmark_dotbracket.pkl.gz')
-    df = pd.read_pickle(file_path)
-    target_structures = df['dotbracket'].tolist()
+    file_list = [
+        "inverse_rna_folding_benchmark_dotbracket.pkl.gz",
+        "inverse_rna_folding_train_dotbracket.pkl.gz",
+        "inverse_rna_folding_valid_dotbracket.pkl.gz",
+    ]
+
+    target_structures = []
+    for file_name in file_list:
+        file_path = os.path.join(base_dir, file_name)
+        df = pd.read_pickle(file_path)
+        target_structures.extend(df['dotbracket'].tolist())
+    
     workloads = list(range(len(target_structures)))
     return target_structures, workloads
 

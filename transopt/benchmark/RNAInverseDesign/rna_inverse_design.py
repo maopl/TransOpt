@@ -10,42 +10,34 @@ from transopt.space.fidelity_space import FidelitySpace
 from transopt.space.search_space import SearchSpace
 from transopt.space.variable import *
 
+def get_structures():
+    """Load RNA target structures from a pre-defined file if not already loaded."""
+    base_dir = os.path.dirname(__file__)
+    file_path = os.path.join(base_dir, 'inverse_rna_folding_benchmark_dotbracket.pkl.gz')
+    df = pd.read_pickle(file_path)
+    target_structures = df['dotbracket'].tolist()
+    workloads = list(range(len(target_structures)))
+    return target_structures, workloads
+
+_all_target_structures, _workloads = get_structures()
 
 @problem_registry.register("RNAInverseDesign")
 class RNAInverseDesign(NonTabularProblem):
     problem_type = "RNAInverseDesign"
     fidelity = None
-    _target_structures = None  # Internal storage for lazy-loaded target structures
-    _workloads = None          # Internal storage for lazy-loaded workloads
-    num_variables = 0          # Based on workload
-    num_objectives = 2         # Assuming 'mfe' and 'distance' are the objectives
-
-    @classmethod
-    def get_structures(cls):
-        """Load RNA target structures from a pre-defined file if not already loaded."""
-        if cls._target_structures is None:
-            base_dir = os.path.dirname(__file__)
-            file_path = os.path.join(base_dir, 'inverse_rna_folding_benchmark_dotbracket.pkl.gz')
-            df = pd.read_pickle(file_path)
-            cls._target_structures = df['dotbracket'].tolist()
-            cls._workloads = list(range(len(cls._target_structures)))
-        return cls._target_structures
-
-    @property
-    def target_structures(self):
-        """Property to access target structures, triggering lazy initialization."""
-        return self.get_structures()
-
-    @property
-    def workloads(self):
-        """Property to access workloads, triggering lazy initialization."""
-        self.get_structures()  # Ensures _workloads is set
-        return self._workloads
+    target_structures = _all_target_structures  # Internal storage for lazy-loaded target structures
+    workloads = _workloads          # Internal storage for lazy-loaded workloads
+    num_variables = []          # Based on workload
+    num_objectives = []         # Assuming 'mfe' and 'distance' are the objectives
         
     def __init__(self, task_name, budget_type, budget, seed, workload, **kwargs):
         self.target_structure = self.target_structures[workload]
         self.structure_len = len(self.target_structure)
         self.num_variables = self.structure_len
+        self.obj_names = ['mfe', 'distance', 'GCContent', 'success_rate']
+        self.obj_funcs = {'mfe': self.cal_mfe, 'distance': self.cal_distance, 'GCContent': self.cal_GCContent, 'success_rate': self.cal_success_rate }
+
+        self.obj_name = kwargs.get('obj_name', 'mfe')
         
         super().__init__(task_name=task_name, budget=budget, budget_type=budget_type, workload=workload, seed=seed)
 
@@ -55,6 +47,22 @@ class RNAInverseDesign(NonTabularProblem):
     
     def get_fidelity_space(self) -> FidelitySpace:
         return FidelitySpace([])
+    
+    def cal_mfe(self, sequence):
+        fold_compound = RNA.fold_compound(sequence)
+        structure, mfe = fold_compound.mfe()
+        return mfe
+    
+    def cal_distance(self, sequence):
+        distance = self.str_distance(sequence, self.target_structure)
+        return distance
+    
+    def cal_GCContent(self, sequence):
+        return sequence.count('G') + sequence.count('C')
+    
+    def cal_success_rate(self, sequence):
+        return 0
+        
     
     @staticmethod
     def str_distance(s1: str, s2: str) -> int:
@@ -67,22 +75,22 @@ class RNAInverseDesign(NonTabularProblem):
         sequence = ''.join(configuration[f'aa{i}'] for i in range(self.num_variables))
         
         # Use RNA folding tool to calculate structure and minimum free energy (MFE)
-        fold_compound = RNA.fold_compound(sequence)
-        structure, mfe = fold_compound.mfe()
-        
-        # Calculate distance from target structure
-        distance = self.str_distance(structure, self.target_structure)
+        if self.obj_name in self.obj_names:
+            obj_value = self.obj_funcs[self.obj_name](sequence)
+        else:
+            raise ValueError(f"Invalid objective function: {self.obj_name}. Must be one of {self.obj_names}")
         
         return {
-            'mfe': mfe,
-            'distance': distance
+            self.obj_name  : obj_value,
         }
     
     def get_objectives(self) -> dict:
         """Define objectives for optimization: minimizing distance and MFE."""
         return {
             'mfe': 'minimize',       # Objective: minimize free energy
-            'distance': 'minimize'   # Objective: minimize structural distance to target
+            'distance': 'minimize',   # Objective: minimize structural distance to target
+            'GCContent': 'maximize',
+            'success_rate': 'maximize'
         }
 
     def get_problem_type(self) -> str:

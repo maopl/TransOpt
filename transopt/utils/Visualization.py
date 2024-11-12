@@ -7,7 +7,7 @@ from itertools import product
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE."
 
-from benchmark.synthetic import synthetic_problems
+from benchmark.Synthetic import SingleObjProblems
 from transopt.utils.serialization import ndarray_to_vectors, vectors_to_ndarray
 from transopt.utils.Normalization import normalize
 

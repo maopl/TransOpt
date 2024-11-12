@@ -48,6 +48,7 @@ class Services:
         import transopt.benchmark.HPOOOD
         import transopt.benchmark.HPO
         import transopt.benchmark.Synthetic
+        import transopt.benchmark.Simulator
         try:
             import transopt.benchmark.CSSTuning
         except:

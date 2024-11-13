@@ -10,18 +10,13 @@ from transopt.space.fidelity_space import FidelitySpace
 from transopt.space.search_space import SearchSpace
 from transopt.space.variable import *
 
-file_list = [
-    "inverse_rna_folding_benchmark_dotbracket.pkl.gz",
-    "inverse_rna_folding_train_dotbracket.pkl.gz",
-    "inverse_rna_folding_valid_dotbracket.pkl.gz",
-]
 
 def get_structures():
     base_dir = os.path.dirname(__file__)
     file_list = [
         "inverse_rna_folding_benchmark_dotbracket.pkl.gz",
-        "inverse_rna_folding_train_dotbracket.pkl.gz",
-        "inverse_rna_folding_valid_dotbracket.pkl.gz",
+        # "inverse_rna_folding_train_dotbracket.pkl.gz",
+        # "inverse_rna_folding_valid_dotbracket.pkl.gz",
     ]
 
     target_structures = []
@@ -33,18 +28,22 @@ def get_structures():
     workloads = list(range(len(target_structures)))
     return target_structures, workloads
 
-_all_target_structures, _workloads = get_structures()
+def get_workloads():
+    _, workloads = get_structures()
+    return workloads
+
+_workloads = get_workloads()
 
 @problem_registry.register("RNAInverseDesign")
 class RNAInverseDesign(NonTabularProblem):
     problem_type = "RNAInverseDesign"
     fidelity = None
-    target_structures = _all_target_structures  # Internal storage for lazy-loaded target structures
     workloads = _workloads          # Internal storage for lazy-loaded workloads
     num_variables = []          # Based on workload
     num_objectives = []         # Assuming 'mfe' and 'distance' are the objectives
         
     def __init__(self, task_name, budget_type, budget, seed, workload, **kwargs):
+        self.target_structures = get_structures()
         self.target_structure = self.target_structures[workload]
         self.structure_len = len(self.target_structure)
         self.num_variables = self.structure_len

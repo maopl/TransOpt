@@ -557,6 +557,7 @@ if __name__ == "__main__":
             'lr': 0.01,
             'weight_decay': 0.0001,
             'momentum': 0.9,
+            'dropout': 0.3,
             'batch_size': 32,
             'epoch': 200,
             'class_balanced': True,

@@ -1,6 +1,5 @@
 import abc
 import numpy as np
-import ConfigSpace
 import math
 from typing import Union, Dict, List
 from transopt.optimizer.optimizer_base import OptimizerBase
@@ -23,7 +22,6 @@ class EVOBase(OptimizerBase):
         self.design_space = None
         self.mapping = None
         self.ini_num = None
-        self._data_handler = None
         self.population = None
         self.pop_size = None
 

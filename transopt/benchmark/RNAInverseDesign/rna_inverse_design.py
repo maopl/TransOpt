@@ -13,19 +13,12 @@ from transopt.space.variable import *
 
 def get_structures():
     base_dir = os.path.dirname(__file__)
-    file_list = [
-        "inverse_rna_folding_benchmark_dotbracket.pkl.gz",
-        # "inverse_rna_folding_train_dotbracket.pkl.gz",
-        # "inverse_rna_folding_valid_dotbracket.pkl.gz",
-    ]
-
-    target_structures = []
-    for file_name in file_list:
-        file_path = os.path.join(base_dir, file_name)
-        df = pd.read_pickle(file_path)
-        target_structures.extend(df['dotbracket'].tolist())
+    unique_file = os.path.join(base_dir, "inverse_rna_folding_unique_dotbracket.pkl.gz")
     
+    df = pd.read_pickle(unique_file)
+    target_structures = df['dotbracket'].tolist()
     workloads = list(range(len(target_structures)))
+    
     return target_structures, workloads
 
 def get_workloads():
@@ -71,7 +64,7 @@ class RNAInverseDesign(NonTabularProblem):
         return distance
     
     def cal_GCContent(self, sequence):
-        return sequence.count('G') + sequence.count('C')
+        return self.paired_gc_content(sequence, self.target_structure)
     
     def cal_success_rate(self, sequence):
         return 0
@@ -81,6 +74,24 @@ class RNAInverseDesign(NonTabularProblem):
     def str_distance(s1: str, s2: str) -> int:
         """Calculate the Hamming distance between two strings."""
         return sum(el1 != el2 for el1, el2 in zip(s1, s2))
+    
+    @staticmethod
+    def paired_gc_content(sequence, structure):
+        """Compute the gc content of paired region."""
+        gc_paired_count = 0
+        total_paired_count = 0
+
+        stack = []
+        for base, symbol in zip(sequence, structure):
+            if symbol == '(':
+                stack.append(base)
+            elif symbol == ')' and stack:
+                left_base = stack.pop()
+                if {left_base, base} == {'G', 'C'}:
+                    gc_paired_count += 1
+                total_paired_count += 1
+
+        return gc_paired_count / total_paired_count if total_paired_count else 0.0
 
     def objective_function(self, configuration: dict, fidelity = None, seed = None, **kwargs):
         """Compute the objective values based on configuration."""
@@ -110,6 +121,5 @@ class RNAInverseDesign(NonTabularProblem):
         return self.problem_type
     
 if __name__ == "__main__":
-    benchmark = RNAInverseDesign("test", "iterations", 100, 1, 1)
-    print(len(benchmark.target_structures))
-    print(benchmark.target_structures[0])
+    target_structures, workloads = get_structures()
+    print(f"Total structures loaded: {len(target_structures)}")

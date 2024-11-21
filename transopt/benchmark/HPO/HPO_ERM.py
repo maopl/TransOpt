@@ -521,7 +521,55 @@ class HPO_ERM_JSD(HPO_base):
             self.augmix = True
     
         
+@problem_registry.register("HPO_ERM_Aug")
+class HPO_ERM_Aug(HPO_base):    
+    def __init__(
+        self, task_name, budget_type, budget, seed, workload, **kwargs
+        ):            
+        algorithm = kwargs.pop('algorithm', 'ERM')
+        architecture = kwargs.pop('architecture', 'resnet')
+        model_size = kwargs.pop('model_size', 18)
+        optimizer = kwargs.pop('optimizer', 'random')
+        base_dir = kwargs.pop('base_dir', os.path.expanduser('~'))
         
+        super(HPO_ERM_Aug, self).__init__(
+            task_name=task_name, 
+            budget_type=budget_type, 
+            budget=budget, 
+            seed=seed, 
+            workload=workload, 
+            algorithm=algorithm, 
+            architecture=architecture, 
+            model_size=model_size,
+            optimizer=optimizer,
+            base_dir=base_dir,
+            **kwargs
+        )
+        
+        if self.hparams.get('augment', None) == 'augmix':
+            self.augmix = True
+            
+    def get_configuration_space(
+        self, seed: Union[int, None] = None):
+
+        hparam_space = get_hparam_space(self.algorithm_name, self.model_size, self.architecture)
+        hparam_space['augment'] = ('categorical', ['none', 'augmix'])
+        hparam_space['augment'] = ('categorical', ['none', 'augmix'])
+        
+        variables = []
+
+        for name, (hparam_type, range) in hparam_space.items():
+            if hparam_type == 'categorical':
+                variables.append(Categorical(name, range))
+            elif hparam_type == 'float':
+                variables.append(Continuous(name, range))
+            elif hparam_type == 'int':
+                variables.append(Integer(name, range))
+            elif hparam_type == 'log':
+                variables.append(LogContinuous(name, range))
+
+        ss = SearchSpace(variables)
+        return ss
         
 
 def test_all_combinations():

@@ -45,6 +45,11 @@ class Bilevel(OptimizerBase):
     def link_task(self, task_name:str, search_space: SearchSpace):
         self.task_name = task_name
         self.search_space = search_space
+        
+        self.upper_space = self.search_space.upper_space
+        self.lower_space = self.search_space.lower_space
+        
+        
         self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
         self._Y = np.empty((0,))
         self.ACF.link_space(self.search_space)

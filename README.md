@@ -26,10 +26,10 @@
 
 ## Features
 
-- **Access a variety of benchmark problems** with ease to evaluate and compare algorithms.  
-- **Build custom optimization algorithms** as easily as stacking building blocks.  
-- **Leverage historical data** to achieve more efficient and informed optimization.  
-- **Deploy experiments through an intuitive UI** and **monitor results in real-time**.
+- **Contains more than 1000 benchmark problems covers diverse range of domains**.  
+- **Build custom optimization algorithms as easily as stacking building blocks**.  
+- **Leverage historical data to achieve more efficient and informed optimization**.  
+- **Deploy experiments through an intuitive web UI and monitor results in real-time**.
 
 TransOPT empowers researchers and developers to explore innovative optimization solutions effortlessly, bridging the gap between theory and practical application.
 

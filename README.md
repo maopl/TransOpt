@@ -5,11 +5,11 @@
 </p>
 <p align="center">
   TransOPT: Transfer Optimization System for Bayesian Optimization Using Transfer Learning<br>
-  <a href="https://leopard-ai.github.io/betty/">Docs</a> |
-  <a href="https://leopard-ai.github.io/betty/tutorial/basic/basic.html">Tutorials</a> |
-  <a href="https://github.com/leopard-ai/betty/tree/main/examples">Examples</a> |
-  <a href="https://openreview.net/pdf?id=LV_MeMS38Q9">Paper</a> |
-  <a href="https://github.com/leopard-ai/betty#citation">Citation</a> |
+  <a href="https://maopl.github.io/TransOpt-doc/">Docs</a> |
+  <a href="https://maopl.github.io/TransOpt-doc/quickstart.html">Tutorials</a> |
+  <a href="https://maopl.github.io/TransOpt-doc/usage/problems.html">Examples</a> |
+  <a href="">Paper</a> |
+  <a href="https://maopl.github.io/TransOpt-doc">Citation</a> |
 </p>
 
 <div align="center">
@@ -91,10 +91,10 @@ In addition to the web UI mode, TransOPT also offers a Command Line (CMD) mode f
 To run TransOPT in CMD mode, use the following command:
 
 ```bash
-python transopt/agent/run_cli.py -n MyTask -v 3 -o 2 -m RF -acf UCB -b 300
+python transopt/agent/run_cli.py -n Sphere -v 3 -o 1 -m RF -acf UCB -b 300
 ```
 
-This command sets up a task named MyTask with 3 variables and 2 objectives, using a Random Forest model (RF) and the Upper Confidence Bound (UCB) acquisition function, with a budget of 300 function evaluations.
+This command sets up a task named Sphere with 3 variables and 1 objectives, using a Random Forest model (RF) as surrogate model and the upper confidence bound (UCB) acquisition function, with a budget of 300 function evaluations.
 
 For a complete list of available options and more detailed usage instructions, please refer to the [CLI documentation](https://maopl.github.io/TransOpt-doc/usage/cli.html).
 

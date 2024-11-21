@@ -44,10 +44,15 @@ class Services:
     def _initialize_modules(self):
         # import transopt.benchmark.CPD
         # import transopt.benchmark.CPD
+        import transopt.benchmark.RNAInverseDesign
         import transopt.benchmark.HPOOOD
         import transopt.benchmark.HPO
-        import transopt.benchmark.synthetic
-        # import transopt.benchmark.CSSTuning
+        import transopt.benchmark.Synthetic
+        import transopt.benchmark.Simulator
+        try:
+            import transopt.benchmark.CSSTuning
+        except:
+            logger.warning("CSSTuning module not found. Please install the CSSTuning package to use this functionality.")
         import transopt.optimizer.acquisition_function
         import transopt.optimizer.model
         import transopt.optimizer.normalizer

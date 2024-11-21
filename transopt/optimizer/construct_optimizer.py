@@ -3,7 +3,7 @@ from transopt.agent.registry import (acf_registry, sampler_registry,
                                      selector_registry, space_refiner_registry,
                                      model_registry, pretrain_registry, normalizer_registry)
 from transopt.optimizer.optimizer_base.bo import BO
-
+from transopt.optimizer.optimizer_base.bilevel import Bilevel
 
 
 def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
@@ -22,7 +22,7 @@ def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
     #     optimizer_config['NormalizerParameters'] = {}
     # if 'SamplerInitNum' not in optimizer_config: 
     #     optimizer_config['SamplerInitNum'] = 11
-            
+    
     """Create the optimizer object."""
     if optimizer_config['SpaceRefiner'] == 'None':
         SpaceRefiner = None
@@ -50,8 +50,11 @@ def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
     else:
         Normalizer = normalizer_registry[optimizer_config['Normalizer']](optimizer_config['NormalizerParameters'])
         
-    
-    optimizer = BO(SpaceRefiner, Sampler, ACF, Pretrain, Model, Normalizer, optimizer_config)
+        
+    if optimizer_config['Optimizer'] == 'BO':
+        optimizer = BO(SpaceRefiner, Sampler, ACF, Pretrain, Model, Normalizer, optimizer_config)
+    elif optimizer_config['Optimizer'] == 'Bilevel':
+        optimizer = Bilevel(optimizer_config)
     
     
     return optimizer

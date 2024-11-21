@@ -1,4 +1,4 @@
-from transopt.benchmark.synthetic.synthetic_problems import (
+from transopt.benchmark.Synthetic.SingleObjProblems import (
     # SphereOptBenchmark,
     # RastriginOptBenchmark,
     # SchwefelOptBenchmark,

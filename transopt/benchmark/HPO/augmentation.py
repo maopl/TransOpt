@@ -535,3 +535,8 @@ class AugMixDataset(torch.utils.data.Dataset):
             im_tuple = (x, self.augmix.aug(x),
                        self.augmix.aug(x))
             return im_tuple, y
+        
+        
+# class ParameterizedAugDataset(object):
+#     def __init__(self, **kwargs):
+        

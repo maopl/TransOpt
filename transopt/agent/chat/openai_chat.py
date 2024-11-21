@@ -373,7 +373,7 @@ class OpenAIChat:
         return json.dumps({"result": function_to_call()})
     
     def _initialize_modules(self):
-        import transopt.benchmark.synthetic
+        import transopt.benchmark.Synthetic
         # import transopt.benchmark.CPD
         import transopt.optimizer.acquisition_function
         import transopt.optimizer.model

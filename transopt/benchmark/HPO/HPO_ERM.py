@@ -182,12 +182,14 @@ class HPO_base(NonTabularProblem):
         train_loaders = FastDataLoader(
             dataset=self.dataset.datasets['train'],
             batch_size=batch_size,
-            num_workers=2)  # Assuming N_WORKERS is 2, adjust if needed
+            num_workers=1,  # Reduced from 2
+            pin_memory=True)
         
         val_loaders = FastDataLoader(
             dataset=self.dataset.datasets['val'],
             batch_size=batch_size,
-            num_workers=2)  # Assuming N_WORKERS is 2, adjust if needed
+            num_workers=1,  # Reduced from 2
+            pin_memory=True)
 
         return train_loaders, val_loaders
     
@@ -643,14 +645,60 @@ if __name__ == "__main__":
     # Set random seed for reproducibility
     np.random.seed(0)
     torch.manual_seed(0)
+    torch.cuda.empty_cache()
     
-    # Run the comprehensive test
+    # Define hyperparameters
+    config = {
+        'task_name': 'hpo_erm_test',
+        'budget_type': 'epoch',
+        'budget': 100,
+        'seed': 42,
+        'workload': 0,  # RobCifar10
+        'architecture': 'wideresnet',
+        'model_size': 28,
+        'gpu_id': 0,
+        'augment': None,  # or 'mixup' or 'augmix'
+    }
+    
+    # Create HPO_ERM instance
     try:
-        test_all_combinations()
+        hpo = HPO_ERM(**config)
+        
+        # Get configuration space
+        cs = hpo.get_configuration_space()
+        
+        # Example configuration (you should adjust these values based on your needs)
+        test_config = {
+            'lr': 0.01,
+            'weight_decay': 0.0001,
+            'momentum': 0.9,
+            'dropout': 0.3,
+            'batch_size': 32,
+            'epoch': 200,
+            'class_balanced': True,
+            'nonlinear_classifier': True
+        }
+        
+        # Train the model and get results
+        print("Starting training...")
+        val_acc, results = hpo.get_score(test_config)
+        
+        print("\nTraining completed!")
+        print(f"Validation accuracy: {val_acc:.4f}")
+        print("\nTest set results:")
+        for key, value in results.items():
+            if key.startswith('test_'):
+                print(f"{key}: {value:.4f}")
+        
+        print("\nModel saved at:", hpo.model_save_dir)
+        print("Results saved at:", hpo.results_save_dir)
+        
     except Exception as e:
-        print(f"Error occurred during HPO_ERM test: {str(e)}")
+        print(f"Error occurred during HPO_ERM execution: {str(e)}")
         import traceback
         traceback.print_exc()
+    finally:
+        torch.cuda.empty_cache()  # Clear GPU cache after training
 
 
 

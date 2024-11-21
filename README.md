@@ -13,9 +13,8 @@
 </p>
 
 <div align="center">
-  <!-- <a href="https://www.python.org/downloads/release/python-3100/">![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)</a> -->
-  <!-- <a href="https://github.com/leopard-ai/betty/tree/main/test">![Testing](https://img.shields.io/github/actions/workflow/status/leopard-ai/betty/test.yaml?branch=main)</a> -->
-  [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://github.com/peilimao/TransOpt/blob/main/LICENSE)
+  ![Vesion](https://img.shields.io/badge/python_version-3.10-purple)
+  ![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)
 </div>
 
 

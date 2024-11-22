@@ -4,6 +4,8 @@ import json
 import zipfile
 
 
+# data URL https://rewind.tf.uni-freiburg.de/index.php/s/xdrJQPCTNi2zbfL/download/hpob-data.zip
+
 class TabularOptimizationProblem:
     def __init__(self, zip_path, mode="v3"):
         """

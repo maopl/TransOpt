@@ -45,6 +45,7 @@ class Services:
         # import transopt.benchmark.CPD
         # import transopt.benchmark.CPD
         import transopt.benchmark.RNAInverseDesign
+        import transopt.benchmark.HPOB
         import transopt.benchmark.HPOOOD
         import transopt.benchmark.HPO
         import transopt.benchmark.Synthetic

@@ -50,13 +50,22 @@ def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
     else:
         Normalizer = normalizer_registry[optimizer_config['Normalizer']](optimizer_config['NormalizerParameters'])
         
-        
+    
+    ''' Bugee original code. No 'Optimizer' in optimizer_config
+    
     if optimizer_config['Optimizer'] == 'BO':
         optimizer = BO(SpaceRefiner, Sampler, ACF, Pretrain, Model, Normalizer, optimizer_config)
     elif optimizer_config['Optimizer'] == 'Bilevel':
         optimizer = Bilevel(optimizer_config)
-    
-    
+
+    '''
+    # Just for test.
+    optimizer_type = optimizer_config.get('Optimizer', 'BO')
+    if optimizer_type == 'BO':
+        optimizer = BO(SpaceRefiner, Sampler, ACF, Pretrain, Model, Normalizer, optimizer_config)
+    elif optimizer_type == 'Bilevel':
+        optimizer = Bilevel(optimizer_config)
+        
     return optimizer
 
 def ConstructSelector(optimizer_config, dict = None, seed: int = 0):

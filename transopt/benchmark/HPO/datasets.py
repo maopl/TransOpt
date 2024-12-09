@@ -54,6 +54,8 @@ def data_transform(dataset_name, augmentation_name=None):
                 print("Augmix should be applied during training, not as part of the transform.")
             elif augmentation_name.lower() == 'mixup':
                 print("Mixup should be applied during training, not as part of the transform.")
+            elif augmentation_name.lower() == 'paraaug':
+                print("Parameterized augmentation should be applied during training, not as part of the transform.")
             else:
                 raise ValueError(f"Unsupported augmentation strategy for CIFAR: {augmentation_name}")
         elif dataset_name.lower() == 'imagenet':

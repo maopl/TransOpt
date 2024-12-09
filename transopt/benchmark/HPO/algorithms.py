@@ -2,7 +2,7 @@
 
 import copy
 from collections import OrderedDict
-
+import torchvision.transforms as transforms
 import numpy as np
 import torch
 import torch.autograd as autograd
@@ -17,7 +17,7 @@ import pyro.distributions as dist
 from pyro.infer import SVI, Trace_ELBO
 from pyro.optim import SGD
 
-from transopt.benchmark.HPO.augmentation import mixup_data, mixup_criterion, AugMixDataset
+from transopt.benchmark.HPO.augmentation import mixup_data, mixup_criterion, AugMixDataset, ParameterizedAugmentation
 
 ALGORITHMS = [
     'ERM',
@@ -114,6 +114,73 @@ class ERM(Algorithm):
 
     def predict(self, x):
         return self.network(x)
+
+
+
+
+
+class ERM_ParaAUG(Algorithm):
+    """
+    Empirical Risk Minimization (ERM)
+    """
+
+    def __init__(self, input_shape, num_classes, architecture, model_size, mixup, device, hparams):
+        super(ERM_ParaAUG, self).__init__(input_shape, num_classes, architecture, model_size,  mixup, device, hparams)
+        self.featurizer = networks.Featurizer(input_shape, architecture, model_size, self.hparams)
+        print(self.featurizer.n_outputs)
+        self.classifier = networks.Classifier(
+            self.featurizer.n_outputs,
+            num_classes,
+            self.hparams['dropout_rate'],
+            self.hparams['nonlinear_classifier'])
+
+        self.network = nn.Sequential(self.featurizer, self.classifier)
+        self.optimizer = torch.optim.SGD(
+            self.network.parameters(),
+            lr=self.hparams["lr"],
+            weight_decay=self.hparams['weight_decay'],
+            momentum=self.hparams['momentum']
+        )
+        self.augmenter = ParameterizedAugmentation()
+        self.weight = torch.tensor([self.hparams[f'op_weight{i}'] for i in range(9)])
+    def update(self, minibatches, unlabeled=None):
+        all_x = torch.cat([x for x, y in minibatches])
+        all_y = torch.cat([y for x, y in minibatches])
+        
+        # Convert batch tensor to list of PIL images
+        to_pil = transforms.ToPILImage()
+        to_tensor = transforms.ToTensor()
+        
+        augmented_images = []
+        for img in all_x:
+            # Convert to PIL
+            pil_img = to_pil(img)
+            # Apply augmentation
+            aug_img = self.augmenter(pil_img, self.weight.to(img.device)) 
+            # Convert back to tensor
+            aug_tensor = to_tensor(aug_img)
+            augmented_images.append(aug_tensor)
+            
+        # Stack back into batch tensor
+        augmented_images = torch.stack(augmented_images).to(self.device)
+        all_y = all_y.to(self.device)
+
+        predictions = self.predict(augmented_images)
+
+        loss = F.cross_entropy(predictions, all_y)
+
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+
+        correct = (predictions.argmax(1) == all_y).sum().item()
+
+        return {'loss': loss.item(), 'correct': correct}
+
+    def predict(self, x):
+        return self.network(x)
+
+
 
 class ERM_JSD(Algorithm):
     """ERM with additional penalty term. Currently supports JSD penalty."""
@@ -331,4 +398,5 @@ class BayesianNN(Algorithm):
             posterior = pyro.infer.Predictive(wrapped_model, guide=self.guide, num_samples=num_samples)(x)
             predictions = posterior["prediction"]
             return predictions.float().mean(0)
+
 

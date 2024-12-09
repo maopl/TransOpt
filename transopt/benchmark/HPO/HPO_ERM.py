@@ -22,7 +22,7 @@ from transopt.space.fidelity_space import FidelitySpace
 from transopt.space.search_space import SearchSpace
 from transopt.space.variable import *
 from transopt.benchmark.HPO import algorithms
-from transopt.benchmark.HPO.hparams_registry import get_hparam_space
+from transopt.benchmark.HPO.hparams_registry import get_hparam_space, get_augmentation_hparam_space
 from transopt.benchmark.HPO.networks import SUPPORTED_ARCHITECTURES
 
   
@@ -67,7 +67,8 @@ class HPO_base(NonTabularProblem):
     
     ALGORITHMS = [
         'ERM',
-        'ERM_JSD'
+        'ERM_JSD',
+        'ERM_ParaAUG'
         # 'BayesianNN',
         # 'GLMNet'
     ]
@@ -139,7 +140,7 @@ class HPO_base(NonTabularProblem):
         torch.manual_seed(seed)
         
         # Get the GPU ID from hparams, default to 0 if not specified
-        gpu_id = kwargs.get('gpu_id', 0)
+        gpu_id = kwargs.get('gpu_id', 1)
         
         
         if torch.cuda.is_available():
@@ -182,12 +183,12 @@ class HPO_base(NonTabularProblem):
         train_loaders = FastDataLoader(
             dataset=self.dataset.datasets['train'],
             batch_size=batch_size,
-            num_workers=1)
+            num_workers=2)
         
         val_loaders = FastDataLoader(
             dataset=self.dataset.datasets['val'],
             batch_size=batch_size,
-            num_workers=1)
+            num_workers=2)
 
         return train_loaders, val_loaders
     
@@ -241,6 +242,7 @@ class HPO_base(NonTabularProblem):
         ss = SearchSpace(variables)
         return ss
     
+    
     def get_fidelity_space(
         self, seed: Union[int, None] = None):
 
@@ -248,6 +250,8 @@ class HPO_base(NonTabularProblem):
             Integer("epoch", [1, 1000])  # Adjust the range as needed
         ])
         return fs
+    
+    
     def train(self, configuration: dict):
         early_stopping = EarlyStopping(
             patience=configuration.get('patience', 10),
@@ -520,121 +524,86 @@ class HPO_ERM_JSD(HPO_base):
         if self.hparams.get('augment', None) == 'augmix':
             self.augmix = True
     
-        
-@problem_registry.register("HPO_ERM_Aug")
-class HPO_ERM_Aug(HPO_base):    
+
+@problem_registry.register("HPO_ERM_Para")
+class HPO_ERM_Para(HPO_base):    
     def __init__(
         self, task_name, budget_type, budget, seed, workload, **kwargs
         ):            
-        algorithm = kwargs.pop('algorithm', 'ERM')
+        algorithm = kwargs.pop('algorithm', 'ERM_ParaAUG')
         architecture = kwargs.pop('architecture', 'resnet')
         model_size = kwargs.pop('model_size', 18)
         optimizer = kwargs.pop('optimizer', 'random')
         base_dir = kwargs.pop('base_dir', os.path.expanduser('~'))
         
-        super(HPO_ERM_Aug, self).__init__(
+        super(HPO_ERM_Para, self).__init__(
             task_name=task_name, 
             budget_type=budget_type, 
             budget=budget, 
             seed=seed, 
             workload=workload, 
-            algorithm=algorithm, 
+            algorithm='ERM_ParaAUG', 
             architecture=architecture, 
             model_size=model_size,
             optimizer=optimizer,
             base_dir=base_dir,
             **kwargs
         )
-        
-        if self.hparams.get('augment', None) == 'augmix':
-            self.augmix = True
-            
-    def get_configuration_space(
+
+    def get_upper_space(
         self, seed: Union[int, None] = None):
-
-        hparam_space = get_hparam_space(self.algorithm_name, self.model_size, self.architecture)
-        hparam_space['augment'] = ('categorical', ['none', 'augmix'])
-        hparam_space['augment'] = ('categorical', ['none', 'augmix'])
         
-        variables = []
+        hparam_space = get_augmentation_hparam_space()
+        return hparam_space
 
-        for name, (hparam_type, range) in hparam_space.items():
-            if hparam_type == 'categorical':
-                variables.append(Categorical(name, range))
-            elif hparam_type == 'float':
-                variables.append(Continuous(name, range))
-            elif hparam_type == 'int':
-                variables.append(Integer(name, range))
-            elif hparam_type == 'log':
-                variables.append(LogContinuous(name, range))
 
-        ss = SearchSpace(variables)
-        return ss
+
+    def objective_function(
+        self,
+        configuration,
+        fidelity = None,
+        seed = None,
+        **kwargs
+    ) -> Dict:
+
+        if fidelity is None:
+            fidelity = {"epoch": 500}
         
+        print(f'fidelity:{fidelity}')
+        
+        # Convert log scale values back to normal scale
+        # Filter out op_weight parameters and map the rest to design space
+        config_dict = {}
+        for name, value in configuration.items():
+            if isinstance(name, str) and name.startswith('op_weight'):
+                config_dict[name] = value
+            else:
+                config_dict[name] = self.configuration_space.get_design_variable(name).map2design(value)
+        c = config_dict
+        
+        # Add fidelity (epoch) to the configuration
+        c["epoch"] = fidelity["epoch"]        
+        c['class_balanced'] = True
+        c['nonlinear_classifier'] = True
+        
+        val_acc, results = self.get_score(c)
 
-def test_all_combinations():
-    print("Testing all combinations of architectures, algorithms, and datasets...")
-    
-    for architecture in HPO_base.ARCHITECTURES:
-        for model_size in HPO_base.ARCHITECTURES[architecture]:
-            for algorithm in HPO_base.ALGORITHMS:
-                for dataset_index, dataset in enumerate(HPO_base.DATASETS):
-                    print(f"Testing {architecture}-{model_size} with {algorithm} on {dataset}...")
-                    try:
-                        # Create an instance of HPO_base
-                        hpo = HPO_base(task_name='test_combination', 
-                                       budget_type='FEs', budget=100, seed=0, 
-                                       workload=dataset_index, algorithm=algorithm, 
-                                       architecture=architecture, model_size=model_size, optimizer='test_combination')
-                        
-                        # Get the configuration space
-                        config_space = hpo.get_configuration_space()
-                        
-                        # Get the fidelity space
-                        fidelity_space = hpo.get_fidelity_space()
-                        
-                        # Sample a random configuration
-                        config = {}
-                        for name, var in config_space.get_design_variables().items():
-                            if isinstance(var, Integer):
-                                config[name] = np.random.randint(var.search_space_range[0], var.search_space_range[1] + 1)
-                            elif isinstance(var, Continuous) or isinstance(var, LogContinuous):
-                                config[name] = np.random.uniform(var.search_space_range[0], var.search_space_range[1])
-                            elif isinstance(var, Categorical):
-                                config[name] = np.random.choice(var.search_space_range)
-                                
-                        
-                        
-                        # Sample a random fidelity
-                        fidelity = {}
-                        for name, var in fidelity_space.get_fidelity_range().items():
-                            if isinstance(var, Integer):
-                                fidelity[name] = np.random.randint(var.search_space_range[0], var.search_space_range[1] + 1)
-                            elif isinstance(var, Continuous):
-                                fidelity[name] = np.random.uniform(var.search_space_range[0], var.search_space_range[1])
-                            elif isinstance(var, Categorical):
-                                fidelity[name] = np.random.choice(var.search_space_range)
-                        
-                        # Set a small epoch for quick testing
-                        fidelity['epoch'] = 2
-                        
-                        # Run the objective function
-                        result = hpo.objective_function(configuration=config, fidelity=fidelity)
-                        
-                        print(f"Configuration: {config}")
-                        print(f"Fidelity: {fidelity}")
-                        print(f"Result: {result}")
-                        
-                        assert list(hpo.get_objectives().keys())[0] in result, f"Result should contain '{list(hpo.get_objectives().keys())[0]}'"
-                        assert 0 <= result[list(hpo.get_objectives().keys())[0]] <= 1, f"{list(hpo.get_objectives().keys())[0]} should be between 0 and 1"
-                        
-                        print(f"Test passed for {architecture}-{model_size} with {algorithm} on {dataset}!")
-                        print("--------------------")
-                    except Exception as e:
-                        print(f"Error occurred during test for {architecture}-{model_size} with {algorithm} on {dataset}: {str(e)}")
-                        import traceback
-                        traceback.print_exc()
-                        print("--------------------")
+        acc = {list(self.objective_info.keys())[0]: float(val_acc)}
+        
+        # Add standard test accuracy
+        acc['test_standard_acc'] = float(results['test_standard_acc'])
+        
+        # Calculate average of other test accuracies
+        other_test_accs = [v for k, v in results.items() if k.startswith('test_') and k != 'test_standard_acc']
+        if other_test_accs:
+            acc['test_robust_acc'] = float(sum(other_test_accs) / len(other_test_accs))
+        
+        
+        return acc
+
+
+
+
 
 if __name__ == "__main__":
     import torch
@@ -655,7 +624,8 @@ if __name__ == "__main__":
         'architecture': 'wideresnet',
         'model_size': 28,
         'gpu_id': 0,
-        'augment': None,  # or 'mixup' or 'augmix'
+        'optimizer': 'none',
+        'augment': 'ddpm',  # or 'mixup' or 'augmix'
     }
     
     # Create HPO_ERM instance
@@ -670,7 +640,7 @@ if __name__ == "__main__":
             'lr': 0.01,
             'weight_decay': 0.0001,
             'momentum': 0.9,
-            'dropout': 0.3,
+            'dropout_rate': 0.3,
             'batch_size': 32,
             'epoch': 200,
             'class_balanced': True,

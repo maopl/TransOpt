@@ -4,6 +4,14 @@ import random
 from transopt.benchmark.HPO.image_options import *
 from torchvision import transforms
 
+import torchvision
+import torchvision.transforms as transforms
+import matplotlib.pyplot as plt
+from sklearn.manifold import TSNE
+import numpy as np
+from PIL import Image
+from torchvision.models import resnet18
+import seaborn as sns
 
 def mixup_data(x, y, alpha=0.3, device='cpu'):
     '''Returns mixed inputs, pairs of targets, and lambda'''
@@ -369,7 +377,7 @@ class AugMixOps(object):
     def __init__(self, all_ops=False):
         self.all_ops = all_ops
         self.IMAGE_SIZE = 32  # Add IMAGE_SIZE as class attribute
-        
+    
     def int_parameter(self, level, maxval):
         """Helper function to scale `val` between 0 and maxval .
 
@@ -536,7 +544,336 @@ class AugMixDataset(torch.utils.data.Dataset):
                        self.augmix.aug(x))
             return im_tuple, y
         
+
+class ParameterizedAugmentation(object):
+    """Parameterized data augmentation that applies all operations with weighted intensities.
+    
+    Args:
+        fillcolor (tuple): RGB fill color for augmentations that introduce empty pixels
         
-# class ParameterizedAugDataset(object):
-#     def __init__(self, **kwargs):
+    Example:
+        >>> augmenter = ParameterizedAugmentation()
+        >>> # weights is a list of 14 values between 0-1 for each operation
+        >>> transformed = augmenter(image, weights)
+    """
+    def __init__(self, fillcolor=(128, 128, 128)):
+        # Define augmentation operations in order
+        self.all_ops = False
+        self.IMAGE_SIZE = 32
+        self.ops_num = len(self.get_ops_list())
+
+    def int_parameter(self, level, maxval):
+        """Helper function to scale `val` between 0 and maxval .
+
+        Args:
+            level: Level of the operation that will be between [0, `PARAMETER_MAX`].
+            maxval: Maximum value that the operation can have. This will be scaled to
+            level/PARAMETER_MAX.
+
+        Returns:
+            An int that results from scaling `maxval` according to `level`.
+        """
+        return int(level * maxval / 10)
+
+    def float_parameter(self, level, maxval):
+        """Helper function to scale `val` between 0 and maxval.
+
+        Args:
+            level: Level of the operation that will be between [0, `PARAMETER_MAX`].
+            maxval: Maximum value that the operation can have. This will be scaled to
+            level/PARAMETER_MAX.
+
+        Returns:
+            A float that results from scaling `maxval` according to `level`.
+        """
+        return float(level) * maxval / 10.
+
+    # def sample_level(self, n):
+    #     return np.random.uniform(low=0.1, high=n)
+
+    def autocontrast(self, pil_img, _):
+        return ImageOps.autocontrast(pil_img)
+
+    def equalize(self, pil_img, _):
+        return ImageOps.equalize(pil_img)
+
+    def posterize(self, pil_img, level):
+        level = self.int_parameter(level, 4)
+        return ImageOps.posterize(pil_img, 4 - level)
+
+    def rotate(self, pil_img, level):
+        degrees = self.int_parameter(level, 30)
+        if np.random.uniform() > 0.5:
+            degrees = -degrees
+        return pil_img.rotate(degrees, resample=Image.BILINEAR)
+
+    def solarize(self, pil_img, level):
+        level = self.int_parameter(level, 256)
+        return ImageOps.solarize(pil_img, 256 - level)
+
+    def shear_x(self, pil_img, level):
+        level = self.float_parameter(level, 0.3)
+        if np.random.uniform() > 0.5:
+            level = -level
+        return pil_img.transform((self.IMAGE_SIZE, self.IMAGE_SIZE),
+                                Image.AFFINE, (1, level, 0, 0, 1, 0),
+                                resample=Image.BILINEAR)
+
+    def shear_y(self, pil_img, level):
+        level = self.float_parameter( (level), 0.3)
+        if np.random.uniform() > 0.5:
+            level = -level
+        return pil_img.transform((self.IMAGE_SIZE, self.IMAGE_SIZE),
+                                Image.AFFINE, (1, 0, 0, level, 1, 0),
+                                resample=Image.BILINEAR)
+
+    def translate_x(self, pil_img, level):
+        level = self.int_parameter( (level), self.IMAGE_SIZE / 3)
+        if np.random.random() > 0.5:
+            level = -level
+        return pil_img.transform((self.IMAGE_SIZE, self.IMAGE_SIZE),
+                                Image.AFFINE, (1, 0, level, 0, 1, 0),
+                                resample=Image.BILINEAR)
+
+    def translate_y(self, pil_img, level):
+        level = self.int_parameter( (level), self.IMAGE_SIZE / 3)
+        if np.random.random() > 0.5:
+            level = -level
+        return pil_img.transform((self.IMAGE_SIZE, self.IMAGE_SIZE),
+                                Image.AFFINE, (1, 0, 0, 0, 1, level),
+                                resample=Image.BILINEAR)
+
+    # operation that overlaps with ImageNet-C's test set
+    def color(self, pil_img, level):
+        level = self.float_parameter(level, 1.8) + 0.1
+        return ImageEnhance.Color(pil_img).enhance(level)
+
+    # operation that overlaps with ImageNet-C's test set
+    def contrast(self, pil_img, level):
+        level = self.float_parameter(level, 1.8) + 0.1
+        return ImageEnhance.Contrast(pil_img).enhance(level)
+
+    # operation that overlaps with ImageNet-C's test set
+    def brightness(self, pil_img, level):
+        level = self.float_parameter(level, 1.8) + 0.1
+        return ImageEnhance.Brightness(pil_img).enhance(level)
+
+    # operation that overlaps with ImageNet-C's test set
+    def sharpness(self, pil_img, level):
+        level = self.float_parameter(level, 1.8) + 0.1
+        return ImageEnhance.Sharpness(pil_img).enhance(level)
+
+    def get_ops_list(self):
+        if not self.all_ops:
+            self.augmentations = [
+                self.autocontrast, self.equalize, self.posterize, self.rotate, self.solarize, self.shear_x, self.shear_y, self.translate_x, self.translate_y]
+            return self.augmentations
+        else:
+            self.augmentations_all = [
+                self.autocontrast, self.equalize, self.posterize, self.rotate, self.solarize, self.shear_x, self.shear_y,
+                self.translate_x, self.translate_y, self.color, self.contrast, self.brightness, self.sharpness]
+            return self.augmentations_all
+
+    def __call__(self, img, level):
+        """Apply all augmentations with weighted intensities.
         
+        Args:
+            img: PIL Image to augment
+            weights: List of 14 weights between 0-1 for each operation's intensity
+            
+        Returns:
+            Augmented PIL Image
+        """
+        augmented = img
+        ops = self.get_ops_list()
+        for op, weight in zip(ops, level):
+            # Apply each operation with its weight as intensity
+            if weight > 0:  # Only apply if weight > 0
+                augmented = op(augmented, weight)
+        return augmented
+
+    def __repr__(self):
+        return "ParameterizedAugmentation"
+
+def test_parameterized_augmentation(image, weight_sets, num_samples=10):
+    """
+    测试不同权重组合下的数据增强效果
+    
+    Args:
+        image: 输入图像 (PIL Image 或 Tensor)
+        weight_sets: 权重组合列表,每个元素是包含14个权重的列表
+        num_samples: 每组参数生成的样本数
+    """
+    if isinstance(image, torch.Tensor):
+        to_pil = transforms.ToPILImage()
+        aug_img = to_pil(image)
+    else:
+        aug_img = image
+    
+    augmenter = ParameterizedAugmentation()
+    ops = augmenter.get_ops_list()
+    num_ops = len(ops)
+    
+    fig, axes = plt.subplots(len(weight_sets), num_ops+1, figsize=(20, 4*len(weight_sets)))
+    if len(weight_sets) == 1:
+        axes = axes.reshape(1, -1)
+    
+    for i, weights in enumerate(weight_sets):
+        # 显示原图
+        axes[i,0].imshow(aug_img)
+        axes[i,0].set_title('Original')
+        axes[i,0].axis('off')
+        
+        # 对每个操作进行增强并显示
+        img_copy = aug_img.copy()
+        for j, (op, weight) in enumerate(zip(ops, weights)):
+            # 只应用当前操作和权重
+            augmented = op(img_copy, weight)
+            
+            # 显示增强后的图片
+            axes[i,j+1].imshow(augmented)
+            axes[i,j+1].set_title(f'{op.__name__}\nw={weight:.2f}')
+            axes[i,j+1].axis('off')
+            
+            img_copy = aug_img.copy()  # 重置图片,避免叠加效果
+    
+    plt.tight_layout()
+    plt.savefig('augmentation_samples.png')
+
+def visualize_augmented_images(image, weight_matrix, num_samples=1):
+    """
+    可视化原图和经过不同权重组合增强后的图片对比
+    
+    Args:
+        image: 输入图像 (PIL Image 或 Tensor)
+        weight_matrix: 权重矩阵,每一行是一组权重列表
+        num_samples: 每组参数生成的样本数
+    """
+    if isinstance(image, torch.Tensor):
+        to_pil = transforms.ToPILImage()
+        aug_img = to_pil(image)
+    else:
+        aug_img = image
+    
+    augmenter = ParameterizedAugmentation()
+    num_weight_sets = len(weight_matrix)
+    
+    # 创建子图布局
+    fig, axes = plt.subplots(num_weight_sets, 2, figsize=(8, 4*num_weight_sets))
+    if num_weight_sets == 1:
+        axes = axes.reshape(1, -1)
+    
+    for i, weights in enumerate(weight_matrix):
+        # 显示原图
+        axes[i,0].imshow(aug_img)
+        axes[i,0].set_title('Original')
+        axes[i,0].axis('off')
+        
+        # 应用所有增强操作
+        augmented = augmenter(aug_img, weights)
+        
+        # 显示增强后的图片
+        axes[i,1].imshow(augmented)
+        axes[i,1].set_title(f'Augmented\nweights={[f"{w:.2f}" for w in weights]}')
+        axes[i,1].axis('off')
+    
+    plt.tight_layout()
+    plt.savefig('augmented_comparison.png')
+
+
+
+
+
+
+def extract_features(image, weight_sets, num_samples=100):
+    """
+    提取增强后图片的特征用于分布可视化
+    
+    Args:
+        image: 输入图像 (PIL Image 或 Tensor)
+        weight_sets: 权重组合列表
+        num_samples: 每组参数生成的样本数
+    """
+    if isinstance(image, torch.Tensor):
+        to_pil = transforms.ToPILImage()
+        img = to_pil(image)
+    else:
+        img = image
+    
+    model = resnet18(pretrained=True)
+    model.eval()
+    feature_extractor = torch.nn.Sequential(*list(model.children())[:-1])
+    
+    transform = transforms.Compose([
+        transforms.Resize(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                           std=[0.229, 0.224, 0.225])
+    ])
+    
+    augmenter = ParameterizedAugmentation()
+    
+    features = []
+    labels = []
+    
+    for weight_idx, weights in enumerate(weight_sets):
+        for _ in range(num_samples):
+            noisy_weights = [max(0, min(1, w + np.random.normal(0, 0.1))) for w in weights]
+            aug_img = augmenter(img, noisy_weights)
+            
+            input_tensor = transform(aug_img).unsqueeze(0)
+            
+            with torch.no_grad():
+                feature = feature_extractor(input_tensor)
+                feature = feature.squeeze().flatten().numpy()
+                
+            features.append(feature)
+            labels.append(weight_idx)
+    
+    return np.array(features), np.array(labels)
+
+def visualize_distribution(features, labels, weight_sets):
+    """使用t-SNE可视化特征分布"""
+    tsne = TSNE(n_components=2, random_state=42)
+    features_2d = tsne.fit_transform(features)
+    
+    plt.figure(figsize=(10, 8))
+    
+    for i, weights in enumerate(weight_sets):
+        mask = labels == i
+        # 获取前3个最大权重的操作
+        op_weights = list(zip([f'Op{i}' for i in range(len(weights))], weights))
+        top3 = sorted(op_weights, key=lambda x: x[1], reverse=True)[:3]
+        label = ' + '.join([f'{op}({w:.2f})' for op,w in top3])
+        
+        plt.scatter(features_2d[mask, 0], features_2d[mask, 1], 
+                   label=label, alpha=0.6)
+    
+    plt.legend()
+    plt.title('t-SNE visualization of augmented samples')
+    plt.savefig('augmentation_distribution.png')
+
+# 测试代码
+if __name__ == "__main__":
+    # 定义不同的权重组合
+    weight_sets = [
+        [random.randint(0, 10) for _ in range(13)],
+        [random.randint(0, 10) for _ in range(13)],
+        [random.randint(0, 10) for _ in range(13)],
+        [random.randint(0, 10) for _ in range(13)],
+    ]
+    
+    transform = transforms.ToTensor()
+    trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
+                                          download=True, transform=transform)
+    
+    test_idx = random.randint(0, len(trainset)-1)
+    test_image, _ = trainset[test_idx]
+    
+    print("Testing augmentation effects...")
+    test_parameterized_augmentation(test_image, weight_sets)
+    visualize_augmented_images(test_image, weight_sets)
+    
+    print("Extracting features and visualizing distribution...")
+    features, labels = extract_features(test_image, weight_sets)
+    visualize_distribution(features, labels, weight_sets)

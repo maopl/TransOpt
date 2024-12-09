@@ -44,13 +44,13 @@ def get_hparam_space(algorithm, model_size=None, architecture='resnet'):
     """
     hparam_space = {}
 
-    if algorithm in ['ERM', 'GLMNet', 'BayesianNN', 'ERM_JSD']:
+    if algorithm in ['ERM', 'GLMNet', 'BayesianNN', 'ERM_JSD', 'ERM_ParaAUG']:
         hparam_space['lr'] = ('log', (-6, -2))
         hparam_space['weight_decay'] = ('log', (-7, -4))
         hparam_space['momentum'] = ('float', (0.5, 0.999))
         hparam_space['batch_size'] = ('categorical', [16, 32, 64, 128])
 
-    if algorithm == 'ERM' or algorithm == 'ERM_JSD':
+    if algorithm == 'ERM' or algorithm == 'ERM_JSD' or algorithm == 'ERM_ParaAUG':
         # hparam_space['batch_size'] = ('categorical', [16, 32, 64, 128])
         hparam_space['dropout_rate'] = ('float', (0, 0.5))
         if architecture.lower() == 'cnn':
@@ -70,9 +70,15 @@ def get_hparam_space(algorithm, model_size=None, architecture='resnet'):
 
     # Add hidden dimensions for CNN architecture
 
-
-
     return hparam_space
+
+def get_augmentation_hparam_space():
+    hparam_space = {}
+    for i in range(0, 9):
+        hparam_space[f'op_weight{i}'] = ('float', (0, 10))
+    return hparam_space
+
+
 
 def test_hparam_registry():
     algorithms = ['ERM', 'GLMNet', 'BayesianNN']

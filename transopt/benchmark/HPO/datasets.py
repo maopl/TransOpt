@@ -198,12 +198,14 @@ class RobCifar10(Dataset):
         return self.test_sets
 
 class RobCifar100(Dataset):
-    def __init__(self, root, augment=False):
+    def __init__(self, root=None, augment=False):
         super().__init__()
         if root is None:        
             user_home = os.path.expanduser('~')
             root = os.path.join(user_home, 'transopt_tmp/data')
 
+        self.datasets = {}
+        # Load original CIFAR-100 dataset
         original_dataset_tr = CIFAR100(root, train=True, download=True)
         original_dataset_te = CIFAR100(root, train=False, download=True)
 
@@ -213,58 +215,60 @@ class RobCifar100(Dataset):
         shuffle = torch.randperm(len(original_images))
         original_images = original_images[shuffle]
         original_labels = original_labels[shuffle]
-
-        dataset_transform = self.get_transform(augment)
-
+        
+        dataset_transform = data_transform('cifar100', augment)
+        normalized_images = data_transform('cifar100', None)
+        
         transformed_images = torch.stack([dataset_transform(img) for img in original_images])
+        # Split into train and validation sets
+        val_size = len(transformed_images) // 10
+        self.datasets['train'] = TensorDataset(transformed_images[:-val_size], original_labels[:-val_size])
+        self.datasets['val'] = TensorDataset(transformed_images[-val_size:], original_labels[-val_size:])
+
+        if augment == 'ddpm':
+            ddpm_path = os.path.join(root, 'cifar100_ddpm.npz')
+            ddpm_data = np.load(ddpm_path)
+            ddpm_images = torch.from_numpy(ddpm_data['image']).float()
+            ddpm_images = ddpm_images.permute(0, 3, 1, 2)  # Change from (N, 32, 32, 3) to (N, 3, 32, 32)
+            ddpm_labels = torch.from_numpy(ddpm_data['label']).long()  # Convert to long tensor
+            self.datasets['train'] = TensorDataset(ddpm_images, ddpm_labels)
+
+        standard_test_images = torch.stack([normalized_images(img) for img in original_dataset_te.data])
 
         self.input_shape = (3, 32, 32)
         self.num_classes = 100
-        self.datasets = TensorDataset(transformed_images, original_labels)
-        
         # Standard test set
-        test_images = torch.tensor(original_dataset_te.data).float() / 255.0
-        test_labels = torch.tensor(original_dataset_te.targets)
-        self.test_sets = {'standard': TensorDataset(test_images, test_labels)}
-
+        self.datasets['test_standard'] = TensorDataset(standard_test_images, torch.tensor(original_dataset_te.targets))
+        
         # Corruption test sets
-        corruptions = [
+        self.corruptions = [
             'gaussian_noise', 'shot_noise', 'impulse_noise', 'defocus_blur',
             'glass_blur', 'motion_blur', 'zoom_blur', 'snow', 'frost', 'fog',
             'brightness', 'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression'
         ]
-        for corruption in corruptions:
-            x_test, y_test = load_cifar100c(n_examples=10000, corruptions=[corruption], severity=5, data_dir=root)
-            self.test_sets[f'corruption_{corruption}'] = TensorDataset(x_test, y_test)
+        for corruption in self.corruptions:
+            x_test_corrupt, y_test_corrupt = load_cifar100c(n_examples=5000, corruptions=[corruption], severity=5, data_dir=root)
+            x_test_corrupt = torch.stack([normalized_images(img) for img in x_test_corrupt])
+            self.datasets[f'test_corruption_{corruption}'] = TensorDataset(x_test_corrupt, y_test_corrupt)
 
-    def get_transform(self, augment):
-        if augment:
-            return transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.RandomCrop(32, padding=4),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761)),
-            ])
-        else:
-            return transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.ToTensor(),
-                transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761)),
-            ])
+    def get_available_test_set_names(self):
+        """
+        Return a list of available test set names.
+        """
+        return list(self.datasets.keys())
 
     def get_test_set(self, name):
         """
         Get a specific test set by name.
         Available names: 'standard', 'corruption_<corruption_name>'
         """
-        return self.test_sets.get(name, None)
+        return self.datasets.get(name, None)
 
     def get_all_test_sets(self):
         """
         Return all available test sets.
         """
-        return self.test_sets
+        return self.datasets
 
 
 class RobImageNet(Dataset):

@@ -77,7 +77,7 @@ class HPO_base(NonTabularProblem):
     
     DATASETS = [
     "RobCifar10",
-    # "RobCifar100",
+    "RobCifar100",
     # "RobImageNet",
     ]
 

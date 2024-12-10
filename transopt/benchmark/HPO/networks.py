@@ -390,29 +390,21 @@ class AlexNet(nn.Module):
         return x
 
 
-
 class MobileNet(nn.Module):
     """MobileNetV2 with the classifier layer removed"""
     def __init__(self, input_shape, hparams):
         super(MobileNet, self).__init__()
-        self.network = torchvision.models.mobilenet_v2(weights=torchvision.models.MobileNet_V2_Weights.IMAGENET1K_V1)
+        self.network = torchvision.models.mobilenet_v2()
         self.n_outputs = 1280  # MobileNetV2's last feature dimension
         
-        # Adapt number of input channels if needed
-        nc = input_shape[0]
-        if nc != 3:
-            # Modify the first conv layer to accept different number of input channels
-            first_conv = self.network.features[0][0]
-            new_conv = nn.Conv2d(
-                nc, 32, kernel_size=3, stride=2, padding=1, bias=False
-            )
-            # Initialize new conv weights by averaging across input channels
-            with torch.no_grad():
-                new_conv.weight.data = torch.mean(
-                    first_conv.weight.data, dim=1, keepdim=True
-                ).repeat(1, nc, 1, 1)
-            self.network.features[0][0] = new_conv
-
+        # Adapt first conv layer for CIFAR-10
+        self.network.features[0][0] = nn.Conv2d(
+            input_shape[0], 32, kernel_size=3, 
+            stride=1,  # Reduced stride for smaller input
+            padding=1, bias=False
+        )
+        
+        # Modify network for 32x32 input
         # Remove the classifier
         self.network.classifier = Identity()
 

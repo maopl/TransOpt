@@ -4,11 +4,13 @@ from transopt.benchmark.HPO.HPO_ERM import HPO_ERM
 import numpy as np
 
 # Create a single HPO_ERM instance
-hpo = HPO_ERM(task_name='bohb_optimization', budget_type='FEs', budget=2000, seed=42, workload=0,algorithm='ERM',architecture='resnet', model_size=18, optimizer='bohb')
-
+hpo = HPO_ERM(task_name='bohb_optimization', budget_type='FEs', budget=2000, seed=42, 
+                workload=0, algorithm='ERM', gpu_id=3, augment=None, architecture='alexnet', 
+                model_size=1, optimizer='bohb_without_augment', base_dir='/data2/mpl')  
 # Define the objective function
 def objective(config, budget):
-    result = hpo.objective_function(configuration=config, fidelity={'epoch': int(budget)})
+    config_list = np.array([config[name] for name in hpo.configuration_space.variables_order])
+    result = hpo.objective_function(configuration=config_list, fidelity={'epoch': int(budget)})
     return 1 - result['function_value']  # BOHB minimizes, so we return the function value directly
 
 # Define the configuration space

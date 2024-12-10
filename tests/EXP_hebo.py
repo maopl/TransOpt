@@ -4,11 +4,16 @@ from hebo.optimizers.hebo import HEBO
 from transopt.benchmark.HPO.HPO_ERM import HPO_ERM
 
 # Create a single HPO_ERM instance
-hpo = HPO_ERM(task_name='hebo_optimization', budget_type='FEs', budget=2000, seed=42, workload=0, algorithm='ERM',architecture='resnet', model_size=18, optimizer='hebo')
+hpo = HPO_ERM(task_name='hebo_optimization', budget_type='FEs', budget=2000, seed=42, 
+                workload=0, algorithm='ERM', gpu_id=0, augment=None, architecture='alexnet', 
+                model_size=1, optimizer='hebo_without_augment', base_dir='/data2/mpl')
 
 # Define the objective function
 def objective(config):
-    result = hpo.objective_function(configuration=config)
+    # Convert config dict to list according to variables_order
+    config_list = np.array([config[name] for name in hpo.configuration_space.variables_order])
+    
+    result = hpo.objective_function(configuration=config_list)
     return 1 - result['function_value']
 
 # Define the design space

@@ -6,12 +6,14 @@ from smac import HyperparameterOptimizationFacade, Scenario
 from transopt.benchmark.HPO.HPO_ERM import HPO_ERM
 
 # Create a single HPO_ERM instance
-hpo = HPO_ERM(task_name='smac_optimization', budget_type='FEs', budget=2000, seed=42, workload=0,algorithm='ERM',architecture='resnet', model_size=18, optimizer='smac')
-
+hpo = HPO_ERM(task_name='smac_optimization', budget_type='FEs', budget=2000, seed=42, 
+                workload=0, algorithm='ERM', gpu_id=3, augment=None, architecture='alexnet', 
+                model_size=1, optimizer='smac_without_augment', base_dir='/data2/mpl')  
 # Define the objective function
 def objective(configuration, seed: int = 0):
     start = time.time()
-    result = hpo.objective_function(configuration=configuration.get_dictionary())
+    config_list = np.array([configuration.get(name) for name in hpo.configuration_space.variables_order])
+    result = hpo.objective_function(configuration=config_list)
     end = time.time()
     return 1 - result['function_value']  # SMAC minimizes, so we return 1 - accuracy
 

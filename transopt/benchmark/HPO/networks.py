@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 
 import copy
-
+import math
 import numpy as np
 import torch
 import torch.nn as nn
@@ -33,7 +33,7 @@ def Featurizer(input_shape, architecture, model_size, hparams):
     elif architecture == 'cnn':
         return CNN(input_shape, hparams)
     elif architecture == 'mobilenet':
-        return MobileNet(input_shape, hparams)
+        return MobileNetV2(input_shape, hparams)
     else:
         raise ValueError(f"Unsupported network architecture: {architecture}")
     
@@ -352,24 +352,26 @@ class ContextNet(nn.Module):
 
 
 class AlexNet(nn.Module):
-    """Modified AlexNet for CIFAR-10 sized images"""
+
     def __init__(self, input_shape, hparams):
         super(AlexNet, self).__init__()
         self.input_shape = input_shape
         self.hparams = hparams
-        
-        # Modified for 32x32 input size
         self.features = nn.Sequential(
             nn.Conv2d(input_shape[0], 64, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True), 
+            nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
+            
             nn.Conv2d(64, 192, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
+            
             nn.Conv2d(192, 384, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(384, 256, kernel_size=3, padding=1), 
+            
+            nn.Conv2d(384, 256, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
+            
             nn.Conv2d(256, 256, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
@@ -386,34 +388,117 @@ class AlexNet(nn.Module):
     def forward(self, x):
         x = self.features(x)
         x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
+        x = x.view(x.size(0), 256 * 4 * 4)
         return x
 
 
-class MobileNet(nn.Module):
-    """MobileNetV2 with the classifier layer removed"""
-    def __init__(self, input_shape, hparams):
-        super(MobileNet, self).__init__()
-        self.network = torchvision.models.mobilenet_v2()
-        self.n_outputs = 1280  # MobileNetV2's last feature dimension
-        
-        # Adapt first conv layer for CIFAR-10
-        self.network.features[0][0] = nn.Conv2d(
-            input_shape[0], 32, kernel_size=3, 
-            stride=1,  # Reduced stride for smaller input
-            padding=1, bias=False
-        )
-        
-        # Modify network for 32x32 input
-        # Remove the classifier
-        self.network.classifier = Identity()
 
-    def forward(self, x):
-        """Encode x into a feature vector of size n_outputs."""
-        x = self.network.features(x)
-        # Apply average pooling
-        x = nn.functional.adaptive_avg_pool2d(x, (1, 1))
-        x = torch.flatten(x, 1)
+
+
+
+class MobileNetBaseBlock(nn.Module):
+    alpha = 1
+
+    def __init__(self, input_channel, output_channel, t = 6, downsample = False):
+        """
+            t:  expansion factor, t*input_channel is channel of expansion layer
+            alpha:  width multiplier, to get thinner models
+            rho:    resolution multiplier, to get reduced representation
+        """ 
+        super(MobileNetBaseBlock, self).__init__()
+        self.stride = 2 if downsample else 1
+        self.downsample = downsample
+        self.shortcut = (not downsample) and (input_channel == output_channel) 
+
+        # apply alpha
+        input_channel = int(self.alpha * input_channel)
+        output_channel = int(self.alpha * output_channel)
+        
+        # for main path:
+        c  = t * input_channel
+        # 1x1   point wise conv
+        self.conv1 = nn.Conv2d(input_channel, c, kernel_size = 1, bias = False)
+        self.bn1 = nn.BatchNorm2d(c)
+        # 3x3   depth wise conv
+        self.conv2 = nn.Conv2d(c, c, kernel_size = 3, stride = self.stride, padding = 1, groups = c, bias = False)
+        self.bn2 = nn.BatchNorm2d(c)
+        # 1x1   point wise conv
+        self.conv3 = nn.Conv2d(c, output_channel, kernel_size = 1, bias = False)
+        self.bn3 = nn.BatchNorm2d(output_channel)
+        
+
+    def forward(self, inputs):
+        # main path
+        x = F.relu6(self.bn1(self.conv1(inputs)), inplace = True)
+        x = F.relu6(self.bn2(self.conv2(x)), inplace = True)
+        x = self.bn3(self.conv3(x))
+
+        # shortcut path
+        x = x + inputs if self.shortcut else x
+
+        return x
+    
+    
+class MobileNetV2(nn.Module):
+    def __init__(self, input_shape, hparams):
+        super(MobileNetV2, self).__init__()
+        self.n_outputs = 1280
+        alpha = 1
+
+        # first conv layer 
+        self.conv0 = nn.Conv2d(input_shape[0], int(32*alpha), kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn0 = nn.BatchNorm2d(int(32*alpha))
+
+        # build bottlenecks
+        MobileNetBaseBlock.alpha = alpha
+        self.bottlenecks = nn.Sequential(
+            MobileNetBaseBlock(32, 16, t=1, downsample=False),
+            MobileNetBaseBlock(16, 24, downsample=False),
+            MobileNetBaseBlock(24, 24),
+            MobileNetBaseBlock(24, 32, downsample=False),
+            MobileNetBaseBlock(32, 32),
+            MobileNetBaseBlock(32, 32),
+            MobileNetBaseBlock(32, 64, downsample=True),
+            MobileNetBaseBlock(64, 64),
+            MobileNetBaseBlock(64, 64),
+            MobileNetBaseBlock(64, 64),
+            MobileNetBaseBlock(64, 96, downsample=False),
+            MobileNetBaseBlock(96, 96),
+            MobileNetBaseBlock(96, 96),
+            MobileNetBaseBlock(96, 160, downsample=True),
+            MobileNetBaseBlock(160, 160),
+            MobileNetBaseBlock(160, 160),
+            MobileNetBaseBlock(160, 320, downsample=False))
+
+        # last conv layers and fc layer
+        self.conv1 = nn.Conv2d(int(320*alpha), 1280, kernel_size=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(1280)
+
+        # weights init
+        self.weights_init()
+
+    def weights_init(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
+
+    def forward(self, inputs):
+        # first conv layer
+        x = F.relu6(self.bn0(self.conv0(inputs)), inplace=True)
+
+        # bottlenecks
+        x = self.bottlenecks(x)
+
+        # last conv layer
+        x = F.relu6(self.bn1(self.conv1(x)), inplace=True)
+
+        # global pooling
+        x = F.adaptive_avg_pool2d(x, 1)
+        x = x.view(x.shape[0], -1)
         return x
 
 

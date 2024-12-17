@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 from torchvision import transforms
 from torch.utils.data import DataLoader
-
+import torchvision
 
 
 from robustbench.data import load_cifar10c, load_cifar100c, load_imagenetc
@@ -93,6 +93,140 @@ class Dataset:
 
     def __len__(self):
         return len(self.datasets)
+class MultipleDomainDataset:
+    N_STEPS = 5001           # Default, subclasses may override
+    CHECKPOINT_FREQ = 100    # Default, subclasses may override
+    N_WORKERS = 1            # Default, subclasses may override
+    ENVIRONMENTS = None      # Subclasses should override
+    INPUT_SHAPE = None       # Subclasses should override
+
+    def __init__(self):
+        self.datasets = {}
+
+    def __getitem__(self, index):
+        return self.datasets[index]
+
+    def __len__(self):
+        return len(self.datasets)
+    
+class MultipleEnvironmentMNIST(MultipleDomainDataset):
+    def __init__(self, root, environments, dataset_transform, input_shape,
+                 num_classes, augment=None):
+        super().__init__()
+        if root is None:
+            raise ValueError('Data directory not specified!')
+
+        original_dataset_tr = MNIST(root, train=True, download=True)
+        original_dataset_te = MNIST(root, train=False, download=True)
+
+        original_images = torch.cat((original_dataset_tr.data,
+                                   original_dataset_te.data))
+
+        original_labels = torch.cat((original_dataset_tr.targets,
+                                   original_dataset_te.targets))
+
+        shuffle = torch.randperm(len(original_images))
+
+        original_images = original_images[shuffle]
+        original_labels = original_labels[shuffle]
+
+        # Split into train, val and test
+        val_size = len(original_images) // 10
+        test_size = len(original_images) // 10
+        train_size = len(original_images) - val_size - test_size
+
+        train_images = original_images[:train_size]
+        train_labels = original_labels[:train_size]
+        val_images = original_images[train_size:train_size+val_size]
+        val_labels = original_labels[train_size:train_size+val_size]
+        test_images = original_images[train_size+val_size:]
+        test_labels = original_labels[train_size+val_size:]
+
+        # Create environments for train set
+        for i in range(len(environments)):
+            images = train_images[i::len(environments)]
+            labels = train_labels[i::len(environments)]
+            self.datasets[f'train'] = dataset_transform(images, labels, environments[i])
+
+        # Create validation and test sets
+        self.datasets['val'] = dataset_transform(val_images, val_labels, environments[0])
+        self.datasets['test'] = dataset_transform(test_images, test_labels, environments[0])
+
+        self.input_shape = input_shape
+        self.num_classes = num_classes
+
+        # Add data augmentation if specified
+        if augment:
+            if augment == 'ddpm':
+                ddpm_path = os.path.join(root, 'mnist_ddpm.npz')
+                ddpm_data = np.load(ddpm_path)
+                ddpm_images = torch.from_numpy(ddpm_data['image']).float()
+                ddpm_images = ddpm_images.reshape(-1, 1, 28, 28)
+                ddpm_labels = torch.from_numpy(ddpm_data['label']).long()
+                self.datasets['train'] = TensorDataset(ddpm_images, ddpm_labels)
+            else:
+                dataset_transform = data_transform('mnist', augment)
+                train_images = self.datasets['train'].tensors[0]
+                train_labels = self.datasets['train'].tensors[1]
+                transformed_images = torch.stack([dataset_transform(img) for img in train_images])
+                self.datasets['train'] = TensorDataset(transformed_images, train_labels)
+
+class ColoredMNIST(MultipleEnvironmentMNIST):
+    ENVIRONMENTS = ['+90%', '+80%', '-90%']
+    INPUT_SHAPE = (2, 28, 28)
+
+    def __init__(self, root, test_envs, hparams):
+        augment = hparams.get('augment', None)
+        super().__init__(root, [0.1, 0.2, 0.9],
+                        self.color_dataset, self.INPUT_SHAPE, 2, augment)
+
+    def color_dataset(self, images, labels, environment):
+        labels = (labels < 5).float()
+        labels = self.torch_xor_(labels,
+                                self.torch_bernoulli_(0.25, len(labels)))
+
+        colors = self.torch_xor_(labels,
+                                self.torch_bernoulli_(environment,
+                                                    len(labels)))
+        images = torch.stack([images, images], dim=1)
+        images[torch.tensor(range(len(images))), (
+            1 - colors).long(), :, :] *= 0
+
+        x = images.float().div_(255.0)
+        y = labels.view(-1).long()
+
+        return TensorDataset(x, y)
+
+    def torch_bernoulli_(self, p, size):
+        return (torch.rand(size) < p).float()
+
+    def torch_xor_(self, a, b):
+        return (a - b).abs()
+
+class RotatedMNIST(MultipleEnvironmentMNIST):
+    ENVIRONMENTS = ['0', '15', '30', '45', '60', '75']
+    INPUT_SHAPE = (1, 28, 28)
+
+    def __init__(self, root, test_envs, hparams):
+        augment = hparams.get('augment', None)
+        super().__init__(root, [0, 15, 30, 45, 60, 75],
+                        self.rotate_dataset, self.INPUT_SHAPE, 10, augment)
+
+    def rotate_dataset(self, images, labels, angle):
+        rotation = transforms.Compose([
+            transforms.ToPILImage(),
+            transforms.Lambda(lambda x: rotate(x, angle, fill=(0,),
+                interpolation=torchvision.transforms.InterpolationMode.BILINEAR)),
+            transforms.ToTensor()])
+
+        x = torch.zeros(len(images), 1, 28, 28)
+        for i in range(len(images)):
+            x[i] = rotation(images[i])
+
+        y = labels.view(-1)
+
+        return TensorDataset(x, y)
+
 
 class RobCifar10(Dataset):
     def __init__(self, root=None, augment=False):

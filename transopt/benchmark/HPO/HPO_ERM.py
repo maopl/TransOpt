@@ -79,7 +79,7 @@ class HPO_base(NonTabularProblem):
     "RobCifar10",
     "RobCifar100",
     "ColoredMNIST",
-    # "RobImageNet",
+    "RobImageNet",
     ]
 
     def __init__(

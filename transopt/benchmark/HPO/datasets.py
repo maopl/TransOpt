@@ -6,7 +6,9 @@ from PIL import Image, ImageFile
 from torchvision import transforms
 from torch.utils.data import TensorDataset, Subset, ConcatDataset, Dataset
 from torchvision.datasets import MNIST, ImageNet, CIFAR10, CIFAR100
+from torchvision.transforms.functional import rotate
 
+from torchvision.utils import make_grid
 
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
@@ -32,6 +34,10 @@ def data_transform(dataset_name, augmentation_name=None):
         mean = (0.485, 0.456, 0.406)
         std = (0.229, 0.224, 0.225)
         size = 224
+    elif dataset_name.lower() == 'mnist':
+        mean = (0.1307,)
+        std = (0.3081,)
+        size = 28
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}")
 
@@ -110,106 +116,121 @@ class MultipleDomainDataset:
         return len(self.datasets)
     
 class MultipleEnvironmentMNIST(MultipleDomainDataset):
-    def __init__(self, root, environments, dataset_transform, input_shape,
+    def __init__(self, root, environments, shift_function, input_shape,
                  num_classes, augment=None):
         super().__init__()
         if root is None:
-            raise ValueError('Data directory not specified!')
-
+            user_home = os.path.expanduser('~')
+            root = os.path.join(user_home, 'transopt_tmp/data')
+        
         original_dataset_tr = MNIST(root, train=True, download=True)
         original_dataset_te = MNIST(root, train=False, download=True)
 
-        original_images = torch.cat((original_dataset_tr.data,
-                                   original_dataset_te.data))
+        train_images = original_dataset_tr.data
+        train_labels = original_dataset_tr.targets
+        test_images = original_dataset_te.data
+        test_labels = original_dataset_te.targets
 
-        original_labels = torch.cat((original_dataset_tr.targets,
-                                   original_dataset_te.targets))
+        train_shifted_images, train_shifted_labels = shift_function(train_images, train_labels, environments[0])
+        test_standard_images, test_standard_labels = shift_function(test_images, test_labels, environments[0])
+        test_shift_images, test_shift_labels = shift_function(test_images, test_labels, environments[1])
 
-        shuffle = torch.randperm(len(original_images))
+        indices = torch.randperm(len(train_shifted_labels))
+        val_size = len(indices) // 10  # 10% 作為驗證集
+        
+        train_indices = indices[val_size:]
+        val_indices = indices[:val_size]
+        
+        train_data = train_shifted_images[train_indices]
+        train_labels = train_shifted_labels[train_indices]
+        val_data = train_shifted_images[val_indices]
+        val_labels = train_shifted_labels[val_indices]
 
-        original_images = original_images[shuffle]
-        original_labels = original_labels[shuffle]
+        dataset_transform = data_transform('mnist', augment)
+        normalized_images = data_transform('mnist', None) 
 
-        # Split into train, val and test
-        val_size = len(original_images) // 10
-        test_size = len(original_images) // 10
-        train_size = len(original_images) - val_size - test_size
+        def transform_dataset(data, transform):
+            return torch.stack([transform(img) for img in data])
 
-        train_images = original_images[:train_size]
-        train_labels = original_labels[:train_size]
-        val_images = original_images[train_size:train_size+val_size]
-        val_labels = original_labels[train_size:train_size+val_size]
-        test_images = original_images[train_size+val_size:]
-        test_labels = original_labels[train_size+val_size:]
-
-        # Create environments for train set
-        for i in range(len(environments)):
-            images = train_images[i::len(environments)]
-            labels = train_labels[i::len(environments)]
-            self.datasets[f'train'] = dataset_transform(images, labels, environments[i])
-
-        # Create validation and test sets
-        self.datasets['val'] = dataset_transform(val_images, val_labels, environments[0])
-        self.datasets['test'] = dataset_transform(test_images, test_labels, environments[0])
+        train_transformed = transform_dataset(train_data, dataset_transform)
+        val_transformed = transform_dataset(val_data, normalized_images)
+        test_standard_transformed = transform_dataset(test_standard_images, normalized_images)
+        test_shift_transformed = transform_dataset(test_shift_images, normalized_images)
 
         self.input_shape = input_shape
         self.num_classes = num_classes
-
-        # Add data augmentation if specified
-        if augment:
-            if augment == 'ddpm':
-                ddpm_path = os.path.join(root, 'mnist_ddpm.npz')
-                ddpm_data = np.load(ddpm_path)
-                ddpm_images = torch.from_numpy(ddpm_data['image']).float()
-                ddpm_images = ddpm_images.reshape(-1, 1, 28, 28)
-                ddpm_labels = torch.from_numpy(ddpm_data['label']).long()
-                self.datasets['train'] = TensorDataset(ddpm_images, ddpm_labels)
-            else:
-                dataset_transform = data_transform('mnist', augment)
-                train_images = self.datasets['train'].tensors[0]
-                train_labels = self.datasets['train'].tensors[1]
-                transformed_images = torch.stack([dataset_transform(img) for img in train_images])
-                self.datasets['train'] = TensorDataset(transformed_images, train_labels)
+        
+        self.datasets['train'] = TensorDataset(train_transformed, train_labels)
+        self.datasets['val'] = TensorDataset(val_transformed, val_labels)
+        self.datasets['test_standard'] = TensorDataset(test_standard_transformed, test_standard_labels)
+        self.datasets['test_shift'] = TensorDataset(test_shift_transformed, test_shift_labels)
 
 class ColoredMNIST(MultipleEnvironmentMNIST):
     ENVIRONMENTS = ['+90%', '+80%', '-90%']
-    INPUT_SHAPE = (2, 28, 28)
+    INPUT_SHAPE = (3, 28, 28)
 
-    def __init__(self, root, test_envs, hparams):
-        augment = hparams.get('augment', None)
-        super().__init__(root, [0.1, 0.2, 0.9],
-                        self.color_dataset, self.INPUT_SHAPE, 2, augment)
+    def __init__(self, root, augment):
+        super().__init__(root, [[0.45, 0.45, 0.1], [0.2,0.2,0.6]],
+                        self.color_dataset, self.INPUT_SHAPE, 10, augment)
 
     def color_dataset(self, images, labels, environment):
-        labels = (labels < 5).float()
-        labels = self.torch_xor_(labels,
-                                self.torch_bernoulli_(0.25, len(labels)))
+        # Generate random colors based on Bernoulli probability
+        # Generate random numbers between 0 and 1
+        rand_nums = torch.rand(len(labels))
+        
+        # Initialize colors tensor
+        colors = torch.zeros(len(labels))
+        
+        # Assign colors (0,1,2) based on environment probabilities
+        # environment is now a list of 3 probabilities that sum to 1
+        colors[rand_nums < environment[0]] = 0
+        colors[(rand_nums >= environment[0]) & (rand_nums < environment[0] + environment[1])] = 1
+        colors[rand_nums >= environment[0] + environment[1]] = 2
+        
+        # Stack the image into 3 channels
+        images = torch.stack([images, images, images], dim=1)
+        
+        # Zero out channels based on generated colors
+        images[torch.tensor(range(len(images))), colors.long(), :, :] *= 0
 
-        colors = self.torch_xor_(labels,
-                                self.torch_bernoulli_(environment,
-                                                    len(labels)))
-        images = torch.stack([images, images], dim=1)
-        images[torch.tensor(range(len(images))), (
-            1 - colors).long(), :, :] *= 0
-
+        # Normalize to [0,1] range
         x = images.float().div_(255.0)
         y = labels.view(-1).long()
 
-        return TensorDataset(x, y)
+        return x, y
 
     def torch_bernoulli_(self, p, size):
         return (torch.rand(size) < p).float()
 
     def torch_xor_(self, a, b):
         return (a - b).abs()
+    
+    def get_available_test_set_names(self):
+        """
+        Return a list of available test set names.
+        """
+        return list(self.datasets.keys())
+
+
+    def get_test_set(self, name):
+        """
+        Get a specific test set by name.
+        Available names: 'standard', 'corruption_<corruption_name>', 'cifar10.1', 'cifar10.2'
+        """
+        return self.test_sets.get(name, None)
+
+    def get_all_test_sets(self):
+        """
+        Return all available test sets.
+        """
+        return self.test_sets
 
 class RotatedMNIST(MultipleEnvironmentMNIST):
     ENVIRONMENTS = ['0', '15', '30', '45', '60', '75']
     INPUT_SHAPE = (1, 28, 28)
 
-    def __init__(self, root, test_envs, hparams):
-        augment = hparams.get('augment', None)
-        super().__init__(root, [0, 15, 30, 45, 60, 75],
+    def __init__(self, root, augment):
+        super().__init__(root, [0, 75],
                         self.rotate_dataset, self.INPUT_SHAPE, 10, augment)
 
     def rotate_dataset(self, images, labels, angle):
@@ -225,7 +246,7 @@ class RotatedMNIST(MultipleEnvironmentMNIST):
 
         y = labels.view(-1)
 
-        return TensorDataset(x, y)
+        return (x, y)
 
 
 class RobCifar10(Dataset):
@@ -404,51 +425,88 @@ class RobCifar100(Dataset):
         """
         return self.datasets
 
-
 class RobImageNet(Dataset):
     def __init__(self, root, augment=False):
         super().__init__()
-        if root is None:        
+        if root is None:
             user_home = os.path.expanduser('~')
             root = os.path.join(user_home, 'transopt_tmp/data')
 
-        transform = self.get_transform(augment)
-
-        self.datasets = ImageNet(root=root, split='train', transform=transform)
-        self.test_sets = {'standard': ImageNet(root=root, split='val', transform=self.get_transform(False))}
-
-        self.input_shape = (3, 224, 224)
-        self.num_classes = 1000
-
-        # Corruption test sets
-        corruptions = [
+        self.datasets = {}
+        self.corruptions = [
             'gaussian_noise', 'shot_noise', 'impulse_noise', 'defocus_blur',
             'glass_blur', 'motion_blur', 'zoom_blur', 'snow', 'frost', 'fog',
             'brightness', 'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression'
         ]
-        for corruption in corruptions:
-            x_test, y_test = load_imagenetc(n_examples=5000, corruptions=[corruption], severity=5, data_dir=root)
-            self.test_sets[f'corruption_{corruption}'] = TensorDataset(x_test, y_test)
 
-    def get_transform(self, augment):
-        if augment:
-            print("Data augmentation is enabled.")
-            return transforms.Compose([
-                transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
-                transforms.RandomHorizontalFlip(),
-                transforms.ColorJitter(0.3, 0.3, 0.3, 0.3),
-                transforms.RandomGrayscale(),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-            ])
+        self.datasets = {}
+        original_dataset_tr = ImageNet(root, split='train', download=True)
+        original_dataset_te = ImageNet(root, split='test', download=True)
+
+        original_images = original_dataset_tr.data
+        original_labels = torch.tensor(original_dataset_tr.targets)
+
+        shuffle = torch.randperm(len(original_images))
+        original_images = original_images[shuffle]
+        original_labels = original_labels[shuffle]
+        
+        dataset_transform = data_transform('imagenet', augment)
+        normalized_images = data_transform('imagenet', None)
+        
+        transformed_images = torch.stack([dataset_transform(img) for img in original_images])
+        # Split into train and validation sets
+        val_size = len(transformed_images) // 10
+        self.datasets['train'] = TensorDataset(transformed_images[:-val_size], original_labels[:-val_size])
+        self.datasets['val'] = TensorDataset(transformed_images[-val_size:], original_labels[-val_size:])
+
+        standard_test_images = torch.stack([normalized_images(img) for img in original_dataset_te.data])
+
+        self.input_shape = (3, 224, 224)
+        self.num_classes = 1000
+        # Standard test set
+        self.datasets['test_standard'] = TensorDataset(standard_test_images, torch.tensor(original_dataset_te.targets))
+        
+        # Corruption test sets
+        self.corruptions = [
+            'gaussian_noise', 'shot_noise', 'impulse_noise', 'defocus_blur',
+            'glass_blur', 'motion_blur', 'zoom_blur', 'snow', 'frost', 'fog',
+            'brightness', 'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression'
+        ]
+        for corruption in self.corruptions:
+            x_test_corrupt, y_test_corrupt = load_imagenetc(n_examples=5000, corruptions=[corruption], severity=5, data_dir=root)
+            x_test_corrupt = torch.stack([normalized_images(img) for img in x_test_corrupt])
+            self.datasets[f'test_corruption_{corruption}'] = TensorDataset(x_test_corrupt, y_test_corrupt)
+
+        # Add ImageNet-A dataset
+        imagenet_a_path = os.path.join(root, 'imagenet-a')
+        if os.path.exists(imagenet_a_path):
+            imagenet_a_dataset = ImageNet(imagenet_a_path, split='test')
+            imagenet_a_images = torch.stack([normalized_images(img) for img in imagenet_a_dataset.data])
+            self.datasets['test_imageneta'] = TensorDataset(imagenet_a_images, 
+                                                           torch.tensor(imagenet_a_dataset.targets))
         else:
-            print("Data augmentation is disabled.")
-            return transforms.Compose([
-                transforms.Resize(256),
-                transforms.CenterCrop(224),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-            ])
+            print("ImageNet-A dataset not found. Please download it to the data directory.")
+
+        # Add ImageNet-O dataset
+        imagenet_o_path = os.path.join(root, 'imagenet-o')
+        if os.path.exists(imagenet_o_path):
+            imagenet_o_dataset = ImageNet(imagenet_o_path, split='test')
+            imagenet_o_images = torch.stack([normalized_images(img) for img in imagenet_o_dataset.data])
+            self.datasets['test_imageneto'] = TensorDataset(imagenet_o_images, 
+                                                           torch.tensor(imagenet_o_dataset.targets))
+        else:
+            print("ImageNet-O dataset not found. Please download it to the data directory.")
+
+        # Add ImageNet-R dataset
+        imagenet_r_path = os.path.join(root, 'imagenet-r')
+        if os.path.exists(imagenet_r_path):
+            imagenet_r_dataset = ImageNet(imagenet_r_path, split='test')
+            imagenet_r_images = torch.stack([normalized_images(img) for img in imagenet_r_dataset.data])
+            self.datasets['test_imagenetr'] = TensorDataset(imagenet_r_images, 
+                                                           torch.tensor(imagenet_r_dataset.targets))
+        else:
+            print("ImageNet-R dataset not found. Please download it to the data directory.")
+
 
     def get_test_set(self, name):
         """
@@ -589,11 +647,184 @@ def visualize_dataset_tsne(dataset_name='cifar10', n_samples=1000, perplexity=30
 
     print(f"t-SNE visualization has been saved as '{dataset_name}_tsne_visualization.png'")
 
+def visualize_mnist_data():
+    # 初始化數據集
+    mnist_data = ColoredMNIST(
+        root=None,
+        augment=None
+    )
+
+    train_loader = torch.utils.data.DataLoader(mnist_data.datasets['train'], batch_size=16)
+    val_loader = torch.utils.data.DataLoader(mnist_data.datasets['val'], batch_size=16)
+    test_standard_loader = torch.utils.data.DataLoader(mnist_data.datasets['test_standard'], batch_size=16)
+    test_shift_loader = torch.utils.data.DataLoader(mnist_data.datasets['test_shift'], batch_size=16)
+
+    # 獲取第一個batch的數據
+    train_samples, train_labels = next(iter(train_loader))
+    val_samples, val_labels = next(iter(val_loader))
+    test_standard_samples, test_standard_labels = next(iter(test_standard_loader))
+    test_shift_samples, test_shift_labels = next(iter(test_shift_loader))
+
+    # 創建圖形
+    fig, axes = plt.subplots(2, 2, figsize=(15, 15))
+    fig.suptitle('Colored MNIST Data Visualization', fontsize=16)
+
+    # 顯示訓練集圖片
+    grid_img = make_grid(train_samples, nrow=4, normalize=True)
+    axes[0, 0].imshow(grid_img.permute(1, 2, 0))
+    axes[0, 0].set_title(f'Training Data\nLabels: {train_labels.numpy()}')
+    axes[0, 0].axis('off')
+
+    # 顯示驗證集圖片
+    grid_img = make_grid(val_samples, nrow=4, normalize=True)
+    axes[0, 1].imshow(grid_img.permute(1, 2, 0))
+    axes[0, 1].set_title(f'Validation Data\nLabels: {val_labels.numpy()}')
+    axes[0, 1].axis('off')
+
+    # 顯示標準測試集圖片
+    grid_img = make_grid(test_standard_samples, nrow=4, normalize=True)
+    axes[1, 0].imshow(grid_img.permute(1, 2, 0))
+    axes[1, 0].set_title(f'Test Standard Data\nLabels: {test_standard_labels.numpy()}')
+    axes[1, 0].axis('off')
+
+    # 顯示shift測試集圖片
+    grid_img = make_grid(test_shift_samples, nrow=4, normalize=True)
+    axes[1, 1].imshow(grid_img.permute(1, 2, 0))
+    axes[1, 1].set_title(f'Test Shift Data\nLabels: {test_shift_labels.numpy()}')
+    axes[1, 1].axis('off')
+
+    plt.tight_layout()
+    plt.savefig('mnist_data_visualization.png')
+
+    # 打印數據集大小信息
+    print(f"Training data shape: {train_samples.shape}")
+    print(f"Validation data shape: {val_samples.shape}")
+    print(f"Test standard data shape: {test_standard_samples.shape}")
+    print(f"Test shift data shape: {test_shift_samples.shape}")
+
+def test_robimagenet(root=None, num_samples=5):
+    """
+    Test the RobImageNet dataset implementation.
+    
+    Args:
+        root (str): Root directory for the dataset
+        num_samples (int): Number of corruption types to test
+    """
+    print("=== Testing RobImageNet Dataset ===\n")
+    
+    # Initialize dataset
+    try:
+        dataset = RobImageNet(root=root, augment=False)
+        print("✓ Dataset initialization successful")
+    except Exception as e:
+        print(f"✗ Dataset initialization failed: {str(e)}")
+        return
+
+    # Test basic properties
+    print("\n=== Testing Basic Properties ===")
+    print(f"Input shape: {dataset.input_shape}")
+    print(f"Number of classes: {dataset.num_classes}")
+
+    # Test main dataset splits
+    print("\n=== Testing Main Dataset Splits ===")
+    main_splits = ['train', 'val', 'test_standard']
+    for split in main_splits:
+        if split in dataset.datasets:
+            data = dataset.datasets[split]
+            sample, label = data[0]
+            print(f"\n{split.upper()} Split:")
+            print(f"✓ Total samples: {len(data)}")
+            print(f"✓ Sample shape: {sample.shape}")
+            print(f"✓ Label shape: {label.shape}")
+            print(f"✓ Data type: {sample.dtype}")
+            print(f"✓ Value range: [{sample.min():.3f}, {sample.max():.3f}]")
+        else:
+            print(f"✗ {split} split not found")
+
+    # Test corruption datasets
+    print("\n=== Testing Corruption Datasets ===")
+    for corruption in dataset.corruptions[:num_samples]:
+        key = f'test_corruption_{corruption}'
+        if key in dataset.datasets:
+            data = dataset.datasets[key]
+            print(f"\n{corruption} corruption:")
+            print(f"✓ Total samples: {len(data)}")
+            sample, label = data[0]
+            print(f"✓ Sample shape: {sample.shape}")
+        else:
+            print(f"✗ {corruption} corruption dataset not found")
+
+    # Test additional test sets
+    print("\n=== Testing Additional Test Sets ===")
+    additional_tests = ['test_imagenet_a', 'test_imagenet_o', 'test_imagenet_r']
+    for test_set in additional_tests:
+        if test_set in dataset.datasets:
+            data = dataset.datasets[test_set]
+            print(f"\n{test_set.upper()}:")
+            print(f"✓ Total samples: {len(data)}")
+            sample, label = data[0]
+            print(f"✓ Sample shape: {sample.shape}")
+            print(f"✓ Value range: [{sample.min():.3f}, {sample.max():.3f}]")
+        else:
+            print(f"✗ {test_set} not found")
+
+    # Test data loading with DataLoader
+    print("\n=== Testing DataLoader ===")
+    try:
+        from torch.utils.data import DataLoader
+        batch_size = 4
+        for split in ['train', 'val', 'test_standard']:
+            if split in dataset.datasets:
+                loader = DataLoader(dataset.datasets[split], 
+                                  batch_size=batch_size, 
+                                  shuffle=True)
+                batch = next(iter(loader))
+                print(f"\n{split.upper()} DataLoader:")
+                print(f"✓ Batch shape: {batch[0].shape}")
+                print(f"✓ Labels shape: {batch[1].shape}")
+    except Exception as e:
+        print(f"✗ DataLoader test failed: {str(e)}")
+
+    # Visualize sample images
+    print("\n=== Generating Sample Visualization ===")
+    try:
+        import matplotlib.pyplot as plt
+        from torchvision.utils import make_grid
+        
+        # Create figure
+        fig, axes = plt.subplots(2, 2, figsize=(15, 15))
+        fig.suptitle('RobImageNet Sample Images', fontsize=16)
+        
+        # Plot samples from different splits
+        splits_to_show = ['train', 'val', 'test_standard', 'test_imagenet_a']
+        for idx, split in enumerate(splits_to_show):
+            if split in dataset.datasets:
+                data = dataset.datasets[split]
+                samples, labels = zip(*[data[i] for i in range(4)])
+                samples = torch.stack(samples)
+                
+                ax = axes[idx//2, idx%2]
+                grid_img = make_grid(samples, nrow=2, normalize=True)
+                ax.imshow(grid_img.permute(1, 2, 0))
+                ax.set_title(f'{split}\nLabels: {labels}')
+                ax.axis('off')
+        
+        plt.tight_layout()
+        plt.savefig('robimagenet_samples.png')
+        print("✓ Sample visualization saved as 'robimagenet_samples.png'")
+    except Exception as e:
+        print(f"✗ Visualization failed: {str(e)}")
+
+    print("\n=== Test Complete ===")
+
 if __name__ == "__main__":
     # test_dataset('cifar10')
     # test_dataset('cifar100')
     # test_dataset('imagenet')
 
-    visualize_dataset_tsne(dataset_name='cifar10', n_samples=1000)
+    # visualize_dataset_tsne(dataset_name='cifar10', n_samples=1000)
 
-    # ... (之后的代码保持不变)
+    # visualize_mnist_data()
+
+    test_robimagenet()
+

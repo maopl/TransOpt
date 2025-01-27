@@ -56,6 +56,13 @@ def get_hparam_space(algorithm, model_size=None, architecture='resnet'):
         if architecture.lower() == 'cnn':
             hparam_space['hidden_dim1'] = ('categorical', [32, 64, 128])
             hparam_space['hidden_dim2'] = ('categorical', [32, 64, 128])
+    
+    if algorithm == 'ERM_ParaAUG':
+        hparam_space['mu1'] = ('float', (0, 1))
+        hparam_space['sigma1'] = ('float', (0, 1))
+        hparam_space['mu2'] = ('float', (0, 1))
+        hparam_space['sigma2'] = ('float', (0, 1))
+        hparam_space['weight'] = ('float', (0, 1))
 
     if algorithm == 'GLMNet':
         hparam_space['glmnet_alpha'] = ('log', (-4, 1))
@@ -72,13 +79,14 @@ def get_hparam_space(algorithm, model_size=None, architecture='resnet'):
 
     return hparam_space
 
-def get_augmentation_hparam_space():
+def get_data_hparam_space():
     hparam_space = {}
     for i in range(0, 9):
         hparam_space[f'op_weight{i}'] = ('float', (0, 10))
     return hparam_space
 
-
+def get_subpolicy_num():
+    return 50
 
 def test_hparam_registry():
     algorithms = ['ERM', 'GLMNet', 'BayesianNN']

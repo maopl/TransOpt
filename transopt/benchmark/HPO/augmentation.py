@@ -12,6 +12,8 @@ import numpy as np
 from PIL import Image
 from torchvision.models import resnet18
 import seaborn as sns
+from sklearn.mixture import GaussianMixture
+
 
 def mixup_data(x, y, alpha=0.3, device='cpu'):
     '''Returns mixed inputs, pairs of targets, and lambda'''
@@ -320,6 +322,120 @@ class SVHNPolicy(object):
 
     def __repr__(self):
         return "AutoAugment SVHN Policy"
+
+
+
+class SamplerPolicy(object):
+    """ Randomly choose one of the best 25 Sub-policies on SVHN.
+
+        Example:
+        >>> policy = SamplerPolicy()
+        >>> transformed = policy(image)
+
+        Example as a PyTorch Transform:
+        >>> transform=transforms.Compose([
+        >>>     transforms.Resize(256),
+        >>>     SVHNPolicy(),
+        >>>     transforms.ToTensor()])
+    """
+    def __init__(self, fillcolor=(128, 128, 128)):
+        self.policies = [
+            SubPolicy(0.1, "invert", 7, 0.2, "contrast", 6, fillcolor),
+            SubPolicy(0.7, "rotate", 2, 0.3, "translateX", 9, fillcolor),
+            SubPolicy(0.8, "sharpness", 1, 0.9, "sharpness", 3, fillcolor), 
+            SubPolicy(0.5, "shearY", 8, 0.7, "translateY", 9, fillcolor),
+            SubPolicy(0.5, "autocontrast", 8, 0.9, "equalize", 2, fillcolor),
+
+            SubPolicy(0.2, "shearY", 7, 0.3, "posterize", 7, fillcolor),
+            SubPolicy(0.4, "color", 3, 0.6, "brightness", 7, fillcolor),
+            SubPolicy(0.3, "sharpness", 9, 0.7, "brightness", 9, fillcolor),
+            SubPolicy(0.6, "equalize", 5, 0.5, "equalize", 1, fillcolor),
+            SubPolicy(0.6, "contrast", 7, 0.6, "sharpness", 5, fillcolor),
+
+            SubPolicy(0.7, "color", 7, 0.5, "translateX", 8, fillcolor),
+            SubPolicy(0.3, "equalize", 7, 0.4, "autocontrast", 8, fillcolor),
+            SubPolicy(0.4, "translateY", 3, 0.2, "sharpness", 6, fillcolor),
+            SubPolicy(0.9, "brightness", 6, 0.2, "color", 8, fillcolor),
+            SubPolicy(0.5, "solarize", 2, 0.0, "invert", 3, fillcolor),
+
+            SubPolicy(0.2, "equalize", 0, 0.6, "autocontrast", 0, fillcolor),
+            SubPolicy(0.2, "equalize", 8, 0.6, "equalize", 4, fillcolor),
+            SubPolicy(0.9, "color", 9, 0.6, "equalize", 6, fillcolor),
+            SubPolicy(0.8, "autocontrast", 4, 0.2, "solarize", 8, fillcolor),
+            SubPolicy(0.1, "brightness", 3, 0.7, "color", 0, fillcolor),
+
+            SubPolicy(0.4, "solarize", 5, 0.9, "autocontrast", 3, fillcolor),
+            SubPolicy(0.9, "translateY", 9, 0.7, "translateY", 9, fillcolor),
+            SubPolicy(0.9, "autocontrast", 2, 0.8, "solarize", 3, fillcolor),
+            SubPolicy(0.8, "equalize", 8, 0.1, "invert", 3, fillcolor),
+            SubPolicy(0.7, "translateY", 9, 0.9, "autocontrast", 1, fillcolor),
+
+            SubPolicy(0.3, "posterize", 4, 0.8, "shearX", 5, fillcolor),
+            SubPolicy(0.8, "contrast", 2, 0.4, "rotate", 8, fillcolor), 
+            SubPolicy(0.5, "translateX", 6, 0.9, "sharpness", 4, fillcolor),
+            SubPolicy(0.2, "brightness", 9, 0.6, "solarize", 1, fillcolor),
+            SubPolicy(0.9, "shearY", 3, 0.3, "color", 7, fillcolor),
+
+            SubPolicy(0.4, "invert", 1, 0.7, "translateY", 5, fillcolor),
+            SubPolicy(0.6, "autocontrast", 5, 0.2, "posterize", 9, fillcolor),
+            SubPolicy(0.1, "sharpness", 8, 0.8, "equalize", 7, fillcolor),
+            SubPolicy(0.7, "solarize", 4, 0.5, "shearX", 2, fillcolor),
+            SubPolicy(0.3, "rotate", 7, 0.9, "contrast", 4, fillcolor),
+
+            SubPolicy(0.8, "translateX", 1, 0.4, "brightness", 8, fillcolor),
+            SubPolicy(0.2, "color", 5, 0.6, "shearY", 3, fillcolor),
+            SubPolicy(0.9, "equalize", 3, 0.1, "autocontrast", 6, fillcolor),
+            SubPolicy(0.5, "posterize", 7, 0.8, "invert", 9, fillcolor),
+            SubPolicy(0.1, "sharpness", 2, 0.7, "solarize", 5, fillcolor),
+
+            SubPolicy(0.6, "rotate", 9, 0.3, "translateY", 2, fillcolor),
+            SubPolicy(0.4, "shearX", 4, 0.9, "contrast", 7, fillcolor),
+            SubPolicy(0.8, "brightness", 5, 0.2, "color", 1, fillcolor),
+            SubPolicy(0.3, "autocontrast", 7, 0.5, "sharpness", 8, fillcolor),
+            SubPolicy(0.7, "equalize", 2, 0.4, "posterize", 3, fillcolor),
+
+            SubPolicy(0.2, "translateX", 8, 0.6, "rotate", 4, fillcolor),
+            SubPolicy(0.9, "solarize", 6, 0.3, "shearY", 1, fillcolor),
+            SubPolicy(0.5, "invert", 3, 0.8, "brightness", 7, fillcolor),
+            SubPolicy(0.1, "contrast", 9, 0.4, "equalize", 5, fillcolor),
+            SubPolicy(0.6, "color", 4, 0.7, "autocontrast", 2, fillcolor)
+        ]
+    def set_policy(self, policy_idx):
+        self.policy_idx = policy_idx
+        
+    def get_policy_num(self):
+        return len(self.policies)
+    
+    def random_policy(self):
+        # Get two random operations
+        operations = ["shearX", "shearY", "translateX", "translateY", "rotate", 
+                     "color", "posterize", "solarize", "contrast", "sharpness",
+                     "brightness", "autocontrast", "equalize", "invert"]
+        op1 = np.random.choice(operations)
+        op2 = np.random.choice(operations)
+        
+        # Generate random probabilities and magnitudes
+        p1 = round(np.random.uniform(0, 1.0), 1)
+        p2 = round(np.random.uniform(0, 1.0), 1)
+        mag1 = np.random.randint(0, 10)  # magnitude index between 0-9
+        mag2 = np.random.randint(0, 10)
+        
+        # Create new SubPolicy and add to policies list
+        new_policy = SubPolicy(p1, op1, mag1, p2, op2, mag2, fillcolor=(128, 128, 128))
+        self.policies.append(new_policy)
+        
+        # Set to use this new policy
+        self.policy_idx = len(self.policies) - 1
+        
+        return self.policy_idx
+
+    def __call__(self, img):
+        return self.policies[self.policy_idx](img)
+
+    def __repr__(self):
+        policy = self.policies[self.policy_idx]
+        return f"{policy.operation1.__class__.__name__}_{policy.magnitude1}_{policy.operation2.__class__.__name__}_{policy.magnitude2}"
+
 
 
 class SubPolicy(object):
@@ -694,6 +810,7 @@ class ParameterizedAugmentation(object):
 
     def __repr__(self):
         return "ParameterizedAugmentation"
+    
 
 def test_parameterized_augmentation(image, weight_sets, num_samples=10):
     """
@@ -723,7 +840,7 @@ def test_parameterized_augmentation(image, weight_sets, num_samples=10):
         axes[i,0].imshow(aug_img)
         axes[i,0].set_title('Original')
         axes[i,0].axis('off')
-        
+
         # 对每个操作进行增强并显示
         img_copy = aug_img.copy()
         for j, (op, weight) in enumerate(zip(ops, weights)):
@@ -739,6 +856,7 @@ def test_parameterized_augmentation(image, weight_sets, num_samples=10):
     
     plt.tight_layout()
     plt.savefig('augmentation_samples.png')
+
 
 def visualize_augmented_images(image, weight_matrix, num_samples=1):
     """
@@ -779,10 +897,6 @@ def visualize_augmented_images(image, weight_matrix, num_samples=1):
     
     plt.tight_layout()
     plt.savefig('augmented_comparison.png')
-
-
-
-
 
 
 def extract_features(image, weight_sets, num_samples=100):

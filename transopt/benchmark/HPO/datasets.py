@@ -19,7 +19,7 @@ import torchvision
 
 from robustbench.data import load_cifar10c, load_cifar100c, load_imagenetc
 
-from transopt.benchmark.HPO.augmentation import ImageNetPolicy, CIFAR10Policy, CIFAR10PolicyGeometric, CIFAR10PolicyPhotometric, Cutout
+from transopt.benchmark.HPO.augmentation import ImageNetPolicy, CIFAR10Policy, CIFAR10PolicyGeometric, CIFAR10PolicyPhotometric, Cutout, SamplerPolicy
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -41,19 +41,22 @@ def data_transform(dataset_name, augmentation_name=None):
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}")
 
-    transform_list = [transforms.ToPILImage(), transforms.ToTensor(), transforms.Normalize(mean, std)]
-    # transform_list = [transforms.ToPILImage(), transforms.ToTensor()]
+    # transform_list = [transforms.ToPILImage(), transforms.ToTensor(), transforms.Normalize(mean, std)]
+    transform_list = [transforms.ToPILImage(), transforms.ToTensor()]
 
     if augmentation_name:
         if dataset_name.lower() in ['cifar10', 'cifar100']:
             if augmentation_name.lower() == 'cutout':
-                transform_list.insert(-1,Cutout(n_holes=1, length=16))
+                transform_list.insert(-1,Cutout(n_holes=1, length=4))
             elif augmentation_name.lower() == 'geometric':
                 transform_list.insert(1, CIFAR10PolicyGeometric())
             elif augmentation_name.lower() == 'photometric':
                 transform_list.insert(1, CIFAR10PolicyPhotometric())
             elif augmentation_name.lower() == 'autoaugment':
                 transform_list.insert(1, CIFAR10Policy())
+            elif augmentation_name.lower() == 'testaugment':
+                transform_list = [transforms.ToPILImage(), transforms.ToTensor()]
+                print("Testaugment should be applied during training, not as part of the transform.")
             elif augmentation_name.lower() == 'ddpm':
                 print("DDPM use generated data as training data")
             elif augmentation_name.lower() == 'augmix':
@@ -146,16 +149,16 @@ class MultipleEnvironmentMNIST(MultipleDomainDataset):
         val_data = train_shifted_images[val_indices]
         val_labels = train_shifted_labels[val_indices]
 
-        dataset_transform = data_transform('mnist', augment)
-        normalized_images = data_transform('mnist', None) 
+        self.dataset_transform = data_transform('mnist', augment)
+        self.normalized_images = data_transform('mnist', None) 
 
         def transform_dataset(data, transform):
             return torch.stack([transform(img) for img in data])
 
-        train_transformed = transform_dataset(train_data, dataset_transform)
-        val_transformed = transform_dataset(val_data, normalized_images)
-        test_standard_transformed = transform_dataset(test_standard_images, normalized_images)
-        test_shift_transformed = transform_dataset(test_shift_images, normalized_images)
+        train_transformed = transform_dataset(train_data, self.dataset_transform)
+        val_transformed = transform_dataset(val_data, self.normalized_images)
+        test_standard_transformed = transform_dataset(test_standard_images, self.normalized_images)
+        test_shift_transformed = transform_dataset(test_shift_images, self.normalized_images)
 
         self.input_shape = input_shape
         self.num_classes = num_classes
@@ -269,10 +272,10 @@ class RobCifar10(Dataset):
         original_labels = original_labels[shuffle]
         
         
-        dataset_transform = data_transform('cifar10', augment)
-        normalized_images = data_transform('cifar10', None)
+        self.dataset_transform = data_transform('cifar10', augment)
+        self.normalized_images = data_transform('cifar10', None)
         
-        transformed_images = torch.stack([dataset_transform(img) for img in original_images])
+        transformed_images = torch.stack([self.dataset_transform(img) for img in original_images])
         # Split into train and validation sets
         val_size = len(transformed_images) // 10
         self.datasets['train'] = TensorDataset(transformed_images[:-val_size], original_labels[:-val_size])
@@ -286,7 +289,7 @@ class RobCifar10(Dataset):
             ddpm_labels = torch.from_numpy(ddpm_data['label']).long()  # Convert to long tensor
             self.datasets['train'] = TensorDataset(ddpm_images, ddpm_labels)
 
-        standard_test_images = torch.stack([normalized_images(img) for img in original_dataset_te.data])
+        standard_test_images = torch.stack([self.normalized_images(img) for img in original_dataset_te.data])
 
         self.input_shape = (3, 32, 32)
         self.num_classes = 10
@@ -301,7 +304,7 @@ class RobCifar10(Dataset):
         ]
         for corruption in self.corruptions:
             x_test_corrupt, y_test_corrupt = load_cifar10c(n_examples=5000, corruptions=[corruption], severity=5, data_dir=root)
-            x_test_corrupt = torch.stack([normalized_images(img) for img in x_test_corrupt])
+            x_test_corrupt = torch.stack([self.normalized_images(img) for img in x_test_corrupt])
             self.datasets[f'test_corruption_{corruption}'] = TensorDataset(x_test_corrupt, y_test_corrupt)
 
         # Load CIFAR-10.1 dataset
@@ -312,7 +315,7 @@ class RobCifar10(Dataset):
             cifar101_labels = np.load(cifar101_labels_path)
             cifar101_data = torch.from_numpy(cifar101_data).float() / 255.0
             cifar101_data = cifar101_data.permute(0, 3, 1, 2)  # Change from (N, 32, 32, 3) to (N, 3, 32, 32)
-            cifar101_data = torch.stack([normalized_images(img) for img in cifar101_data])
+            cifar101_data = torch.stack([self.normalized_images(img) for img in cifar101_data])
             cifar101_labels = torch.from_numpy(cifar101_labels).long()
             self.datasets['test_cifar10.1'] = TensorDataset(cifar101_data, cifar101_labels)
         else:
@@ -326,7 +329,7 @@ class RobCifar10(Dataset):
             cifar102_labels = cifar102_data['labels']
             cifar102_images = torch.from_numpy(cifar102_images).float() / 255.0
             cifar102_images = cifar102_images.permute(0, 3, 1, 2)  # Change from (N, 32, 32, 3) to (N, 3, 32, 32)
-            cifar102_images = torch.stack([normalized_images(img) for img in cifar102_images])
+            cifar102_images = torch.stack([self.normalized_images(img) for img in cifar102_images])
             cifar102_labels = torch.from_numpy(cifar102_labels).long()
             self.datasets['test_cifar10.2'] = TensorDataset(cifar102_images, cifar102_labels)
         else:
@@ -371,10 +374,10 @@ class RobCifar100(Dataset):
         original_images = original_images[shuffle]
         original_labels = original_labels[shuffle]
         
-        dataset_transform = data_transform('cifar100', augment)
-        normalized_images = data_transform('cifar100', None)
+        self.dataset_transform = data_transform('cifar100', augment)
+        self.normalized_images = data_transform('cifar100', None)
         
-        transformed_images = torch.stack([dataset_transform(img) for img in original_images])
+        transformed_images = torch.stack([self.dataset_transform(img) for img in original_images])
         # Split into train and validation sets
         val_size = len(transformed_images) // 10
         self.datasets['train'] = TensorDataset(transformed_images[:-val_size], original_labels[:-val_size])
@@ -388,7 +391,7 @@ class RobCifar100(Dataset):
             ddpm_labels = torch.from_numpy(ddpm_data['label']).long()  # Convert to long tensor
             self.datasets['train'] = TensorDataset(ddpm_images, ddpm_labels)
 
-        standard_test_images = torch.stack([normalized_images(img) for img in original_dataset_te.data])
+        standard_test_images = torch.stack([self.normalized_images(img) for img in original_dataset_te.data])
 
         self.input_shape = (3, 32, 32)
         self.num_classes = 100
@@ -403,7 +406,7 @@ class RobCifar100(Dataset):
         ]
         for corruption in self.corruptions:
             x_test_corrupt, y_test_corrupt = load_cifar100c(n_examples=5000, corruptions=[corruption], severity=5, data_dir=root)
-            x_test_corrupt = torch.stack([normalized_images(img) for img in x_test_corrupt])
+            x_test_corrupt = torch.stack([self.normalized_images(img) for img in x_test_corrupt])
             self.datasets[f'test_corruption_{corruption}'] = TensorDataset(x_test_corrupt, y_test_corrupt)
 
     def get_available_test_set_names(self):
@@ -450,16 +453,16 @@ class RobImageNet(Dataset):
         original_images = original_images[shuffle]
         original_labels = original_labels[shuffle]
         
-        dataset_transform = data_transform('imagenet', augment)
-        normalized_images = data_transform('imagenet', None)
+        self.dataset_transform = data_transform('imagenet', augment)
+        self.normalized_images = data_transform('imagenet', None)
         
-        transformed_images = torch.stack([dataset_transform(img) for img in original_images])
+        transformed_images = torch.stack([self.dataset_transform(img) for img in original_images])
         # Split into train and validation sets
         val_size = len(transformed_images) // 10
         self.datasets['train'] = TensorDataset(transformed_images[:-val_size], original_labels[:-val_size])
         self.datasets['val'] = TensorDataset(transformed_images[-val_size:], original_labels[-val_size:])
 
-        standard_test_images = torch.stack([normalized_images(img) for img in original_dataset_te.data])
+        standard_test_images = torch.stack([self.normalized_images(img) for img in original_dataset_te.data])
 
         self.input_shape = (3, 224, 224)
         self.num_classes = 1000
@@ -474,14 +477,14 @@ class RobImageNet(Dataset):
         ]
         for corruption in self.corruptions:
             x_test_corrupt, y_test_corrupt = load_imagenetc(n_examples=5000, corruptions=[corruption], severity=5, data_dir=root)
-            x_test_corrupt = torch.stack([normalized_images(img) for img in x_test_corrupt])
+            x_test_corrupt = torch.stack([self.normalized_images(img) for img in x_test_corrupt])
             self.datasets[f'test_corruption_{corruption}'] = TensorDataset(x_test_corrupt, y_test_corrupt)
 
         # Add ImageNet-A dataset
         imagenet_a_path = os.path.join(root, 'imagenet-a')
         if os.path.exists(imagenet_a_path):
             imagenet_a_dataset = ImageNet(imagenet_a_path, split='test')
-            imagenet_a_images = torch.stack([normalized_images(img) for img in imagenet_a_dataset.data])
+            imagenet_a_images = torch.stack([self.normalized_images(img) for img in imagenet_a_dataset.data])
             self.datasets['test_imageneta'] = TensorDataset(imagenet_a_images, 
                                                            torch.tensor(imagenet_a_dataset.targets))
         else:
@@ -491,7 +494,7 @@ class RobImageNet(Dataset):
         imagenet_o_path = os.path.join(root, 'imagenet-o')
         if os.path.exists(imagenet_o_path):
             imagenet_o_dataset = ImageNet(imagenet_o_path, split='test')
-            imagenet_o_images = torch.stack([normalized_images(img) for img in imagenet_o_dataset.data])
+            imagenet_o_images = torch.stack([self.normalized_images(img) for img in imagenet_o_dataset.data])
             self.datasets['test_imageneto'] = TensorDataset(imagenet_o_images, 
                                                            torch.tensor(imagenet_o_dataset.targets))
         else:
@@ -501,7 +504,7 @@ class RobImageNet(Dataset):
         imagenet_r_path = os.path.join(root, 'imagenet-r')
         if os.path.exists(imagenet_r_path):
             imagenet_r_dataset = ImageNet(imagenet_r_path, split='test')
-            imagenet_r_images = torch.stack([normalized_images(img) for img in imagenet_r_dataset.data])
+            imagenet_r_images = torch.stack([self.normalized_images(img) for img in imagenet_r_dataset.data])
             self.datasets['test_imagenetr'] = TensorDataset(imagenet_r_images, 
                                                            torch.tensor(imagenet_r_dataset.targets))
         else:
@@ -815,7 +818,7 @@ def test_robimagenet(root=None, num_samples=5):
     except Exception as e:
         print(f"✗ Visualization failed: {str(e)}")
 
-    print("\n=== Test Complete ===")
+    print("\n=== Test Complete ===")  
 
 if __name__ == "__main__":
     # test_dataset('cifar10')

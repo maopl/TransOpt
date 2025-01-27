@@ -22,10 +22,14 @@ from transopt.space.fidelity_space import FidelitySpace
 from transopt.space.search_space import SearchSpace
 from transopt.space.variable import *
 from transopt.benchmark.HPO import algorithms
-from transopt.benchmark.HPO.hparams_registry import get_hparam_space, get_augmentation_hparam_space
+from transopt.benchmark.HPO.hparams_registry import get_hparam_space, get_subpolicy_num
 from transopt.benchmark.HPO.networks import SUPPORTED_ARCHITECTURES
-
+from transopt.benchmark.HPO.augmentation import SamplerPolicy
+from torch.utils.data import TensorDataset
+from torchvision import transforms
+from transopt.benchmark.HPO.param_aug import GaussianMixtureAugmentation
   
+
 class EarlyStopping:
     def __init__(self, patience=10, min_delta=0.001, mode='max'):
         self.patience = patience
@@ -68,7 +72,8 @@ class HPO_base(NonTabularProblem):
     ALGORITHMS = [
         'ERM',
         'ERM_JSD',
-        'ERM_ParaAUG'
+        'ERM_ParaAUG',
+        'ERM_DGHPO',
         # 'BayesianNN',
         # 'GLMNet'
     ]
@@ -223,7 +228,7 @@ class HPO_base(NonTabularProblem):
             "model_dict": self.algorithm.state_dict()
         }
         torch.save(save_dict, os.path.join(self.model_save_dir, filename))
-        
+
     def get_configuration_space(
         self, seed: Union[int, None] = None):
 
@@ -526,38 +531,114 @@ class HPO_ERM_JSD(HPO_base):
             self.augmix = True
     
 
-@problem_registry.register("HPO_ERM_Para")
-class HPO_ERM_Para(HPO_base):    
+
+@problem_registry.register("DGHPO_ERM")
+class DGHPO_ERM(HPO_base):    
     def __init__(
         self, task_name, budget_type, budget, seed, workload, **kwargs
         ):            
-        algorithm = kwargs.pop('algorithm', 'ERM_ParaAUG')
+        algorithm = kwargs.pop('algorithm', 'ERM')
         architecture = kwargs.pop('architecture', 'resnet')
         model_size = kwargs.pop('model_size', 18)
         optimizer = kwargs.pop('optimizer', 'random')
         base_dir = kwargs.pop('base_dir', os.path.expanduser('~'))
         
-        super(HPO_ERM_Para, self).__init__(
+        super(DGHPO_ERM, self).__init__(
             task_name=task_name, 
             budget_type=budget_type, 
             budget=budget, 
             seed=seed, 
             workload=workload, 
-            algorithm='ERM_ParaAUG', 
+            algorithm=algorithm, 
             architecture=architecture, 
             model_size=model_size,
             optimizer=optimizer,
             base_dir=base_dir,
             **kwargs
         )
-
-    def get_upper_space(
-        self, seed: Union[int, None] = None):
         
-        hparam_space = get_augmentation_hparam_space()
-        return hparam_space
+        self.augmenter = GaussianMixtureAugmentation()
 
+    def get_score(self, configuration: dict):
+        for key, value in configuration.items():
+            self.hparams[key] = value
+        
+        # Get the original train dataset
+        original_train = self.dataset.datasets['train']
+        original_val = self.dataset.datasets['val']
+        
+        # Create a new sampler policy with the current policy index
+        self.augmenter.reset_gaussian(mu1=self.hparams['mu1'], sigma1=self.hparams['sigma1'], mu2=self.hparams['mu2'], sigma2=self.hparams['sigma2'], weight=self.hparams['weight'])
+                
+        # Apply the selected policy to transform the training data
+        transformed_data = []
+        labels = []
+        for x, y in original_train:
+            # Convert tensor to PIL Image
+            img = transforms.ToPILImage()(x)
+            # Apply sampler transform
+            transformed_img = self.augmenter(img=img)
+            # Convert back to tensor and normalize
+            transformed_x = transforms.ToTensor()(transformed_img)
+            transformed_x = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(transformed_x)
+            transformed_data.append(transformed_x)
+            labels.append(y)
+            
+        transformed_data_val = []
+        val_labels = []
+        for x, y in original_val:
+            # Convert tensor to PIL Image
+            img = transforms.ToPILImage()(x)
+            # Apply sampler transform
+            transformed_img = self.augmenter(img=img)
+            # Convert back to tensor and normalize
+            transformed_x = transforms.ToTensor()(transformed_img)
+            transformed_x = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(transformed_x)
+            transformed_data_val.append(transformed_x)
+            val_labels.append(y)
+            
+        transformed_data = torch.stack(transformed_data)
+        transformed_data_val = torch.stack(transformed_data_val)
+        labels = torch.stack(labels)
+        val_labels = torch.stack(val_labels)
+        
+        # Update the train dataset with augmented data
+        self.dataset.datasets['train'] = TensorDataset(transformed_data, labels)
+        self.dataset.datasets['val'] = TensorDataset(transformed_data_val, val_labels)
+        
+        algorithm_class = algorithms.get_algorithm_class(self.algorithm_name)
+        self.algorithm = algorithm_class(self.dataset.input_shape, self.dataset.num_classes, self.architecture, self.model_size, self.mixup, self.device, self.hparams)
+        self.algorithm.to(self.device)
+        
 
+        
+        self.query_counter += 1
+        
+        filename_parts = [f"{self.query_counter}"]
+        for key, value in configuration.items():
+            if isinstance(value, float):
+                filename_parts.append(f"{key}_{value:.3f}")
+            else:
+                filename_parts.append(f"{key}_{value}")
+        self.filename = "_".join(filename_parts)
+        results = self.train(configuration)
+        
+
+        
+        # Save results
+        epochs_path = os.path.join(self.results_save_dir, f"{self.filename}.jsonl")
+        with open(epochs_path, 'w') as f:
+            json.dump(results, f, indent=2)
+        
+        # Save final checkpoint and mark as done
+        self.save_checkpoint(f"{self.filename}_model.pkl")
+        with open(os.path.join(self.model_save_dir, 'done'), 'w') as f:
+            f.write('done')
+
+        val_acc = results['best_val_acc']
+        
+        return val_acc, results
+    
 
     def objective_function(
         self,
@@ -576,10 +657,7 @@ class HPO_ERM_Para(HPO_base):
         # Filter out op_weight parameters and map the rest to design space
         config_dict = {}
         for name, value in configuration.items():
-            if isinstance(name, str) and name.startswith('op_weight'):
-                config_dict[name] = value
-            else:
-                config_dict[name] = self.configuration_space.get_design_variable(name).map2design(value)
+            config_dict[name] = value
         c = config_dict
         
         # Add fidelity (epoch) to the configuration
@@ -601,8 +679,9 @@ class HPO_ERM_Para(HPO_base):
         
         
         return acc
-
-
+    
+    def get_search_space(self):
+        return self.configuration_space
 
 
 

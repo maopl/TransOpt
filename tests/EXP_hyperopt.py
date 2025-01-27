@@ -5,7 +5,7 @@ import numpy as np
 # Create a single HPO_ERM instance
 hpo = HPO_ERM(task_name='hyperopt_optimization', budget_type='FEs', budget=2000, seed=42, 
                 workload=0, algorithm='ERM', gpu_id=3, augment=None, architecture='alexnet', 
-                model_size=1, optimizer='hyperopt_without_augment', base_dir='/data2/mpl')  
+                model_size=1, optimizer='hyperopt_without_augment', base_dir='/data2/mpl')
 # Define the objective function
 def objective(params):
     # Convert hyperopt params to the format expected by HPO_ERM

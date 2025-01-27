@@ -4,6 +4,7 @@ from transopt.optimizer.acquisition_function.ei import AcquisitionEI
 from transopt.optimizer.acquisition_function.lcb import AcquisitionLCB
 from transopt.optimizer.acquisition_function.pi import AcquisitionPI
 from transopt.optimizer.acquisition_function.taf import AcquisitionTAF
+from transopt.optimizer.acquisition_function.constrain_lc import AcquisitionConstrainLCB
 
 # from transopt.optimizer.acquisition_function.SMSEGO import SMSEGO
 # from transopt.optimizer.acquisition_function.MOEADEGO import MOEADEGO

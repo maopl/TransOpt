@@ -87,9 +87,11 @@ class MTGP(GP):
         self.n_sources = len(data_X)
 
         # create list of input/observed values from source data
-        for i in range(self.n_sources):
-            self._metadata_x = self._metadata_x + data_X
-            self._metadata_y = self._metadata_y + data_Y
+        # for i in range(self.n_sources):
+        #     self._metadata_x = self._metadata_x + data_X
+        #     self._metadata_y = self._metadata_y + data_Y
+        self._metadata_x = data_X
+        self._metadata_y = data_Y
         self.n_features = self._metadata_x[0].shape[-1]
 
     def fit(
@@ -177,7 +179,10 @@ class MTGP(GP):
 
         # predictions are made for the last output, which corresponds to the target;
         # prepare extended input format + associated noise model
-        _X_test = np.hstack([_X, np.ones((_X.shape[0], 1)) * self.n_sources])
+        if self.predict_id == 0:
+            _X_test = np.hstack([_X, np.ones((_X.shape[0], 1)) * 0])
+        else:
+            _X_test = np.hstack([_X, np.ones((_X.shape[0], 1)) * self.n_sources])
         noise_dict = {"output_index": _X_test[:, -1:].astype(int)}
 
         # ensure that no negative variance is predicted
@@ -193,3 +198,5 @@ class MTGP(GP):
         else:
             cov = np.clip(cov, 1e-20, None)
         return mu, cov
+    def set_predict_id(self, id):
+        self.predict_id = id

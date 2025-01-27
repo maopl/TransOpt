@@ -21,7 +21,7 @@ from transopt.benchmark.HPO.augmentation import mixup_data, mixup_criterion, Aug
 
 ALGORITHMS = [
     'ERM',
-    'ERM_JSD'
+    'ERM_JSD',
     'GLMNet',
     'BayesianNN',
 ]
@@ -118,7 +118,6 @@ class ERM(Algorithm):
 
 
 
-
 class ERM_ParaAUG(Algorithm):
     """
     Empirical Risk Minimization (ERM)
@@ -141,31 +140,11 @@ class ERM_ParaAUG(Algorithm):
             weight_decay=self.hparams['weight_decay'],
             momentum=self.hparams['momentum']
         )
-        self.augmenter = ParameterizedAugmentation()
-        self.weight = torch.tensor([self.hparams[f'op_weight{i}'] for i in range(9)])
     def update(self, minibatches, unlabeled=None):
         all_x = torch.cat([x for x, y in minibatches])
         all_y = torch.cat([y for x, y in minibatches])
-        
-        # Convert batch tensor to list of PIL images
-        to_pil = transforms.ToPILImage()
-        to_tensor = transforms.ToTensor()
-        
-        augmented_images = []
-        for img in all_x:
-            # Convert to PIL
-            pil_img = to_pil(img)
-            # Apply augmentation
-            aug_img = self.augmenter(pil_img, self.weight.to(img.device)) 
-            # Convert back to tensor
-            aug_tensor = to_tensor(aug_img)
-            augmented_images.append(aug_tensor)
-            
-        # Stack back into batch tensor
-        augmented_images = torch.stack(augmented_images).to(self.device)
-        all_y = all_y.to(self.device)
 
-        predictions = self.predict(augmented_images)
+        predictions = self.predict(all_x)
 
         loss = F.cross_entropy(predictions, all_y)
 
@@ -260,6 +239,9 @@ class ERM_JSD(Algorithm):
 
     def predict(self, x):
         return self.network(x)
+
+
+
 
 class GLMNet(Algorithm):
     """

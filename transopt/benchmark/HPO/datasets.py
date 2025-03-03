@@ -47,7 +47,7 @@ def data_transform(dataset_name, augmentation_name=None):
     if augmentation_name:
         if dataset_name.lower() in ['cifar10', 'cifar100']:
             if augmentation_name.lower() == 'cutout':
-                transform_list.insert(-1,Cutout(n_holes=1, length=4))
+                transform_list.append(Cutout(n_holes=1, length=8))
             elif augmentation_name.lower() == 'geometric':
                 transform_list.insert(1, CIFAR10PolicyGeometric())
             elif augmentation_name.lower() == 'photometric':
@@ -271,7 +271,7 @@ class RobCifar10(Dataset):
         original_images = original_images[shuffle]
         original_labels = original_labels[shuffle]
         
-        
+
         self.dataset_transform = data_transform('cifar10', augment)
         self.normalized_images = data_transform('cifar10', None)
         
@@ -295,7 +295,7 @@ class RobCifar10(Dataset):
         self.num_classes = 10
         # Standard test set
         self.datasets['test_standard'] = TensorDataset(standard_test_images, torch.tensor(original_dataset_te.targets))
-        
+
         # Corruption test sets
         self.corruptions = [
             'gaussian_noise', 'shot_noise', 'impulse_noise', 'defocus_blur',

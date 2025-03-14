@@ -436,6 +436,9 @@ class Services:
                 if dataselector['ModelDataSelector']:
                     metadata, metadata_info = dataselector['ModelDataSelector'].fetch_data(dataset_info)
                 optimizer.meta_fit(metadata, metadata_info)
+                
+                cur_iter = 0
+                self.update_process_info(pid, {'iteration': cur_iter + 1})
             
                 while (task_set.get_rest_budget()):
                     optimizer.fit()
@@ -452,6 +455,7 @@ class Services:
                     self.update_process_info(pid, {'progress': 100 * (task_set.get_cur_budget() - task_set.get_rest_budget()) / task_set.get_cur_budget()})
                     logger.info(f"PID {pid}: Seed {seed}, Task {task_set.get_curname()}, Iteration {self.process_info[pid]['iteration']}")
                 task_set.roll()
+                optimizer.meta_observe({'X':optimizer._X, 'Y':optimizer._Y}, search_space)
         except Exception as e:
             logger.error(f"Error in process {pid}: {str(e)}")
             raise e

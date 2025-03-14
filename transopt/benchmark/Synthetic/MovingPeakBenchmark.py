@@ -1,58 +1,67 @@
+import os
+import math
 import logging
 import numpy as np
-import ConfigSpace as CS
 import matplotlib.pyplot as plt
+from typing import Union, Dict
+from transopt.space.variable import *
+
 from sklearn.preprocessing import normalize
-from typing import Union, Tuple, Dict, List
 
-from transopt.benchmark.problem_base import NonTabularProblem
-from agent.registry import benchmark_register
-
+from transopt.agent.registry import problem_registry
+from transopt.benchmark.problem_base.non_tab_problem import NonTabularProblem
+from transopt.space.search_space import SearchSpace
+from transopt.space.fidelity_space import FidelitySpace
 
 logger = logging.getLogger("MovingPeakBenchmark")
 
-
+@problem_registry.register("MPB")
 class MovingPeakGenerator:
     def __init__(
         self,
-        n_var,
+        task_name,
+        budget,
+        budget_type,
+        workloads,
         shift_length=3.0,
-        height_severity=7.0,
-        width_severity=1.0,
+        height_severity=4.0,
+        width_severity=2.0,
         lam=0.5,
-        n_peak=4,
-        n_step=11,
-        seed=None,
+        n_peak=2,
+        seed=19,
+        **kwargs
     ):
         if seed is not None:
             np.random.seed(seed)
-        self.n_var = n_var
+            self.seed = seed
+        else:
+            self.seed = 0
+        if 'input_dim' in kwargs['params']:
+            self.input_dim = kwargs['params']['input_dim']
+        else:
+            self.input_dim = 1
+        if 'task_type' in kwargs['params']:
+            self.task_type = kwargs['params']['task_type']
+        else:
+            self.task_type = 'non-tabular'
+        self.task_name = task_name
+        self.budget = budget
+        self.budget_type = budget_type
+        self.workloads = workloads
+        self.n_var = self.input_dim
         self.shift_length = shift_length
         self.height_severity = height_severity
         self.width_severity = width_severity
-
-        # lambda determines whether there is a direction of the movement, or whether they are totally random.
-        # For lambda = 1.0 each move has the same direction, while for lambda = 0.0, each move has a random direction
         self.lam = lam
-
-        # number of peaks in the landscape
         self.n_peak = n_peak
-
-        self.var_bound = np.array([[0, 100]] * n_var)
-
+        self.var_bound = np.array([[0, 100]] * self.n_var)
         self.height_bound = np.array([[30, 70]] * n_peak)
-
         self.width_bound = np.array([[1.0, 12.0]] * n_peak)
-
-        self.n_step = n_step
-
+        self.n_step = len(workloads)
         self.t = 0
 
-        self.bounds = np.array(
-            [[-1.0] * self.n_var, [1.0] * self.n_var], dtype=np.float64
-        )
-
-        current_peak = np.random.random(size=(n_peak, n_var)) * np.tile(
+        # Initialize peaks, widths, and heights
+        current_peak = np.random.random(size=(n_peak, self.n_var)) * np.tile(
             self.var_bound[:, 1] - self.var_bound[:, 0], (n_peak, 1)
         ) + np.tile(self.var_bound[:, 0], (n_peak, 1))
 
@@ -69,7 +78,7 @@ class MovingPeakGenerator:
         )
 
         previous_shift = normalize(
-            np.random.random(size=(n_peak, n_var)), axis=1, norm="l2"
+            np.random.random(size=(n_peak, self.n_var)), axis=1, norm="l2"
         )
 
         self.peaks = []
@@ -80,7 +89,7 @@ class MovingPeakGenerator:
         self.widths.append(current_width)
         self.heights.append(current_height)
 
-        for t in range(1, n_step):
+        for t in range(1, self.n_step):
             peak_shift = self.cal_peak_shift(previous_shift)
             width_shift = self.cal_width_shift()
             height_shift = self.cal_height_shift()
@@ -95,9 +104,31 @@ class MovingPeakGenerator:
             self.peaks.append(current_peak)
             self.widths.append(current_width)
             self.heights.append(current_height)
-
+    
     def get_MPB(self):
         return self.peaks, self.widths, self.heights
+
+    def generate_benchmarks(self):
+        benchmarks = []
+        for t in range(self.n_step):
+            peak = self.peaks[t]
+            height = self.heights[t]
+            width = self.widths[t]
+            problem = MovingPeakBenchmark(
+                task_name=self.task_name,
+                budget=self.budget,
+                budget_type=self.budget_type,
+                task_id=t,
+                workload=t,
+                peak=peak,
+                height=height,
+                width=width,
+                seed=self.seed,
+                input_dim=self.n_var,
+                task_type=self.task_type
+            )
+            benchmarks.append(problem)
+        return benchmarks
 
     def cal_width_shift(self):
         width_change = np.random.random(size=(self.n_peak, 1))
@@ -109,9 +140,11 @@ class MovingPeakGenerator:
 
     def cal_peak_shift(self, previous_shift):
         peak_change = np.random.random(size=(self.n_peak, self.n_var))
-        return (1 - self.lam) * self.shift_length * normalize(
-            peak_change - 0.5, axis=1, norm="l2"
-        ) + self.lam * previous_shift
+        # return (1 - self.lam) * self.shift_length * normalize(
+        #     peak_change - 0.5, axis=1, norm="l2"
+        # ) + self.lam * previous_shift
+        
+        return (1 - self.lam) * self.shift_length*peak_change + self.lam * previous_shift
 
     def change(self):
         if self.t < self.n_step - 1:
@@ -156,27 +189,52 @@ class MovingPeakGenerator:
                 data[i] = data[i] * 0.5 + bound[i, 0] * 0.25 + bound[i, 1] * 0.25
 
 
-@benchmark_register("MPB")
 class MovingPeakBenchmark(NonTabularProblem):
+    problem_type = "synthetic"
+    num_variables = []
+    num_objectives = 1
+    workloads = []
+    fidelity = None
     def __init__(
         self,
         task_name,
         budget,
+        budget_type,
+        task_id,
+        workload,
         peak,
         height,
         width,
         seed,
         input_dim,
         task_type="non-tabular",
+        **kwargs
     ):
         self.dimension = input_dim
         self.peak = peak
         self.height = height
         self.width = width
         self.n_peak = len(peak)
+        self.peak_shape = kwargs.get("peak_shape", "cone")
+        
+        self.input_dim = input_dim
+        
         super(MovingPeakBenchmark, self).__init__(
-            task_name=task_name, seed=seed, task_type=task_type, budget=budget
+            task_name=task_name, seed=seed, task_type=task_type, budget=budget, budget_type=budget_type, task_id=task_id, workload=workload
         )
+
+        # Set the peak function based on the peak shape
+        self.peak_function = self._select_peak_function(self.peak_shape)
+
+    def _select_peak_function(self, peak_shape):
+        if peak_shape == "cone":
+            return self.peak_function_cone
+        elif peak_shape == "sharp":
+            return self.peak_function_sharp
+        elif peak_shape == "hilly":
+            return self.peak_function_hilly
+        else:
+            return self.peak_function_cone
 
     def peak_function_cone(self, x):
         distance = np.linalg.norm(np.tile(x, (self.n_peak, 1)) - self.peak, axis=1)
@@ -196,78 +254,158 @@ class MovingPeakBenchmark(NonTabularProblem):
 
     def objective_function(
         self,
-        configuration: Union[CS.Configuration, Dict],
-        fidelity: Union[Dict, CS.Configuration, None] = None,
+        configuration: Dict,
+        fidelity: Dict = None,
         seed: Union[np.random.RandomState, int, None] = None,
         **kwargs,
     ) -> Dict:
-        if "peak_shape" not in kwargs:
-            peak_shape = "cone"
-        else:
-            peak_shape = kwargs["peak_shape"]
-
         X = np.array([[configuration[k] for idx, k in enumerate(configuration.keys())]])
-        if peak_shape == "cone":
-            peak_function = self.peak_function_cone
-        elif peak_shape == "sharp":
-            peak_function = self.peak_function_sharp
-        elif peak_shape == "hilly":
-            peak_function = self.peak_function_hilly
-        else:
-            # print("Unknown shape, set to default")
-            peak_function = self.peak_function_cone
-        y = peak_function(X)
+        y = self.peak_function(X)
+        results = {list(self.objective_info.keys())[0]: float(-y)}
+        for fd_name in self.fidelity_space.fidelity_names:
+            results[fd_name] = fidelity[fd_name] 
+        return results
+    
+    def get_configuration_space(self) -> SearchSpace:
+        variables =  [Continuous(f'x{i}', (0, 100)) for i in range(self.input_dim)]
+        ss = SearchSpace(variables)
+        return ss
 
-        return {"function_value": float(y), "info": {"fidelity": fidelity}}
+    def get_fidelity_space(self) -> FidelitySpace:
+        fs = FidelitySpace([])
+        return fs
 
-    def get_configuration_space(
-        self, seed: Union[int, None] = None
-    ) -> CS.ConfigurationSpace:
-        """
-        Creates a ConfigSpace.ConfigurationSpace containing all parameters for
-        the XGBoost Model
+    def get_objectives(self) -> Dict:
+        return {'f1':'minimize'}
 
-        Parameters
-        ----------
-        seed : int, None
-            Fixing the seed for the ConfigSpace.ConfigurationSpace
+    def get_problem_type(self):
+        return "synthetic"
 
-        Returns
-        -------
-        ConfigSpace.ConfigurationSpace
-        """
-        seed = seed if seed is not None else np.random.randint(1, 100000)
-        cs = CS.ConfigurationSpace(seed=seed)
-        cs.add_hyperparameters(
-            [
-                CS.UniformFloatHyperparameter(f"x{i}", lower=0.0, upper=100.0)
-                for i in range(self.dimension)
-            ]
-        )
+def plot_1d_line_benchmarks(generator, steps=12):
+    """
+    Plots 1D line plots of the benchmarks generated by the MovingPeakGenerator in a 3x4 grid.
 
-        return cs
+    Parameters
+    ----------
+    generator : MovingPeakGenerator
+        An instance of the MovingPeakGenerator class.
+    steps : int
+        The number of steps to plot.
+    """
+    fig, axes = plt.subplots(3, 4, figsize=(15, 10))
+    axes = axes.flatten()
 
-    def get_fidelity_space(
-        self, seed: Union[int, None] = None
-    ) -> CS.ConfigurationSpace:
-        """
-        Creates a ConfigSpace.ConfigurationSpace containing all fidelity parameters for
-        the XGBoost Benchmark
+    x = np.linspace(0, 100, 500)  # 1D space
 
-        Parameters
-        ----------
-        seed : int, None
-            Fixing the seed for the ConfigSpace.ConfigurationSpace
+    for t in range(steps):
+        peaks, widths, heights = generator.get_MPB()
+        current_peaks = peaks[t]
+        current_widths = widths[t]
+        current_heights = heights[t]
 
-        Returns
-        -------
-        ConfigSpace.ConfigurationSpace
-        """
-        seed = seed if seed is not None else np.random.randint(1, 100000)
-        fidel_space = CS.ConfigurationSpace(seed=seed)
+        y = np.zeros_like(x)
+        for peak, width, height in zip(current_peaks, current_widths, current_heights):
+            y += height * np.exp(-((x - peak[0]) ** 2) / (2 * width ** 2))
 
-        return fidel_space
+        ax = axes[t]
+        ax.plot(x, y, label=f'Step {t+1}')
+        ax.set_title(f'Step {t+1}')
+        ax.set_xlim(0, 100)
+        ax.set_ylim(0, max(current_heights) + 10)
+        ax.set_xlabel('X-axis')
+        ax.set_ylabel('Height')
+        ax.legend(loc='upper right')
 
-    def get_meta_information(self) -> Dict:
-        print(1)
-        return {}
+        # Annotate each peak with a red line and x-coordinate
+        for i, peak in enumerate(current_peaks):
+            ax.axvline(x=peak[0], color='red', linestyle='--', linewidth=1)
+            ax.annotate(f'Peak {i+1}\n({peak[0]:.2f})', xy=(peak[0], current_heights[i]), 
+                        xytext=(peak[0], current_heights[i] + 5),
+                        arrowprops=dict(facecolor='black', arrowstyle='->'),
+                        fontsize=8, ha='center')
+
+    plt.tight_layout()
+    plt.savefig('MovingPeakBenchmark.png')
+
+
+
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
+
+def plot_1d_line_benchmarks_with_gp(generator, steps=12):
+    """
+    Plots 1D line plots of the benchmarks generated by the MovingPeakGenerator in a 3x4 grid.
+
+    Parameters
+    ----------
+    generator : MovingPeakGenerator
+        An instance of the MovingPeakGenerator class.
+    steps : int
+        The number of steps to plot.
+    """
+    fig, axes = plt.subplots(3, 4, figsize=(15, 10))
+    axes = axes.flatten()
+
+    x = np.linspace(0, 100, 500)  # 1D space
+
+    # Sample 16 points from the first step
+    sample_x = np.linspace(0, 100, 16).reshape(-1, 1)
+    peaks, widths, heights = generator.get_MPB()
+    current_peaks = peaks[0]
+    current_widths = widths[0]
+    current_heights = heights[0]
+
+    # Calculate y values for the sampled points
+    sample_y = np.zeros_like(sample_x).flatten()
+    for peak, width, height in zip(current_peaks, current_widths, current_heights):
+        sample_y += height * np.exp(-((sample_x.flatten() - peak[0]) ** 2) / (2 * width ** 2))
+
+    # Fit Gaussian Process to the sampled data
+    kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
+    gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
+    gp.fit(sample_x, sample_y)
+
+    # Predict using the Gaussian Process
+    y_pred, sigma = gp.predict(x.reshape(-1, 1), return_std=True)
+
+    for t in range(steps):
+        peaks, widths, heights = generator.get_MPB()
+        current_peaks = peaks[t]
+        current_widths = widths[t]
+        current_heights = heights[t]
+
+        y = np.zeros_like(x)
+        for peak, width, height in zip(current_peaks, current_widths, current_heights):
+            y += height * np.exp(-((x - peak[0]) ** 2) / (2 * width ** 2))
+
+        ax = axes[t]
+        # Plot the Gaussian Process fit from first step
+        ax.plot(x, y_pred, 'r--', label='GP Fit')
+        ax.fill_between(x, y_pred - 1.96 * sigma, y_pred + 1.96 * sigma, alpha=0.2, color='k')
+        
+        # Plot current step function
+        ax.plot(x, y, label=f'Step {t+1}')
+        ax.set_title(f'Step {t+1}')
+        ax.set_xlim(0, 100)
+        ax.set_ylim(0, max(current_heights) + 10)
+        ax.set_xlabel('X-axis')
+        ax.set_ylabel('Height')
+        ax.legend(loc='upper right')
+
+        # Annotate each peak with a red line and x-coordinate
+        for i, peak in enumerate(current_peaks):
+            ax.axvline(x=peak[0], color='red', linestyle='--', linewidth=1)
+            ax.annotate(f'Peak {i+1}\n({peak[0]:.2f})', xy=(peak[0], current_heights[i]), 
+                        xytext=(peak[0], current_heights[i] + 5),
+                        arrowprops=dict(facecolor='black', arrowstyle='->'),
+                        fontsize=8, ha='center')
+
+    plt.tight_layout()
+    plt.savefig('MovingPeakBenchmark.png')
+
+if __name__ == "__main__":
+    # Example usage
+    n_var = 1  # 1-dimensional
+    generator = MovingPeakGenerator(n_var=n_var, n_step=12, seed=42)
+    plot_1d_line_benchmarks(generator, steps=12)
+    plot_1d_line_benchmarks_with_gp(generator, steps=12)

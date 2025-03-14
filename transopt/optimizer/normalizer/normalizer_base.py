@@ -6,13 +6,13 @@ class NormalizerBase(ABC):
     def __init__(self, config):
         self.config = config
     @abstractmethod
-    def fit(self, X, Y):
+    def update(self, Y):
         raise NotImplementedError
     @abstractmethod 
-    def transform(self, X = None, Y = None):
+    def transform(self, Y = None):
         raise NotImplementedError
     @abstractmethod
-    def inverse_transform(self, X = None, Y = None):
+    def inverse_transform(self, Y = None):
 
         raise NotImplementedError 
     

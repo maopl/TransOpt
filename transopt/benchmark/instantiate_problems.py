@@ -21,21 +21,38 @@ def InstantiateProblems(
         budget_type = task_params.get("budget_type", 'Num_FEs')
         params = task_params.get("params", {})
 
-
-        problem_cls = problem_registry[task_name]
-        if problem_cls is None:
-            raise KeyError(f"Task '{task_name}' not found in the problem registry.")
-
-        for idx, workload in enumerate(workloads):
+        if task_name == "MPB":
+            problem_cls = problem_registry[task_name]
+            if problem_cls is None:
+                raise KeyError(f"Task '{task_name}' not found in the problem registry.")
             problem = problem_cls(
-                task_name=f"{task_name}",
-                task_id=idx,
-                budget_type=budget_type,
-                budget=budget,
-                seed=seed,
-                workload=workload,
-                params=params,
-            )
-            transfer_problems.add_task(problem)
+                    task_name=f"{task_name}",
+                    budget_type=budget_type,
+                    budget=budget,
+                    seed=seed,
+                    workloads=workloads,
+                    params=params,
+                )
+            for problem in problem.generate_benchmarks():
+                transfer_problems.add_task(problem)
+            
+
+        else:
+            problem_cls = problem_registry[task_name]
+
+            if problem_cls is None:
+                raise KeyError(f"Task '{task_name}' not found in the problem registry.")
+            for idx, workload in enumerate(workloads):
+                problem = problem_cls(
+                    task_name=f"{task_name}",
+                    task_id=idx,
+                    budget_type=budget_type,
+                    budget=budget,
+                    seed=seed,
+                    workload=workload,
+                    params=params,
+                )
+                
+                transfer_problems.add_task(problem)
 
     return transfer_problems

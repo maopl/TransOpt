@@ -22,3 +22,8 @@ from transopt.benchmark.Synthetic.SingleObjProblems import (
     # GriewankRosenbrockOptBenchmark,
     # KatsuuraOptBenchmark,
 )
+
+from transopt.benchmark.Synthetic.MovingPeakBenchmark import (
+    MovingPeakGenerator,
+    MovingPeakBenchmark,
+)

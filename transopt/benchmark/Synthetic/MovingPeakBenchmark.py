@@ -25,8 +25,8 @@ from transopt.space.fidelity_space import FidelitySpace
 
 logger = logging.getLogger("MovingPeakBenchmark")
 
-@problem_registry.register("MPB")
 class MovingPeakGenerator:
+
     def __init__(
         self,
         task_name,
@@ -225,7 +225,7 @@ class MovingPeakGenerator:
             while data[i] < bound[i, 0] or data[i] > bound[i, 1]:
                 data[i] = data[i] * 0.5 + bound[i, 0] * 0.25 + bound[i, 1] * 0.25
 
-
+@problem_registry.register("MPB")
 class MovingPeakBenchmark(NonTabularProblem):
     problem_type = "synthetic"
     num_variables = []

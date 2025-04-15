@@ -1,19 +1,19 @@
-import { useEffect } from 'react'
-import { useDispatch } from 'react-redux'
-import { setPageTitle } from '../../features/common/headerSlice'
-import Seldata from '../../features/seldata/index'
+// import { useEffect } from 'react'
+// import { useDispatch } from 'react-redux'
+// import { setPageTitle } from '../../features/common/headerSlice'
+// import Seldata from '../../features/seldata/index'
 
-function InternalPage(){
-    const dispatch = useDispatch()
+// function InternalPage(){
+//     const dispatch = useDispatch()
 
-    useEffect(() => {
-        dispatch(setPageTitle({ title : "Select Datasets"}))
-      }, [])
+//     useEffect(() => {
+//         dispatch(setPageTitle({ title : "Select Datasets"}))
+//       }, [])
 
 
-    return(
-        <Seldata />
-    )
-}
+//     return(
+//         <Seldata />
+//     )
+// }
 
-export default InternalPage
+// export default InternalPage

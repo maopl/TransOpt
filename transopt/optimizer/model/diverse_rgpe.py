@@ -48,8 +48,8 @@ def compute_ranking_loss(
     return rank_loss
 
 
-@model_registry.register('RGPE')
-class RGPE(Model):
+@model_registry.register('DRGPE')
+class DRGPE(Model):
     def __init__(
             self,
             kernel: Kern = None,
@@ -113,10 +113,10 @@ class RGPE(Model):
                 source_Y : List[np.ndarray],
                 optimize: Union[bool, Sequence[bool]] = True):
         # metadata, _ = SourceSelection.the_k_nearest(source_datasets)
+        
         self._metadata = {'X': source_X, 'Y':source_Y}
         self._source_gps = {}
-        
-        
+
         assert isinstance(optimize, bool) or isinstance(optimize, list)
         if isinstance(optimize, list):
             assert len(source_X) == len(optimize)
@@ -124,7 +124,7 @@ class RGPE(Model):
 
         if isinstance(optimize_flag, bool):
             optimize_flag = [optimize_flag] * len(source_X)
-        
+
         for i in range(len(source_X)):
             new_gp = self._meta_fit_single_gp(
                 source_X[i],
@@ -173,7 +173,7 @@ class RGPE(Model):
         if self._weights_need_update:
             self._calculate_weights()
             self._weights_need_update = False  # Reset the flag after updating weights
-        
+
         self.plot_target_model()
 
     def predict(
@@ -195,7 +195,7 @@ class RGPE(Model):
         # Predict from source models
         for task_uid, weight in enumerate(self._source_gp_weights):
             model = self._source_gps[task_uid]
-            
+
             # Predict based on model type
             if self.model_name == 'GP':
                 means[task_uid], vars_[task_uid] = model.predict(X)
@@ -396,6 +396,7 @@ class RGPE(Model):
         # compute best model (minimum ranking loss) for each sample
         # this differs from v1, where the weight is given only to the target model in case of a tie.
         # Here, we distribute the weight fairly among all participants of the tie.
+        
         minima = np.min(ranking_loss, axis=0)
         assert len(minima) == self.n_samples
         best_models = np.zeros(len(self._source_gps) + 1)
@@ -409,9 +410,14 @@ class RGPE(Model):
         # compute proportion of samples for which each model is best
         rank_weights = best_models / self.n_samples
 
-        self._source_gp_weights = [rank_weights[task_uid] for task_uid in self._source_gps]
-        self._target_model_weight = rank_weights[-1]
-        
+        # Add noise to weights according to formula
+        noise = self.rng.normal(0, 0.1, size=len(rank_weights))  # Sample noise from N(0,σ²)
+        noisy_weights = np.exp(-(rank_weights + noise))  # Calculate e^(-(l_i + ε_i))
+        normalized_weights = noisy_weights / np.sum(noisy_weights)  # Normalize
+
+        self._source_gp_weights = [normalized_weights[task_uid] for task_uid in self._source_gps]
+        self._target_model_weight = normalized_weights[-1]
+
         self.plot_predictions()
 
         return rank_weights, p_drop
@@ -494,21 +500,39 @@ class RGPE(Model):
         """Cache the meta data after meta training."""
         n_models = len(self._source_gps)
         for task_uid, gp in enumerate(gps):
+            gp.X = self._X
+            # gp.Y = self._Y
+            # # Add noise scaled by X's magnitude
+            # X_scale = np.std(self._X, axis=0)
+            # noise = np.random.normal(0, X_scale * 0.1, self._X.shape) 
+            # gp.X = self._X + noise
+            
+            # Smaller Y values -> higher probability of noise and larger noise
+            # Larger Y values -> lower probability of noise and smaller noise
+            y_probs = 1 / (1 + np.exp(self._Y))  # Invert sigmoid so smaller Y gives higher prob
+            noise_scale = 1 / (1 + np.exp(self._Y))  # Scale noise based on Y value
+            noise = np.random.normal(0, noise_scale, self._Y.shape)*0.1
+            mask = np.random.rand(*self._Y.shape) < y_probs
+            gp.Y = np.where(mask, self._Y + noise, self._Y)
+
             self._source_gps[n_models + task_uid] = gp
             self._metadata[n_models + task_uid] = {'X': self._X, 'Y': self._Y}
-            
-        
+
+
     def meta_update(self):
         self._update_meta_data(self.target_model)
         self._weights_need_update = True  # Set the flag to update weights after meta_update
+
 
     def set_XY(self, Data:Dict):
         self._X = copy.deepcopy(Data['X'])
         self._Y = copy.deepcopy(Data['Y'])
 
+
     def print_Weights(self):
         print(f'Source weights:{self._source_gp_weights}')
         print(f'Target weights:{self._target_model_weight}')
+
 
     def get_Weights(self):
         weights = self._source_gp_weights.copy()
@@ -524,6 +548,7 @@ class RGPE(Model):
         sample_comps = samples[:, np.newaxis, :] < samples
         target_comps = np.tile(y[:, np.newaxis, :] < y, self.n_samples)
         return np.sum(sample_comps ^ target_comps, axis=(1, 0))
+
 
     def posterior_samples_f(self,X, size=10, **predict_kwargs):
         """
@@ -545,6 +570,7 @@ class RGPE(Model):
             return np.random.multivariate_normal(m, v, size).T
 
         return sim_one_dim(m.flatten(), v)[:, np.newaxis, :]
+
 
 
     def posterior_samples(self, X, size=10, Y_metadata=None, likelihood=None, **predict_kwargs):
@@ -632,6 +658,7 @@ class RGPE(Model):
         plt.legend()
         plt.savefig(f'{self.model_name}_predictions_source{len(self._source_gps)}.png')
         plt.close()
+
 
     def plot_target_model(self):
         """

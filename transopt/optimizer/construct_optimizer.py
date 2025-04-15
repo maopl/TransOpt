@@ -64,8 +64,7 @@ def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
     if optimizer_type == 'BO':
         optimizer = BO(SpaceRefiner, Sampler, ACF, Pretrain, Model, Normalizer, optimizer_config)
     elif optimizer_type == 'Bilevel':
-        optimizer = Bilevel(optimizer_config)
-        
+        optimizer = Bilevel(optimizer_config)        
     return optimizer
 
 def ConstructSelector(optimizer_config, dict = None, seed: int = 0):

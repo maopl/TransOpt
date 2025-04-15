@@ -385,13 +385,13 @@ class Services:
         
         for p in process_list:
             p.join()
-            
+    
     def _run_optimize_process(self, seed):
         # Each process constructs its own DataManager
         try:
             import os
             pid = os.getpid()
-            self.process_info[pid] = {'status': 'running', 'seed': seed, 'budget': None, 'task': None, 'iteration': 0, 'dataset_name': None, 'progress':0}
+            self.process_info[pid] = {'status': 'running', 'seed': [seed], 'budget': [], 'task': [], 'iteration': 0, 'dataset_name': [], 'progress':0}
             logger.info(f"Start process #{pid}")
 
             # Instantiate problems and optimizer
@@ -436,6 +436,9 @@ class Services:
                 if dataselector['ModelDataSelector']:
                     metadata, metadata_info = dataselector['ModelDataSelector'].fetch_data(dataset_info)
                 optimizer.meta_fit(metadata, metadata_info)
+                
+                cur_iter = 0
+                self.update_process_info(pid, {'iteration': cur_iter + 1})
             
                 while (task_set.get_rest_budget()):
                     optimizer.fit()
@@ -452,11 +455,13 @@ class Services:
                     self.update_process_info(pid, {'progress': 100 * (task_set.get_cur_budget() - task_set.get_rest_budget()) / task_set.get_cur_budget()})
                     logger.info(f"PID {pid}: Seed {seed}, Task {task_set.get_curname()}, Iteration {self.process_info[pid]['iteration']}")
                 task_set.roll()
+                optimizer.meta_observe({'X':optimizer._X, 'Y':optimizer._Y}, search_space)
         except Exception as e:
             logger.error(f"Error in process {pid}: {str(e)}")
             raise e
         finally:
             self.update_process_info(pid, {'status': 'completed'})
+        
    
     def terminate_task(self, pid):
         with self.lock:
@@ -480,7 +485,18 @@ class Services:
     def update_process_info(self, pid, updates):
         with self.lock:
             temp_info = self.process_info[pid].copy()
-            temp_info.update(updates)
+            list_keys = {'seed', 'budget', 'task', 'dataset_name'}
+            
+            for key, value in updates.items():
+                if key in list_keys:
+                    if key not in temp_info:
+                        temp_info[key] = []
+                    if not isinstance(temp_info[key], list):
+                        temp_info[key] = [temp_info[key]]
+                    temp_info[key].append(value)
+                else:
+                    temp_info[key] = value
+            
             self.process_info[pid] = temp_info
         
     def get_all_process_info(self):

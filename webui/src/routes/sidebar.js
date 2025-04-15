@@ -21,27 +21,9 @@ const routes = [
   },
 
   {
-    path: '/app/optimization', //no url needed as this has submenu
-    icon: <CogIcon className={`${iconClasses} inline` }/>, // icon component
-    name: 'Experiments', // name that appear in Sidebar
-    submenu : [
-      {
-        path: '/app/optimization/problem',
-        icon: <QuestionMarkCircleIcon className={submenuIconClasses}/>,
-        name: 'Create New Experiment',
-      },
-
-      {
-        path: '/app/optimization/selectdatasets',
-        icon: <FolderOpenIcon className={submenuIconClasses}/>,
-        name: 'Select Datasets',
-      },
-      {
-        path: '/app/optimization/run',
-        icon: <PlayIcon className={submenuIconClasses}/>,
-        name: 'Run',
-      },
-    ]
+    path: '/app/optimization/problem',
+    icon: <QuestionMarkCircleIcon className={submenuIconClasses}/>,
+    name: ' Experiment',
   },
 
   {

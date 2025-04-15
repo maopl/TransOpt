@@ -256,7 +256,7 @@ def create_app():
         data = services.get_comparision_modules()
 
         return jsonify(data), 200
-
+        
 
     @app.route("/api/comparison/choose_task", methods=["POST"])
     def comparison_choose_tasks():

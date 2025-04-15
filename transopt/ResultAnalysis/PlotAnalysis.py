@@ -15,19 +15,18 @@ from transopt.ResultAnalysis.CompileTex import compile_tex
 import matplotlib.gridspec as gridspec
 plot_registry = {}
 import re
-
-# 注册函数的装饰器
-def plot_register(name):
-    def decorator(func_or_class):
-        if name in plot_registry:
-            raise ValueError(f"Error: '{name}' is already registered.")
-        plot_registry[name] = func_or_class
-        return func_or_class
-    return decorator
+from transopt.agent.registry import analysis_registry
 
 
 
-@plot_register('sk')
+
+@analysis_registry('traj')
+def plot_traj(ab:AnalysisBase, save_path:Path):
+    pass
+
+
+
+@analysis_registry('sk')
 def plot_sk(ab:AnalysisBase, save_path:Path):
     cr_results = {}
     results = ab.get_results_by_order(["task", "method", "seed"])
@@ -102,7 +101,7 @@ def plot_sk(ab:AnalysisBase, save_path:Path):
 
 
 
-@plot_register('cr')
+@analysis_registry('cr')
 def convergence_rate(ab:AnalysisBase, save_path:Path, **kwargs):
     cr_list = []
     cr_all = {}
@@ -255,109 +254,109 @@ def save_traj_data(ab, save_path):
 
             print(f"Data saved for {task_name}")
 
-@plot_register('traj')
-def traj2latex(ab: AnalysisBase, save_path: Path):
-    # 从 ab 对象中获取任务名称和方法名称
-    save_traj_data(ab, save_path)
-    results = ab.get_results_by_order(["task", "method", "seed"])
-    methods = ab.get_methods()
+# @analysis_registry('traj')
+# def traj2latex(ab: AnalysisBase, save_path: Path):
+#     # 从 ab 对象中获取任务名称和方法名称
+#     save_traj_data(ab, save_path)
+#     results = ab.get_results_by_order(["task", "method", "seed"])
+#     methods = ab.get_methods()
 
-    # 从 ab 对象中获取 start_idx, y_max 和 y_min
-    start_idx = ab._init
-    end_idx = ab._end
+#     # 从 ab 对象中获取 start_idx, y_max 和 y_min
+#     start_idx = ab._init
+#     end_idx = ab._end
 
-    # 创建保存路径
-    os.makedirs(save_path / 'traj' / 'tex', exist_ok=True)
-
-
-    # 设置文件路径
-    for task_name, tasks_r in results.items():
-        all_data = []
-
-        for method, method_r in tasks_r.items():
-            for seed, result_obj in method_r.items():
-                Y = result_obj.Y
-                if Y is not None:
-                    min_values = np.minimum.accumulate(Y)
-                    all_data.append(min_values.flatten())
-
-        if all_data:
-            all_data = np.concatenate(all_data)
-            y_min = np.min(all_data) - np.std(all_data)
-            y_max = np.max(all_data) + np.std(all_data)
-
-        tex_save_path = save_path / 'traj' / 'tex' / f"{task_name}.tex"
-        data_file = f"{task_name}.dat"
-        # 开始写入 LaTeX 代码
-        latex_code = f"""
-        \\documentclass{{article}}
-        \\usepackage{{pgfplots}}
-        \\usepackage{{tikz}}
-        \\usetikzlibrary{{intersections}}
-        \\usepackage{{helvet}}
-        \\usepackage[eulergreek]{{sansmath}}
-        \\usepgfplotslibrary{{fillbetween}}
-
-        \\begin{{document}}
-        \\pagestyle{{empty}}
+#     # 创建保存路径
+#     os.makedirs(save_path / 'traj' / 'tex', exist_ok=True)
 
 
-        \\pgfplotsset{{compat=1.12,every axis/.append style={{
-            font = \\large,
-            grid = major,
-            xlabel = {{\\# of FEs}},
-            ylabel = {{$f(\\mathbf{{x}}^\\ast)$}},
-            thick,
-            xmin={start_idx},
-            xmax={end_idx},  % Adjust as needed
-            ymin={y_min},
-            ymax={y_max},
-            line width = 1pt,
-            tick style = {{line width = 0.8pt}}
-        }}}}
-        \pgfplotsset{{every plot/.append style={{very thin}}}}
-        \\begin{{tikzpicture}}
-            \\begin{{axis}}[
-                title={{${task_name}$}},
-                width=\\textwidth,
-                height=0.5\\textwidth,
-            ]"""
+#     # 设置文件路径
+#     for task_name, tasks_r in results.items():
+#         all_data = []
+
+#         for method, method_r in tasks_r.items():
+#             for seed, result_obj in method_r.items():
+#                 Y = result_obj.Y
+#                 if Y is not None:
+#                     min_values = np.minimum.accumulate(Y)
+#                     all_data.append(min_values.flatten())
+
+#         if all_data:
+#             all_data = np.concatenate(all_data)
+#             y_min = np.min(all_data) - np.std(all_data)
+#             y_max = np.max(all_data) + np.std(all_data)
+
+#         tex_save_path = save_path / 'traj' / 'tex' / f"{task_name}.tex"
+#         data_file = f"{task_name}.dat"
+#         # 开始写入 LaTeX 代码
+#         latex_code = f"""
+#         \\documentclass{{article}}
+#         \\usepackage{{pgfplots}}
+#         \\usepackage{{tikz}}
+#         \\usetikzlibrary{{intersections}}
+#         \\usepackage{{helvet}}
+#         \\usepackage[eulergreek]{{sansmath}}
+#         \\usepgfplotslibrary{{fillbetween}}
+
+#         \\begin{{document}}
+#         \\pagestyle{{empty}}
 
 
-        for method in methods:
-            # 这里需要根据你的数据文件的具体结构来调整
-            latex_code += f"""
-            \\addplot[color={{{ab.get_color_for_method(method)}}}, solid, line width=1pt]table [x = id, y = {method}_mean]{{{data_file}}};
-            \\addlegendentry{{{method}}};
-            """
-
-        for method in methods:
-            # 这里需要根据你的数据文件的具体结构来调整
-
-            latex_code += f"""
-            \\addplot[color={{{ab.get_color_for_method(method)}}}, name path={method}_L, draw=none] table[x = id, y = {method}_low] {{{data_file}}};
-            \\addplot[color={{{ab.get_color_for_method(method)}}}, name path={method}_U, draw=none] table[x = id, y = {method}_high] {{{data_file}}};
-            \\addplot[color={{{ab.get_color_for_method(method)}}},opacity=0.3] fill between[of={method}_U and {method}_L];
-            """
-
-        latex_code += f"""
-                    \\end{{axis}}
-            \\end{{tikzpicture}}
-        \\end{{document}}"""
-
-        # 将 LaTeX 代码保存到文件
-        with open(tex_save_path, 'w') as f:
-            f.write(latex_code)
-        try:
-            compile_tex(tex_save_path, save_path / 'traj')
-        except:
-            pass
-
-        print(f"LaTeX code has been saved to {tex_save_path}")
+#         \\pgfplotsset{{compat=1.12,every axis/.append style={{
+#             font = \\large,
+#             grid = major,
+#             xlabel = {{\\# of FEs}},
+#             ylabel = {{$f(\\mathbf{{x}}^\\ast)$}},
+#             thick,
+#             xmin={start_idx},
+#             xmax={end_idx},  % Adjust as needed
+#             ymin={y_min},
+#             ymax={y_max},
+#             line width = 1pt,
+#             tick style = {{line width = 0.8pt}}
+#         }}}}
+#         \pgfplotsset{{every plot/.append style={{very thin}}}}
+#         \\begin{{tikzpicture}}
+#             \\begin{{axis}}[
+#                 title={{${task_name}$}},
+#                 width=\\textwidth,
+#                 height=0.5\\textwidth,
+#             ]"""
 
 
+#         for method in methods:
+#             # 这里需要根据你的数据文件的具体结构来调整
+#             latex_code += f"""
+#             \\addplot[color={{{ab.get_color_for_method(method)}}}, solid, line width=1pt]table [x = id, y = {method}_mean]{{{data_file}}};
+#             \\addlegendentry{{{method}}};
+#             """
 
-@plot_register('violin')
+#         for method in methods:
+#             # 这里需要根据你的数据文件的具体结构来调整
+
+#             latex_code += f"""
+#             \\addplot[color={{{ab.get_color_for_method(method)}}}, name path={method}_L, draw=none] table[x = id, y = {method}_low] {{{data_file}}};
+#             \\addplot[color={{{ab.get_color_for_method(method)}}}, name path={method}_U, draw=none] table[x = id, y = {method}_high] {{{data_file}}};
+#             \\addplot[color={{{ab.get_color_for_method(method)}}},opacity=0.3] fill between[of={method}_U and {method}_L];
+#             """
+
+#         latex_code += f"""
+#                     \\end{{axis}}
+#             \\end{{tikzpicture}}
+#         \\end{{document}}"""
+
+#         # 将 LaTeX 代码保存到文件
+#         with open(tex_save_path, 'w') as f:
+#             f.write(latex_code)
+#         try:
+#             compile_tex(tex_save_path, save_path / 'traj')
+#         except:
+#             pass
+
+#         print(f"LaTeX code has been saved to {tex_save_path}")
+
+
+
+@analysis_registry('violin')
 def plot_violin(ab:AnalysisBase, save_path, **kwargs):
     data = {'Method': [], 'Performance rank': []}
     method_names = set()
@@ -431,7 +430,7 @@ def plot_violin(ab:AnalysisBase, save_path, **kwargs):
     plt.close()
 
 
-@plot_register('box')
+@analysis_registry('box')
 def plot_box(ab:AnalysisBase, save_path, **kwargs):
     if 'mode' in kwargs:
         mode = kwargs['mode']
@@ -512,7 +511,7 @@ def plot_box(ab:AnalysisBase, save_path, **kwargs):
     plt.close()
 
 
-@plot_register('dbscan')
+@analysis_registry('dbscan')
 def dbscan_analysis(ab: AnalysisBase, save_path, **kwargs):
     results = ab.get_results_by_order(['task', 'method', 'seed'])
     tasks_names = set()
@@ -636,7 +635,7 @@ def dbscan_analysis(ab: AnalysisBase, save_path, **kwargs):
         plt.close()
 
 
-@plot_register('heatmap')
+@analysis_registry('heatmap')
 def plot_heatmap(ab:AnalysisBase, save_path, **kwargs):
     results = ab.get_results_by_order(['method', 'task', 'seed'])
     methods = ab.get_methods()

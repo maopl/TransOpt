@@ -147,7 +147,7 @@ class Experiment extends React.Component {
 
     } else {
       return (
-        <div className="grid mt-4 w-[1200px] h-[800px] gap-6">
+        <div className="grid mt-4 w-[1200px] h-[1000px]gap-6">
 
             <TitleCard >
                       <SelectTask data={this.state.TasksData} updateTable={this.updateTaskTable}/>

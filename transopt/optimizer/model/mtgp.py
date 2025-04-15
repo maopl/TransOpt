@@ -199,4 +199,4 @@ class MTGP(GP):
             cov = np.clip(cov, 1e-20, None)
         return mu, cov
     def set_predict_id(self, id):
-        self.predict_id = id
+        self.predict_id = id        

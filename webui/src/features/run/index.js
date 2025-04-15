@@ -78,7 +78,7 @@ class RunPage extends React.Component {
                   }
                   collapse
                 >
-                  <h4>
+                  {/* <h4>
                     Problems
                   </h4>
                   <TaskTable tasks={this.state.tasks} />
@@ -89,7 +89,7 @@ class RunPage extends React.Component {
                   <h4>
                     Data
                   </h4>
-                  <DataTable datasets={this.state.datasets} optimizer={this.state.optimizer}/>
+                  <DataTable datasets={this.state.datasets} optimizer={this.state.optimizer}/> */}
                   <Run />
                   <RunProgress />
                 </TitleCard>

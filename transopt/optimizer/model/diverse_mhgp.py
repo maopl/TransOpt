@@ -27,8 +27,8 @@ from sklearn.ensemble import RandomForestRegressor
 from transopt.optimizer.model.tpe import TPE
 from transopt.agent.registry import model_registry
 
-@model_registry.register("MHGP")
-class MHGP(Model):
+@model_registry.register("DMHGP")
+class DMHGP(Model):
     """Stack of Gaussian processes.
 
     Transfer Learning model based on [Golovin et al: Google Vizier: A Service for
@@ -56,7 +56,7 @@ class MHGP(Model):
         self._normalize = normalize
         self._metadata = []
         self._metadata_info = []
-        self.model_name = 'RF'
+        self.model_name = 'GP'
         self._kernel = kernel
         self._noise_variance = noise_variance
         self.n_samples = 0
@@ -181,6 +181,8 @@ class MHGP(Model):
             raise ValueError("Number of features in model and input data mismatch.")
         
         residuals = self._compute_residuals(X, Y)
+        noise = np.random.normal(0, 0.1, residuals.shape)  # Add small Gaussian noise
+        residuals = residuals + noise
 
         if self.model_name == 'GP':
             kern = GPy.kern.RBF(self.n_features, ARD=False)

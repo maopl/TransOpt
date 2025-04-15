@@ -17,17 +17,13 @@ import copy
 import numpy as np
 from typing import Dict, Hashable, Union, Sequence, Tuple, List
 
-import GPy
 from GPy.kern import RBF
 from GPy.kern import Kern, RBF
 from transopt.optimizer.model.gp import GP
 from transopt.optimizer.model.model_base import Model
-from sklearn.ensemble import RandomForestRegressor
-
-from transopt.optimizer.model.tpe import TPE
 from transopt.agent.registry import model_registry
 
-@model_registry.register("MHGP")
+@model_registry.register("Residual")
 class MHGP(Model):
     """Stack of Gaussian processes.
 
@@ -54,19 +50,14 @@ class MHGP(Model):
         super().__init__()
 
         self._normalize = normalize
-        self._metadata = []
-        self._metadata_info = []
-        self.model_name = 'RF'
         self._kernel = kernel
         self._noise_variance = noise_variance
         self.n_samples = 0
-        self.n_features = None
 
-
-        self.source_models = []
+        self.source_gps = []
 
         # GP on difference between target data and last source data set
-        self.target_model = None
+        self.target_gp = None
 
     def _compute_residuals(self, X: np.ndarray, Y: np.ndarray) -> np.ndarray:
         """Determine the difference between given y-values and the sum of predicted
@@ -84,25 +75,21 @@ class MHGP(Model):
         if self.n_features != X.shape[1]:
             raise ValueError("Number of features in model and input data mismatch.")
 
-        if not self.source_models:
+        if not self.source_gps:
             return Y
 
         predicted_y = self.predict_posterior_mean(
-            X, idx=len(self.source_models) - 1
+            X, idx=len(self.source_gps) - 1
         )
 
         residuals = Y - predicted_y
 
         return residuals
 
-    def _update_meta_data(self, model):
+    def _update_meta_data(self, *gps: GP):
         """Cache the meta data after meta training."""
-        self.source_models.append(model)
-        self._metadata.append({'X': self._X, 'Y': self._Y})
-
-
-    def meta_update(self):
-        self._update_meta_data(self.target_model)
+        for gp in gps:
+            self.source_gps.append(gp)
 
     def _meta_fit_single_gp(
         self,
@@ -172,63 +159,45 @@ class MHGP(Model):
         Y: np.ndarray,
         optimize: bool = False,
     ):
+        if not self.source_gps:
+            raise ValueError(
+                "Error: source gps are not trained. Forgot to call `meta_fit`."
+            )
+
         self._X = copy.deepcopy(X)
         self._y = copy.deepcopy(Y)
-        self.n_samples, self.n_features = self._X.shape
-        if self.n_features is None:
-            self.n_features = self.n_features
-        elif self.n_features != self.n_features:
+        
+        self.n_samples, n_features = self._X.shape
+        if self.n_features != n_features:
             raise ValueError("Number of features in model and input data mismatch.")
         
+        if self.target_gp is None:
+            self.target_gp = GP(
+            RBF(self.n_features, ARD=True),
+            noise_variance=0.1,
+        )
+
         residuals = self._compute_residuals(X, Y)
 
-        if self.model_name == 'GP':
-            kern = GPy.kern.RBF(self.n_features, ARD=False)
-            self.target_model = GPy.models.GPRegression(self._X, residuals, kernel=kern)
-            self.target_model['Gaussian_noise.*variance'].constrain_bounded(1e-9, 1e-3)
-            try:
-                self.target_model.optimize_restarts(num_restarts=1, verbose=True, robust=True)
-            except np.linalg.linalg.LinAlgError as e:
-                print('Error: np.linalg.linalg.LinAlgError')
-
-        elif self.model_name == 'RF':
-            self.target_model = RandomForestRegressor(n_estimators=50, random_state=42, max_depth=5, min_samples_leaf=1, min_samples_split=2)
-            self.target_model.fit(self._X, residuals)
-        elif self.model_name == 'TPE':
-            # Initialize TPE model
-            self.target_model = TPE()
-            # Fit TPE model with observed data
-            self.target_model.fit(self._X, residuals)
-        else:
-            raise ValueError(f'Invalid model name: {self.model_name}')
-    
+        self.target_gp.fit(X, residuals, optimize)
 
     def predict(
         self, X: np.ndarray, return_full: bool = False, with_noise: bool = False
     ) -> Tuple[np.ndarray, np.ndarray]:
+        if not self.source_gps:
+            raise ValueError(
+                "Error: source gps are not trained. Forgot to call `meta_fit`."
+            )
+
         # returned mean: sum of means of the predictions of all source and target GPs
         mu = self.predict_posterior_mean(X)
 
         # returned variance is the variance of target GP
-        n_models = len(self.source_models)
-        n_sample = X.shape[0]
+        _, var = self.target_gp.predict(
+            X, return_full=return_full, with_noise=with_noise
+        )
 
-        if return_full == False:
-            vars_ = np.empty((n_models, n_sample, 1))
-        else:
-            vars_ = np.empty((n_models, n_sample, n_sample))
-        
-        if self.model_name == 'GP':
-            _, vars_ = self.target_model.predict(X)
-        elif self.model_name == 'RF':
-            tree_predictions = np.array([tree.predict(X) for tree in self.target_model.estimators_])
-            vars_ = np.var(tree_predictions, axis=0).reshape(-1, 1)
-        elif self.model_name == 'TPE':
-            _, vars_ = self.target_model.predict(X)
-        else:
-            raise ValueError(f'Invalid model name: {self.model_name}')
-
-        return mu, vars_
+        return mu, var
 
     def predict_posterior_mean(self, X: np.ndarray, idx: int = None) -> np.ndarray:
         """Predict the mean function for given test point(s).
@@ -248,28 +217,29 @@ class MHGP(Model):
             Predicted mean for every input. `shape = (n_points, 1)`
         """
 
-        all_models = self.source_models + [self.target_model]
+        all_gps = self.source_gps + [self.target_gp]
 
         if idx is None:  # if None, the target GP is considered
-            idx = len(all_models) - 1
+            idx = len(all_gps) - 1
 
         mu = np.zeros((X.shape[0], 1))
         # returned mean is a sum of means of the predictions of all GPs below idx
-        for model_id, model in enumerate(all_models[: idx + 1]):    
-            if self.model_name == 'GP':
-                mean, var = model.predict(X)
-                mu += mean
-            elif self.model_name == 'RF':
-                tree_predictions = np.array([tree.predict(X) for tree in model.estimators_])
-                mu += np.mean(tree_predictions, axis=0).reshape(-1, 1)
-            elif self.model_name == 'TPE':
-                mu += model.predict(X)[0]
-            else:
-                raise ValueError(f'Invalid model name: {self.model_name}')
+        for model in all_gps[: idx + 1]:
+            mu += model.predict_posterior_mean(X)
 
         return mu
-    
 
+    def predict_posterior_covariance(self, x1: np.ndarray, x2: np.ndarray) -> np.ndarray:
+        """Posterior covariance between two inputs.
+
+        Args:
+            x1: First input to be queried. `shape = (n_points_1, n_features)`
+            x2: Second input to be queried. `shape = (n_points_2, n_features)`
+
+        Returns:
+            Posterior covariance at `(x1, x2)`. `shape = (n_points_1, n_points_2)`
+        """
+        return self.target_gp.predict_posterior_covariance(x1, x2)
     
     def get_fmin(self):
 

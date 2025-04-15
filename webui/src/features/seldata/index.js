@@ -7,7 +7,7 @@ import {
 import TitleCard from "../../components/Cards/TitleCard"
 
 import SelectData from "./components/SelectData";
-import SearchData from "./components/SearchData"
+// import SearchData from "./components/SearchData"
 import DataTable from "./components/DataTable";
 
 
@@ -132,17 +132,17 @@ class Dataselector extends React.Component {
   } else {
       return (
         <div>
-            <Row>
-              <Col lg={12} sm={12}> 
-                <TitleCard>
-                  <SearchData set_dataset={this.set_dataset}/>
+            {/* <Row> */}
+              {/* <Col lg={12} sm={12}>  */}
+                {/* <TitleCard> */}
+                  {/* <SearchData set_dataset={this.set_dataset}/>
                   <p>
                     Choose the datasets you want to use in the experiment.
                   </p>
-                  <SelectData DatasetData={this.state.DatasetData} updateTable={this.updateTable} DatasetSelector={this.state.DatasetSelector}/>
-                </TitleCard>
-              </Col>
-              <Col lg={12} xs={12}>
+                  <SelectData DatasetData={this.state.DatasetData} updateTable={this.updateTable} DatasetSelector={this.state.DatasetSelector}/> */}
+                {/* </TitleCard> */}
+              {/* </Col> */}
+              {/* <Col lg={12} xs={12}> */}
                 <TitleCard
                   title={
                     <h5>
@@ -171,8 +171,8 @@ class Dataselector extends React.Component {
                               NormalizerDataSelectorParameters={this.state.NormalizerDataSelectorParameters}
                   />
                 </TitleCard>
-              </Col>
-            </Row>
+              {/* </Col> */}
+            {/* </Row> */}
         </div>
       );
     }

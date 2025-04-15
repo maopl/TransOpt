@@ -1,16 +1,19 @@
 import React, { useState } from "react";
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Form, Input, Select, Modal, Drawer, Table } from "antd";
+// import
 
 const filterOption = (input, option) =>
   (option?.value ?? '').toLowerCase().includes(input.toLowerCase());
 
-function TaskTable({ tasks }) {
+function TaskTable({ tasks, handleDelete }) {
   return (
+    <>
+    <div>
     <Table
       dataSource={tasks}
       pagination={false}
-      rowKey="name"
+      rowKey="index"
       columns={[
         { title: '#', dataIndex: 'index', key: 'index' },
         { title: 'Task Name', dataIndex: 'name', key: 'name' },
@@ -19,20 +22,45 @@ function TaskTable({ tasks }) {
         { title: 'Fidelity', dataIndex: 'fidelity', key: 'fidelity' },
         { title: 'Workloads', dataIndex: 'workloads', key: 'workloads' },
         { title: 'Budget Type', dataIndex: 'budget_type', key: 'budget_type' },
-        { title: 'Budget', dataIndex: 'budget', key: 'budget' }
+        { title: 'Budget', dataIndex: 'budget', key: 'budget' },
+        {
+          title: "Action",
+          key: "action",
+          render: (_, record) => (
+            <Button
+              type="link"
+              danger
+              onClick={() => handleDelete(record.index)}
+            >
+              Delete
+            </Button>
+          ),
+        },
       ]}
       locale={{
         emptyText: 'No task'
       }}
     />
-    
+     </div>
+     <div style={{ textAlign: 'right',marginTop:'10px' }}>
+     <Button  type="primary" htmlType="submit" style={{
+              width: "150px",
+              backgroundColor: 'rgb(53, 162, 235)',
+              
+            }}>
+              Submit
+            </Button>
+    </div>
+    </>
   );
 }
+
 
 function SelectTask({ data, updateTable }) {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [form] = Form.useForm(); // Form instance to manage form submission in the drawer
   const [tasks, setTasks] = useState([]); // State to store tasks added from Drawer
+
 
   const onFinish = (values) => {
     const messageToSend = tasks.map(task => ({
@@ -81,7 +109,7 @@ function SelectTask({ data, updateTable }) {
       .validateFields()
       .then(values => {
         console.log('Drawer form values:', values);
-
+        const newTask = { ...values, };
         // Add the task to the task list
         setTasks(prevTasks => [...prevTasks, values]);
 
@@ -93,6 +121,10 @@ function SelectTask({ data, updateTable }) {
       });
   };
 
+  const handleDelete = (index) => {
+    const updatedTasks = tasks.filter(task => task.index !== index);
+    setTasks(updatedTasks); 
+  };
   return (
     <>
       <Form
@@ -137,12 +169,7 @@ function SelectTask({ data, updateTable }) {
         </Form.List>
         <Form.Item>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Button type="primary" htmlType="submit" style={{
-              width: "150px",
-              backgroundColor: 'rgb(53, 162, 235)',
-            }}>
-              Submit
-            </Button>
+           
 
             <Button onClick={() => setDrawerVisible(true)} icon={<PlusOutlined />} style={{
               width: "150px",
@@ -250,11 +277,12 @@ function SelectTask({ data, updateTable }) {
 
       <Form>
         <Form.Item>
-          <TaskTable tasks={tasks} />
+          <TaskTable tasks={tasks} handleDelete={handleDelete}/>
         </Form.Item>
       </Form>
     </>
   );
 }
+
 
 export default SelectTask;

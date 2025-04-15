@@ -2,10 +2,12 @@ import abc
 import numpy as np
 import math
 from typing import Union, Dict, List
-from transopt.optimizer.optimizer_base import OptimizerBase
-import GPyOpt
-from transopt.utils.serialization import vectors_to_ndarray, output_to_ndarray
-from transopt.utils.Visualization import visual_oned, visual_contour
+from transopt.optimizer.acquisition_function.sequential import Sequential
+from transopt.optimizer.optimizer_base.base import OptimizerBase
+from transopt.space.fidelity_space import FidelitySpace
+from transopt.space.search_space import SearchSpace
+from transopt.utils.serialization import (multioutput_to_ndarray,
+                                          output_to_ndarray)
 
 
 
@@ -24,4 +26,10 @@ class EVOBase(OptimizerBase):
         self.ini_num = None
         self.population = None
         self.pop_size = None
+    
+    def link_task(self, task_name:str, search_space: SearchSpace):
+        self.task_name = task_name
+        self.search_space = search_space
+        self._X = np.empty((0,))  # Initializes an empty ndarray for input vectors
+        self._Y = np.empty((0,))
 

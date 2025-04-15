@@ -16,6 +16,10 @@ from transopt.optimizer.acquisition_function.sequential import Sequential
 from transopt.space.search_space import SearchSpace
 from transopt.space.variable import *
 
+import torchvision.transforms as transforms
+import os
+import json
+
 def construct_normalized_space(
     search_space: SearchSpace) -> SearchSpace:
 
@@ -74,7 +78,7 @@ class BO(OptimizerBase):
         
         return suggested_sample
 
-        
+
     def observe(self, X: np.ndarray, Y: np.ndarray) -> None:
         # Check if the lists are empty and return if they are
         if X.shape[0] == 0 or len(Y) == 0:
@@ -84,7 +88,60 @@ class BO(OptimizerBase):
         self._Y = np.vstack((self._Y, Y)) if self._Y.size else Y
         
 
-
+def get_initial_data(exp_folder, model_name, model_size, dataset, seed):
+    """
+    Get initial data from experiment folder for modeling
+    Args:
+        exp_folder: EXP_4 folder path
+        model_name: model architecture name (e.g. alexnet, resnet)
+        model_size: model size (e.g. 1, 18)
+        dataset: dataset name (e.g. RobCifar10)
+        seed: random seed
+    Returns:
+        X: parameter configurations
+        Y: performance metrics
+    """
+    # Construct subfolder path pattern
+    subfolder = f"DGHPO_ERM_ParaAUG_{model_name}_{model_size}_{dataset}_{seed}"
+    full_path = os.path.join(exp_folder, subfolder)
+    
+    if not os.path.exists(full_path):
+        raise ValueError(f"Folder {full_path} does not exist")
+        
+    X = []
+    Y = []
+    Y_all = []
+    # Read all jsonl files in the subfolder
+    for file in os.listdir(full_path):
+        if file.endswith('.jsonl'):
+            with open(os.path.join(full_path, file), 'r') as f:
+                data = json.load(f)
+                
+                # Extract hyperparameters
+                hparams = {
+                    'lr': np.log10(data['hparams']['lr']),
+                    'weight_decay': np.log10(data['hparams']['weight_decay']),
+                    'momentum': data['hparams']['momentum'],
+                    'batch_size': np.log2(data['hparams']['batch_size']) - 3,
+                    'dropout_rate': data['hparams']['dropout_rate'],
+                    'mu1': data['hparams']['mu1'],
+                    'sigma1': data['hparams']['sigma1'],
+                    'mu2': data['hparams']['mu2'], 
+                    'sigma2': data['hparams']['sigma2'],
+                    'weight': data['hparams']['weight']
+                }
+                
+                # Get all metrics ending with 'acc'
+                metrics = []
+                for key, value in data.items():
+                    if key.endswith('_acc'):
+                        metrics.append(value)
+                        
+                X.append(list(hparams.values()))
+                Y.append(data['val_acc'])
+                Y_all.append(metrics)
+    
+    return np.array(X), np.array(Y), np.array(Y_all)
 
 def PE(aug_images):
     # Flatten the image data to fit a Gaussian distribution
@@ -107,73 +164,104 @@ def get_model_hparam_space():
 
 if __name__ == "__main__":
     seed = 0
-    ini_num = 1
+    ini_num = 20
     budget = 200
     # Create a single HPO_ERM instance
     hpo = DGHPO_ERM(task_name='DGHPO', budget_type='FEs', budget=budget, seed=42, 
-                workload=0, algorithm='ERM_ParaAUG', gpu_id=0, augment=None, architecture='alexnet', 
-                model_size=1, optimizer='DGHPO', base_dir='/data')
-
+                workload=0, algorithm='ERM_ParaAUG', gpu_id=1, augment=None, architecture='resnet', 
+                model_size=18, optimizer='DGHPO', base_dir='/data')
 
     search_space = hpo.get_search_space()
-    
+
     param_ranges = []
     for param_name, param_range in search_space.ranges.items():
         if len(param_ranges) < 5:  # Only for paramodel parameters
             param_ranges.append((param_range[0], param_range[1]))
-    
+
     optimizer = BO(Sampler=RandomSampler(config={}, n_samples=ini_num), ACF=AcquisitionConstrainLCB(config={}), Model=MTGP(config={}), Normalizer=None, config={}, search_space=search_space)
-    
+
+
     samples = optimizer.sample_initial_set(search_space=search_space, ini_num=ini_num)
-    
+
     samples = [search_space.map_to_design_space(sample) for sample in samples]
-    
+
     observations = []
-    
+
     for sample in samples:
         observations.append(hpo.objective_function(configuration=sample))
+    
     new_Y = np.array([observation['function_value'] for observation in observations])
     new_X = np.array([search_space.map_from_design_space(sample) for sample in samples])
-    
+
+    # samples, observations, observations_all = get_initial_data(exp_folder='./data/EXP_4', model_name='resnet', model_size=18, dataset='RobCifar10', seed=42)
+    # new_Y = np.array([observation for observation in observations])
+    # new_X = np.array([sample for sample in samples])
+
     # Split X and normalize paramodel part using search space ranges
     new_X_paramodel = np.array(new_X[:,0:5])
     new_X_aug = np.array(new_X[:,5:])
-
     
+    Y_aug = []
+    for i in new_X_aug:
+        original_train = hpo.dataset.datasets['train']
+        original_val = hpo.dataset.datasets['val']
+        
+        # Create a new sampler policy with the current policy index
+        hpo.augmenter.reset_gaussian(mu1=i[0], sigma1=i[1], mu2=i[2], sigma2=i[3], weight=i[4])
+                
+        # Apply the selected policy to transform the training data
+        transformed_data = []
+        for x, y in original_train:
+            # Convert tensor to PIL Image
+            img = transforms.ToPILImage()(x)
+            # Apply sampler transform
+            transformed_img = hpo.augmenter(img=img)
+            # Convert back to tensor and normalize
+            transformed_x = transforms.ToTensor()(transformed_img)
+            transformed_x = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(transformed_x)
+            transformed_data.append(transformed_x)
+        Y_aug.append(np.array([PE(transformed_data)]))
+
+
     # Normalize each column of new_X_paramodel to [0,1]
     for i in range(new_X_paramodel.shape[1]):
         min_val, max_val = param_ranges[i]
         new_X_paramodel[:,i] = (new_X_paramodel[:,i] - min_val) / (max_val - min_val)
-    
-    Y_aug = np.array([PE(hpo.dataset.datasets['train'])])
+        
+
     Y_paramodel = new_Y
     
+    
+    Y_aug = np.array(Y_aug)
+    Y_aug = (Y_aug - np.mean(Y_aug)) / np.std(Y_aug)
+
     optimizer.observe(new_X_paramodel, Y_paramodel)
 
     while (budget):
         optimizer.Model.meta_fit([new_X_aug], [Y_aug])
         optimizer.fit()
         suggested_samples = optimizer.suggest()
-        
+
         # Denormalize suggested samples for paramodel parameters
         for i in range(suggested_samples.shape[1]):
             if i < 5:  # Only denormalize paramodel parameters
                 min_val, max_val = param_ranges[i]
                 suggested_samples[:,i] = suggested_samples[:,i] * (max_val - min_val) + min_val
-        
+
         suggested_samples = [search_space.map_to_design_space(sample) for sample in suggested_samples]
         new_observations = []
         for sample in suggested_samples:
             new_observations.append(hpo.objective_function(configuration=sample))
         new_Y = np.array([observation['function_value'] for observation in new_observations])
         new_X = np.array([search_space.map_from_design_space(sample) for sample in suggested_samples])
-        
+
         # Split and normalize new X
         new_X_paramodel = np.array(new_X[:,0:5])
         Y_paramodel = new_Y
-    
+
         optimizer.observe(X=new_X_paramodel, Y=Y_paramodel)
         new_X_aug = np.vstack((new_X_aug, np.array(new_X[:,5:])))
         Y_aug = np.vstack((Y_aug, np.array([PE(hpo.dataset.datasets['train'])]) ))
+        Y_aug = (Y_aug - np.mean(Y_aug)) / np.std(Y_aug)
         
         budget -= 1

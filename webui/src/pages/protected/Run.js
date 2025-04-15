@@ -1,19 +1,19 @@
-import { useEffect } from 'react'
-import { useDispatch } from 'react-redux'
-import { setPageTitle } from '../../features/common/headerSlice'
-import RunPage from '../../features/run/index'
+// import { useEffect } from 'react'
+// import { useDispatch } from 'react-redux'
+// import { setPageTitle } from '../../features/common/headerSlice'
+// import RunPage from '../../features/run/index'
 
-function InternalPage(){
-    const dispatch = useDispatch()
+// function InternalPage(){
+//     const dispatch = useDispatch()
 
-    useEffect(() => {
-        dispatch(setPageTitle({ title : "Run Optimization"}))
-      }, [])
+//     useEffect(() => {
+//         dispatch(setPageTitle({ title : "Run Optimization"}))
+//       }, [])
 
 
-    return(
-        <RunPage />
-    )
-}
+//     return(
+//         <RunPage />
+//     )
+// }
 
-export default InternalPage
+// export default InternalPage

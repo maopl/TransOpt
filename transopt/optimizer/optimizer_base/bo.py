@@ -46,6 +46,7 @@ class BO(OptimizerBase):
         self._Y = np.empty((0,))
         self.ACF.link_space(self.search_space)
         self.evaluator = Sequential(self.ACF, batch_size=1)
+        self.Normalizer.clear()
             
     
     def search_space_refine(self, metadata = None, metadata_info = None):
@@ -77,18 +78,14 @@ class BO(OptimizerBase):
     def fit(self):
 
         Y = copy.deepcopy(self._Y)
-            
+
         X = copy.deepcopy(self._X)
-        
+
         self.Model.fit(X, Y, optimize = True)
-            
+    
     def suggest(self):
         suggested_sample, acq_value = self.evaluator.compute_batch(None, context_manager=None)
-        # suggested_sample = self.search_space.zip_inputs(suggested_sample)
 
-        if self.Normalizer:
-            suggested_sample = self.Normalizer.inverse_transform(X=suggested_sample)[0]
-        
         return suggested_sample
 
         
@@ -99,10 +96,13 @@ class BO(OptimizerBase):
 
         Y = np.array(output_to_ndarray(Y))
         if self.Normalizer:
-            self.Normalizer.fit(X, Y)
-            X, Y = self.Normalizer.transform(X, Y)
+            self.Normalizer.update(Y)
+            Y = self.Normalizer.transform(Y)
         
         self._X = np.vstack((self._X, X)) if self._X.size else X
         self._Y = np.vstack((self._Y, Y)) if self._Y.size else Y
+        
+    def meta_observe(self, metadata = None, searchspace_info = None):
+        self.Model.meta_update()
 
 

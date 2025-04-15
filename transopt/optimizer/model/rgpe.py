@@ -12,11 +12,7 @@ from transopt.optimizer.model.model_base import Model
 from sklearn.ensemble import RandomForestRegressor
 
 from transopt.optimizer.model.tpe import TPE
-from sklearn.ensemble import RandomForestRegressor
 
-from transopt.optimizer.model.tpe import TPE
-
-import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt
 
 def roll_col(X: np.ndarray, shift: int) -> np.ndarray:
@@ -69,7 +65,6 @@ class RGPE(Model):
         self._noise_variance = noise_variance
         self._metadata = {}
         self._metadata_info = {}
-        self._metadata_info = {}
         self._source_gps = {}
         self._source_gp_weights = {}
         self.model_name = 'RF'
@@ -77,10 +72,8 @@ class RGPE(Model):
         self._normalize = normalize
         self.Seed = Seed
         self.n_features = None
-        self.n_features = None
         self.rng = np.random.RandomState(self.Seed)
         self.weight_dilution_strategy = weight_dilution_strategy
-        self._weights_need_update = True  # Initialize the flag
         self._weights_need_update = True  # Initialize the flag
 
         self.target_model = None
@@ -104,7 +97,6 @@ class RGPE(Model):
         """
         self.n_features = X.shape[1]
                 
-        kernel = RBF(self.n_features, ARD=False)
         kernel = RBF(self.n_features, ARD=False)
         new_gp = GP(
             kernel, noise_variance=self._noise_variance
@@ -155,9 +147,6 @@ class RGPE(Model):
         if self.n_features is None:
             self.n_features = n_features
         elif self.n_features != n_features:
-        if self.n_features is None:
-            self.n_features = n_features
-        elif self.n_features != n_features:
             raise ValueError("Number of features in model and input data mismatch.")
 
         if self.model_name == 'GP':
@@ -168,32 +157,7 @@ class RGPE(Model):
                 self.target_model.optimize_restarts(num_restarts=1, verbose=True, robust=True)
             except np.linalg.linalg.LinAlgError as e:
                 print('Error: np.linalg.linalg.LinAlgError')
-        if self.model_name == 'GP':
-            kern = GPy.kern.RBF(self.n_features, ARD=False)
-            self.target_model = GPy.models.GPRegression(self._X, self._Y, kernel=kern)
-            self.target_model['Gaussian_noise.*variance'].constrain_bounded(1e-9, 1e-3)
-            try:
-                self.target_model.optimize_restarts(num_restarts=1, verbose=True, robust=True)
-            except np.linalg.linalg.LinAlgError as e:
-                print('Error: np.linalg.linalg.LinAlgError')
 
-        elif self.model_name == 'RF':
-            self.target_model = RandomForestRegressor(n_estimators=50, random_state=42, max_depth=5, min_samples_leaf=1, min_samples_split=2)
-            self.target_model.fit(self._X, self._Y.ravel())
-        elif self.model_name == 'TPE':
-            # Initialize TPE model
-            self.target_model = TPE()
-            # Fit TPE model with observed data
-            self.target_model.fit(self._X, self._Y.ravel())
-        else:
-            raise ValueError(f'Invalid model name: {self.model_name}')
-
-        # Call _calculate_weights only if needed
-        if self._weights_need_update:
-            self._calculate_weights()
-            self._weights_need_update = False  # Reset the flag after updating weights
-        
-        self.plot_target_model()
         elif self.model_name == 'RF':
             self.target_model = RandomForestRegressor(n_estimators=50, random_state=42, max_depth=5, min_samples_leaf=1, min_samples_split=2)
             self.target_model.fit(self._X, self._Y.ravel())
@@ -229,23 +193,7 @@ class RGPE(Model):
             vars_ = np.empty((n_models, n_sample, n_sample))
 
         # Predict from source models
-
-        # Predict from source models
         for task_uid, weight in enumerate(self._source_gp_weights):
-            model = self._source_gps[task_uid]
-            
-            # Predict based on model type
-            if self.model_name == 'GP':
-                means[task_uid], vars_[task_uid] = model.predict(X)
-            elif self.model_name == 'RF':
-                tree_predictions = np.array([tree.predict(X) for tree in model.estimators_])
-                means[task_uid] = np.mean(tree_predictions, axis=0).reshape(-1, 1)
-                vars_[task_uid] = np.var(tree_predictions, axis=0).reshape(-1, 1)
-            elif self.model_name == 'TPE':
-                means[task_uid], vars_[task_uid] = model.predict(X)
-            else:
-                raise ValueError(f'Invalid model name: {self.model_name}')
-
             model = self._source_gps[task_uid]
             
             # Predict based on model type
@@ -263,8 +211,6 @@ class RGPE(Model):
             weights[task_uid] = weight
 
         # Predict from target model based on model type
-
-        # Predict from target model based on model type
         if self._target_model_weight > 0:
             if self.model_name == 'GP':
                 means, vars_ = self.target_model.predict(X_test)
@@ -279,22 +225,7 @@ class RGPE(Model):
             else:
                 raise ValueError(f'Invalid model name: {self.model_name}')
 
-            if self.model_name == 'GP':
-                means, vars_ = self.target_model.predict(X_test)
-            elif self.model_name == 'RF':
-                # For RF, get mean prediction and variance across trees
-                tree_predictions = np.array([tree.predict(X_test) for tree in self.target_model.estimators_])
-                means = np.mean(tree_predictions, axis=0).reshape(-1, 1)
-                vars_ = np.var(tree_predictions, axis=0).reshape(-1, 1)
-            elif self.model_name == 'TPE':
-                # TPE provides mean and variance directly
-                means[-1], vars_[-1] = self.target_model.predict(X_test)
-            else:
-                raise ValueError(f'Invalid model name: {self.model_name}')
-
             weights[-1] = self._target_model_weight
-
-        weights = weights[:, :, np.newaxis]
 
         weights = weights[:, :, np.newaxis]
         mean = np.sum(weights * means, axis=0)
@@ -343,32 +274,6 @@ class RGPE(Model):
 
             # predictions.append(loo_prediction)
             # predictions = np.array(predictions)
-                # Predict based on model type
-                if self.model_name == 'GP':
-                    pred = model.predict(self._X)[0].flatten()
-                elif self.model_name == 'RF':
-                    tree_predictions = np.array([tree.predict(self._X) for tree in model.estimators_])
-                    pred = np.mean(tree_predictions, axis=0)
-                elif self.model_name == 'TPE':
-                    pred = model.predict(self._X)[0].flatten()
-                else:
-                    raise ValueError(f'Invalid model name: {self.model_name}')
-                
-                predictions.append(pred)
-
-            # Add target model predictions based on model type
-            # if self.model_name == 'GP':
-            #     loo_prediction = self.target_model.predict(self._X)[0].flatten()
-            # elif self.model_name == 'RF':
-            #     tree_predictions = np.array([tree.predict(self._X) for tree in self.target_model.estimators_])
-            #     loo_prediction = np.mean(tree_predictions, axis=0)
-            # elif self.model_name == 'TPE':
-            #     loo_prediction = self.target_model.predict(self._X)[0].flatten()
-            # else:
-            #     raise ValueError(f'Invalid model name: {self.model_name}')
-
-            # predictions.append(loo_prediction)
-            # predictions = np.array(predictions)
 
             masks = np.eye(len(self._X), dtype=bool)
             train_x_cv = np.stack([self._X[~m] for m in masks])
@@ -385,29 +290,9 @@ class RGPE(Model):
                 model = TPE()
             else:
                 raise ValueError(f'Invalid model name: {self.model_name}')
-            # Initialize model based on model type
-            if self.model_name == 'GP':
-                kernel = RBF(self.n_features, ARD=False)
-                model = GP(copy.deepcopy(kernel), noise_variance=self._noise_variance)
-            elif self.model_name == 'RF':
-                model = RandomForestRegressor(n_estimators=100, random_state=42, max_depth=5, min_samples_leaf=1, min_samples_split=2)
-            elif self.model_name == 'TPE':
-                model = TPE()
-            else:
-                raise ValueError(f'Invalid model name: {self.model_name}')
 
             loo_prediction = []
             for i in range(self._Y.shape[0]):
-                model.fit(train_x_cv[i], train_y_cv[i])
-                if self.model_name == 'GP':
-                    loo_pred = model.predict(test_x_cv[i])[0][0][0]
-                elif self.model_name == 'RF':
-                    loo_pred = model.predict(test_x_cv[i])[0]
-                elif self.model_name == 'TPE':
-                    loo_pred = model.predict(test_x_cv[i])[0][0][0]
-                else:
-                    raise ValueError(f'Invalid model name: {self.model_name}')
-                loo_prediction.append(loo_pred)
                 model.fit(train_x_cv[i], train_y_cv[i])
                 if self.model_name == 'GP':
                     loo_pred = model.predict(test_x_cv[i])[0][0][0]
@@ -528,8 +413,6 @@ class RGPE(Model):
         self._target_model_weight = rank_weights[-1]
         
         self.plot_predictions()
-        
-        self.plot_predictions()
 
         return rank_weights, p_drop
 
@@ -618,7 +501,6 @@ class RGPE(Model):
     def meta_update(self):
         self._update_meta_data(self.target_model)
         self._weights_need_update = True  # Set the flag to update weights after meta_update
-        self._weights_need_update = True  # Set the flag to update weights after meta_update
 
     def set_XY(self, Data:Dict):
         self._X = copy.deepcopy(Data['X'])
@@ -693,89 +575,6 @@ class RGPE(Model):
     def get_fmin(self):
 
         return np.min(self._Y)
-    
-    def plot_predictions(self):
-        """
-        Plot the data points and model predictions for 1D data.
-        """
-        if self.n_features != 1:
-            raise ValueError("Plotting is only supported for 1-dimensional data.")
-
-        # Generate test data points in the range 0-100
-        X_test = np.linspace(0, 100, 1000).reshape(-1, 1)
-
-        # Calculate mean and standard deviation for normalization
-        y_mean = self._Y.mean()
-        y_std = self._Y.std()
-
-        # Normalize the real data points
-        Y_normalized = (self._Y - y_mean) / y_std
-
-        # Plot the normalized real data points
-        plt.figure(figsize=(10, 6))
-        plt.scatter(self._X, Y_normalized, color='blue', label='Normalized Real Data Points')
-
-        # Plot the target model's prediction
-        mean, _ = self.predict(X_test)
-        mean_normalized = (mean - y_mean) / y_std
-        plt.plot(X_test, mean_normalized, color='red', label='Target Model Prediction')
-
-        # Adjust Y_normalized to the range of mean_normalized
-        y_min, y_max = mean_normalized.min(), mean_normalized.max()
-        Y_normalized_scaled = (Y_normalized - Y_normalized.min()) / (Y_normalized.max() - Y_normalized.min())
-        Y_normalized_scaled = Y_normalized_scaled * (y_max - y_min) + y_min
-
-        # Plot the adjusted normalized real data points
-        plt.scatter(self._X, Y_normalized_scaled, color='green', label='Adjusted Normalized Real Data Points')
-
-        # Plot source models' predictions if available
-        if self._source_gps:
-            for i, model in self._source_gps.items():
-                if self.model_name == 'GP':
-                    mean_source, _ = model.predict(X_test)
-                elif self.model_name == 'RF':
-                    tree_predictions = np.array([tree.predict(X_test) for tree in model.estimators_])
-                    mean_source = np.mean(tree_predictions, axis=0).reshape(-1, 1)
-                elif self.model_name == 'TPE':
-                    mean_source, _ = model.predict(X_test)
-                else:
-                    raise ValueError(f'Invalid model name: {self.model_name}')
-                
-                mean_source_normalized = (mean_source - y_mean) / y_std
-                plt.plot(X_test, mean_source_normalized, linestyle='--', label=f'Source Model {i} Prediction')
-
-        plt.xlabel('X')
-        plt.ylabel('Normalized Y')
-        plt.title('Model Predictions and Normalized Real Data Points')
-        plt.legend()
-        plt.savefig(f'{self.model_name}_predictions_source{len(self._source_gps)}.png')
-        plt.close()
-
-    def plot_target_model(self):
-        """
-        Plot the target model's prediction and the real data points for 1D data.
-        """
-        if self.n_features != 1:
-            raise ValueError("Plotting is only supported for 1-dimensional data.")
-
-        # Generate test data points in the range 0-100
-        X_test = np.linspace(0, 100, 1000).reshape(-1, 1)
-
-        # Calculate mean and standard deviation for normalization
-
-        # Plot the normalized real data points
-        plt.figure(figsize=(10, 6))
-        plt.scatter(self._X, self._Y, color='blue', label='Normalized Real Data Points')
-
-        # Plot the target model's prediction
-        mean, _ = self.predict(X_test)
-        plt.plot(X_test, mean, color='red', label='Target Model Prediction')
-
-        plt.xlabel('X')
-        plt.ylabel('Normalized Y')
-        plt.title('Target Model Prediction and Real Data Points')
-        plt.legend()
-        plt.savefig(f'{self.model_name}_target_model_prediction.png')
     
     def plot_predictions(self):
         """

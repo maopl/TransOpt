@@ -1,8 +1,13 @@
 import os
 import math
+import os
+import math
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
+from typing import Union, Dict
+from transopt.space.variable import *
+
 from typing import Union, Dict
 from transopt.space.variable import *
 
@@ -13,8 +18,14 @@ from transopt.benchmark.problem_base.non_tab_problem import NonTabularProblem
 from transopt.space.search_space import SearchSpace
 from transopt.space.fidelity_space import FidelitySpace
 
+from transopt.agent.registry import problem_registry
+from transopt.benchmark.problem_base.non_tab_problem import NonTabularProblem
+from transopt.space.search_space import SearchSpace
+from transopt.space.fidelity_space import FidelitySpace
+
 logger = logging.getLogger("MovingPeakBenchmark")
 
+@problem_registry.register("MPB")
 @problem_registry.register("MPB")
 class MovingPeakGenerator:
     def __init__(
@@ -23,7 +34,13 @@ class MovingPeakGenerator:
         budget,
         budget_type,
         workloads,
+        task_name,
+        budget,
+        budget_type,
+        workloads,
         shift_length=3.0,
+        height_severity=4.0,
+        width_severity=2.0,
         height_severity=4.0,
         width_severity=2.0,
         lam=0.5,
@@ -50,6 +67,22 @@ class MovingPeakGenerator:
         self.budget_type = budget_type
         self.workloads = workloads
         self.n_var = self.input_dim
+            self.seed = seed
+        else:
+            self.seed = 0
+        if 'input_dim' in kwargs['params']:
+            self.input_dim = kwargs['params']['input_dim']
+        else:
+            self.input_dim = 1
+        if 'task_type' in kwargs['params']:
+            self.task_type = kwargs['params']['task_type']
+        else:
+            self.task_type = 'non-tabular'
+        self.task_name = task_name
+        self.budget = budget
+        self.budget_type = budget_type
+        self.workloads = workloads
+        self.n_var = self.input_dim
         self.shift_length = shift_length
         self.height_severity = height_severity
         self.width_severity = width_severity
@@ -60,8 +93,11 @@ class MovingPeakGenerator:
         self.height_bound = np.array([[30, 70]] * n_peak)
         self.width_bound = np.array([[1.0, 12.0]] * n_peak)
         self.n_step = len(workloads)
+        self.n_step = len(workloads)
         self.t = 0
 
+        # Initialize peaks, widths, and heights
+        current_peak = np.random.random(size=(n_peak, self.n_var)) * np.tile(
         # Initialize peaks, widths, and heights
         current_peak = np.random.random(size=(n_peak, self.n_var)) * np.tile(
             self.var_bound[:, 1] - self.var_bound[:, 0], (n_peak, 1)
@@ -80,6 +116,7 @@ class MovingPeakGenerator:
         )
 
         previous_shift = normalize(
+            np.random.random(size=(n_peak, self.n_var)), axis=1, norm="l2"
             np.random.random(size=(n_peak, self.n_var)), axis=1, norm="l2"
         )
 
@@ -107,6 +144,28 @@ class MovingPeakGenerator:
             self.widths.append(current_width)
             self.heights.append(current_height)
 
+
+    def generate_benchmarks(self):
+        benchmarks = []
+        for t in range(self.n_step):
+            peak = self.peaks[t]
+            height = self.heights[t]
+            width = self.widths[t]
+            problem = MovingPeakBenchmark(
+                task_name=self.task_name,
+                budget=self.budget,
+                budget_type=self.budget_type,
+                task_id=t,
+                workload=t,
+                peak=peak,
+                height=height,
+                width=width,
+                seed=self.seed,
+                input_dim=self.n_var,
+                task_type=self.task_type
+            )
+            benchmarks.append(problem)
+        return benchmarks
 
     def generate_benchmarks(self):
         benchmarks = []
@@ -200,10 +259,18 @@ class MovingPeakBenchmark(NonTabularProblem):
     num_objectives = 1
     workloads = []
     fidelity = None
+    problem_type = "synthetic"
+    num_variables = []
+    num_objectives = 1
+    workloads = []
+    fidelity = None
     def __init__(
         self,
         task_name,
         budget,
+        budget_type,
+        task_id,
+        workload,
         budget_type,
         task_id,
         workload,
@@ -213,6 +280,7 @@ class MovingPeakBenchmark(NonTabularProblem):
         seed,
         input_dim,
         task_type="non-tabular",
+        **kwargs
         **kwargs
     ):
         self.dimension = input_dim
@@ -228,7 +296,21 @@ class MovingPeakBenchmark(NonTabularProblem):
         
         super(MovingPeakBenchmark, self).__init__(
             task_name=task_name, seed=seed, task_type=task_type, budget=budget, budget_type=budget_type, task_id=task_id, workload=workload
+            task_name=task_name, seed=seed, task_type=task_type, budget=budget, budget_type=budget_type, task_id=task_id, workload=workload
         )
+
+        # Set the peak function based on the peak shape
+        self.peak_function = self._select_peak_function(self.peak_shape)
+
+    def _select_peak_function(self, peak_shape):
+        if peak_shape == "cone":
+            return self.peak_function_cone
+        elif peak_shape == "sharp":
+            return self.peak_function_sharp
+        elif peak_shape == "hilly":
+            return self.peak_function_hilly
+        else:
+            return self.peak_function_cone
 
         # Set the peak function based on the peak shape
         self.peak_function = self._select_peak_function(self.peak_shape)
@@ -270,6 +352,8 @@ class MovingPeakBenchmark(NonTabularProblem):
         self,
         configuration: Dict,
         fidelity: Dict = None,
+        configuration: Dict,
+        fidelity: Dict = None,
         seed: Union[np.random.RandomState, int, None] = None,
         **kwargs,
     ) -> Dict:
@@ -291,7 +375,30 @@ class MovingPeakBenchmark(NonTabularProblem):
 
     def get_objectives(self) -> Dict:
         return {'f1':'minimize'}
+        y = self.peak_function(X)
+        results = {list(self.objective_info.keys())[0]: float(-y)}
+        for fd_name in self.fidelity_space.fidelity_names:
+            results[fd_name] = fidelity[fd_name] 
+        return results
+    
+    def get_configuration_space(self) -> SearchSpace:
+        variables =  [Continuous(f'x{i}', (0, 100)) for i in range(self.input_dim)]
+        ss = SearchSpace(variables)
+        return ss
 
+    def get_fidelity_space(self) -> FidelitySpace:
+        fs = FidelitySpace([])
+        return fs
+
+    def get_objectives(self) -> Dict:
+        return {'f1':'minimize'}
+
+    def get_problem_type(self):
+        return "synthetic"
+
+def plot_1d_line_benchmarks(generator, steps=12):
+    """
+    Plots 1D line plots of the benchmarks generated by the MovingPeakGenerator in a 3x4 grid.
     def get_problem_type(self):
         return "synthetic"
 

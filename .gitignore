@@ -119,3 +119,4 @@ fetch_data.py
 test.sh
 sample_points.py
 jacard_vs_lsh.csv
+node_modules

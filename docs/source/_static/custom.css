@@ -1,6 +1,3 @@
-/* 引入 Oxygen Mono 字体 */
-@import url('https://fonts.googleapis.com/css2?family=Oxygen+Mono&display=swap');
-
 .bd-sidebar-secondary {
     display: none !important;
 }
@@ -8,8 +5,8 @@
 /* 让 bd-article 占据 100% 宽度 */
 .bd-main .bd-content {
     flex-grow: 1;
-    max-width: 90%;
-    width: 90%;
+    max-width: 100%;
+    width: 100%;
 }
 
 .bd-article-container {
@@ -21,7 +18,6 @@
 .bd-article {
     max-width: 100% !important;
     width: 100% !important;
-    font-family: "Oxygen Mono", monospace;
 }
 
 .bd-sidebar-primary {
@@ -30,13 +26,8 @@
     padding: 0;
 }
 
-/* .bd-page-width {
+.bd-page-width {
     max-width: 100% !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
-} */
-
-/* 修改全局字体设置 */
-body {
-    font-family: "Oxygen Mono", monospace;
 }

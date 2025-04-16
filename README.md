@@ -20,7 +20,7 @@
 </div>
 
 
-# Introduction
+# Welcome to TransOPT!
 
 **TransOPT** is an open-source software platform designed to facilitate the **design, benchmarking, and application of transfer learning for Bayesian optimization (TLBO)** algorithms through a modular, data-centric framework.
 
@@ -33,7 +33,7 @@
 
 TransOPT empowers researchers and developers to explore innovative optimization solutions effortlessly, bridging the gap between theory and practical application.
 
-## Installation
+# [Installation: how to install TransOPT](https://maopl.github.io/TransOpt-doc/installation.html)
 
 TransOPT is composed of two main components: the backend for data processing and business logic, and the frontend for user interaction. Each can be installed as follows:
 
@@ -61,10 +61,6 @@ Please install these prerequisites if they are not already installed on your sys
    ```shell
    $ cd webui && npm install
    ```
-
-
-
-## Quick Start
 
 ### Start the Backend Agent
 
@@ -99,37 +95,36 @@ This command sets up a task named Sphere with 3 variables and 1 objectives, usin
 For a complete list of available options and more detailed usage instructions, please refer to the [CLI documentation](https://maopl.github.io/TransOpt-doc/usage/cli.html).
 
 
-## Benchmark Problem
+# [Documentation: The TransOPT Process](https://maopl.github.io/TransOpt-doc/)
 
-### Synthetic Problem
-
-TransOPT contains more than $40$ synthetic benchmark problems. Here we demonstrate the usage with the Rastrigin function, which is a widely used benchmark test problem.
-
-The Rastrigin function looks like this:
-
-![Rastrigin Function](docs/source/_static/figures/visualization/Rastrigin.png)
-
-Here's a simple example of how to use TransOPT to optimize the Rastrigin function:
-
-### Hyperparameter Optimization Problem
-
-### Configurable Software System Tuning
-
-### RNA Inverse Design
-
-### Protein Inverse Design
+Our docs walk you through using TransOPT, web UI and key API points. For an overview of the system and workflow for project management, see our documentation [documentation](https://maopl.github.io/TransOpt-doc/).
 
 
-## Documentation
-
-For more detailed information on configuring and using TransOPT, refer to our full documentation [here](https://maopl.github.io/TransOpt-doc/).
-
-## Support
-
-For issues, feature requests, or contributions, please visit our [Documentation](https://maopl.github.io/TransOpt-doc/) page.
+<p align="center">
+<img src="./docs/source/_static/figures/Transopt_workflow.png" width="95%">
+</p>
 
 
-## Citation
+# Why use TransOPT?
+
+Recent years, Bayesian optimization (BO) has been widely used in various fields, such as hyperparameter optimization, molecular design, and synthetic biology. However, conventional BO is not that efficient, where it conduct every optimization task from scratch while ignoring the experiences gained from previous problem-solving practices. To address this challenge, transfer learning (TL) has been introduced to BO, aiming to leverage auxillary data to improve the optimization efficiency and performance. Despite the potential of TLBO, the usage of TLBO is still limited due to the complexity of advanced TLBO methods. TransOPT, a system that facilitates:
+
+- development of TLBO algorithms;
+- benchmarking the performance of TLBO methods;
+- applications of TLBO for downstream tasks;
+
+<p align="center">
+<img src="./docs/source/_static/figures/Results.png" width="95%">
+</p>
+
+**Upper-left:** illustrates the use of a web UI to construct new optimization algorithms by combining different components. **Upper-right:** highlights the application of an LLM agent to effectively manage optimization tasks. **Middle:** shows various visualization results derived from the optimization processes. **Lower:** presents a performance comparison of different TLBO methods.
+
+
+
+
+
+
+# Reference & Citation
 
 If you find our work helpful to your research, please consider citing our:
 

@@ -110,6 +110,67 @@ Synthetic Problem
 ------------------
 
 The synthetic problems in this section are widely used in the optimization literature for benchmarking optimization algorithms. These problems exhibit diverse characteristics and levels of complexity, making them ideal for testing the robustness and efficiency of different optimization strategies. Below is an overview of the synthetic problems included in this benchmark suite:
+
+- **Sphere:** A simple convex problem that is often used as a baseline. The global minimum is located at the origin, and the objective function value increases quadratically with distance from the origin.
+
+- **Rastrigin:** A non-convex problem characterized by a large number of local minima, making it challenging for optimization algorithms to find the global minimum.
+
+- **Schwefel:** Known for its complex landscape with many local minima, the Schwefel function requires optimization algorithms to balance exploration and exploitation effectively.
+
+- **Ackley:** A multi-modal function with a nearly flat outer region and a large hole at the center, making it difficult for algorithms to escape local minima and converge to the global minimum.
+
+- **Levy:** A multi-modal problem with a complex landscape that tests an algorithm's ability to handle irregularities and identify global optima.
+
+- **Griewank:** A function with many widespread local minima, making it challenging to converge to the global optimum. It is often used to assess the ability of algorithms to avoid getting trapped in local minima.
+
+- **Rosenbrock:** A non-convex problem with a narrow, curved valley that contains the global minimum. This function is commonly used to test the convergence properties of optimization algorithms.
+
+- **Dropwave:** A challenging multi-modal function with steep drops, requiring careful search strategies to avoid local minima.
+
+- **Langermann:** This problem has many local minima and a highly irregular structure, testing an algorithm's ability to explore complex search spaces.
+
+- **Rotated Hyper-Ellipsoid:** A rotated version of the ellipsoid function, which tests an algorithm's capability to optimize problems with rotated and ill-conditioned landscapes.
+
+- **Sum of Different Powers:** A problem where each term in the sum contributes differently to the overall objective, requiring optimization algorithms to handle varying sensitivities across dimensions.
+
+- **Styblinski-Tang:** A function with multiple global minima, commonly used to test an algorithm's ability to avoid suboptimal solutions.
+
+- **Powell:** A problem designed to challenge optimization algorithms with a mixture of convex and non-convex characteristics across different dimensions.
+
+- **Dixon-Price:** This function has a smooth, narrow valley leading to the global minimum, testing an algorithm’s ability to navigate such features.
+
+- **Ellipsoid:** A test problem that features high conditioning and elliptical level sets, requiring algorithms to efficiently search in skewed spaces.
+
+- **Discus:** A variant of the sphere function with a large difference in scale between the first variable and the rest, making it a test of handling unbalanced scales.
+
+- **BentCigar:** A highly anisotropic function where one direction has a much larger scale than the others, challenging algorithms to adjust their search strategies accordingly.
+
+- **SharpRidge:** This function has a sharp ridge along one dimension, testing an algorithm's ability to optimize in narrow, high-gradient regions.
+
+- **Katsuura:** A multi-fractal function that combines periodicity and complexity, testing the capability of algorithms to explore intricate landscapes.
+
+- **Weierstrass:** A problem with a fractal structure, characterized by a large number of local minima and requiring algorithms to handle varying scales of roughness.
+
+- **Different Powers:** A problem where each term contributes differently to the objective, challenging algorithms to manage varying sensitivities and scales.
+
+- **Trid:** A function that has a curved and ridge-like structure, often used to assess the convergence properties of optimization algorithms.
+
+- **LinearSlope:** A simple linear function with a varying slope across dimensions, used to test the basic exploration capabilities of optimization methods.
+
+- **Elliptic:** Similar to the Ellipsoid function but with exponentially increasing scales, testing an algorithm’s ability to search efficiently in poorly conditioned spaces.
+
+- **PERM:** A complex combinatorial problem that combines different power terms, testing an algorithm’s ability to handle permutation-based search spaces.
+
+- **Power Sum:** A problem where each dimension contributes a power sum to the objective, requiring algorithms to handle large variations in sensitivity across variables.
+
+- **Zakharov:** A problem with a complex, non-linear interaction between variables, used to test an algorithm’s ability to navigate multi-variable coupling.
+
+- **Six-Hump Camel:** A low-dimensional, multi-modal problem with several local minima, requiring precise search strategies to find the global optimum.
+
+- **Michalewicz:** A problem known for its challenging steepness and periodicity, making it difficult for algorithms to locate the global minimum.
+
+- **Moving Peak:** A dynamic optimization problem where the objective function changes over time, used to assess an algorithm’s adaptability to changing landscapes.
+
 These problems collectively provide a comprehensive suite for evaluating optimization algorithms across a broad range of difficulties, including convexity, multi-modality, separability, and conditioning.
 
 +-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------+-------------------------------+-----------------------------+

@@ -57,7 +57,11 @@ def create_app():
         charts = services.get_report_charts(user_input)
         return jsonify(charts), 200
 
-
+    @app.route("/api/health-check", methods=["GET"])
+    def health_check():
+        logger.warning(f"------------------------------------------------------------------------running!")
+        return {"succeed": True}, 200
+    
     @app.route("/api/Dashboard/trajectory", methods=["POST"])
     def report_update_trajectory_data():
         data = request.json

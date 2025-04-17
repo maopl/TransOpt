@@ -20,7 +20,7 @@ class RunProgress extends React.Component {
     // 与后端交互，获取任务进度
     componentDidMount() {
         // 开始定时调用 fetchData 函数
-        this.intervalId = setInterval(this.fetchData, 1000);
+        // this.intervalId = setInterval(this.fetchData, 1000);
       }
     
       componentWillUnmount() {

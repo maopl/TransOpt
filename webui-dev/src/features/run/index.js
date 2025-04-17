@@ -2,13 +2,8 @@ import React from "react";
 
 import { Row, Col } from "reactstrap";
 
-import TitleCard from "../../components/Cards/TitleCard"
-
 import Run from "./components/Run"
 import RunProgress from "./components/RunProgress"
-import TaskTable from "./components/TaskTable";
-import OptTable from "./components/OptTable";
-import DataTable from "./components/DataTable";
 
 
 class RunPage extends React.Component {

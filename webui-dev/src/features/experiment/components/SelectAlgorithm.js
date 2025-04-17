@@ -22,7 +22,7 @@ const { Text } = Typography;
 const filterOption = (input, option) =>
   (option?.value ?? '').toLowerCase().includes(input.toLowerCase());
 
-function SelectAlgorithm({ SpaceRefiner, Sampler, Pretrain, Model, ACF, Normalizer, updateTable }) {
+function SelectAlgorithm({ SpaceRefiner, Sampler, Pretrain, Model, ACF, Normalizer, updateTable, datasetSelector }) {
   const [form] = Form.useForm();
   
   // Modal visibility states for each algorithm's data selection
@@ -114,14 +114,15 @@ function SelectAlgorithm({ SpaceRefiner, Sampler, Pretrain, Model, ACF, Normaliz
   
   // Handler for when data is selected from the SearchData modal
   const handleSelectData = (datasetData, algorithmType) => {
+    console.log('datasetData', datasetData, algorithmType)
     const { datasets } = datasetData;
     
     // Update form values based on which algorithm's data was selected
     const updatedValues = { ...formValues };
-    
+
+    // 存储完整的数据集信息，方便展示和编辑
     if (algorithmType === 'SpaceRefiner') {
       updatedValues.SpaceRefinerDataSelector = 'Custom';
-      // 存储完整的数据集信息，方便展示和编辑
       updatedValues.SpaceRefinerDataSelectorParameters = JSON.stringify(datasets);
       updatedValues.SpaceRefinerSelectedDatasets = datasets; // 直接存储数据集对象数组
     } else if (algorithmType === 'Sampler') {
@@ -258,15 +259,15 @@ function SelectAlgorithm({ SpaceRefiner, Sampler, Pretrain, Model, ACF, Normaliz
   
   // 获取特定算法的已选数据集
   const getSelectedDatasets = (algorithmType) => {
-    if (algorithmType === 'SpaceRefiner') {
+    if (algorithmType === 'Narrow Search Space') {
       return formValues.SpaceRefinerSelectedDatasets || [];
-    } else if (algorithmType === 'Sampler') {
+    } else if (algorithmType === 'SaInitialization') {
       return formValues.SamplerSelectedDatasets || [];
-    } else if (algorithmType === 'Pretrain') {
+    } else if (algorithmType === 'Pre-train') {
       return formValues.PretrainSelectedDatasets || [];
-    } else if (algorithmType === 'Model') {
+    } else if (algorithmType === 'Surrogate Model') {
       return formValues.ModelSelectedDatasets || [];
-    } else if (algorithmType === 'ACF') {
+    } else if (algorithmType === 'Acquisition Function') {
       return formValues.ACFSelectedDatasets || [];
     } else if (algorithmType === 'Normalizer') {
       return formValues.NormalizerSelectedDatasets || [];
@@ -340,188 +341,145 @@ function SelectAlgorithm({ SpaceRefiner, Sampler, Pretrain, Model, ACF, Normaliz
     >
       <Row gutter={[16, 16]}>
         <Col xs={24} md={12} lg={8}>
-          <div className="stats shadow" style={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '8px', padding: '16px', backgroundColor: 'white' }}>
-            <div className="stat">
-              <div className="stat-figure text-primary">
-                <PartitionOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
-              </div>
-              <div className="stat-title" style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Narrow Search Space</div>
-              <div className="stat-value">
-                {renderFormItem('SpaceRefiner', SpaceRefiner.map(item => ({ value: item.name })), [{ required: true, message: 'Please select a SpaceRefiner!' }])}
-              </div>
-              <div className="stat-desc" style={{ fontSize: '12px', color: '#666' }}>
-                <div style={{ width: '100%' }}>
-                  <div>Details of SpaceRefiner</div>
-                  <Divider style={{ margin: '8px 0' }} />
-                  {renderDataSelectionArea('SpaceRefiner')}
-                </div>
-              </div>
+          <div className="stat shadow" style={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '8px', padding: '16px', backgroundColor: 'white' }}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <PartitionOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+              <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Narrow Search Space</span>
             </div>
+            <div className="stat-value">
+              {renderFormItem('SpaceRefiner', SpaceRefiner.map(item => ({ value: item.name })), [{ required: true, message: 'Please select a SpaceRefiner!' }])}
+            </div>
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>Details of SpaceRefiner</div>
+            <Divider style={{ margin: '0 0 4px 0' }} />
+            {renderDataSelectionArea('SpaceRefiner')}
           </div>
         </Col>
         
         <Col xs={24} md={12} lg={8}>
-          <div className="stats shadow" style={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '8px', padding: '16px', backgroundColor: 'white' }}>
-            <div className="stat">
-              <div className="stat-figure text-primary">
-                <ExperimentOutlined style={{ fontSize: '24px', color: '#52c41a' }} />
-              </div>
-              <div className="stat-title" style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Initialization</div>
-              <div className="stat-value">
-                {renderFormItem('Sampler', Sampler.map(item => ({ value: item.name })), [{ required: true, message: 'Please select a Sampler!' }])}
-              </div>
-              <div className="stat-desc" style={{ fontSize: '12px', color: '#666' }}>
-                <div style={{ width: '100%' }}>
-                  <div>Details of Initialization</div>
-                  <Form.Item
-                    name="SamplerInitNum"
-                    style={{ marginBottom: 0, marginTop: '8px' }}
-                  >
-                    <Select
-                      style={{ width: '100%' }}
-                      options={[11, 21, 31, 41, 51].map(num => ({ value: num.toString() }))}
-                    />
-                  </Form.Item>
-                  <Divider style={{ margin: '8px 0' }} />
-                  {renderDataSelectionArea('Sampler')}
-                </div>
-              </div>
+          <div className="stat shadow" style={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '8px', padding: '16px', backgroundColor: 'white' }}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <ExperimentOutlined style={{ fontSize: '24px', color: '#52c41a' }} />
+              <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Initialization</span>
             </div>
+            <div className="stat-value">
+              {renderFormItem('Sampler', Sampler.map(item => ({ value: item.name })), [{ required: true, message: 'Please select a Sampler!' }])}
+            </div>
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>Details of Initialization</div>
+            <Divider style={{ margin: '0 0 4px 0' }} />
+            {renderDataSelectionArea('Sampler')}
           </div>
         </Col>
         
         <Col xs={24} md={12} lg={8}>
-          <div className="stats shadow" style={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '8px', padding: '16px', backgroundColor: 'white' }}>
-            <div className="stat">
-              <div className="stat-figure text-primary">
-                <RobotOutlined style={{ fontSize: '24px', color: '#722ed1' }} />
-              </div>
-              <div className="stat-title" style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Pretrain</div>
-              <div className="stat-value">
-                {renderFormItem('Pretrain', Pretrain.map(item => ({ value: item.name })), [{ required: true, message: 'Please select a Pretrain!' }])}
-              </div>
-              <div className="stat-desc" style={{ fontSize: '12px', color: '#666' }}>
-                <div style={{ width: '100%' }}>
-                  <div>Details of Pretrain</div>
-                  <Divider style={{ margin: '8px 0' }} />
-                  {renderDataSelectionArea('Pretrain')}
-                </div>
-              </div>
+          <div className="stat shadow" style={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '8px', padding: '16px', backgroundColor: 'white' }}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <RobotOutlined style={{ fontSize: '24px', color: '#722ed1' }} />
+              <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Pretrain</span>
             </div>
+            <div className="stat-value">
+              {renderFormItem('Pretrain', Pretrain.map(item => ({ value: item.name })), [{ required: true, message: 'Please select a Pretrain!' }])}
+            </div>
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>Details of Pretrain</div>
+            <Divider style={{ margin: '0 0 4px 0' }} />
+            {renderDataSelectionArea('Pretrain')}
           </div>
         </Col>
         
         <Col xs={24} md={12} lg={8}>
-          <div className="stats shadow" style={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '8px', padding: '16px', backgroundColor: 'white' }}>
-            <div className="stat">
-              <div className="stat-figure text-primary">
-                <ApiOutlined style={{ fontSize: '24px', color: '#fa8c16' }} />
-              </div>
-              <div className="stat-title" style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Model</div>
-              <div className="stat-value">
-                {renderFormItem('Model', Model.map(item => ({ value: item.name })), [{ required: true, message: 'Please select a Model!' }])}
-              </div>
-              <div className="stat-desc" style={{ fontSize: '12px', color: '#666' }}>
-                <div style={{ width: '100%' }}>
-                  <div>Details of Model</div>
-                  <Divider style={{ margin: '8px 0' }} />
-                  {renderDataSelectionArea('Model')}
-                </div>
-              </div>
+          <div className="stat shadow" style={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '8px', padding: '16px', backgroundColor: 'white' }}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <ApiOutlined style={{ fontSize: '24px', color: '#fa8c16' }} />
+              <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Model</span>
             </div>
+            <div className="stat-value">
+              {renderFormItem('Model', Model.map(item => ({ value: item.name })), [{ required: true, message: 'Please select a Model!' }])}
+            </div>
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>Details of Model</div>
+            <Divider style={{ margin: '0 0 4px 0' }} />
+            {renderDataSelectionArea('Model')}
           </div>
         </Col>
         
         <Col xs={24} md={12} lg={8}>
-          <div className="stats shadow" style={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '8px', padding: '16px', backgroundColor: 'white' }}>
-            <div className="stat">
-              <div className="stat-figure text-primary">
-                <AreaChartOutlined style={{ fontSize: '24px', color: '#eb2f96' }} />
-              </div>
-              <div className="stat-title" style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Acquisition Function</div>
-              <div className="stat-value">
-                {renderFormItem('ACF', ACF.map(item => ({ value: item.name })), [{ required: true, message: 'Please select an ACF!' }])}
-              </div>
-              <div className="stat-desc" style={{ fontSize: '12px', color: '#666' }}>
-                <div style={{ width: '100%' }}>
-                  <div>Details of ACF</div>
-                  <Divider style={{ margin: '8px 0' }} />
-                  {renderDataSelectionArea('ACF')}
-                </div>
-              </div>
+          <div className="stat shadow" style={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '8px', padding: '16px', backgroundColor: 'white' }}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <AreaChartOutlined style={{ fontSize: '24px', color: '#eb2f96' }} />
+              <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Acquisition Function</span>
             </div>
+            <div className="stat-value">
+              {renderFormItem('ACF', ACF.map(item => ({ value: item.name })), [{ required: true, message: 'Please select an ACF!' }])}
+            </div>
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>Details of ACF</div>
+            <Divider style={{ margin: '0 0 4px 0' }} />
+            {renderDataSelectionArea('ACF')}
           </div>
         </Col>
         
         <Col xs={24} md={12} lg={8}>
-          <div className="stats shadow" style={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '8px', padding: '16px', backgroundColor: 'white' }}>
-            <div className="stat">
-              <div className="stat-figure text-primary">
-                <SlidersOutlined style={{ fontSize: '24px', color: '#13c2c2' }} />
-              </div>
-              <div className="stat-title" style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Normalizer</div>
-              <div className="stat-value">
-                {renderFormItem('Normalizer', Normalizer.map(item => ({ value: item.name })), [{ required: true, message: 'Please select a Normalizer!' }])}
-              </div>
-              <div className="stat-desc" style={{ fontSize: '12px', color: '#666' }}>
-                <div style={{ width: '100%' }}>
-                  <div>Details of Normalizer</div>
-                  <Divider style={{ margin: '8px 0' }} />
-                  {renderDataSelectionArea('Normalizer')}
-                </div>
-              </div>
+          <div className="stat shadow" style={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '8px', padding: '16px', backgroundColor: 'white' }}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <SlidersOutlined style={{ fontSize: '24px', color: '#13c2c2' }} />
+              <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Normalizer</span>
             </div>
+            <div className="stat-value">
+              {renderFormItem('Normalizer', Normalizer.map(item => ({ value: item.name })), [{ required: true, message: 'Please select a Normalizer!' }])}
+            </div>
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>Details of Normalizer</div>
+            <Divider style={{ margin: '0 0 4px 0' }} />
+            {renderDataSelectionArea('Normalizer')}
           </div>
         </Col>
       </Row>
-
-      <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
-        {/* <Button 
-          type="primary" 
-          onClick={handleSubmit} 
-          icon={<SaveOutlined />}
-          style={{ width: "150px", backgroundColor: 'rgb(53, 162, 235)' }}
-        >
-          Apply
-        </Button> */}
-      </div>
       
       {/* SearchData modals for each algorithm type */}
+      {/*[ {value: "Narrow Search Space"},*/}
+      {/*{value: "Initialization"},*/}
+      {/*{value: "Pre-train"},*/}
+      {/*{value: "Surrogate Model"},*/}
+      {/*{value: "Acquisition Function"},*/}
+      {/*{value: "Normalizer"}*/}
+      {/*]*/}
       <SearchData 
         visible={activeModal === 'SpaceRefiner'}
         onCancel={closeDataSelectionModal}
-        algorithmType="SpaceRefiner"
+        algorithmType="Narrow Search Space"
         onSelectData={handleSelectData}
+        datasetSelector={datasetSelector}
       />
       <SearchData 
         visible={activeModal === 'Sampler'}
         onCancel={closeDataSelectionModal}
-        algorithmType="Sampler"
+        algorithmType="Initialization"
         onSelectData={handleSelectData}
+        datasetSelector={datasetSelector}
       />
       <SearchData 
         visible={activeModal === 'Pretrain'}
         onCancel={closeDataSelectionModal}
-        algorithmType="Pretrain"
+        algorithmType="Pre-train"
         onSelectData={handleSelectData}
+        datasetSelector={datasetSelector}
       />
       <SearchData 
         visible={activeModal === 'Model'}
         onCancel={closeDataSelectionModal}
-        algorithmType="Model"
+        algorithmType="Surrogate Model"
         onSelectData={handleSelectData}
+        datasetSelector={datasetSelector}
       />
       <SearchData 
         visible={activeModal === 'ACF'}
         onCancel={closeDataSelectionModal}
-        algorithmType="ACF"
+        algorithmType="Acquisition Function"
         onSelectData={handleSelectData}
+        datasetSelector={datasetSelector}
       />
       <SearchData 
         visible={activeModal === 'Normalizer'}
         onCancel={closeDataSelectionModal}
-        algorithmType="Normalizer"
+        algorithmType="NormNormalizer"
         onSelectData={handleSelectData}
+        datasetSelector={datasetSelector}
       />
       
       {/* 数据集预览模态窗口 */}

@@ -4,8 +4,6 @@ import {
     Row,
     Col,
     Button,
-    InputNumber,
-    Slider,
     Space,
     Input,
     Form,
@@ -15,28 +13,36 @@ import {
     Divider,
     Typography,
     Checkbox,
-    Card,
-    Tooltip,
+    Card
 } from "antd";
 
 const { Text } = Typography;
 
 /**
  * SearchData component - Now works as both standalone and modal popup
- * @param {function} set_dataset - Function to set dataset data (used in standalone mode)
  * @param {boolean} visible - Whether the modal is visible
  * @param {function} onCancel - Function to close the modal
  * @param {string} algorithmType - Type of algorithm this search is for
  * @param {function} onSelectData - Callback for when data is selected with the algorithm context
+ * @param {Array} datasetSelector - datasetSelector
  */
-function SearchData({ set_dataset, visible = false, onCancel, algorithmType = "", onSelectData }) {
+function SearchData({ visible = false, onCancel, algorithmType = "", onSelectData, datasetSelector }) {
   const [form] = Form.useForm();
-  const [isModalMode] = useState(!!onCancel); // Check if being used as modal
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedDatasets, setSelectedDatasets] = useState([]);
 
-  // 处理搜索提交
+  /**
+   * 搜索完数据集后, 提交之前需要选择数据集选择器
+   */
+  const [selectedDatasetSelector, setSelectedDatasetSelector] = useState('None')
+
+  /**
+   * 搜索完数据集后, 提交之前需要填写参数
+   */
+  const [parameter, setParameter] = useState("")
+
+  // 搜索数据集
   const onFinish = (values) => {
     // Add algorithm type if provided (when used as modal)
     const messageToSend = algorithmType ? { ...values, algorithmType } : values;
@@ -61,41 +67,36 @@ function SearchData({ set_dataset, visible = false, onCancel, algorithmType = ""
     .then(message => {
       console.log('Message from back-end:', message);
       setLoading(false);
-      
-      if (isModalMode) {
-        // 显示搜索结果，让用户选择，而不是立即关闭弹窗
-        if (message && message.datasets) {
-          // 为数据集添加key属性用于表格渲染
-          // 处理字符串数组，将每个字符串转成对象
-          const datasetsWithKeys = message.datasets.map((dataset, index) => {
-            // 字符串类型直接创建对象
-            if (typeof dataset === 'string') {
-              return {
-                value: dataset,
-                name: dataset,
-                key: index.toString()
-              };
-            }
-            // 处理其他基本类型
-            else if (typeof dataset !== 'object' || dataset === null) {
-              return {
-                value: dataset,
-                name: String(dataset),
-                key: index.toString()
-              };
-            }
-            // 对象类型保持结构并添加key
+
+      // 显示搜索结果，让用户选择，而不是立即关闭弹窗
+      if (message && message.datasets) {
+        // 为数据集添加key属性用于表格渲染
+        // 处理字符串数组，将每个字符串转成对象
+        const datasetsWithKeys = message.datasets.map((dataset, index) => {
+          // 字符串类型直接创建对象
+          if (typeof dataset === 'string') {
             return {
-              ...dataset,
+              value: dataset,
+              name: dataset,
               key: index.toString()
             };
-          });
-          setSearchResults(datasetsWithKeys);
-          setSelectedDatasets([]);
-        }
-      } else if (set_dataset) {
-        // Original behavior when used standalone
-        set_dataset(message);
+          }
+          // 处理其他基本类型
+          else if (typeof dataset !== 'object' || dataset === null) {
+            return {
+              value: dataset,
+              name: String(dataset),
+              key: index.toString()
+            };
+          }
+          // 对象类型保持结构并添加key
+          return {
+            ...dataset,
+            key: index.toString()
+          };
+        });
+        setSearchResults(datasetsWithKeys);
+        setSelectedDatasets([]);
       }
     })
     .catch((error) => {
@@ -127,28 +128,64 @@ function SearchData({ set_dataset, visible = false, onCancel, algorithmType = ""
   const isDatasetSelected = (dataset) => {
     return selectedDatasets.some(item => item.key === dataset.key);
   };
-  
-  // 全选/取消全选
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedDatasets([...searchResults]);
-    } else {
-      setSelectedDatasets([]);
+
+  // 提交数据集关联对应的算法
+  const submitDataset = () => {
+    const datasetList = selectedDatasets.map(item => {
+      return item;
+    });
+    const messageToSend = {
+      object: algorithmType, // [ {value: "Narrow Search Space"},{value: "Initialization"},{value: "Pre-train"},{value: "Surrogate Model"},{value: "Acquisition Function"},{value: "Normalizer"}]
+      DatasetSelector: selectedDatasetSelector,
+      parameter: parameter,
+      datasets: datasetList,
     }
-  };
-  
+    fetch('http://localhost:5001/api/configuration/dataset', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(messageToSend),
+    }).then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(succeed => {
+          Modal.success({
+            title: 'Information',
+            content: 'Submit successfully!'
+          })
+        })
+        .catch((error) => {
+          const errorMessage = error.error;
+          Modal.error({
+            title: 'Information',
+            content: 'Error:' + errorMessage
+          })
+        });
+  }
+
+
   // 处理确认选择
   const handleConfirmSelection = () => {
     if (selectedDatasets.length > 0 && onSelectData) {
       // 创建包含选定数据集的消息对象
       const selectedData = {
         isExact: true,
+        selectedDatasetSelector,
+        parameter,
         datasets: selectedDatasets
       };
       
       // 调用回调函数并关闭弹窗
       onSelectData(selectedData, algorithmType);
       onCancel();
+
+      // 调用接口
+      submitDataset()
+
     } else {
       Modal.warning({
         title: 'Warning',
@@ -156,81 +193,6 @@ function SearchData({ set_dataset, visible = false, onCancel, algorithmType = ""
       });
     }
   };
-
-  // The form content
-  const formContent = (
-    <ConfigProvider
-      theme={{
-        components: {
-          Input: {
-            addonBg: "white"
-          },
-        },
-      }}  
-    >
-    <Form
-      name="SearchData"
-      form={form}
-      onFinish={onFinish}
-      style={{width:"100%"}}
-      autoComplete="off"
-    >
-      {/* Display algorithm type when in modal mode */}
-      {algorithmType && (
-        <div style={{ marginBottom: 16 }}>
-          <h5 style={{ color: "#1890ff" }}>Selecting data for: {algorithmType}</h5>
-        </div>
-      )}
-      
-      <Space className="space" style={{ display: 'flex'}} align="baseline">
-        <Form.Item
-          name="task_name"
-          style={{flexGrow: 1}}
-        >
-          <Input addonBefore={"Dataset Name"}/>
-        </Form.Item>
-        <Form.Item
-          name="num_variables"
-          style={{flexGrow: 1}}
-        >
-          <Input addonBefore={"Num of Variables"}/>
-        </Form.Item>
-      </Space>
-      <Space className="space" style={{ display: 'flex'}} align="baseline">
-        <Form.Item
-          name="variables_name"
-          style={{flexGrow: 1}}
-        >
-          <Input addonBefore={"Variable Name"}/>
-        </Form.Item>
-        <Form.Item
-          name="num_objectives"
-          style={{flexGrow: 1}}
-        >
-          <Input addonBefore={"Num of Objectives"}/>
-        </Form.Item>
-      </Space>
-      <h6 style={{color:"black"}}>Search method:</h6>
-      <Space className="space" style={{ display: 'flex'}} align="baseline">
-        <Form.Item
-          name="search_method"
-        >
-          <Select style={{minWidth: 150}}
-            options={[ {value: "Hash"},
-                       {value: "Fuzzy"},
-                       {value: "LSH"},
-                   ]}
-          />
-        </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit" style={{width:"120px"}}>
-            Search
-          </Button>
-        </Form.Item>
-      </Space>
-    </Form>
-    </ConfigProvider>
-  );
 
   // 根据类别生成分组的数据集列表
   const generateDatasetGroups = () => {
@@ -298,67 +260,130 @@ function SearchData({ set_dataset, visible = false, onCancel, algorithmType = ""
             ))}
           </Row>
         </div>
+        <Select
+            style={{minWidth: 90, margin:5}}
+            placeholder = "Dataset Selector"
+            options = {datasetSelector.map(item => ({ value: item.name })).concat({ value: "None" })}
+            onChange={(value) => setSelectedDatasetSelector(value)}
+        />
+        <Input style={{width: 400, margin:5}} placeholder="Parameters" onChange={e => setParameter(e.target.value)}/>
       </Card>
     ));
   };
-  
-  // If used as a modal, wrap in Modal component
-  if (isModalMode) {
-    return (
+
+  return (
       <Modal
-        title={`Select Data for ${algorithmType}`}
-        open={visible}
-        onCancel={onCancel}
-        width={800}
-        footer={[
-          <Button key="cancel" onClick={onCancel}>
-            Cancel
-          </Button>,
-          <Button 
-            key="confirm" 
-            type="primary" 
-            onClick={handleConfirmSelection}
-            disabled={selectedDatasets.length === 0}
-          >
-            Confirm Selection
-          </Button>,
-        ]}
+          title={`Select Data for ${algorithmType}`}
+          open={visible}
+          onCancel={onCancel}
+          width={800}
+          footer={[
+            <Button key="cancel" onClick={onCancel}>
+              Cancel
+            </Button>,
+            <Button
+                key="confirm"
+                type="primary"
+                onClick={handleConfirmSelection}
+                disabled={selectedDatasets.length === 0}
+            >
+              Confirm Selection
+            </Button>,
+          ]}
       >
-        {formContent}
-        
+        <ConfigProvider
+            theme={{
+              components: {
+                Input: {
+                  addonBg: "white"
+                },
+              },
+            }}
+        >
+          <Form
+              name="SearchData"
+              form={form}
+              onFinish={onFinish}
+              style={{width:"100%"}}
+              autoComplete="off"
+          >
+            {/* Display algorithm type when in modal mode */}
+            {algorithmType && (
+                <div style={{ marginBottom: 16 }}>
+                  <h5 style={{ color: "#1890ff" }}>Selecting data for: {algorithmType}</h5>
+                </div>
+            )}
+
+            <Space className="space" style={{ display: 'flex'}} align="baseline">
+              <Form.Item
+                  name="task_name"
+                  style={{flexGrow: 1}}
+              >
+                <Input addonBefore={"Dataset Name"}/>
+              </Form.Item>
+              <Form.Item
+                  name="num_variables"
+                  style={{flexGrow: 1}}
+              >
+                <Input addonBefore={"Num of Variables"}/>
+              </Form.Item>
+            </Space>
+            <Space className="space" style={{ display: 'flex'}} align="baseline">
+              <Form.Item
+                  name="variables_name"
+                  style={{flexGrow: 1}}
+              >
+                <Input addonBefore={"Variable Name"}/>
+              </Form.Item>
+              <Form.Item
+                  name="num_objectives"
+                  style={{flexGrow: 1}}
+              >
+                <Input addonBefore={"Num of Objectives"}/>
+              </Form.Item>
+            </Space>
+            <h6 style={{color:"black"}}>Search method:</h6>
+            <Space className="space" style={{ display: 'flex'}} align="baseline">
+              <Form.Item
+                  name="search_method"
+              >
+                <Select style={{minWidth: 150}}
+                        options={[ {value: "Hash"},
+                          {value: "Fuzzy"},
+                          {value: "LSH"},
+                        ]}
+                />
+              </Form.Item>
+              <Form.Item>
+                <Button type="primary" htmlType="submit" style={{width:"120px"}}>
+                  Search
+                </Button>
+              </Form.Item>
+            </Space>
+          </Form>
+        </ConfigProvider>
+
         {/* 搜索结果以Checkbox形式展示 */}
         {searchResults.length > 0 && (
-          <div style={{ marginTop: 16 }}>
-            <Divider orientation="left">
-              Search Results
-              <span style={{ marginLeft: 16 }}>
-                <Checkbox 
-                  onChange={handleSelectAll}
-                  checked={selectedDatasets.length === searchResults.length && searchResults.length > 0}
-                  indeterminate={selectedDatasets.length > 0 && selectedDatasets.length < searchResults.length}
-                >
-                  Select All
-                </Checkbox>
-              </span>
-            </Divider>
-            
-            <div style={{ marginBottom: 16 }}>
-              {generateDatasetGroups()}
+            <div style={{ marginTop: 16 }}>
+              <Divider orientation="left">
+                Search Results
+              </Divider>
+
+              <div style={{ marginBottom: 16 }}>
+                {generateDatasetGroups()}
+              </div>
+
+              {selectedDatasets.length > 0 && (
+                  <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+                    Selected {selectedDatasets.length} dataset(s)
+                  </Text>
+              )}
             </div>
-            
-            {selectedDatasets.length > 0 && (
-              <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-                Selected {selectedDatasets.length} dataset(s)
-              </Text>
-            )}
-          </div>
         )}
       </Modal>
-    );
-  }
+  );
 
-  // Otherwise return just the form (original behavior)
-  return formContent;
 }
 
 export default SearchData

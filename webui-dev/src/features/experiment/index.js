@@ -107,12 +107,12 @@ const Experiment = () => {
       <div className="grid mt-4">
 
         <Divider orientation="left">
-          <div style={{fontSize: '24px', marginBottom: '15px'}} className="text-xl font-semibold">Experiment Info</div>
+          <div style={{fontSize: '24px', marginBottom: '15px'}} className="text-xl font-semibold">Experimental Setup</div>
         </Divider>
         <SelectTask data={tasksData} updateTable={setTasksData} />
         
         <Divider orientation="left">
-          <div style={{fontSize: '24px', marginBottom: '15px'}} className="text-xl font-semibold">Build Algorithm</div>
+          <div style={{fontSize: '24px', marginBottom: '15px'}} className="text-xl font-semibold">Algorithm Building</div>
         </Divider>
         <SelectAlgorithm
           SpaceRefiner={algorithmData.spaceRefiner}
@@ -125,9 +125,7 @@ const Experiment = () => {
           updateTable={setOptimizer}
         />
         
-        <Divider orientation="left">
-          <div style={{fontSize: '24px', marginBottom: '15px'}} className="text-xl font-semibold">Run Config</div>
-        </Divider>
+      <div style={{ marginTop: '25px' }}></div>
         <RunPage />
 
       </div>

@@ -24,9 +24,8 @@ const { Text } = Typography;
  * @param {function} onCancel - Function to close the modal
  * @param {string} algorithmType - Type of algorithm this search is for
  * @param {function} onSelectData - Callback for when data is selected with the algorithm context
- * @param {Array} datasetSelector - datasetSelector
  */
-function SearchData({ visible = false, onCancel, algorithmType = "", onSelectData, datasetSelector }) {
+function SearchData({ visible = false, onCancel, algorithmType = "", onSelectData }) {
   const [form] = Form.useForm();
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -260,13 +259,6 @@ function SearchData({ visible = false, onCancel, algorithmType = "", onSelectDat
             ))}
           </Row>
         </div>
-        <Select
-            style={{minWidth: 90, margin:5}}
-            placeholder = "Dataset Selector"
-            options = {datasetSelector.map(item => ({ value: item.name })).concat({ value: "None" })}
-            onChange={(value) => setSelectedDatasetSelector(value)}
-        />
-        <Input style={{width: 400, margin:5}} placeholder="Parameters" onChange={e => setParameter(e.target.value)}/>
       </Card>
     ));
   };

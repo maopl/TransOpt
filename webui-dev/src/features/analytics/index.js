@@ -20,7 +20,7 @@ class Analytics extends React.Component {
     this.state = {
       isFirst: true,
       selections: {},
-      BoxData: {},
+      BoxData: null,
       TrajectoryData: [],
     };
   }
@@ -103,7 +103,6 @@ class Analytics extends React.Component {
                 >
                   <SelectTask selections={this.state.selections} handleClick={this.handleClick}/>
                 </TitleCard>
-
             <div className="grid mt-4 grid-cols-1 lg:grid-cols-[50%_50%] gap-6">
 
                 <LineChart TrajectoryData={this.state.TrajectoryData} />

@@ -1,99 +1,72 @@
 import React from 'react';
 import * as echarts from 'echarts';
 import ReactECharts from 'echarts-for-react';
-import BoxData from './data/BoxData.json';
+import defaultBoxData from './data/BoxData.json';
 import my_theme from './my_theme.json';
 
-echarts.registerTheme('my_theme', my_theme.theme);
+echarts.registerTheme('my_theme', my_theme);
+
+const groupLabels = ['A', 'B', 'C']; // 可根据数据动态生成
 
 function Box({ BoxData }) {
-  // Extract labels and data
-  const dataLabel = Object.keys(BoxData);
-  const data = Object.values(BoxData);
+  // 只接受二维数值数组
+  const dataArr = (Array.isArray(BoxData) && BoxData.length > 0 && BoxData.every(arr => Array.isArray(arr) && arr.length > 0 && arr.every(x => typeof x === 'number')))
+    ? BoxData
+    : defaultBoxData;
 
-  // Configure the ECharts option
+  // 检查数据有效性
+  const valid = Array.isArray(dataArr) && dataArr.length > 0 && dataArr.every(arr => Array.isArray(arr) && arr.length > 0 && arr.every(x => typeof x === 'number'));
+
+  if (!valid) {
+    return <div style={{height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>暂无数据</div>;
+  }
+
   const option = {
     dataset: [
-      {
-        source: data,
-      },
+      { source: dataArr },
       {
         transform: {
           type: 'boxplot',
           config: {
             itemNameFormatter: function (value) {
-              return dataLabel[value.value];
+              return groupLabels[value.value] || value.value;
             },
           },
         },
       },
-      {
-        fromDatasetIndex: 1,
-        fromTransformResult: 1,
-      },
+      { fromDatasetIndex: 1, fromTransformResult: 1 }
     ],
-    tooltip: {
-      trigger: 'item',
-      axisPointer: {
-        type: 'shadow',
-      },
-    },
-    toolbox: {
-      feature: {
-        saveAsImage: {},
-      },
-    },
-    grid: {
-      left: '10%',
-      right: '10%',
-      bottom: '15%',
-    },
+    tooltip: { trigger: 'item', axisPointer: { type: 'shadow' } },
+    toolbox: { feature: { saveAsImage: {} } },
+    grid: { left: '5%', right: '5%', bottom: '10%', top: '10%' },
     xAxis: {
       type: 'category',
-      // boundaryGap: true,
       nameGap: 30,
-      axisLabel: {
-        color: '#ffffff',
-      },
-      lineStyle: {
-        color: 'black',
-      },
+      data: groupLabels,
+      axisLabel: { color: '#333' },
+      lineStyle: { color: '#ccc' }
     },
     yAxis: {
       type: 'value',
       name: 'value',
-      lineStyle: {
-        color: 'black',
-      },
-      axisLabel: {
-        color: '#ffffff',
-      },
-      min: 'dataMin', // Set min to auto-scale
-      max: 'dataMax', // Set max to auto-scale
+      lineStyle: { color: '#ccc' },
+      axisLabel: { color: '#333' },
+      min: 'dataMin',
+      max: 'dataMax'
     },
     series: [
-      {
-        name: 'boxplot',
-        type: 'boxplot',
-        datasetIndex: 1,
-        itemStyle: {
-          color: '#2EC7C9',
-        },
-      },
-      {
-        name: 'outlier',
-        type: 'scatter',
-        datasetIndex: 2,
-        symbol: 'circle',
-      },
-    ],
+      { name: 'boxplot', type: 'boxplot', datasetIndex: 1, itemStyle: { color: '#2EC7C9' } },
+      { name: 'outlier', type: 'scatter', datasetIndex: 2, symbol: 'circle' }
+    ]
   };
 
   return (
     <ReactECharts
       option={option}
-      style={{ height: 500 }}
+      style={{ height: '360px', width: '100%' }}
       theme="my_theme"
+      notMerge={true}
+      lazyUpdate={true}
     />
   );
 }

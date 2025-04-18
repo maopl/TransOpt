@@ -37,8 +37,16 @@ const Experiment = () => {
         if (!basicResponse.ok) throw new Error('Failed to fetch basic information');
         const basicData = await basicResponse.json();
         console.log('Basic info from backend:', basicData);
-        
-        // 更新算法数据
+
+        /**
+         *     更新算法数据
+         *     "Search Space",
+         *     "Initialization",
+         *     "Pretrain",
+         *     "Model",
+         *     "Acquisition Function",
+         *     "Normalizer"
+         */
         setAlgorithmData({
           spaceRefiner: basicData.SpaceRefiner || [],
           sampler: basicData.Sampler || [],
@@ -115,14 +123,13 @@ const Experiment = () => {
           <div style={{fontSize: '24px', marginBottom: '15px'}} className="text-xl font-semibold">Algorithm Building</div>
         </Divider>
         <SelectAlgorithm
-          SpaceRefiner={algorithmData.spaceRefiner}
-          Sampler={algorithmData.sampler}
-          Pretrain={algorithmData.pretrain}
-          Model={algorithmData.model}
-          ACF={algorithmData.acf}
-          datasetSelector={algorithmData.datasetSelector}
-          Normalizer={algorithmData.normalizer}
-          updateTable={setOptimizer}
+            SearchSpaceOptions={algorithmData.spaceRefiner}
+            InitializationOptions={algorithmData.sampler}
+            PretrainOptions={algorithmData.pretrain}
+            ModelOptions={algorithmData.model}
+            AcquisitionFunctionOptions={algorithmData.acf}
+            NormalizerOptions={algorithmData.normalizer}
+            updateTable={setOptimizer}
         />
         
       <div style={{ marginTop: '25px' }}></div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Button } from "reactstrap";
+import { LineChartOutlined } from '@ant-design/icons';
 import {
   Modal,
   Spin,
@@ -13,7 +13,7 @@ import {
   Row,
   Col,
   Typography,
-  Divider
+  Button,
 } from "antd";
 import {
   LoadingOutlined,
@@ -29,6 +29,7 @@ import {
 import LineChart from './components/LineChart';
 import BarChart from './components/BarChart';
 import Footprint from "./components/ScatterChart";
+import StatisticalAnalysis from "./components/StatisticalAnalysis";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -321,7 +322,7 @@ const Dashboard = () => {
   // 主界面渲染
   return (
     <div style={{
-      height: "88vh",
+      height: "86vh",
       padding: "20px",
       display: "flex",
       flexDirection: "column",
@@ -706,6 +707,9 @@ const Dashboard = () => {
                   </div>
                 </div>
               </Card>
+
+              {/*Statistical Analysis*/}
+            <StatisticalAnalysis />
             </div>
           )}
         </div>

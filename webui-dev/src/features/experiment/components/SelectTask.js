@@ -50,13 +50,6 @@ function TaskTable({ tasks, handleDelete, setDrawerVisible }) {
             </Button>
      </div>
      <div style={{ textAlign: 'right',marginTop:'10px' }}>
-     {/* <Button  type="primary" htmlType="submit" style={{
-              width: "150px",
-              backgroundColor: 'rgb(53, 162, 235)',
-              
-            }}>
-              Submit
-            </Button> */}
     </div>
     </>
   );

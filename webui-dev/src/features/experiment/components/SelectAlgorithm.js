@@ -1,522 +1,389 @@
-import React, { useState, useEffect } from "react";
-import { 
-  PartitionOutlined, 
-  ExperimentOutlined, 
-  RobotOutlined, 
-  ApiOutlined, 
-  AreaChartOutlined, 
-  SlidersOutlined, 
-  SaveOutlined,
-  DatabaseOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  TagsOutlined,
-  EyeOutlined
+import React, {useState, useEffect, useMemo} from "react";
+import {
+    PartitionOutlined,
+    ExperimentOutlined,
+    RobotOutlined,
+    ApiOutlined,
+    AreaChartOutlined,
+    SlidersOutlined,
+    SaveOutlined,
+    DatabaseOutlined,
+    EditOutlined,
+    DeleteOutlined,
+    TagsOutlined,
+    EyeOutlined
 } from '@ant-design/icons';
-import { Button, Form, Select, Modal, Row, Col, Space, Tag, Divider, Typography, Tooltip } from "antd";
-import DashboardStats from './DashboardStats';
+import {Button, Form, Select, Modal, Row, Col, Space, Tag, Divider, Typography, Tooltip, Checkbox} from "antd";
+
 import SearchData from './SearchData';
 
-const { Text } = Typography;
+const {Text} = Typography;
 
 const filterOption = (input, option) =>
-  (option?.value ?? '').toLowerCase().includes(input.toLowerCase());
+    (option?.value ?? '').toLowerCase().includes(input.toLowerCase());
 
-function SelectAlgorithm({ SpaceRefiner, Sampler, Pretrain, Model, ACF, Normalizer, updateTable, datasetSelector }) {
-  const [form] = Form.useForm();
-  
-  // Modal visibility states for each algorithm's data selection
-  const [activeModal, setActiveModal] = useState(null);
-  
-  // 预览模态窗口状态
-  const [previewModal, setPreviewModal] = useState({
-    visible: false,
-    algorithmType: '',
-    datasets: []
-  });
-  
-  const [formValues, setFormValues] = useState({
-    SpaceRefiner: SpaceRefiner[0]?.name || '',
-    Sampler: Sampler[0]?.name || '',
-    Pretrain: Pretrain[0]?.name || '',
-    Model: Model[0]?.name || '',
-    ACF: ACF[0]?.name || '',
-    Normalizer: Normalizer[0]?.name || '',
-    SpaceRefinerParameters: '',
-    SpaceRefinerDataSelector: 'None',
-    SpaceRefinerDataSelectorParameters: '',
-    SamplerParameters: '',
-    SamplerInitNum: '11',
-    SamplerDataSelector: 'None',
-    SamplerDataSelectorParameters: '',
-    PretrainParameters: '',
-    PretrainDataSelector: 'None',
-    PretrainDataSelectorParameters: '',
-    ModelParameters: '',
-    ModelDataSelector: 'None',
-    ModelDataSelectorParameters: '',
-    ACFParameters: '',
-    ACFDataSelector: 'None',
-    ACFDataSelectorParameters: '',
-    NormalizerParameters: '',
-    NormalizerDataSelector: 'None',
-    NormalizerDataSelectorParameters: '',
-  });
-  
-  // 初始化时从localStorage读取数据
-  useEffect(() => {
-    const savedData = localStorage.getItem('algorithmFormData');
-    if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      setFormValues(parsedData);
-      form.setFieldsValue(parsedData);
-    }
-  }, []);
-  
-  // 当表单数据变化时保存到localStorage
-  const handleFormChange = (changedValues, allValues) => {
-    setFormValues(allValues);
-    localStorage.setItem('algorithmFormData', JSON.stringify(allValues));
-    // 如果父组件提供了updateTable回调，则调用它
-    if (updateTable) {
-      updateTable(allValues);
-    }
-  };
-  
-  // Handler for opening a specific algorithm's data selection modal
-  const openDataSelectionModal = (algorithmType) => {
-    setActiveModal(algorithmType);
-  };
-  
-  // Handler for closing the active modal
-  const closeDataSelectionModal = () => {
-    setActiveModal(null);
-  };
-  
-  // 打开预览模态窗口
-  const openPreviewModal = (algorithmType) => {
-    const datasets = getSelectedDatasets(algorithmType);
-    setPreviewModal({
-      visible: true,
-      algorithmType,
-      datasets
+// 统一算法类型常量
+const ALGORITHM_TYPES = [
+    "Search Space",
+    "Initialization",
+    "Pretrain",
+    "Model",
+    "Acquisition Function",
+    "Normalizer"
+];
+
+function SelectAlgorithm({
+                             SearchSpaceOptions,
+                             InitializationOptions,
+                             PretrainOptions,
+                             ModelOptions,
+                             AcquisitionFunctionOptions,
+                             NormalizerOptions,
+                             updateTable
+                         }) {
+    const [form] = Form.useForm();
+
+    // Modal visibility states for each algorithm's data selection
+    const [activeModal, setActiveModal] = useState(null);
+
+    // 预览模态窗口状态
+    const [previewModal, setPreviewModal] = useState({
+        visible: false,
+        algorithmType: '',
+        datasets: []
     });
-  };
-  
-  // 关闭预览模态窗口
-  const closePreviewModal = () => {
-    setPreviewModal({
-      visible: false,
-      algorithmType: '',
-      datasets: []
+
+    /**
+     * 算法对应的下拉选项
+     * @type {{"Search Space", Initialization, Pretrain, Model, "Acquisition Function", Normalizer}}
+     */
+    const algorithmOptionsMap = useMemo(() => ({
+        "Search Space": SearchSpaceOptions,
+        "Initialization": InitializationOptions,
+        "Pretrain": PretrainOptions,
+        "Model": ModelOptions,
+        "Acquisition Function": AcquisitionFunctionOptions,
+        "Normalizer": NormalizerOptions
+    }), [SearchSpaceOptions, InitializationOptions, PretrainOptions, ModelOptions, AcquisitionFunctionOptions, NormalizerOptions]);
+
+    // 统一初始formValues结构
+    const [formValues, setFormValues] = useState({
+        "Search Space": SearchSpaceOptions?.[0]?.name || '',
+        "Initialization": InitializationOptions?.[0]?.name || '',
+        "Pretrain": PretrainOptions?.[0]?.name || '',
+        "Model": ModelOptions?.[0]?.name || '',
+        "Acquisition Function": AcquisitionFunctionOptions?.[0]?.name || '',
+        "Normalizer": NormalizerOptions?.[0]?.name || '',
+        // 下面是各自的数据集等参数
+        "Search SpaceSelectedDatasets": [],
+        "InitializationSelectedDatasets": [],
+        "PretrainSelectedDatasets": [],
+        "ModelSelectedDatasets": [],
+        "Acquisition FunctionSelectedDatasets": [],
+        "NormalizerSelectedDatasets": [],
+        // 你可以继续添加其它参数
     });
-  };
-  
-  // Handler for when data is selected from the SearchData modal
-  const handleSelectData = (datasetData, algorithmType) => {
-    console.log('datasetData', datasetData, algorithmType)
-    const { datasets } = datasetData;
-    
-    // Update form values based on which algorithm's data was selected
-    const updatedValues = { ...formValues };
 
-    // 存储完整的数据集信息，方便展示和编辑
-    if (algorithmType === 'SpaceRefiner') {
-      updatedValues.SpaceRefinerDataSelector = 'Custom';
-      updatedValues.SpaceRefinerDataSelectorParameters = JSON.stringify(datasets);
-      updatedValues.SpaceRefinerSelectedDatasets = datasets; // 直接存储数据集对象数组
-    } else if (algorithmType === 'Sampler') {
-      updatedValues.SamplerDataSelector = 'Custom';
-      updatedValues.SamplerDataSelectorParameters = JSON.stringify(datasets);
-      updatedValues.SamplerSelectedDatasets = datasets;
-    } else if (algorithmType === 'Pretrain') {
-      updatedValues.PretrainDataSelector = 'Custom';
-      updatedValues.PretrainDataSelectorParameters = JSON.stringify(datasets);
-      updatedValues.PretrainSelectedDatasets = datasets;
-    } else if (algorithmType === 'Model') {
-      updatedValues.ModelDataSelector = 'Custom';
-      updatedValues.ModelDataSelectorParameters = JSON.stringify(datasets);
-      updatedValues.ModelSelectedDatasets = datasets;
-    } else if (algorithmType === 'ACF') {
-      updatedValues.ACFDataSelector = 'Custom';
-      updatedValues.ACFDataSelectorParameters = JSON.stringify(datasets);
-      updatedValues.ACFSelectedDatasets = datasets;
-    } else if (algorithmType === 'Normalizer') {
-      updatedValues.NormalizerDataSelector = 'Custom';
-      updatedValues.NormalizerDataSelectorParameters = JSON.stringify(datasets);
-      updatedValues.NormalizerSelectedDatasets = datasets;
-    }
-    
-    // Update form with new values
-    form.setFieldsValue(updatedValues);
-    setFormValues(updatedValues);
-    localStorage.setItem('algorithmFormData', JSON.stringify(updatedValues));
-    
-    // Notify parent component
-    if (updateTable) {
-      updateTable(updatedValues);
-    }
-  };
+    // 初始化时从localStorage读取数据
+    // useEffect(() => {
+    //     const savedData = localStorage.getItem('algorithmFormData');
+    //     if (savedData) {
+    //         const parsedData = JSON.parse(savedData);
+    //         setFormValues(parsedData);
+    //         form.setFieldsValue(parsedData);
+    //     }
+    // }, []);
 
-  // 保留原有的提交逻辑，后续会重新处理
-  const handleSubmit = () => {
-    form
-      .validateFields()
-      .then(values => {
-        // 保留原有网络请求代码，后续由用户重新处理
-        fetch('/api/configuration/select_algorithm', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(values),
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .then(succeed => {
-          console.log('Message from back-end:', succeed);
-          Modal.success({
-            title: 'Information',
-            content: 'Submit successfully!',
-          });
-        })
-        .catch(error => {
-          console.error('Error sending message:', error);
-          Modal.error({
-            title: 'Information',
-            content: 'Error: ' + error.message,
-          });
+    // 当表单数据变化时保存到localStorage
+    const handleFormChange = (changedValues, allValues) => {
+        setFormValues(allValues);
+        localStorage.setItem('algorithmFormData', JSON.stringify(allValues));
+        // 如果父组件提供了updateTable回调，则调用它
+        if (updateTable) {
+            updateTable(allValues);
+        }
+    };
+
+    // Handler for opening a specific algorithm's data selection modal
+    const openDataSelectionModal = (algorithmType) => {
+        setActiveModal(algorithmType);
+    };
+
+    // Handler for closing the active modal
+    const closeDataSelectionModal = () => {
+        setActiveModal(null);
+    };
+
+    // 打开预览模态窗口
+    const openPreviewModal = (algorithmType) => {
+        const datasets = getSelectedDatasets(algorithmType);
+        setPreviewModal({
+            visible: true,
+            algorithmType,
+            datasets
         });
-      })
-      .catch(info => {
-        console.log('Validate Failed:', info);
-      });
-  };
+    };
 
-  const renderFormItem = (name, options, rules = []) => {
-    return (
-      <Form.Item
-        name={name}
-        rules={rules}
-        noStyle
-      >
-        <Select
-          showSearch
-          placeholder={`Select ${name}`}
-          optionFilterProp="value"
-          filterOption={filterOption}
-          style={{ width: '100%' }}
-          options={options}
-        />
-      </Form.Item>
-    );
-  };
-  
-  // 清除特定算法的已选数据集
-  const clearSelectedDatasets = (algorithmType) => {
-    const updatedValues = { ...formValues };
-    
-    if (algorithmType === 'SpaceRefiner') {
-      updatedValues.SpaceRefinerDataSelector = 'None';
-      updatedValues.SpaceRefinerDataSelectorParameters = '';
-      updatedValues.SpaceRefinerSelectedDatasets = undefined;
-    } else if (algorithmType === 'Sampler') {
-      updatedValues.SamplerDataSelector = 'None';
-      updatedValues.SamplerDataSelectorParameters = '';
-      updatedValues.SamplerSelectedDatasets = undefined;
-    } else if (algorithmType === 'Pretrain') {
-      updatedValues.PretrainDataSelector = 'None';
-      updatedValues.PretrainDataSelectorParameters = '';
-      updatedValues.PretrainSelectedDatasets = undefined;
-    } else if (algorithmType === 'Model') {
-      updatedValues.ModelDataSelector = 'None';
-      updatedValues.ModelDataSelectorParameters = '';
-      updatedValues.ModelSelectedDatasets = undefined;
-    } else if (algorithmType === 'ACF') {
-      updatedValues.ACFDataSelector = 'None';
-      updatedValues.ACFDataSelectorParameters = '';
-      updatedValues.ACFSelectedDatasets = undefined;
-    } else if (algorithmType === 'Normalizer') {
-      updatedValues.NormalizerDataSelector = 'None';
-      updatedValues.NormalizerDataSelectorParameters = '';
-      updatedValues.NormalizerSelectedDatasets = undefined;
-    }
-    
-    // 更新表单值
-    form.setFieldsValue(updatedValues);
-    setFormValues(updatedValues);
-    localStorage.setItem('algorithmFormData', JSON.stringify(updatedValues));
-    
-    // 通知父组件
-    if (updateTable) {
-      updateTable(updatedValues);
-    }
-  };
-  
-  // 获取特定算法的已选数据集
-  const getSelectedDatasets = (algorithmType) => {
-    if (algorithmType === 'Narrow Search Space') {
-      return formValues.SpaceRefinerSelectedDatasets || [];
-    } else if (algorithmType === 'SaInitialization') {
-      return formValues.SamplerSelectedDatasets || [];
-    } else if (algorithmType === 'Pre-train') {
-      return formValues.PretrainSelectedDatasets || [];
-    } else if (algorithmType === 'Surrogate Model') {
-      return formValues.ModelSelectedDatasets || [];
-    } else if (algorithmType === 'Acquisition Function') {
-      return formValues.ACFSelectedDatasets || [];
-    } else if (algorithmType === 'Normalizer') {
-      return formValues.NormalizerSelectedDatasets || [];
-    }
-    return [];
-  };
-  
-  // 为每个算法卡片渲染数据选择区域（包括预览和操作按钮）
-  const renderDataSelectionArea = (algorithmType) => {
-    const selectedDatasets = getSelectedDatasets(algorithmType);
-    const hasSelectedData = selectedDatasets.length > 0;
-    
-    return (
-      <div style={{ marginTop: '8px' }}>
-        {!hasSelectedData ? (
-          // 没有选择数据时显示选择按钮
-          <Button 
-            type="default"
-            size="small"
-            icon={<DatabaseOutlined />}
-            onClick={() => openDataSelectionModal(algorithmType)}
-          >
-            Select Auxiliary Data
-          </Button>
-        ) : (
-          // 已选择数据时显示数据预览和操作按钮
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={{ marginRight: '8px' }}>
-              <TagsOutlined /> Selected {selectedDatasets.length} dataset(s)
-            </Text>
-            <Space size="small">
-              <Tooltip title="View datasets">
-                <Button 
-                  type="text" 
-                  size="small" 
-                  icon={<EyeOutlined />} 
-                  onClick={() => openPreviewModal(algorithmType)}
-                />
-              </Tooltip>
-              <Tooltip title="Edit selection">
-                <Button 
-                  type="text" 
-                  size="small" 
-                  icon={<EditOutlined />} 
-                  onClick={() => openDataSelectionModal(algorithmType)}
-                />
-              </Tooltip>
-              <Tooltip title="Clear selection">
-                <Button 
-                  type="text" 
-                  size="small" 
-                  danger 
-                  icon={<DeleteOutlined />} 
-                  onClick={() => clearSelectedDatasets(algorithmType)}
-                />
-              </Tooltip>
-            </Space>
-          </div>
-        )}
-      </div>
-    );
-  };
+    // 关闭预览模态窗口
+    const closePreviewModal = () => {
+        setPreviewModal({
+            visible: false,
+            algorithmType: '',
+            datasets: []
+        });
+    };
 
-  return (
-    <Form
-      form={form}
-      onValuesChange={handleFormChange}
-      initialValues={formValues}
-      layout="vertical"
-      style={{ width: "100%" }}
-    >
-      <Row gutter={[16, 16]}>
-        <Col xs={24} md={12} lg={8}>
-          <div className="stat shadow" style={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '8px', padding: '16px', backgroundColor: 'white' }}>
-            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-              <PartitionOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
-              <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Narrow Search Space</span>
+    // Handler for when data is selected from the SearchData modal
+    const handleSelectData = (datasetData, algorithmType) => {
+        const updatedValues = {...formValues};
+        updatedValues[`${algorithmType}SelectedDatasets`] = datasetData.datasets;
+        setFormValues(updatedValues);
+        form.setFieldsValue(updatedValues);
+        localStorage.setItem('algorithmFormData', JSON.stringify(updatedValues));
+        if (updateTable) updateTable(updatedValues);
+    };
+
+    // 获取特定算法的已选数据集
+    const getSelectedDatasets = (algorithmType) => {
+        return formValues[`${algorithmType}SelectedDatasets`] || [];
+    };
+
+    // 清除数据集
+    const clearSelectedDatasets = (algorithmType) => {
+        const updatedValues = {...formValues};
+        updatedValues[`${algorithmType}SelectedDatasets`] = [];
+        setFormValues(updatedValues);
+        form.setFieldsValue(updatedValues);
+        localStorage.setItem('algorithmFormData', JSON.stringify(updatedValues));
+        if (updateTable) updateTable(updatedValues);
+    };
+
+    // 渲染数据选择区域
+    const renderDataSelectionArea = (algorithmType) => {
+        const selectedDatasets = getSelectedDatasets(algorithmType);
+        const hasSelectedData = selectedDatasets.length > 0;
+        return (
+            <div style={{marginTop: '8px'}}>
+                {!hasSelectedData ? (
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                        <Button
+                            type="default"
+                            size="small"
+                            icon={<DatabaseOutlined/>}
+                            onClick={() => openDataSelectionModal(algorithmType)}
+                        >
+                            Select Auxiliary Data
+                        </Button>
+                        <Checkbox>
+                          <span title={''}>
+                            {'Auto Select'}
+                          </span>
+                        </Checkbox>
+                    </div>
+                ) : (
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                        <Text style={{marginRight: '8px'}}>
+                            <TagsOutlined/> 已选择 {selectedDatasets.length} 条数据
+                        </Text>
+                        <Space size="small">
+                            <Tooltip title="查看数据集">
+                                <Button
+                                    type="text"
+                                    size="small"
+                                    icon={<EyeOutlined/>}
+                                    onClick={() => openPreviewModal(algorithmType)}
+                                />
+                            </Tooltip>
+                            <Tooltip title="编辑选择">
+                                <Button
+                                    type="text"
+                                    size="small"
+                                    icon={<EditOutlined/>}
+                                    onClick={() => openDataSelectionModal(algorithmType)}
+                                />
+                            </Tooltip>
+                            <Tooltip title="清除选择">
+                                <Button
+                                    type="text"
+                                    size="small"
+                                    danger
+                                    icon={<DeleteOutlined/>}
+                                    onClick={() => clearSelectedDatasets(algorithmType)}
+                                />
+                            </Tooltip>
+                            <Checkbox>
+                              <span title={''}>
+                                {'Auto Select'}
+                              </span>
+                            </Checkbox>
+                        </Space>
+                    </div>
+                )}
             </div>
-            <div className="stat-value">
-              {renderFormItem('SpaceRefiner', SpaceRefiner.map(item => ({ value: item.name })), [{ required: true, message: 'Please select a SpaceRefiner!' }])}
-            </div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>Details of SpaceRefiner</div>
-            <Divider style={{ margin: '0 0 4px 0' }} />
-            {renderDataSelectionArea('SpaceRefiner')}
-          </div>
-        </Col>
-        
-        <Col xs={24} md={12} lg={8}>
-          <div className="stat shadow" style={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '8px', padding: '16px', backgroundColor: 'white' }}>
-            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-              <ExperimentOutlined style={{ fontSize: '24px', color: '#52c41a' }} />
-              <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Initialization</span>
-            </div>
-            <div className="stat-value">
-              {renderFormItem('Sampler', Sampler.map(item => ({ value: item.name })), [{ required: true, message: 'Please select a Sampler!' }])}
-            </div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>Details of Initialization</div>
-            <Divider style={{ margin: '0 0 4px 0' }} />
-            {renderDataSelectionArea('Sampler')}
-          </div>
-        </Col>
-        
-        <Col xs={24} md={12} lg={8}>
-          <div className="stat shadow" style={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '8px', padding: '16px', backgroundColor: 'white' }}>
-            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-              <RobotOutlined style={{ fontSize: '24px', color: '#722ed1' }} />
-              <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Pretrain</span>
-            </div>
-            <div className="stat-value">
-              {renderFormItem('Pretrain', Pretrain.map(item => ({ value: item.name })), [{ required: true, message: 'Please select a Pretrain!' }])}
-            </div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>Details of Pretrain</div>
-            <Divider style={{ margin: '0 0 4px 0' }} />
-            {renderDataSelectionArea('Pretrain')}
-          </div>
-        </Col>
-        
-        <Col xs={24} md={12} lg={8}>
-          <div className="stat shadow" style={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '8px', padding: '16px', backgroundColor: 'white' }}>
-            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-              <ApiOutlined style={{ fontSize: '24px', color: '#fa8c16' }} />
-              <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Model</span>
-            </div>
-            <div className="stat-value">
-              {renderFormItem('Model', Model.map(item => ({ value: item.name })), [{ required: true, message: 'Please select a Model!' }])}
-            </div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>Details of Model</div>
-            <Divider style={{ margin: '0 0 4px 0' }} />
-            {renderDataSelectionArea('Model')}
-          </div>
-        </Col>
-        
-        <Col xs={24} md={12} lg={8}>
-          <div className="stat shadow" style={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '8px', padding: '16px', backgroundColor: 'white' }}>
-            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-              <AreaChartOutlined style={{ fontSize: '24px', color: '#eb2f96' }} />
-              <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Acquisition Function</span>
-            </div>
-            <div className="stat-value">
-              {renderFormItem('ACF', ACF.map(item => ({ value: item.name })), [{ required: true, message: 'Please select an ACF!' }])}
-            </div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>Details of ACF</div>
-            <Divider style={{ margin: '0 0 4px 0' }} />
-            {renderDataSelectionArea('ACF')}
-          </div>
-        </Col>
-        
-        <Col xs={24} md={12} lg={8}>
-          <div className="stat shadow" style={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', borderRadius: '8px', padding: '16px', backgroundColor: 'white' }}>
-            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-              <SlidersOutlined style={{ fontSize: '24px', color: '#13c2c2' }} />
-              <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Normalizer</span>
-            </div>
-            <div className="stat-value">
-              {renderFormItem('Normalizer', Normalizer.map(item => ({ value: item.name })), [{ required: true, message: 'Please select a Normalizer!' }])}
-            </div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>Details of Normalizer</div>
-            <Divider style={{ margin: '0 0 4px 0' }} />
-            {renderDataSelectionArea('Normalizer')}
-          </div>
-        </Col>
-      </Row>
-      
-      {/* SearchData modals for each algorithm type */}
-      {/*[ {value: "Narrow Search Space"},*/}
-      {/*{value: "Initialization"},*/}
-      {/*{value: "Pre-train"},*/}
-      {/*{value: "Surrogate Model"},*/}
-      {/*{value: "Acquisition Function"},*/}
-      {/*{value: "Normalizer"}*/}
-      {/*]*/}
-      <SearchData 
-        visible={activeModal === 'SpaceRefiner'}
-        onCancel={closeDataSelectionModal}
-        algorithmType="Narrow Search Space"
-        onSelectData={handleSelectData}
-        datasetSelector={datasetSelector}
-      />
-      <SearchData 
-        visible={activeModal === 'Sampler'}
-        onCancel={closeDataSelectionModal}
-        algorithmType="Initialization"
-        onSelectData={handleSelectData}
-        datasetSelector={datasetSelector}
-      />
-      <SearchData 
-        visible={activeModal === 'Pretrain'}
-        onCancel={closeDataSelectionModal}
-        algorithmType="Pre-train"
-        onSelectData={handleSelectData}
-        datasetSelector={datasetSelector}
-      />
-      <SearchData 
-        visible={activeModal === 'Model'}
-        onCancel={closeDataSelectionModal}
-        algorithmType="Surrogate Model"
-        onSelectData={handleSelectData}
-        datasetSelector={datasetSelector}
-      />
-      <SearchData 
-        visible={activeModal === 'ACF'}
-        onCancel={closeDataSelectionModal}
-        algorithmType="Acquisition Function"
-        onSelectData={handleSelectData}
-        datasetSelector={datasetSelector}
-      />
-      <SearchData 
-        visible={activeModal === 'Normalizer'}
-        onCancel={closeDataSelectionModal}
-        algorithmType="NormNormalizer"
-        onSelectData={handleSelectData}
-        datasetSelector={datasetSelector}
-      />
-      
-      {/* 数据集预览模态窗口 */}
-      <Modal
-        title={`Selected Datasets for ${previewModal.algorithmType}`}
-        open={previewModal.visible}
-        onCancel={closePreviewModal}
-        footer={[
-          <Button key="close" onClick={closePreviewModal}>
-            Close
-          </Button>
-        ]}
-        width={600}
-      >
-        <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-          {previewModal.datasets.length > 0 ? (
-            <div>
-              <div style={{ marginBottom: '16px' }}>
-                Total: {previewModal.datasets.length} dataset(s)
-              </div>
-              {previewModal.datasets.map((dataset, index) => (
-                <Tag 
-                  key={index} 
-                  style={{ margin: '0 4px 8px 0' }}
-                  color="blue"
-                >
-                  {dataset.name || dataset.value || `Dataset ${index+1}`}
-                </Tag>
-              ))}
-            </div>
-          ) : (
-            <div>No datasets selected</div>
-          )}
-        </div>
-      </Modal>
-    </Form>
-  );
+        );
+    };
+
+    // 保留原有的提交逻辑，后续会重新处理
+    const handleSubmit = () => {
+        form
+            .validateFields()
+            .then(values => {
+                // 保留原有网络请求代码，后续由用户重新处理
+                fetch('/api/configuration/select_algorithm', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(values),
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(succeed => {
+                        console.log('Message from back-end:', succeed);
+                        Modal.success({
+                            title: 'Information',
+                            content: 'Submit successfully!',
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error sending message:', error);
+                        Modal.error({
+                            title: 'Information',
+                            content: 'Error: ' + error.message,
+                        });
+                    });
+            })
+            .catch(info => {
+                console.log('Validate Failed:', info);
+            });
+    };
+
+    /**
+     * A helper function to render a form item with a select component.
+     *
+     * @param {string} name - The name of the form item.
+     * @param {object[]} options - The options to be rendered in the select component.
+     * Each option should have at least a `value` property and a `label` property.
+     * @param {object[]} [rules=[]] - The validation rules for the form item.
+     * @return {ReactElement} The rendered form item.
+     */
+    const renderFormItem = (name, options, rules = []) => {
+        console.log('options', options)
+        return (
+            <Form.Item
+                name={name}
+                rules={rules}
+                noStyle
+            >
+                <Select
+                    showSearch
+                    placeholder={`Select ${name}`}
+                    optionFilterProp="value"
+                    filterOption={filterOption}
+                    style={{width: '100%'}}
+                    options={options}
+                />
+            </Form.Item>
+        );
+    };
+
+    return (
+        <Form
+            form={form}
+            onValuesChange={handleFormChange}
+            initialValues={formValues}
+            layout="vertical"
+            style={{width: "100%"}}
+        >
+            <Row gutter={[16, 16]}>
+                {ALGORITHM_TYPES.map(algorithmType => (
+                    <Col xs={24} md={12} lg={8} key={algorithmType}>
+                        <div className="stat shadow" style={{
+                            height: '100%',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                            borderRadius: '8px',
+                            padding: '16px',
+                            backgroundColor: 'white'
+                        }}>
+                            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                {algorithmType === "Search Space" &&
+                                    <PartitionOutlined style={{fontSize: '24px', color: '#1890ff'}}/>}
+                                {algorithmType === "Initialization" &&
+                                    <ExperimentOutlined style={{fontSize: '24px', color: '#52c41a'}}/>}
+                                {algorithmType === "Pretrain" &&
+                                    <RobotOutlined style={{fontSize: '24px', color: '#722ed1'}}/>}
+                                {algorithmType === "Model" &&
+                                    <ApiOutlined style={{fontSize: '24px', color: '#fa8c16'}}/>}
+                                {algorithmType === "Acquisition Function" &&
+                                    <AreaChartOutlined style={{fontSize: '24px', color: '#eb2f96'}}/>}
+                                {algorithmType === "Normalizer" &&
+                                    <SlidersOutlined style={{fontSize: '24px', color: '#13c2c2'}}/>}
+                                <span
+                                    style={{fontSize: '16px', fontWeight: 'bold', color: '#333'}}>{algorithmType}</span>
+                            </div>
+                            <div className="stat-value">
+                                {renderFormItem(algorithmType, algorithmOptionsMap[algorithmType].map(item => ({label: item.name, value: item.name})), [{
+                                    required: true,
+                                    message: `Please select a ${algorithmType}!`
+                                }])}
+                            </div>
+                            <Divider style={{margin: '8px 0 4px 0'}}/>
+                            {renderDataSelectionArea(algorithmType)}
+                        </div>
+                    </Col>
+                ))}
+            </Row>
+
+            {/* SearchData modals for each algorithm type */}
+            {ALGORITHM_TYPES.map(algorithmType => (
+                <SearchData
+                    key={algorithmType}
+                    visible={activeModal === algorithmType}
+                    onCancel={closeDataSelectionModal}
+                    algorithmType={algorithmType}
+                    onSelectData={handleSelectData}
+                />
+            ))}
+
+            {/* 数据集预览模态窗口 */}
+            <Modal
+                title={`Selected Datasets for ${previewModal.algorithmType}`}
+                open={previewModal.visible}
+                onCancel={closePreviewModal}
+                footer={[
+                    <Button key="close" onClick={closePreviewModal}>
+                        Close
+                    </Button>
+                ]}
+                width={600}
+            >
+                <div style={{maxHeight: '400px', overflowY: 'auto'}}>
+                    {previewModal.datasets.length > 0 ? (
+                        <div>
+                            <div style={{marginBottom: '16px'}}>
+                                Total: {previewModal.datasets.length} dataset(s)
+                            </div>
+                            {previewModal.datasets.map((dataset, index) => (
+                                <Tag
+                                    key={index}
+                                    style={{margin: '0 4px 8px 0'}}
+                                    color="blue"
+                                >
+                                    {dataset.name || dataset.value || `Dataset ${index + 1}`}
+                                </Tag>
+                            ))}
+                        </div>
+                    ) : (
+                        <div>No datasets selected</div>
+                    )}
+                </div>
+            </Modal>
+        </Form>
+    );
 }
 
 export default SelectAlgorithm;

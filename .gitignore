@@ -28,7 +28,7 @@ demo/
 *.csv
 *.png
 *.zip
-*.json
+#*.json
 *.jsonl
 # PyInstaller
 # 通常如果您使用PyInstaller，以下目录应该被忽略

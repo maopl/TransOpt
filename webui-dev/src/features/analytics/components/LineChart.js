@@ -1,6 +1,5 @@
 import React from 'react';
 import { Line } from 'react-chartjs-2';
-import TitleCard from '../../../components/Cards/TitleCard';
 
 import {
   Chart as ChartJS,
@@ -82,15 +81,15 @@ const Trajectory = ({ TrajectoryData }) => {
         },
       },
     },
+    responsive: true,
+    maintainAspectRatio: false,
   };
 
   return (
-    <TitleCard title={"Convergence Trajectory"}>
-      <Line data={data} options={options}/>
-    </TitleCard>
-    // <div style={{ width: '100%', height: '400px' }}>
-    //   <Line data={data} options={options} />
-    // </div>
+    <div style={{ width: '100%', height: 320, background: 'transparent' }}>
+      <div style={{ fontWeight: 600, fontSize: 20, marginBottom: 14, marginLeft: 8 }}>Convergence Trajectory</div>
+      <Line data={data} options={options} />
+    </div>
   );
 };
 

@@ -3,6 +3,7 @@ import * as echarts from 'echarts';
 import ReactECharts from 'echarts-for-react';
 import defaultBoxData from './data/BoxData.json';
 import my_theme from './my_theme.json';
+import {Line} from "react-chartjs-2";
 
 echarts.registerTheme('my_theme', my_theme);
 
@@ -61,13 +62,17 @@ function Box({ BoxData }) {
   };
 
   return (
-    <ReactECharts
-      option={option}
-      style={{ height: '360px', width: '100%' }}
-      theme="my_theme"
-      notMerge={true}
-      lazyUpdate={true}
-    />
+
+      <div style={{ width: '100%', height: 320, background: 'transparent' }}>
+        <div style={{ fontWeight: 600, fontSize: 20, marginBottom: 14, marginLeft: 8 }}>Box</div>
+        <ReactECharts
+            option={option}
+            style={{ height: '320px', width: '100%' }}
+            theme="my_theme"
+            notMerge={true}
+            lazyUpdate={true}
+        />
+      </div>
   );
 }
 

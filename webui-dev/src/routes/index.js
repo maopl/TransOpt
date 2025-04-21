@@ -1,50 +1,44 @@
-// All components mapping with path for internal routes
+import { lazy } from 'react';
+import {
+  AppstoreOutlined,
+  BarChartOutlined,
+  ExperimentOutlined,
+  DashboardOutlined,
+  MessageOutlined,
+  QuestionCircleOutlined
+} from '@ant-design/icons';
 
-import { lazy } from 'react'
-
-const Dashboard = lazy(() => import('../pages/protected/Dashboard'))
-const Welcome = lazy(() => import('../pages/protected/Welcome'))
-const ChatOpt = lazy(() => import('../pages/protected/ChatOpt'))
-const Experiment = lazy(() => import('../pages/protected/Experiment'))
-const Run = lazy(() => import('../pages/protected/Run'))
-const Selectdatasets = lazy(() => import('../pages/protected/Seldata'))
-const Analytics = lazy(() => import('../pages/protected/Analytics'))
-
-const routes = [
+const index = [
   {
-    path: '/dashboard', // the url
-    component: Dashboard, // view rendered
+    path: '/dashboard',
+    name: 'Dashboard',
+    icon: <DashboardOutlined />,
+    component: lazy(() => import('../pages/protected/Dashboard')),
   },
   {
-    path: '/welcome', // the url
-    component: Welcome, // view rendered
+    path: '/experiment',
+    name: 'Experiment',
+    icon: <ExperimentOutlined />,
+    component: lazy(() => import('../pages/protected/Experiment')),
   },
-
+  // {
+  //   path: '/analytics',
+  //   name: 'Analytics',
+  //   icon: <BarChartOutlined />,
+  //   component: lazy(() => import('../pages/protected/Analytics')),
+  // },
+  // {
+  //   path: '/chatopt',
+  //   name: 'ChatOpt',
+  //   icon: <MessageOutlined />,
+  //   component: lazy(() => import('../pages/protected/ChatOpt')),
+  // },
   {
-    path: '/chatopt', // the url
-    component: ChatOpt, // view rendered
+    path: '/welcome',
+    name: 'Welcome',
+    component: lazy(() => import('../pages/protected/Welcome')),
+    hideInMenu: true,
   },
+];
 
-  {
-    path: '/optimization/problem', // the url
-    component: Experiment, // view rendered
-  },
-
-
-  {
-    path: '/optimization/selectdatasets', // the url
-    component: Selectdatasets, // view rendered
-  },
-
-  {
-    path: '/optimization/run', // the url
-    component: Run, // view rendered
-  },
-
-  {
-    path: '/analytics', // the url
-    component: Analytics, // view rendered
-  },
-]
-
-export default routes
+export default index;

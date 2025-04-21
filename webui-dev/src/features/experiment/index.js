@@ -134,7 +134,6 @@ const Experiment = () => {
         
       <div style={{ marginTop: '25px' }}></div>
         <RunPage />
-
       </div>
     </Card>
   );

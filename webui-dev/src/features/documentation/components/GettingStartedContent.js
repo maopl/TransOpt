@@ -155,7 +155,7 @@ function GettingStartedContent(){
 
               <h4>Files - </h4>
               <ul className='mt-0'>
-                    <li>App.js - Main file containing different routes and components </li>
+                    <li>App.jsx - Main file containing different routes and components </li>
                     <li>index.css - Additional global css if required</li>
                     <li>index.js - Entry point of project</li>
                     <li>package.json - All dependencies and npm scripts</li>

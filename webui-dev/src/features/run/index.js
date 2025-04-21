@@ -1,10 +1,6 @@
 import React from "react";
-
-import { Row, Col } from "reactstrap";
-
 import Run from "./components/Run"
 import RunProgress from "./components/RunProgress"
-
 
 class RunPage extends React.Component {
   constructor(props) {
@@ -18,9 +14,6 @@ class RunPage extends React.Component {
   }
 
   render() {
-    // If first time rendering, then render the default task
-    // If not, then render the task that was clicked
-    if (this.state.get_info === false) {
       // TODO: ask for task list from back-end
       const messageToSend = {
         action: 'ask for information',
@@ -51,26 +44,13 @@ class RunPage extends React.Component {
           console.error('Error sending message:', error);
         });
 
-
-      // Set the default task as the first task in the list
       return (
-        <div>
-          <h1 className="page-title">
-            <span className="fw-semi-bold">Run</span>
-          </h1>
-        </div>
-      )
-    } else {
-
-      return (
-        <div>
-          <Run />
-          <RunProgress />
-        </div>
+          <div>
+            <Run />
+            <RunProgress />
+          </div>
       );
-    }
   }
-
 }
 
 export default RunPage;

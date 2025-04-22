@@ -128,44 +128,6 @@ function SearchData({ visible = false, onCancel, algorithmType = "", onSelectDat
     return selectedDatasets.some(item => item.key === dataset.key);
   };
 
-  // 提交数据集关联对应的算法
-  const submitDataset = () => {
-    const datasetList = selectedDatasets.map(item => {
-      return item;
-    });
-    const messageToSend = {
-      object: algorithmType, // [ {value: "Narrow Search Space"},{value: "Initialization"},{value: "Pre-train"},{value: "Surrogate Model"},{value: "Acquisition Function"},{value: "Normalizer"}]
-      DatasetSelector: selectedDatasetSelector,
-      parameter: parameter,
-      datasets: datasetList,
-    }
-    fetch('http://localhost:5001/api/configuration/dataset', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(messageToSend),
-    }).then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .then(succeed => {
-          Modal.success({
-            title: 'Information',
-            content: 'Submit successfully!'
-          })
-        })
-        .catch((error) => {
-          const errorMessage = error.error;
-          Modal.error({
-            title: 'Information',
-            content: 'Error:' + errorMessage
-          })
-        });
-  }
-
 
   // 处理确认选择
   const handleConfirmSelection = () => {
@@ -181,9 +143,6 @@ function SearchData({ visible = false, onCancel, algorithmType = "", onSelectDat
       // 调用回调函数并关闭弹窗
       onSelectData(selectedData, algorithmType);
       onCancel();
-
-      // 调用接口
-      submitDataset()
 
     } else {
       Modal.warning({

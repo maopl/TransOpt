@@ -107,101 +107,79 @@ const Experiment = () => {
     datasetSelector: []
   });
   
-  // 统一初始formValues结构 (保留原有格式以兼容现有组件)
-  const [algorithmValue, setAlgorithmValue] = useState({
-    "SearchSpace": "",
-    "Initialization": "",
-    "Pretrain": "",
-    "Model": "",
-    "AcquisitionFunction": "",
-    "Normalizer": "",
-    // 下面是各自的数据集等参数
-    "SearchSpaceSelectedDatasets": [],
-    "InitializationSelectedDatasets": [],
-    "PretrainSelectedDatasets": [],
-    "ModelSelectedDatasets": [],
-    "AcquisitionFunctionSelectedDatasets": [],
-    "NormalizerSelectedDatasets": [],
-    // 你可以继续添加其它参数
-  });
+  // // 统一初始formValues结构 (保留原有格式以兼容现有组件)
+  // const [algorithmValue, setAlgorithmValue] = useState({
+  //   "SearchSpace": "",
+  //   "Initialization": "",
+  //   "Pretrain": "",
+  //   "Model": "",
+  //   "AcquisitionFunction": "",
+  //   "Normalizer": "",
+  //   // 下面是各自的数据集等参数
+  //   "SearchSpaceSelectedDatasets": [],
+  //   "InitializationSelectedDatasets": [],
+  //   "PretrainSelectedDatasets": [],
+  //   "ModelSelectedDatasets": [],
+  //   "AcquisitionFunctionSelectedDatasets": [],
+  //   "NormalizerSelectedDatasets": [],
+  //   // 你可以继续添加其它参数
+  // });
   
-  // 新的目标结构
-  const [transformedAlgorithmValue, setTransformedAlgorithmValue] = useState({
-    optimizer: [
-      {
-        name: "SearchSpace",
-        type: algorithmData.spaceRefiner?.[0]?.name || '',
-        auxiliaryData: [],
-        autoSelect: false
-      },
-      {
-        name: "Initialization",
-        type: algorithmData.sampler?.[0]?.name || '',
-        auxiliaryData: [],
-        autoSelect: false
-      },
-      {
-        name: "Pretrain",
-        type: algorithmData.pretrain?.[0]?.name || '',
-        auxiliaryData: [],
-        autoSelect: false
-      },
-      {
-        name: "Model",
-        type: algorithmData.model?.[0]?.name || '',
-        auxiliaryData: [],
-        autoSelect: false
-      },
-      {
-        name: "AcquisitionFunction",
-        type: algorithmData.acf?.[0]?.name || '',
-        auxiliaryData: [],
-        autoSelect: false
-      },
-      {
-        name: "Normalizer",
-        type: algorithmData.normalizer?.[0]?.name || '',
-        auxiliaryData: [],
-        autoSelect: false
-      }
-    ]
-  });
+  // 算法目标结构
+  const [algorithmValue, setAlgorithmValue] = useState( [
+    {
+      name: "SearchSpace",
+      type: '',
+      auxiliaryData: [],
+      autoSelect: false
+    },
+    {
+      name: "Initialization",
+      type: '',
+      InitNum: 0,
+      auxiliaryData: [],
+      autoSelect: false
+    },
+    {
+      name: "Pretrain",
+      type: '',
+      auxiliaryData: [],
+      autoSelect: false
+    },
+    {
+      name: "Model",
+      type: '',
+      auxiliaryData: [],
+      autoSelect: false
+    },
+    {
+      name: "AcquisitionFunction",
+      type: '',
+      auxiliaryData: [],
+      autoSelect: false
+    },
+    {
+      name: "Normalizer",
+      type: '',
+      auxiliaryData: [],
+      autoSelect: false
+    }
+  ]);
   
   const [form] = Form.useForm(); // 创建Form的ref
 
-  // 在算法值更新时，同步更新转换后的格式
-  useEffect(() => {
-    setTransformedAlgorithmValue(transformToNewFormat(algorithmValue));
-  }, [algorithmValue]);
-  
-  // 创建一个能够更新新格式数据的函数
-  const updateTransformedAlgorithmValue = useCallback((updatedValue) => {
-    console.log('Updating transformed algorithm value:', updatedValue);
-    // 使用完全新的对象引用来确保React检测到状态变化
-    setTransformedAlgorithmValue(prevState => {
-      // 确保这是一个新的对象引用
-      const newState = JSON.parse(JSON.stringify(updatedValue));
-      console.log('New state after deep copy:', newState);
-      return newState;
-    });
-    
-    // 同时更新旧格式，以保持兼容性
-    const oldFormat = transformToOldFormat(updatedValue);
-    console.log('Converted back to old format:', oldFormat);
-    setAlgorithmValue(oldFormat);
-  }, []);
 
   const onFinish = (values) => {
     console.log('Form values:', values);
     console.log('tasks', tasks);
     // 使用新格式的算法值提交
-    console.log('Transformed algorithm value:', transformedAlgorithmValue);
+    console.log('Transformed algorithm value:', algorithmValue);
     
     // 构建最终提交的数据结构
     const finalSubmitData = {
       ...values,
       tasks,
-      ...transformedAlgorithmValue // 包含新格式的算法值
+      optimizer: algorithmValue // 包含新格式的算法值
     };
     
     console.log('Final submit data:', finalSubmitData);
@@ -289,38 +267,55 @@ const Experiment = () => {
         const configData = await configResponse.json();
         console.log('Config info from backend:', configData);
 
-        // 更新任务数据
-        if (configData.tasks && configData.tasks.length > 0) {
-          const formattedTasks = configData.tasks.map((task, index) => ({
-            ...task,
-            index
-          }));
-          setTasksData(formattedTasks);
-        } else if (basicData.TasksData && basicData.TasksData.length > 0) {
-          // 后备: 如果第二个请求没有任务数据，使用第一个请求的数据
-          setTasksData(basicData.TasksData);
-        }
+        // problemList
+        setTasksData(basicData.TasksData);
+        setTasks(configData.tasks);
+
 
         // 更新优化器数据
         if (configData.optimizer) {
           setOptimizer(configData.optimizer);
           // 初始算法下拉框的选项
-          setAlgorithmValue({
-            "SearchSpace": configData.optimizer.SearchSpace,
-            "Initialization": configData.optimizer.Initialization,
-            "Pretrain": configData.optimizer.Pretrain,
-            "Model": configData.optimizer.Model,
-            "AcquisitionFunction": configData.optimizer.AcquisitionFunction,
-            "Normalizer": configData.optimizer.Normalizer,
-            // 下面是各自的数据集等参数
-            "SearchSpaceSelectedDatasets": [],
-            "InitializationSelectedDatasets": [],
-            "PretrainSelectedDatasets": [],
-            "ModelSelectedDatasets": [],
-            "AcquisitionFunctionSelectedDatasets": [],
-            "NormalizerSelectedDatasets": [],
-            // 你可以继续添加其它参数
-          })
+          const updatedAlgorithmValue = [
+            {
+              name: "SearchSpace",
+              type: configData.optimizer.SearchSpace,
+              auxiliaryData: [],
+              autoSelect: false
+            },
+            {
+              name: "Initialization",
+              type: configData.optimizer.Initialization,
+              InitNum: 0,
+              auxiliaryData: [],
+              autoSelect: false
+            },
+            {
+              name: "Pretrain",
+              type: configData.optimizer.Pretrain,
+              auxiliaryData: [],
+              autoSelect: false
+            },
+            {
+              name: "Model",
+              type: configData.optimizer.Model,
+              auxiliaryData: [],
+              autoSelect: false
+            },
+            {
+              name: "AcquisitionFunction",
+              type: configData.optimizer.AcquisitionFunction,
+              auxiliaryData: [],
+              autoSelect: false
+            },
+            {
+              name: "Normalizer",
+              type: configData.optimizer.Normalizer,
+              auxiliaryData: [],
+              autoSelect: false
+            }
+          ]
+          setAlgorithmValue(updatedAlgorithmValue)
         }
 
         // 设置表单的初始值
@@ -425,8 +420,6 @@ const Experiment = () => {
                 updateTable={setOptimizer}
                 algorithmValue={algorithmValue}
                 setAlgorithmValue={setAlgorithmValue}
-                transformedAlgorithmValue={transformedAlgorithmValue}
-                updateTransformedAlgorithmValue={updateTransformedAlgorithmValue}
             />
           </Form.Item>
           <div style={{ overflowY: 'auto', maxHeight: '150px', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 30 }}>

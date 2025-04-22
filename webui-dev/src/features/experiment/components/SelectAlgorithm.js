@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo} from "react";
+import React, {useState, useEffect} from "react";
 import {
     PartitionOutlined,
     ExperimentOutlined,
@@ -6,14 +6,13 @@ import {
     ApiOutlined,
     AreaChartOutlined,
     SlidersOutlined,
-    SaveOutlined,
     DatabaseOutlined,
     EditOutlined,
     DeleteOutlined,
     TagsOutlined,
     EyeOutlined
 } from '@ant-design/icons';
-import {Button, Form, Select, Modal, Row, Col, Space, Tag, Divider, Typography, Tooltip, Checkbox} from "antd";
+import {Button, Select, Modal, Row, Col, Space, Tag, Divider, Typography, Tooltip, Checkbox, Input} from "antd";
 
 import SearchData from './SearchData';
 
@@ -40,23 +39,18 @@ const ALGORITHM_TYPES_NAMES = {
     "Model": "Model",
     "AcquisitionFunction": "Acquisition Function",
     "Normalizer": "Normalizer"
-    }
+}
 
 function SelectAlgorithm({
-                             SearchSpaceOptions,
-                             InitializationOptions,
-                             PretrainOptions,
-                             ModelOptions,
-                             AcquisitionFunctionOptions,
-                             NormalizerOptions,
-                             updateTable,
-                             algorithmValue,
-                             setAlgorithmValue,
-                             transformedAlgorithmValue,
-                             updateTransformedAlgorithmValue
-                         }) {
-    const [form] = Form.useForm();
-
+    SearchSpaceOptions,
+    InitializationOptions,
+    PretrainOptions,
+    ModelOptions,
+    AcquisitionFunctionOptions,
+    NormalizerOptions,
+    algorithmValue,
+    setAlgorithmValue
+}) {
     // Modal visibility states for each algorithm's data selection
     const [activeModal, setActiveModal] = useState(null);
 
@@ -66,39 +60,37 @@ function SelectAlgorithm({
         algorithmType: '',
         datasets: []
     });
-    
-    // 初始化时从transformedAlgorithmValue同步autoSelect状态
-    // useEffect(() => {
-    //     if (transformedAlgorithmValue && transformedAlgorithmValue.algorithms) {
-    //         const newAutoSelectState = {};
-    //         transformedAlgorithmValue.algorithms.forEach(algorithm => {
-    //             newAutoSelectState[algorithm.name] = algorithm.autoSelect || false;
-    //         });
-    //     }
-    // }, [transformedAlgorithmValue]);
+
+    // 保存对algorithmValue的本地引用，确保能正确更新UI
+    const [localAlgorithmValue, setLocalAlgorithmValue] = useState([]);
+
+    // 当外部algorithmValue变化时，更新本地状态
+    useEffect(() => {
+        if (algorithmValue && Array.isArray(algorithmValue)) {
+            setLocalAlgorithmValue(algorithmValue);
+        }
+    }, [algorithmValue]);
 
     /**
      * 算法对应的下拉选项
-     * @type {{"Search Space", Initialization, Pretrain, Model, "Acquisition Function", Normalizer}}
      */
-    const algorithmOptionsMap = useMemo(() => ({
+    const algorithmOptionsMap = {
         "SearchSpace": SearchSpaceOptions,
         "Initialization": InitializationOptions,
         "Pretrain": PretrainOptions,
         "Model": ModelOptions,
         "AcquisitionFunction": AcquisitionFunctionOptions,
         "Normalizer": NormalizerOptions
-    }), [SearchSpaceOptions, InitializationOptions, PretrainOptions, ModelOptions, AcquisitionFunctionOptions, NormalizerOptions]);
+    };
 
-
-    // 当表单数据变化时保存到localStorage
-    const handleFormChange = (changedValues, allValues) => {
-        setAlgorithmValue(allValues);
-        localStorage.setItem('algorithmFormData', JSON.stringify(allValues));
-        // 如果父组件提供了updateTable回调，则调用它
-        if (updateTable) {
-            updateTable(allValues);
+    // 更新算法值并通知父组件
+    const updateAlgorithmValue = (newValue) => {
+        setLocalAlgorithmValue(newValue);
+        if (setAlgorithmValue) {
+            setAlgorithmValue(newValue);
         }
+        // 保存到localStorage以持久化
+        localStorage.setItem('algorithmFormData', JSON.stringify(newValue));
     };
 
     // Handler for opening a specific algorithm's data selection modal
@@ -113,11 +105,13 @@ function SelectAlgorithm({
 
     // 打开预览模态窗口
     const openPreviewModal = (algorithmType) => {
-        const datasets = getSelectedDatasets(algorithmType);
+        const algorithm = localAlgorithmValue.find(alg => alg.name === algorithmType);
+        const datasets = algorithm?.auxiliaryData || [];
+        
         setPreviewModal({
             visible: true,
             algorithmType,
-            datasets
+            datasets: datasets.map(name => ({ name }))
         });
     };
 
@@ -132,113 +126,96 @@ function SelectAlgorithm({
 
     // Handler for when data is selected from the SearchData modal
     const handleSelectData = (datasetData, algorithmType) => {
-        const updatedValues = {...algorithmValue};
-        updatedValues[`${algorithmType}SelectedDatasets`] = datasetData.datasets;
-        setAlgorithmValue(updatedValues);
-        form.setFieldsValue(updatedValues);
-        localStorage.setItem('algorithmFormData', JSON.stringify(updatedValues));
-        if (updateTable) updateTable(updatedValues);
+        // 从数据集中提取名称
+        const auxiliaryData = datasetData.datasets.map(dataset => dataset.name || dataset.value);
         
-        // 同步更新transformedAlgorithmValue
-        if (transformedAlgorithmValue && updateTransformedAlgorithmValue) {
-            const updatedTransformedValue = {...transformedAlgorithmValue};
-            const algorithmIndex = updatedTransformedValue.algorithms.findIndex(alg => alg.name === algorithmType);
-            
-            if (algorithmIndex !== -1) {
-                // 从数据集中提取名称
-                const auxiliaryData = datasetData.datasets.map(dataset => dataset.name || dataset.value);
-                updatedTransformedValue.algorithms[algorithmIndex].auxiliaryData = auxiliaryData;
-                updateTransformedAlgorithmValue(updatedTransformedValue);
+        const updatedValue = localAlgorithmValue.map(alg => {
+            if (alg.name === algorithmType) {
+                return { ...alg, auxiliaryData };
             }
-        }
-    };
-
-    // 获取特定算法的已选数据集
-    const getSelectedDatasets = (algorithmType) => {
-        return algorithmValue[`${algorithmType}SelectedDatasets`] || [];
+            return alg;
+        });
+        
+        updateAlgorithmValue(updatedValue);
     };
 
     // 清除数据集
     const clearSelectedDatasets = (algorithmType) => {
-        const updatedValues = {...algorithmValue};
-        updatedValues[`${algorithmType}SelectedDatasets`] = [];
-        setAlgorithmValue(updatedValues);
-        form.setFieldsValue(updatedValues);
-        localStorage.setItem('algorithmFormData', JSON.stringify(updatedValues));
-        if (updateTable) updateTable(updatedValues);
-        
-        // 同步更新transformedAlgorithmValue
-        if (transformedAlgorithmValue && updateTransformedAlgorithmValue) {
-            const updatedTransformedValue = {...transformedAlgorithmValue};
-            const algorithmIndex = updatedTransformedValue.algorithms.findIndex(alg => alg.name === algorithmType);
-            
-            if (algorithmIndex !== -1) {
-                updatedTransformedValue.algorithms[algorithmIndex].auxiliaryData = [];
-                updateTransformedAlgorithmValue(updatedTransformedValue);
+        const updatedValue = localAlgorithmValue.map(alg => {
+            if (alg.name === algorithmType) {
+                return { ...alg, auxiliaryData: [] };
             }
-        }
+            return alg;
+        });
+        
+        updateAlgorithmValue(updatedValue);
     };
     
     // 处理自动选择复选框变更
     const handleAutoSelectChange = (e, algorithmType) => {
         const checked = e.target.checked;
-        console.log(`Auto Select for ${algorithmType} changed to: ${checked}`);
         
-        // 直接操作Form的值以确保UI更新
-        const currentFormValues = form.getFieldsValue();
-        console.log('Current form values:', currentFormValues);
-        
-        if (transformedAlgorithmValue && updateTransformedAlgorithmValue) {
-            // 必须创建深拷贝以确保React检测到变更
-            const updatedTransformedValue = JSON.parse(JSON.stringify(transformedAlgorithmValue));
-            console.log('Original transformed value:', updatedTransformedValue);
-            
-            const algorithmIndex = updatedTransformedValue.algorithms.findIndex(alg => alg.name === algorithmType);
-            
-            if (algorithmIndex !== -1) {
-                // 更新自动选择状态
-                updatedTransformedValue.algorithms[algorithmIndex].autoSelect = checked;
-                console.log('Updated algorithm at index', algorithmIndex, 'to:', updatedTransformedValue.algorithms[algorithmIndex]);
-                console.log('New transformed value:', updatedTransformedValue);
-                
-                // 提交到父组件更新状态
-                updateTransformedAlgorithmValue(updatedTransformedValue);
+        const updatedValue = localAlgorithmValue.map(alg => {
+            if (alg.name === algorithmType) {
+                return { ...alg, autoSelect: checked };
             }
-        }
+            return alg;
+        });
+        
+        updateAlgorithmValue(updatedValue);
     };
     
     // 获取特定算法的自动选择状态
     const getAutoSelectStatus = (algorithmType) => {
-        if (transformedAlgorithmValue && transformedAlgorithmValue.algorithms) {
-            const algorithm = transformedAlgorithmValue.algorithms.find(alg => alg.name === algorithmType);
-            return algorithm?.autoSelect || false;
-        }
-        return false;
+        const algorithm = localAlgorithmValue.find(alg => alg.name === algorithmType);
+        return algorithm?.autoSelect || false;
     };
     
     // 处理算法类型选择变更
     const handleAlgorithmTypeChange = (value, algorithmType) => {
-        // 更新旧格式值
-        const updatedValues = {...algorithmValue};
-        updatedValues[algorithmType] = value;
-        setAlgorithmValue(updatedValues);
-        form.setFieldsValue(updatedValues);
+        console.log('value', value, 'algorithmType', algorithmType);
         
-        // 同步更新transformedAlgorithmValue
-        if (transformedAlgorithmValue && updateTransformedAlgorithmValue) {
-            const updatedTransformedValue = {...transformedAlgorithmValue};
-            const algorithmIndex = updatedTransformedValue.algorithms.findIndex(alg => alg.name === algorithmType);
-            
-            if (algorithmIndex !== -1) {
-                updatedTransformedValue.algorithms[algorithmIndex].type = value;
-                updateTransformedAlgorithmValue(updatedTransformedValue);
+        const updatedValue = localAlgorithmValue.map(alg => {
+            if (alg.name === algorithmType) {
+                return { ...alg, type: value };
             }
+            return alg;
+        });
+        
+        updateAlgorithmValue(updatedValue);
+    };
+
+    // 更新initialization算法的初始数量
+    const handleInitialNumberChange = (event) => {
+        const value = parseInt(event.target.value, 10) || 0;
+        
+        const updatedValue = localAlgorithmValue.map(alg => {
+            if (alg.name === "Initialization") {
+                return { ...alg, InitNum: value };
+            }
+            return alg;
+        });
+        
+        updateAlgorithmValue(updatedValue);
+    };
+
+    // 获取特定算法对象
+    const getAlgorithm = (algorithmType) => {
+        return localAlgorithmValue.find(alg => alg.name === algorithmType) || {};
+    };
+
+    // 获取特定算法的数据集
+    const getAlgorithmDatasets = (algorithmType) => {
+        const algorithm = getAlgorithm(algorithmType);
+        if (algorithm && algorithm.auxiliaryData && algorithm.auxiliaryData.length > 0) {
+            return algorithm.auxiliaryData.map(name => ({ name }));
         }
+        return [];
     };
 
     // 渲染数据选择区域
     const renderDataSelectionArea = (algorithmType) => {
-        const selectedDatasets = getSelectedDatasets(algorithmType);
+        const selectedDatasets = getAlgorithmDatasets(algorithmType);
         const hasSelectedData = selectedDatasets.length > 0;
         const isAutoSelected = getAutoSelectStatus(algorithmType);
         
@@ -315,82 +292,45 @@ function SelectAlgorithm({
         );
     };
 
-    // 保留原有的提交逻辑，后续会重新处理
-    const handleSubmit = () => {
-        form
-            .validateFields()
-            .then(values => {
-                // 保留原有网络请求代码，后续由用户重新处理
-                fetch('/api/configuration/select_algorithm', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(values),
-                })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();
-                    })
-                    .then(succeed => {
-                        console.log('Message from back-end:', succeed);
-                        Modal.success({
-                            title: 'Information',
-                            content: 'Submit successfully!',
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error sending message:', error);
-                        Modal.error({
-                            title: 'Information',
-                            content: 'Error: ' + error.message,
-                        });
-                    });
-            })
-            .catch(info => {
-                console.log('Validate Failed:', info);
-            });
-    };
-
-    /**
-     * A helper function to render a form item with a select component.
-     *
-     * @param {string} name - The name of the form item.
-     * @param {object[]} options - The options to be rendered in the select component.
-     * Each option should have at least a `value` property and a `label` property.
-     * @param {object[]} [rules=[]] - The validation rules for the form item.
-     * @return {ReactElement} The rendered form item.
-     */
-    const renderFormItem = (name, options, rules = []) => {
+    // 渲染算法选择项
+    const renderAlgorithmSelect = (algorithmType) => {
+        const algorithm = getAlgorithm(algorithmType);
+        const options = algorithmOptionsMap[algorithmType] || [];
+        const mappedOptions = options.map(item => ({
+            label: item.name,
+            value: item.name
+        }));
+        
         return (
-            <Form.Item
-                name={name}
-                rules={rules}
-                noStyle
-            >
-                <Select
-                    showSearch
-                    placeholder={`Select ${name}`}
-                    optionFilterProp="value"
-                    filterOption={filterOption}
-                    style={{width: '100%'}}
-                    options={options}
-                    onChange={(value) => handleAlgorithmTypeChange(value, name)}
-                />
-            </Form.Item>
+           <>
+               <Select
+                   showSearch
+                   placeholder={`Select ${algorithmType}`}
+                   optionFilterProp="value"
+                   filterOption={filterOption}
+                   style={{width: '100%'}}
+                   options={mappedOptions}
+                   value={algorithm.type || undefined}
+                   onChange={(value) => handleAlgorithmTypeChange(value, algorithmType)}
+               />
+                <br/>
+               {
+                   algorithmType === "Initialization" && (
+                        <Input
+                            placeholder={`Type initial number`}
+                            style={{width: '100%', marginTop: '8px'}}
+                            type="number"
+                            value={algorithm.InitNum || 0}
+                            onChange={handleInitialNumberChange}
+                        />
+                   )
+               }
+           </>
         );
     };
 
     return (
-        <Form
-            form={form}
-            onValuesChange={handleFormChange}
-            initialValues={algorithmValue}
-            layout="vertical"
-            style={{width: "100%"}}
-        >
+        <div style={{width: "100%"}}>
             <Row gutter={[16, 16]}>
                 {ALGORITHM_TYPES.map(algorithmType => (
                     <Col xs={24} md={12} lg={8} key={algorithmType}>
@@ -418,10 +358,7 @@ function SelectAlgorithm({
                                     style={{fontSize: '16px', fontWeight: 'bold', color: '#333'}}>{ALGORITHM_TYPES_NAMES[algorithmType] || algorithmType}</span>
                             </div>
                             <div className="stat-value">
-                                {renderFormItem(algorithmType, algorithmOptionsMap[algorithmType].map(item => ({label: item.name, value: item.name})), [{
-                                    required: true,
-                                    message: `Please select a ${algorithmType}!`
-                                }])}
+                                {renderAlgorithmSelect(algorithmType)}
                             </div>
                             <Divider style={{margin: '8px 0 4px 0'}}/>
                             {renderDataSelectionArea(algorithmType)}
@@ -474,7 +411,7 @@ function SelectAlgorithm({
                     )}
                 </div>
             </Modal>
-        </Form>
+        </div>
     );
 }
 

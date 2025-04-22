@@ -27,11 +27,11 @@ const convertTasks = (tasks) => tasks.map(task => ({
  */
 const transformToNewFormat = (oldFormatValue) => {
   const ALGORITHM_TYPES = [
-    "Search Space",
+    "SearchSpace",
     "Initialization",
     "Pretrain",
     "Model",
-    "Acquisition Function",
+    "AcquisitionFunction",
     "Normalizer"
   ];
   
@@ -95,6 +95,8 @@ const Experiment = () => {
 
   const [tasks, setTasks] = useState([]); // State to store tasks added from Drawer
 
+  const [optimizer, setOptimizer] = useState({});
+
   const [algorithmData, setAlgorithmData] = useState({
     spaceRefiner: [],
     sampler: [],
@@ -107,27 +109,27 @@ const Experiment = () => {
   
   // 统一初始formValues结构 (保留原有格式以兼容现有组件)
   const [algorithmValue, setAlgorithmValue] = useState({
-    "Search Space": algorithmData.spaceRefiner?.[0]?.name || '',
-    "Initialization": algorithmData.sampler?.[0]?.name || '',
-    "Pretrain": algorithmData.pretrain?.[0]?.name || '',
-    "Model": algorithmData.model?.[0]?.name || '',
-    "Acquisition Function": algorithmData.acf?.[0]?.name || '',
-    "Normalizer": algorithmData.normalizer?.[0]?.name || '',
+    "SearchSpace": "",
+    "Initialization": "",
+    "Pretrain": "",
+    "Model": "",
+    "AcquisitionFunction": "",
+    "Normalizer": "",
     // 下面是各自的数据集等参数
-    "Search SpaceSelectedDatasets": [],
+    "SearchSpaceSelectedDatasets": [],
     "InitializationSelectedDatasets": [],
     "PretrainSelectedDatasets": [],
     "ModelSelectedDatasets": [],
-    "Acquisition FunctionSelectedDatasets": [],
+    "AcquisitionFunctionSelectedDatasets": [],
     "NormalizerSelectedDatasets": [],
     // 你可以继续添加其它参数
   });
   
   // 新的目标结构
   const [transformedAlgorithmValue, setTransformedAlgorithmValue] = useState({
-    algorithms: [
+    optimizer: [
       {
-        name: "Search Space",
+        name: "SearchSpace",
         type: algorithmData.spaceRefiner?.[0]?.name || '',
         auxiliaryData: [],
         autoSelect: false
@@ -151,7 +153,7 @@ const Experiment = () => {
         autoSelect: false
       },
       {
-        name: "Acquisition Function",
+        name: "AcquisitionFunction",
         type: algorithmData.acf?.[0]?.name || '',
         auxiliaryData: [],
         autoSelect: false
@@ -165,7 +167,7 @@ const Experiment = () => {
     ]
   });
   
-  const [optimizer, setOptimizer] = useState({});
+
 
   // 在算法值更新时，同步更新转换后的格式
   useEffect(() => {
@@ -259,7 +261,7 @@ const Experiment = () => {
 
         /**
          *     更新算法数据
-         *     "Search Space",
+         *     "SearchSpace",
          *     "Initialization",
          *     "Pretrain",
          *     "Model",
@@ -302,6 +304,23 @@ const Experiment = () => {
         // 更新优化器数据
         if (configData.optimizer) {
           setOptimizer(configData.optimizer);
+          // 初始算法下拉框的选项
+          setAlgorithmValue({
+            "SearchSpace": configData.optimizer.SearchSpace,
+            "Initialization": configData.optimizer.Initialization,
+            "Pretrain": configData.optimizer.Pretrain,
+            "Model": configData.optimizer.Model,
+            "AcquisitionFunction": configData.optimizer.AcquisitionFunction,
+            "Normalizer": configData.optimizer.Normalizer,
+            // 下面是各自的数据集等参数
+            "SearchSpaceSelectedDatasets": [],
+            "InitializationSelectedDatasets": [],
+            "PretrainSelectedDatasets": [],
+            "ModelSelectedDatasets": [],
+            "AcquisitionFunctionSelectedDatasets": [],
+            "NormalizerSelectedDatasets": [],
+            // 你可以继续添加其它参数
+          })
         }
       } catch (error) {
         console.error('Error loading data:', error);

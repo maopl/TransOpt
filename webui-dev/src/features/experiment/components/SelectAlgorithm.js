@@ -24,13 +24,23 @@ const filterOption = (input, option) =>
 
 // 统一算法类型常量
 const ALGORITHM_TYPES = [
-    "Search Space",
+    "SearchSpace",
     "Initialization",
     "Pretrain",
     "Model",
-    "Acquisition Function",
+    "AcquisitionFunction",
     "Normalizer"
 ];
+
+// 显示名称的映射
+const ALGORITHM_TYPES_NAMES = {
+    "SearchSpace": 'Search Space',
+    "Initialization": "Initialization",
+    "Pretrain": "Pretrain",
+    "Model": "Model",
+    "AcquisitionFunction": "Acquisition Function",
+    "Normalizer": "Normalizer"
+    }
 
 function SelectAlgorithm({
                              SearchSpaceOptions,
@@ -72,11 +82,11 @@ function SelectAlgorithm({
      * @type {{"Search Space", Initialization, Pretrain, Model, "Acquisition Function", Normalizer}}
      */
     const algorithmOptionsMap = useMemo(() => ({
-        "Search Space": SearchSpaceOptions,
+        "SearchSpace": SearchSpaceOptions,
         "Initialization": InitializationOptions,
         "Pretrain": PretrainOptions,
         "Model": ModelOptions,
-        "Acquisition Function": AcquisitionFunctionOptions,
+        "AcquisitionFunction": AcquisitionFunctionOptions,
         "Normalizer": NormalizerOptions
     }), [SearchSpaceOptions, InitializationOptions, PretrainOptions, ModelOptions, AcquisitionFunctionOptions, NormalizerOptions]);
 
@@ -392,7 +402,7 @@ function SelectAlgorithm({
                             backgroundColor: 'white'
                         }}>
                             <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                                {algorithmType === "Search Space" &&
+                                {algorithmType === "SearchSpace" &&
                                     <PartitionOutlined style={{fontSize: '24px', color: '#1890ff'}}/>}
                                 {algorithmType === "Initialization" &&
                                     <ExperimentOutlined style={{fontSize: '24px', color: '#52c41a'}}/>}
@@ -400,12 +410,12 @@ function SelectAlgorithm({
                                     <RobotOutlined style={{fontSize: '24px', color: '#722ed1'}}/>}
                                 {algorithmType === "Model" &&
                                     <ApiOutlined style={{fontSize: '24px', color: '#fa8c16'}}/>}
-                                {algorithmType === "Acquisition Function" &&
+                                {algorithmType === "AcquisitionFunction" &&
                                     <AreaChartOutlined style={{fontSize: '24px', color: '#eb2f96'}}/>}
                                 {algorithmType === "Normalizer" &&
                                     <SlidersOutlined style={{fontSize: '24px', color: '#13c2c2'}}/>}
                                 <span
-                                    style={{fontSize: '16px', fontWeight: 'bold', color: '#333'}}>{algorithmType}</span>
+                                    style={{fontSize: '16px', fontWeight: 'bold', color: '#333'}}>{ALGORITHM_TYPES_NAMES[algorithmType] || algorithmType}</span>
                             </div>
                             <div className="stat-value">
                                 {renderFormItem(algorithmType, algorithmOptionsMap[algorithmType].map(item => ({label: item.name, value: item.name})), [{

@@ -14,6 +14,7 @@ import {
   Col,
   Typography,
   Button,
+  Popconfirm,
 } from "antd";
 import {
   LoadingOutlined,
@@ -23,7 +24,8 @@ import {
   InfoCircleOutlined,
   DatabaseOutlined,
   AreaChartOutlined,
-  ArrowRightOutlined
+  ArrowRightOutlined,
+  DeleteOutlined
 } from '@ant-design/icons';
 
 import LineChart from './components/LineChart';
@@ -282,6 +284,53 @@ const Dashboard = () => {
 
   const handleInputChange = e => setErrorMessage(e.target.value);
 
+  // 删除任务处理函数
+  const handleDelete = (taskName) => {
+    const messageToSend = {
+      datasets: [taskName],
+    }
+    console.log(messageToSend)
+    fetch('http://localhost:5001/api/configuration/delete_dataset', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(messageToSend),
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      } 
+      return response.json();
+    })
+    .then(succeed => {
+      console.log('Message from back-end:', succeed);
+      // 删除UI中的数据
+      const updatedTasks = tasksInfo.filter(task => task.problem_name !== taskName);
+      setTasksInfo(updatedTasks);
+      
+      // 如果删除的是当前选中的任务，则选中第一个任务或重置
+      if (updatedTasks.length > 0) {
+        setSelectedTaskIndex(0);
+      } else {
+        setSelectedTaskIndex(-1);
+      }
+      
+      Modal.success({
+        title: 'Information',
+        content: 'Delete successfully!'
+      });
+    })
+    .catch((error) => {
+      console.error('Error sending message:', error);
+      var errorMessage = error.message || 'Unknown error';
+      Modal.error({
+        title: 'Information',
+        content: 'Error: ' + errorMessage
+      });
+    });
+  };
+
   // 首次渲染时的加载状态
   if (isInitialLoading) {
     return (
@@ -415,7 +464,7 @@ const Dashboard = () => {
       }}>
         {/* 左侧数据集列表 */}
         <div style={{
-          width: "20%",
+          width: "390px",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
@@ -447,12 +496,12 @@ const Dashboard = () => {
                 <DatabaseOutlined style={{ color: "#1890ff" }} />
                 <Text strong>{filteredTasks.length} Results</Text>
               </Space>
-              <AntButton
-                type="text"
-                size="small"
-                icon={<SortAscendingOutlined />}
-                title="Sort by name"
-              />
+              {/*<AntButton*/}
+              {/*  type="text"*/}
+              {/*  size="small"*/}
+              {/*  icon={<SortAscendingOutlined />}*/}
+              {/*  title="Sort by name"*/}
+              {/*/>*/}
             </div>
 
             {/* 这个div是专门用于滚动的容器 */}
@@ -464,62 +513,96 @@ const Dashboard = () => {
               marginBottom: "10px" // 防止内容太靠近底部
             }}>
               {filteredTasks.map((task, index) => (
-                <Button
+                <div
                   key={index}
-                  onClick={() => handleTaskClick(index)}
-                  className="w-100 text-start d-flex align-items-center"
                   style={{
-                    backgroundColor: selectedTaskIndex === index ? '#f0f7ff' : 'transparent',
-                    color: selectedTaskIndex === index ? '#1890ff' : 'rgba(0, 0, 0, 0.65)',
-                    fontWeight: selectedTaskIndex === index ? '500' : 'normal',
-                    borderLeft: selectedTaskIndex === index ? '3px solid #1890ff' : '3px solid transparent',
-                    padding: "12px",
-                    paddingLeft: "16px",
-                    marginBottom: "6px",
-                    borderRadius: "2px",
-                    transition: 'all 0.2s ease',
-                    borderTop: 'none',
-                    borderRight: 'none',
-                    borderBottom: 'none',
-                    boxShadow: selectedTaskIndex === index ? '0 2px 8px rgba(24, 144, 255, 0.1)' : 'none',
                     position: 'relative',
-                    overflow: 'hidden',
-                    width: '100%',
-                    display: 'block',
-                    textAlign: 'left'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (selectedTaskIndex !== index) {
-                      // e.currentTarget.style.backgroundColor = '#f5f5f5';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 6px 16px -2px rgba(0, 0, 0, 0.15), 0 -6px 16px -2px rgba(0, 0, 0, 0.15), 8px 0 16px -8px rgba(0, 0, 0, 0.1), -8px 0 16px -8px rgba(0, 0, 0, 0.1)';
-                      e.currentTarget.style.zIndex = '1';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (selectedTaskIndex !== index) {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = 'none';
-                      e.currentTarget.style.zIndex = '0';
-                    }
+                    marginBottom: '6px',
+                    height: '40px',
+                    display: 'flex',
+                    alignItems: 'baseline',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                    {selectedTaskIndex === index && (
-                      <span style={{ 
-                        marginRight: '8px', 
-                        color: '#1890ff',
-                        fontSize: '10px',
-                        position: 'relative',
-                        top: '-1px'
-                      }}>■</span>
-                    )}
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {task.problem_name}
-                    </span>
-                  </div>
-                </Button>
+                  <Button
+                    onClick={() => handleTaskClick(index)}
+                    className="w-100 text-start d-flex align-items-center"
+                    style={{
+                      backgroundColor: selectedTaskIndex === index ? '#f0f7ff' : 'transparent',
+                      color: selectedTaskIndex === index ? '#1890ff' : 'rgba(0, 0, 0, 0.65)',
+                      fontWeight: selectedTaskIndex === index ? '500' : 'normal',
+                      borderLeft: selectedTaskIndex === index ? '3px solid #1890ff' : '3px solid transparent',
+                      padding: "12px",
+                      paddingLeft: "16px",
+                      marginBottom: "0px",
+                      borderRadius: "2px",
+                      transition: 'all 0.2s ease',
+                      borderTop: 'none',
+                      borderRight: 'none',
+                      borderBottom: 'none',
+                      boxShadow: selectedTaskIndex === index ? '0 2px 8px rgba(24, 144, 255, 0.1)' : 'none',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      width: '100%',
+                      display: 'block',
+                      textAlign: 'left'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (selectedTaskIndex !== index) {
+                        // e.currentTarget.style.backgroundColor = '#f5f5f5';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 6px 16px -2px rgba(0, 0, 0, 0.15), 0 -6px 16px -2px rgba(0, 0, 0, 0.15), 8px 0 16px -8px rgba(0, 0, 0, 0.1), -8px 0 16px -8px rgba(0, 0, 0, 0.1)';
+                        e.currentTarget.style.zIndex = '1';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (selectedTaskIndex !== index) {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = 'none';
+                        e.currentTarget.style.zIndex = '0';
+                      }
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                      {selectedTaskIndex === index && (
+                        <span style={{ 
+                          marginRight: '8px', 
+                          color: '#1890ff',
+                          fontSize: '10px',
+                          position: 'relative',
+                          top: '-1px'
+                        }}>■</span>
+                      )}
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {task.problem_name}
+                      </span>
+                    </div>
+                  </Button>
+                  <Popconfirm
+                    title="Delete this task"
+                    description="Are you sure you want to delete this task?"
+                    onConfirm={() => handleDelete(task.problem_name)}
+                    okText="Yes"
+                    cancelText="No"
+                    placement="right"
+                  >
+                    <Button
+                      type="text"
+                      icon={<DeleteOutlined />}
+                      danger
+                      style={{
+                        position: 'absolute',
+                        right: '8px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        padding: '4px 8px',
+                        fontSize: '14px',
+                        zIndex: 2
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </Popconfirm>
+                </div>
               ))}
             </div>
           </Card>
@@ -537,6 +620,7 @@ const Dashboard = () => {
             // 加载中状态
             <div style={{
               display: "flex",
+              width: "100%",
               justifyContent: "center",
               alignItems: "center",
               height: "100%",
@@ -578,13 +662,30 @@ const Dashboard = () => {
                       </Title>
                     </Space>
 
-                    <AntButton
-                      type="primary"
-                      icon={<ArrowRightOutlined />}
-                      onClick={showMoreInfoModal}
-                    >
-                      More Info
-                    </AntButton>
+                    <Space>
+                      <AntButton
+                        type="primary"
+                        icon={<ArrowRightOutlined />}
+                        onClick={showMoreInfoModal}
+                      >
+                        More Info
+                      </AntButton>
+                      <Popconfirm
+                        title="Delete this task"
+                        description="Are you sure you want to delete this task?"
+                        onConfirm={() => handleDelete(tasksInfo[selectedTaskIndex].problem_name)}
+                        okText="Yes"
+                        cancelText="No"
+                      >
+                        <AntButton
+                          type="primary"
+                          danger
+                          icon={<DeleteOutlined />}
+                        >
+                          Delete
+                        </AntButton>
+                      </Popconfirm>
+                    </Space>
                   </div>
 
                   <section style={{ marginBottom: '20px', borderBottom: '1px solid #e0e0e0', paddingBottom: '15px' }}>

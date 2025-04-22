@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { LineChartOutlined } from '@ant-design/icons';
+import { LineChartOutlined, CaretDownOutlined, CaretRightOutlined } from '@ant-design/icons';
 import {
   Modal,
   Spin,
@@ -15,6 +15,7 @@ import {
   Typography,
   Button,
   Popconfirm,
+  Tree
 } from "antd";
 import {
   LoadingOutlined,
@@ -25,7 +26,9 @@ import {
   DatabaseOutlined,
   AreaChartOutlined,
   ArrowRightOutlined,
-  DeleteOutlined
+  DeleteOutlined,
+  ExperimentOutlined,
+  FileOutlined
 } from '@ant-design/icons';
 
 import LineChart from './components/LineChart';
@@ -46,91 +49,9 @@ const cardStyle = {
 // 统一的卡片内容样式
 const cardBodyStyle = { padding: '16px' };
 
-// 模拟数据
-
-const mockData = [{'experimentName': '12345', 'problem_name': 'Sphere', 'dim': 1, 'obj': 1, 'fidelity': '', 'workloads': '1', 'budget_type': 'function evaluations', 'initial_number': 11, 'budget': '20', 'seeds': 4, 'SpaceRefiner': None, 'Sampler': 'random', 'Pretrain': None, 'Model': 'GP', 'ACF': 'EI', 'Normalizer': 'Standard', 'AutoSelect': {'SearchSpace': False, 'Initialization': False, 'AcquisitionFunction': False, 'Pretrain': False, 'Model': False, 'Normalizer': False}, 'auxiliaryData': {'SearchSpace': [...], 'Initialization': [...], 'AcquisitionFunction': [...], 'Pretrain': [...], 'Model': [...], 'Normalizer': [...]}}
-]
-const mockData2 = [
-  {
-    experimentName: 'Experiment 1',
-    problemList: [
-        {
-      "AcquisitionFunction": "EI",
-      "AutoSelect": {
-        "AcquisitionFunction": false,
-        "Initialization": false,
-        "Model": false,
-        "Normalizer": false,
-        "Pretrain": false,
-        "SearchSpace": false
-      },
-      "Initialization": "random",
-      "Model": "GP",
-      "Normalizer": "Standard",
-      "Pretrain": null,
-      "SearchSpace": null,
-      "auxiliaryData": {
-        "AcquisitionFunction": [],
-        "Initialization": [],
-        "Model": [],
-        "Normalizer": [],
-        "Pretrain": [],
-        "SearchSpace": []
-      },
-      "budget": 20,
-      "budget_type": "function evaluations",
-      "dim": 1,
-      "experimentName": "test",
-      "fidelity": "",
-      "initial_number": 11,
-      "obj": 1,
-      "problem_name": "Sphere_w1_s4_1745342235",
-      "seeds": 4,
-      "workloads": "1"
-    },
-      {
-        "AcquisitionFunction": "EI",
-        "AutoSelect": {
-          "AcquisitionFunction": false,
-          "Initialization": false,
-          "Model": false,
-          "Normalizer": false,
-          "Pretrain": false,
-          "SearchSpace": false
-        },
-        "Initialization": "random",
-        "Model": "GP",
-        "Normalizer": "Standard",
-        "Pretrain": null,
-        "SearchSpace": null,
-        "auxiliaryData": {
-          "AcquisitionFunction": [],
-          "Initialization": [],
-          "Model": [],
-          "Normalizer": [],
-          "Pretrain": [],
-          "SearchSpace": []
-        },
-        "budget": 20,
-        "budget_type": "function evaluations",
-        "dim": 1,
-        "experimentName": "test",
-        "fidelity": "",
-        "initial_number": 11,
-        "obj": 1,
-        "problem_name": "Sphere_w1_s2_1745342236",
-        "seeds": 2,
-        "workloads": "1"
-      }]
-  },
-  {
-    experimentName: 'Experiment 2',
-    problemList: []
-  }
-]
-
 const Dashboard = () => {
   // 状态管理
+  const [selectedExperimentIndex, setSelectedExperimentIndex] = useState(-1);
   const [selectedTaskIndex, setSelectedTaskIndex] = useState(-1);
   const [tasksInfo, setTasksInfo] = useState([]);
   const [scatterData, setScatterData] = useState([]);
@@ -139,14 +60,18 @@ const Dashboard = () => {
   const [isMoreInfoModalVisible, setIsMoreInfoModalVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isInitialLoading, setIsInitialLoading] = useState(true); // 首次加载状态
+  const [isInitialLoading, setIsInitialLoading] = useState(false); // 首次加载状态
   const [importance, setImportance] = useState(null);
+  
+  // 展开/折叠实验状态
+  const [expandedExperiments, setExpandedExperiments] = useState({});
 
   // 搜索表单状态
   const [searchForm] = Form.useForm();
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchAlgorithm, setSearchAlgorithm] = useState('all');
   const [searchCategory, setSearchCategory] = useState('all');
+  const [searchExperimentName, setSearchExperimentName] = useState('');
 
   // 基于搜索条件过滤任务
   const filterTasks = useCallback((tasks) => {
@@ -160,8 +85,7 @@ const Dashboard = () => {
       // 算法筛选
       const algorithmMatch = searchAlgorithm === 'all' ||
         task.Model === searchAlgorithm ||
-        task.ACF === searchAlgorithm ||
-        task.SpaceRefiner === searchAlgorithm;
+        task.AcquisitionFunction === searchAlgorithm;
 
       // 分类筛选 (模拟，实际应用需要根据真实数据结构调整)
       const categoryMatch = searchCategory === 'all';
@@ -170,12 +94,47 @@ const Dashboard = () => {
     });
   }, [searchKeyword, searchAlgorithm, searchCategory]);
 
+  // 基于搜索条件过滤实验和问题
+  const filterExperiments = useCallback(() => {
+    if (!tasksInfo || !tasksInfo.length) return [];
+    
+    return tasksInfo.map(experiment => {
+      // 实验名称过滤
+      const experimentNameMatch = !searchExperimentName || 
+        experiment.experimentName.toLowerCase().includes(searchExperimentName.toLowerCase());
+      
+      if (!experimentNameMatch) return { ...experiment, filteredProblems: [] };
+      
+      // 过滤问题列表
+      const filteredProblems = experiment.problemList.filter(problem => {
+        // 关键词搜索
+        const keywordMatch = !searchKeyword ||
+          problem.problem_name.toLowerCase().includes(searchKeyword.toLowerCase());
+
+        // 算法筛选
+        const algorithmMatch = searchAlgorithm === 'all' ||
+          problem.Model === searchAlgorithm ||
+          problem.AcquisitionFunction === searchAlgorithm;
+
+        // 分类筛选
+        const categoryMatch = searchCategory === 'all';
+
+        return keywordMatch && algorithmMatch && categoryMatch;
+      });
+      
+      return {
+        ...experiment,
+        filteredProblems
+      };
+    }).filter(experiment => experiment.filteredProblems.length > 0);
+  }, [searchExperimentName, searchKeyword, searchAlgorithm, searchCategory, tasksInfo]);
+
   // 自定义灰色系图标
   const antIcon = <LoadingOutlined style={{ fontSize: 48, color: '#9E9E9E' }} spin />;
 
   // 获取任务列表
   useEffect(() => {
-    if (selectedTaskIndex === -1) {
+    if (selectedExperimentIndex === -1) {
       const messageToSend = {
         action: 'ask for tasks information',
       };
@@ -195,8 +154,29 @@ const Dashboard = () => {
         })
         .then(data => {
           console.log('Message from back-end:', data);
-          setTasksInfo(data);
-          setSelectedTaskIndex(0);
+          // 将后端数据转换为两层结构
+          // 注意：这里假设后端返回的是扁平结构，需要转换成两层
+          // 如果后端已经返回两层结构，则直接使用data
+          
+          // 临时使用mockData2做测试
+          const experimentsData = data;
+          setTasksInfo(experimentsData);
+          
+          // 初始化展开第一个实验
+          if (experimentsData.length > 0) {
+            const initialExpandedState = {};
+            experimentsData.forEach((exp, index) => {
+              initialExpandedState[index] = index === 0; // 只展开第一个
+            });
+            setExpandedExperiments(initialExpandedState);
+            
+            // 如果第一个实验有问题列表，选中第一个问题
+            if (experimentsData[0].problemList && experimentsData[0].problemList.length > 0) {
+              setSelectedExperimentIndex(0);
+              setSelectedTaskIndex(0);
+            }
+          }
+          
           setIsInitialLoading(false); // 加载完成后设置为false
         })
         .catch((error) => {
@@ -204,27 +184,36 @@ const Dashboard = () => {
           setIsInitialLoading(false); // 出错时也设置为false
         });
     }
-  }, [selectedTaskIndex]);
+  }, [selectedExperimentIndex]);
+  
+  // 处理实验展开/折叠
+  const toggleExperiment = (experimentIndex, e) => {
+    e?.stopPropagation?.(); // 防止触发实验的点击事件
+    setExpandedExperiments(prev => ({
+      ...prev,
+      [experimentIndex]: !prev[experimentIndex]
+    }));
+  };
 
   // 定时获取数据
   useEffect(() => {
     // 如果没有选择任务，不执行
-    if (selectedTaskIndex === -1 || !tasksInfo.length) return;
+    if (selectedExperimentIndex === -1 || selectedTaskIndex === -1 || !tasksInfo.length) return;
 
     const intervalId = setInterval(fetchData, 1000000);
 
     // 组件卸载时清除定时器
     return () => clearInterval(intervalId);
-  }, [selectedTaskIndex, tasksInfo]);
+  }, [selectedExperimentIndex, selectedTaskIndex, tasksInfo]);
 
   // 获取轨迹数据
   const fetchData = useCallback(async () => {
     // 如果没有选择任务，不执行
-    if (selectedTaskIndex === -1 || !tasksInfo.length) return;
+    if (selectedExperimentIndex === -1 || selectedTaskIndex === -1 || !tasksInfo.length) return;
 
     try {
       const messageToSend = {
-        taskname: tasksInfo[selectedTaskIndex].problem_name,
+        taskname: tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].problem_name,
       };
 
       const response = await fetch('http://localhost:5001/api/Dashboard/trajectory', {
@@ -247,19 +236,23 @@ const Dashboard = () => {
     } catch (error) {
       console.error('Error fetching data:', error);
     }
-  }, [selectedTaskIndex, tasksInfo]);
+  }, [selectedExperimentIndex, selectedTaskIndex, tasksInfo]);
 
   // 处理任务选择
-  const handleTaskClick = useCallback((index) => {
+  const handleTaskClick = useCallback((experimentIndex, taskIndex) => {
     // 如果点击的是已选中的任务，则不执行
-    if (selectedTaskIndex === index) return;
+    if (selectedExperimentIndex === experimentIndex && selectedTaskIndex === taskIndex) return;
 
-    console.log('Selected task index:', index);
-    setSelectedTaskIndex(index);
+    console.log('Selected experiment index:', experimentIndex, 'problem index:', taskIndex);
+    setSelectedExperimentIndex(experimentIndex);
+    setSelectedTaskIndex(taskIndex);
     setIsLoading(true);
 
+    const selectedExperiment = tasksInfo[experimentIndex];
+    const selectedProblem = selectedExperiment.problemList[taskIndex];
+
     const messageToSend = {
-      taskname: tasksInfo[index].problem_name,
+      taskname: selectedProblem.problem_name,
     };
 
     fetch('http://localhost:5001/api/Dashboard/charts', {
@@ -284,15 +277,55 @@ const Dashboard = () => {
         console.error('Error sending message:', error);
         setIsLoading(false);
       });
-  }, [selectedTaskIndex, tasksInfo]);
+  }, [selectedExperimentIndex, selectedTaskIndex, tasksInfo]);
+
+  // 处理实验选择
+  const handleExperimentClick = useCallback((index) => {
+    // 如果点击的是已选中的实验，则不执行
+    if (selectedExperimentIndex === index) return;
+
+    console.log('Selected experiment index:', index);
+    setSelectedExperimentIndex(index);
+    setSelectedTaskIndex(0);
+    setIsLoading(true);
+
+    const messageToSend = {
+      taskname: tasksInfo[index].problemList[0].problem_name,
+    };
+
+    fetch('http://localhost:5001/api/Dashboard/charts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(messageToSend),
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setScatterData(data.ScatterData);
+        setTrajectoryData(data.TrajectoryData);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error('Error sending message:', error);
+        setIsLoading(false);
+      });
+  }, [selectedExperimentIndex, tasksInfo]);
 
   // 处理搜索表单提交
   const handleSearch = useCallback((values) => {
     setSearchKeyword(values.keyword || '');
     setSearchAlgorithm(values.algorithm || 'all');
     setSearchCategory(values.category || 'all');
+    setSearchExperimentName(values.exprimentName || '');
     // 重置选中的任务索引
     if (tasksInfo.length > 0) {
+      setSelectedExperimentIndex(0);
       setSelectedTaskIndex(0);
     }
   }, [tasksInfo]);
@@ -303,8 +336,10 @@ const Dashboard = () => {
     setSearchKeyword('');
     setSearchAlgorithm('all');
     setSearchCategory('all');
+    setSearchExperimentName('');
     // 重置选中的任务索引
     if (tasksInfo.length > 0) {
+      setSelectedExperimentIndex(0);
       setSelectedTaskIndex(0);
     }
   };
@@ -373,11 +408,16 @@ const Dashboard = () => {
     .then(succeed => {
       console.log('Message from back-end:', succeed);
       // 删除UI中的数据
-      const updatedTasks = tasksInfo.filter(task => task.problem_name !== taskName);
+      const updatedTasks = tasksInfo.map(experiment => {
+        return {
+          ...experiment,
+          problemList: experiment.problemList.filter(task => task.problem_name !== taskName)
+        }
+      });
       setTasksInfo(updatedTasks);
       
       // 如果删除的是当前选中的任务，则选中第一个任务或重置
-      if (updatedTasks.length > 0) {
+      if (updatedTasks[selectedExperimentIndex] && updatedTasks[selectedExperimentIndex].problemList.length > 0) {
         setSelectedTaskIndex(0);
       } else {
         setSelectedTaskIndex(-1);
@@ -415,7 +455,7 @@ const Dashboard = () => {
   }
 
   // 如果还没有数据
-  if (selectedTaskIndex === -1 || !tasksInfo.length) {
+  if (selectedExperimentIndex === -1 || !tasksInfo.length) {
     return (
       <div style={{
         height: "100vh",
@@ -433,7 +473,68 @@ const Dashboard = () => {
   }
 
   // 过滤后的任务列表
-  const filteredTasks = filterTasks(tasksInfo);
+  const filteredExperiments = filterExperiments();
+
+  // 自定义图标和颜色
+  const titleRender = (nodeData) => {
+    const isExperiment = nodeData.key.indexOf('-') === -1;
+    
+    // 处理实验节点
+    if (isExperiment) {
+      const experimentIndex = parseInt(nodeData.key);
+      const isSelected = selectedExperimentIndex === experimentIndex;
+      
+      return (
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          width: '100%',
+          color: isSelected ? '#1890ff' : 'rgba(0, 0, 0, 0.85)',
+          fontWeight: isSelected ? '500' : 'normal'
+        }}>
+          <ExperimentOutlined style={{ marginRight: '8px', color: isSelected ? '#1890ff' : '#666' }} />
+          <span>{nodeData.title}</span>
+        </div>
+      );
+    } 
+    // 处理问题节点
+    else {
+      const [experimentIndex, taskIndex] = nodeData.key.split('-').map(Number);
+      const isSelected = selectedExperimentIndex === experimentIndex && selectedTaskIndex === taskIndex;
+      
+      return (
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          width: '100%',
+          color: isSelected ? '#1890ff' : 'rgba(0, 0, 0, 0.65)',
+          fontWeight: isSelected ? '500' : 'normal'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <FileOutlined style={{ marginRight: '8px', color: isSelected ? '#1890ff' : '#999' }} />
+            <span>{nodeData.title}</span>
+          </div>
+          <Popconfirm
+            title="删除此任务"
+            description="确定要删除这个任务吗？"
+            onConfirm={() => {
+              const task = filteredExperiments[experimentIndex].filteredProblems[taskIndex];
+              handleDelete(task.problem_name);
+            }}
+            okText="是"
+            cancelText="否"
+            placement="right"
+          >
+            <DeleteOutlined 
+              style={{ color: '#ff4d4f', fontSize: '14px' }} 
+              onClick={(e) => e.stopPropagation?.()}
+            />
+          </Popconfirm>
+        </div>
+      );
+    }
+  };
 
   // 主界面渲染
   return (
@@ -543,8 +644,9 @@ const Dashboard = () => {
             }}>
               <Space>
                 <DatabaseOutlined style={{ color: "#1890ff" }} />
-                <Text strong>{filteredTasks.length} Results</Text>
+                <Text strong>{filteredExperiments.length} Results</Text>
               </Space>
+
               {/*<AntButton*/}
               {/*  type="text"*/}
               {/*  size="small"*/}
@@ -561,98 +663,51 @@ const Dashboard = () => {
               minHeight: 0, // 关键: Ein mub flex子项收缩到小于内容高度
               marginBottom: "10px" // 防止内容太靠近底部
             }}>
-              {filteredTasks.map((task, index) => (
-                <div
-                  key={index}
-                  style={{
-                    position: 'relative',
-                    marginBottom: '6px',
-                    height: '40px',
-                    display: 'flex',
-                    alignItems: 'baseline',
-                  }}
-                >
-                  <Button
-                    onClick={() => handleTaskClick(index)}
-                    className="w-100 text-start d-flex align-items-center"
-                    style={{
-                      backgroundColor: selectedTaskIndex === index ? '#f0f7ff' : 'transparent',
-                      color: selectedTaskIndex === index ? '#1890ff' : 'rgba(0, 0, 0, 0.65)',
-                      fontWeight: selectedTaskIndex === index ? '500' : 'normal',
-                      borderLeft: selectedTaskIndex === index ? '3px solid #1890ff' : '3px solid transparent',
-                      padding: "12px",
-                      paddingLeft: "16px",
-                      marginBottom: "0px",
-                      borderRadius: "2px",
-                      transition: 'all 0.2s ease',
-                      borderTop: 'none',
-                      borderRight: 'none',
-                      borderBottom: 'none',
-                      boxShadow: selectedTaskIndex === index ? '0 2px 8px rgba(24, 144, 255, 0.1)' : 'none',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      width: '100%',
-                      display: 'block',
-                      textAlign: 'left'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (selectedTaskIndex !== index) {
-                        // e.currentTarget.style.backgroundColor = '#f5f5f5';
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 6px 16px -2px rgba(0, 0, 0, 0.15), 0 -6px 16px -2px rgba(0, 0, 0, 0.15), 8px 0 16px -8px rgba(0, 0, 0, 0.1), -8px 0 16px -8px rgba(0, 0, 0, 0.1)';
-                        e.currentTarget.style.zIndex = '1';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (selectedTaskIndex !== index) {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = 'none';
-                        e.currentTarget.style.zIndex = '0';
-                      }
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                      {selectedTaskIndex === index && (
-                        <span style={{ 
-                          marginRight: '8px', 
-                          color: '#1890ff',
-                          fontSize: '10px',
-                          position: 'relative',
-                          top: '-1px'
-                        }}>■</span>
-                      )}
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {task.problem_name}
-                      </span>
-                    </div>
-                  </Button>
-                  <Popconfirm
-                    title="Delete this task"
-                    description="Are you sure you want to delete this task?"
-                    onConfirm={() => handleDelete(task.problem_name)}
-                    okText="Yes"
-                    cancelText="No"
-                    placement="right"
-                  >
-                    <Button
-                      type="text"
-                      icon={<DeleteOutlined />}
-                      danger
-                      style={{
-                        position: 'absolute',
-                        right: '8px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        padding: '4px 8px',
-                        fontSize: '14px',
-                        zIndex: 2
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </Popconfirm>
-                </div>
-              ))}
+              <Tree
+                treeData={filteredExperiments.map((experiment, index) => ({
+                  title: experiment.experimentName,
+                  key: index.toString(),
+                  icon: <ExperimentOutlined />,
+                  children: experiment.filteredProblems.map((task, taskIndex) => ({
+                    title: task.problem_name,
+                    key: `${index}-${taskIndex}`,
+                    icon: <FileOutlined />,
+                    isLeaf: true,
+                  })),
+                }))}
+                onSelect={(selectedKeys, info) => {
+                  if (selectedKeys.length === 0) return;
+                  
+                  const key = selectedKeys[0];
+                  
+                  // 如果是实验节点
+                  if (key.indexOf('-') === -1) {
+                    const experimentIndex = parseInt(key);
+                    handleExperimentClick(experimentIndex);
+                  } else {
+                    // 如果是问题节点
+                    const [experimentIndex, taskIndex] = key.split('-').map(Number);
+                    handleTaskClick(experimentIndex, taskIndex);
+                  }
+                }}
+                expandedKeys={Object.keys(expandedExperiments)
+                  .filter(key => expandedExperiments[key])
+                  .map(key => key.toString())}
+                onExpand={(expandedKeys, info) => {
+                  const key = info.node.key;
+                  
+                  // 只处理实验节点的展开
+                  if (key.indexOf('-') === -1) {
+                    toggleExperiment(parseInt(key), info.event);
+                  }
+                }}
+                titleRender={titleRender}
+                showIcon={false}
+                selectedKeys={[selectedTaskIndex !== -1 
+                  ? `${selectedExperimentIndex}-${selectedTaskIndex}` 
+                  : selectedExperimentIndex.toString()]}
+                style={{ fontSize: '14px' }}
+              />
             </div>
           </Card>
         </div>
@@ -707,7 +762,7 @@ const Dashboard = () => {
                     <Space>
                       <InfoCircleOutlined style={{ color: "#1890ff", fontSize: "18px" }} />
                       <Title level={4} style={{ margin: 0 }}>
-                        {tasksInfo[selectedTaskIndex].problem_name}
+                        {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].problem_name}
                       </Title>
                     </Space>
 
@@ -722,7 +777,7 @@ const Dashboard = () => {
                       <Popconfirm
                         title="Delete this task"
                         description="Are you sure you want to delete this task?"
-                        onConfirm={() => handleDelete(tasksInfo[selectedTaskIndex].problem_name)}
+                        onConfirm={() => handleDelete(tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].problem_name)}
                         okText="Yes"
                         cancelText="No"
                       >
@@ -744,37 +799,37 @@ const Dashboard = () => {
                     <Row gutter={[16, 8]}>
                       <Col span={24}>
                         <Text style={{ fontSize: '0.95em' }}>
-                          <strong>Problem Name:</strong> {tasksInfo[selectedTaskIndex].problem_name}
+                          <strong>Problem Name:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].problem_name}
                         </Text>
                       </Col>
                       <Col span={8}>
                         <Text style={{ fontSize: '0.95em' }}>
-                          <strong>Variable num:</strong> {tasksInfo[selectedTaskIndex].dim}
+                          <strong>Variable num:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].dim}
                         </Text>
                       </Col>
                       <Col span={8}>
                         <Text style={{ fontSize: '0.95em' }}>
-                          <strong>Objective num:</strong> {tasksInfo[selectedTaskIndex].obj}
+                          <strong>Objective num:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].obj}
                         </Text>
                       </Col>
                       <Col span={8}>
                         <Text style={{ fontSize: '0.95em' }}>
-                          <strong>Seeds:</strong> {tasksInfo[selectedTaskIndex].seeds}
+                          <strong>Seeds:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].seeds}
                         </Text>
                       </Col>
                       <Col span={8}>
                         <Text style={{ fontSize: '0.95em' }}>
-                          <strong>Budget type:</strong> {tasksInfo[selectedTaskIndex].budget_type}
+                          <strong>Budget type:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].budget_type}
                         </Text>
                       </Col>
                       <Col span={8}>
                         <Text style={{ fontSize: '0.95em' }}>
-                          <strong>Budget:</strong> {tasksInfo[selectedTaskIndex].budget}
+                          <strong>Budget:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].budget}
                         </Text>
                       </Col>
                       <Col span={8}>
                         <Text style={{ fontSize: '0.95em' }}>
-                          <strong>Workloads:</strong> {tasksInfo[selectedTaskIndex].workloads}
+                          <strong>Workloads:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].workloads}
                         </Text>
                       </Col>
                     </Row>
@@ -787,37 +842,37 @@ const Dashboard = () => {
                     <Row gutter={[16, 8]}>
                       <Col span={8}>
                         <Text style={{ fontSize: '0.95em' }}>
-                          <strong>Narrow Search Space:</strong> {tasksInfo[selectedTaskIndex].SpaceRefiner}
+                          <strong>Narrow Search Space:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].SpaceRefiner}
                         </Text>
                       </Col>
                       <Col span={8}>
                         <Text style={{ fontSize: '0.95em' }}>
-                          <strong>Initialization:</strong> {tasksInfo[selectedTaskIndex].Sampler}
+                          <strong>Initialization:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].Sampler}
                         </Text>
                       </Col>
                       <Col span={8}>
                         <Text style={{ fontSize: '0.95em' }}>
-                          <strong>Pre-train:</strong> {tasksInfo[selectedTaskIndex].Pretrain}
+                          <strong>Pre-train:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].Pretrain}
                         </Text>
                       </Col>
                       <Col span={8}>
                         <Text style={{ fontSize: '0.95em' }}>
-                          <strong>Surrogate Model:</strong> {tasksInfo[selectedTaskIndex].Model}
+                          <strong>Surrogate Model:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].Model}
                         </Text>
                       </Col>
                       <Col span={8}>
                         <Text style={{ fontSize: '0.95em' }}>
-                          <strong>Acquisition Function:</strong> {tasksInfo[selectedTaskIndex].ACF}
+                          <strong>Acquisition Function:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].ACF}
                         </Text>
                       </Col>
                       <Col span={8}>
                         <Text style={{ fontSize: '0.95em' }}>
-                          <strong>Normalizer:</strong> {tasksInfo[selectedTaskIndex].Normalizer}
+                          <strong>Normalizer:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].Normalizer}
                         </Text>
                       </Col>
                       {/* <Col span={24}>
                         <Text style={{ fontSize: '0.95em' }}>
-                          <strong>DatasetSelector:</strong> {tasksInfo[selectedTaskIndex].DatasetSelector}
+                          <strong>DatasetSelector:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].DatasetSelector}
                         </Text>
                       </Col> */}
                     </Row>
@@ -886,7 +941,7 @@ const Dashboard = () => {
         title={
           <Space>
             <InfoCircleOutlined style={{ color: "#1890ff", fontSize: "18px" }} />
-            <span>Detailed Information: {tasksInfo[selectedTaskIndex]?.problem_name}</span>
+            <span>Detailed Information: {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].problem_name}</span>
           </Space>
         }
         open={isMoreInfoModalVisible}
@@ -906,37 +961,37 @@ const Dashboard = () => {
             <Row gutter={[16, 8]}>
               <Col span={24}>
                 <Text style={{ fontSize: '0.95em' }}>
-                  <strong>Problem Name:</strong> {tasksInfo[selectedTaskIndex].problem_name}
+                  <strong>Problem Name:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].problem_name}
                 </Text>
               </Col>
               <Col span={8}>
                 <Text style={{ fontSize: '0.95em' }}>
-                  <strong>Variable num:</strong> {tasksInfo[selectedTaskIndex].dim}
+                  <strong>Variable num:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].dim}
                 </Text>
               </Col>
               <Col span={8}>
                 <Text style={{ fontSize: '0.95em' }}>
-                  <strong>Objective num:</strong> {tasksInfo[selectedTaskIndex].obj}
+                  <strong>Objective num:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].obj}
                 </Text>
               </Col>
               <Col span={8}>
                 <Text style={{ fontSize: '0.95em' }}>
-                  <strong>Seeds:</strong> {tasksInfo[selectedTaskIndex].seeds}
+                  <strong>Seeds:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].seeds}
                 </Text>
               </Col>
               <Col span={8}>
                 <Text style={{ fontSize: '0.95em' }}>
-                  <strong>Budget type:</strong> {tasksInfo[selectedTaskIndex].budget_type}
+                  <strong>Budget type:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].budget_type}
                 </Text>
               </Col>
               <Col span={8}>
                 <Text style={{ fontSize: '0.95em' }}>
-                  <strong>Budget:</strong> {tasksInfo[selectedTaskIndex].budget}
+                  <strong>Budget:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].budget}
                 </Text>
               </Col>
               <Col span={8}>
                 <Text style={{ fontSize: '0.95em' }}>
-                  <strong>Workloads:</strong> {tasksInfo[selectedTaskIndex].workloads}
+                  <strong>Workloads:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].workloads}
                 </Text>
               </Col>
             </Row>
@@ -949,32 +1004,32 @@ const Dashboard = () => {
             <Row gutter={[16, 8]}>
               <Col span={8}>
                 <Text style={{ fontSize: '0.95em' }}>
-                  <strong>Narrow Search Space:</strong> {tasksInfo[selectedTaskIndex].SpaceRefiner}
+                  <strong>Narrow Search Space:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].SpaceRefiner}
                 </Text>
               </Col>
               <Col span={8}>
                 <Text style={{ fontSize: '0.95em' }}>
-                  <strong>Initialization:</strong> {tasksInfo[selectedTaskIndex].Sampler}
+                  <strong>Initialization:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].Sampler}
                 </Text>
               </Col>
               <Col span={8}>
                 <Text style={{ fontSize: '0.95em' }}>
-                  <strong>Pre-train:</strong> {tasksInfo[selectedTaskIndex].Pretrain}
+                  <strong>Pre-train:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].Pretrain}
                 </Text>
               </Col>
               <Col span={8}>
                 <Text style={{ fontSize: '0.95em' }}>
-                  <strong>Surrogate Model:</strong> {tasksInfo[selectedTaskIndex].Model}
+                  <strong>Surrogate Model:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].Model}
                 </Text>
               </Col>
               <Col span={8}>
                 <Text style={{ fontSize: '0.95em' }}>
-                  <strong>Acquisition Function:</strong> {tasksInfo[selectedTaskIndex].ACF}
+                  <strong>Acquisition Function:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].ACF}
                 </Text>
               </Col>
               <Col span={8}>
                 <Text style={{ fontSize: '0.95em' }}>
-                  <strong>Normalizer:</strong> {tasksInfo[selectedTaskIndex].Normalizer}
+                  <strong>Normalizer:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].Normalizer}
                 </Text>
               </Col>
             </Row>
@@ -994,14 +1049,14 @@ const Dashboard = () => {
                       <span>Narrow Search Space</span>
                       <span>
                       DatasetSelector-
-                        {`${tasksInfo[selectedTaskIndex].AutoSelect.SearchSpace}`}
+                        {`${tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].AutoSelect.SearchSpace}`}
                       </span>
                     </div>
                   }
                   style={{ marginBottom: '10px' }}
                 >
                   <ul style={{ paddingLeft: '20px', marginBottom: 0 }}>
-                    {tasksInfo[selectedTaskIndex].auxiliaryData?.SearchSpace.map((dataset, index) => (
+                    {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].auxiliaryData?.SearchSpace.map((dataset, index) => (
                       <li key={index} style={{ fontSize: '0.9em' }}>{dataset}</li>
                     ))}
                   </ul>
@@ -1016,14 +1071,14 @@ const Dashboard = () => {
                       <span>Initialization</span>
                       <span>
                       DatasetSelector-
-                        {`${tasksInfo[selectedTaskIndex].AutoSelect.Initialization}`}
+                        {`${tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].AutoSelect.Initialization}`}
                       </span>
                     </div>
                   }
                   style={{ marginBottom: '10px' }}
                 >
                   <ul style={{ paddingLeft: '20px', marginBottom: 0 }}>
-                    {tasksInfo[selectedTaskIndex].auxiliaryData.Initialization.map((dataset, index) => (
+                    {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].auxiliaryData.Initialization.map((dataset, index) => (
                       <li key={index} style={{ fontSize: '0.9em' }}>{dataset}</li>
                     ))}
                   </ul>
@@ -1038,14 +1093,14 @@ const Dashboard = () => {
                       <span>Pre-train</span>
                       <span>
                         DatasetSelector-
-                        {`${tasksInfo[selectedTaskIndex].AutoSelect.Pretrain}`}
+                        {`${tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].AutoSelect.Pretrain}`}
                       </span>
                     </div>
                   }
                   style={{ marginBottom: '10px' }}
                 >
                   <ul style={{ paddingLeft: '20px', marginBottom: 0 }}>
-                    {tasksInfo[selectedTaskIndex].auxiliaryData.Pretrain.map((dataset, index) => (
+                    {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].auxiliaryData.Pretrain.map((dataset, index) => (
                       <li key={index} style={{ fontSize: '0.9em' }}>{dataset}</li>
                     ))}
                   </ul>
@@ -1060,14 +1115,14 @@ const Dashboard = () => {
                       <span>Surrogate Model</span>
                       <span>
                       DatasetSelector-
-                        {`${tasksInfo[selectedTaskIndex].AutoSelect.Model}`}
+                        {`${tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].AutoSelect.Model}`}
                       </span>
                     </div>
                   }
                   style={{ marginBottom: '10px' }}
                 >
                   <ul style={{ paddingLeft: '20px', marginBottom: 0 }}>
-                    {tasksInfo[selectedTaskIndex].auxiliaryData.Model.map((dataset, index) => (
+                    {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].auxiliaryData.Model.map((dataset, index) => (
                       <li key={index} style={{ fontSize: '0.9em' }}>{dataset}</li>
                     ))}
                   </ul>
@@ -1082,14 +1137,14 @@ const Dashboard = () => {
                       <span>Acquisition Function</span>
                       <span>
                       DatasetSelector-
-                        {`${tasksInfo[selectedTaskIndex].AutoSelect.AcquisitionFunction}`}
+                        {`${tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].AutoSelect.AcquisitionFunction}`}
                       </span>
                     </div>
                   }
                   style={{ marginBottom: '10px' }}
                 >
                   <ul style={{ paddingLeft: '20px', marginBottom: 0 }}>
-                    {tasksInfo[selectedTaskIndex].auxiliaryData.AcquisitionFunction.map((dataset, index) => (
+                    {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].auxiliaryData.AcquisitionFunction.map((dataset, index) => (
                       <li key={index} style={{ fontSize: '0.9em' }}>{dataset}</li>
                     ))}
                   </ul>
@@ -1104,13 +1159,13 @@ const Dashboard = () => {
                       <span>Normalizer</span>
                       <span>
                       DatasetSelector-
-                        {`${tasksInfo[selectedTaskIndex].AutoSelect.Normalizer}`}
+                        {`${tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].AutoSelect.Normalizer}`}
                       </span>
                     </div>
                   }
                 >
                   <ul style={{ paddingLeft: '20px', marginBottom: 0 }}>
-                    {tasksInfo[selectedTaskIndex].auxiliaryData.Normalizer.map((dataset, index) => (
+                    {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].auxiliaryData.Normalizer.map((dataset, index) => (
                       <li key={index} style={{ fontSize: '0.9em' }}>{dataset}</li>
                     ))}
                   </ul>

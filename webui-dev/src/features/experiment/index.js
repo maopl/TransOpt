@@ -204,7 +204,8 @@ const Experiment = () => {
           console.log('Message from back-end:', isSucceed);
           Modal.success({
             title: 'Information',
-            content: 'Run Successfully!'
+            content: 'Run Successfully!',
+            okText: 'OK'
           })
         })
         .catch((error) => {
@@ -212,7 +213,8 @@ const Experiment = () => {
           var errorMessage = error.error;
           Modal.error({
             title: 'Information',
-            content: 'Error:' + errorMessage
+            content: 'Error:' + errorMessage,
+            okText: 'OK'
           })
         });
 

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './styles.css';
-import {RobotOutlined} from "@ant-design/icons";
+import robotIcon from '../../assets/images/robot-white.svg';
 
 const ChatRobot = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -68,7 +68,7 @@ const ChatRobot = () => {
                     onClick={() => setIsOpen(true)}
                     aria-label="Open chat window"
                 >
-                    <RobotOutlined style={{fontSize: '24px'}} />
+                    <img src={robotIcon} alt="Robot" className="robot-icon" style={{ width: '45px', height: '45px', color: 'white' }} />
                 </button>
             )}
 

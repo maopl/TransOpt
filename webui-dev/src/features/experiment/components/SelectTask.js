@@ -91,6 +91,7 @@ function SelectTask({ data,tasks, setTasks, updateTable }) {
         onCancel={() => setDrawerVisible(false)}
         open={drawerVisible}
         width={720}
+        cancelText="Cancel"
         footer={(_, { CancelBtn }) => (
           <>
             <CancelBtn />

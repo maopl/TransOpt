@@ -167,7 +167,7 @@ const Experiment = () => {
     ]
   });
   
-
+  const [form] = Form.useForm(); // 创建Form的ref
 
   // 在算法值更新时，同步更新转换后的格式
   useEffect(() => {
@@ -322,6 +322,12 @@ const Experiment = () => {
             // 你可以继续添加其它参数
           })
         }
+
+        // 设置表单的初始值
+        form.setFieldsValue({
+          Seeds: configData.seeds || "",
+          Remote: configData.remote === true ? true : false,
+        });
       } catch (error) {
         console.error('Error loading data:', error);
         message.error('Failed to load experiment data: ' + error.message);
@@ -354,13 +360,10 @@ const Experiment = () => {
 
         <Form
             name="main_form"
+            form={form}
             onFinish={onFinish}
             style={{ width: "100%" }}
             autoComplete="off"
-            initialValues={{
-              Seeds: "42",
-              Remote: "False"
-            }}
         >
           <Divider orientation="left">
             <div style={{fontSize: '24px', marginBottom: '15px'}} className="text-xl font-semibold">Experimental Setup</div>
@@ -428,13 +431,16 @@ const Experiment = () => {
               <h6 style={{ color: "black" }}>Remote</h6>
               <Form.Item name="Remote" style={{ marginRight: 10, marginLeft: 10 }}>
                 <Select
-                    options={[{ value: "True" },
-                      { value: "False" },
-                    ]}
+                    options={
+                    [
+                      { value: true , label: 'True' },
+                      { value: false, label: 'False' },
+                    ]
+                }
                 />
               </Form.Item>
               <h6 style={{ color: "black" }}>ServerURL</h6>
-              <Form.Item name="ServerURL" style={{ marginLeft: 10 }}>
+              <Form.Item name="server_url" style={{ marginLeft: 10 }}>
                 <Input />
               </Form.Item>
             </div>

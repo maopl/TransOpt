@@ -364,6 +364,13 @@ const Experiment = () => {
             onFinish={onFinish}
             style={{ width: "100%" }}
             autoComplete="off"
+            initialValues={
+              {
+                server_url: "",
+                experimentDescription: "",
+                experimentName: ""
+              }
+            }
         >
           <Divider orientation="left">
             <div style={{fontSize: '24px', marginBottom: '15px'}} className="text-xl font-semibold">Experimental Setup</div>

@@ -256,7 +256,7 @@ const Experiment = () => {
           datasetSelector: basicData.DataSelector || []
         });
         
-        // 获取运行配置信息 todo 这里要在梳理一下
+        // 获取初始值
         const configResponse = await fetch('http://localhost:5001/api/RunPage/get_info', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -279,38 +279,38 @@ const Experiment = () => {
           const updatedAlgorithmValue = [
             {
               name: "SearchSpace",
-              type: configData.optimizer.SearchSpace,
+              type: configData.optimizer.SearchSpace.type,
               auxiliaryData: [],
               autoSelect: false
             },
             {
               name: "Initialization",
-              type: configData.optimizer.Initialization,
-              InitNum: 0,
+              type: configData.optimizer.Initialization.type,
+              InitNum: configData.optimizer.Initialization.InitNum,
               auxiliaryData: [],
               autoSelect: false
             },
             {
               name: "Pretrain",
-              type: configData.optimizer.Pretrain,
+              type: configData.optimizer.Pretrain.type,
               auxiliaryData: [],
               autoSelect: false
             },
             {
               name: "Model",
-              type: configData.optimizer.Model,
+              type: configData.optimizer.Model.type,
               auxiliaryData: [],
               autoSelect: false
             },
             {
               name: "AcquisitionFunction",
-              type: configData.optimizer.AcquisitionFunction,
+              type: configData.optimizer.AcquisitionFunction.type,
               auxiliaryData: [],
               autoSelect: false
             },
             {
               name: "Normalizer",
-              type: configData.optimizer.Normalizer,
+              type: configData.optimizer.Normalizer.type,
               auxiliaryData: [],
               autoSelect: false
             }

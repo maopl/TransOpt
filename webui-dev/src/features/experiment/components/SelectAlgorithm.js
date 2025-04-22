@@ -303,27 +303,43 @@ function SelectAlgorithm({
         
         return (
            <>
-               <Select
-                   showSearch
-                   placeholder={`Select ${algorithmType}`}
-                   optionFilterProp="value"
-                   filterOption={filterOption}
-                   style={{width: '100%'}}
-                   options={mappedOptions}
-                   value={algorithm.type || undefined}
-                   onChange={(value) => handleAlgorithmTypeChange(value, algorithmType)}
-               />
-                <br/>
                {
-                   algorithmType === "Initialization" && (
-                        <Input
-                            placeholder={`Type initial number`}
-                            style={{width: '100%', marginTop: '8px'}}
-                            type="number"
-                            value={algorithm.InitNum || 0}
-                            onChange={handleInitialNumberChange}
-                        />
-                   )
+                   algorithmType === "Initialization" ?
+                       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'baseline'}}>
+                           <Select
+                               showSearch
+                               placeholder={`Select ${algorithmType}`}
+                               optionFilterProp="value"
+                               filterOption={filterOption}
+                               style={{width: '40%'}}
+                               options={mappedOptions}
+                               value={algorithm.type || undefined}
+                               onChange={(value) => handleAlgorithmTypeChange(value, algorithmType)}
+                           />
+                          <div>
+                               <span style={{ marginLeft: '8px'}}>
+                               Initial number:
+                           </span>
+                              <Input
+                                  placeholder={`Type initial number`}
+                                  style={{width: '40%', marginTop: '8px', marginLeft: '4px'}}
+                                  type="number"
+                                  value={algorithm.InitNum || 0}
+                                  onChange={handleInitialNumberChange}
+                              />
+                          </div>
+                       </div>
+                       :
+                       <Select
+                           showSearch
+                           placeholder={`Select ${algorithmType}`}
+                           optionFilterProp="value"
+                           filterOption={filterOption}
+                           style={{width: '100%'}}
+                           options={mappedOptions}
+                           value={algorithm.type || undefined}
+                           onChange={(value) => handleAlgorithmTypeChange(value, algorithmType)}
+                       />
                }
            </>
         );
@@ -357,7 +373,7 @@ function SelectAlgorithm({
                                 <span
                                     style={{fontSize: '16px', fontWeight: 'bold', color: '#333'}}>{ALGORITHM_TYPES_NAMES[algorithmType] || algorithmType}</span>
                             </div>
-                            <div className="stat-value">
+                            <div>
                                 {renderAlgorithmSelect(algorithmType)}
                             </div>
                             <Divider style={{margin: '8px 0 4px 0'}}/>

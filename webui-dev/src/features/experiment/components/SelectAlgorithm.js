@@ -39,7 +39,11 @@ function SelectAlgorithm({
                              ModelOptions,
                              AcquisitionFunctionOptions,
                              NormalizerOptions,
-                             updateTable
+                             updateTable,
+                             algorithmValue,
+                             setAlgorithmValue,
+                             transformedAlgorithmValue,
+                             updateTransformedAlgorithmValue
                          }) {
     const [form] = Form.useForm();
 
@@ -52,6 +56,16 @@ function SelectAlgorithm({
         algorithmType: '',
         datasets: []
     });
+    
+    // 初始化时从transformedAlgorithmValue同步autoSelect状态
+    // useEffect(() => {
+    //     if (transformedAlgorithmValue && transformedAlgorithmValue.algorithms) {
+    //         const newAutoSelectState = {};
+    //         transformedAlgorithmValue.algorithms.forEach(algorithm => {
+    //             newAutoSelectState[algorithm.name] = algorithm.autoSelect || false;
+    //         });
+    //     }
+    // }, [transformedAlgorithmValue]);
 
     /**
      * 算法对应的下拉选项
@@ -66,37 +80,10 @@ function SelectAlgorithm({
         "Normalizer": NormalizerOptions
     }), [SearchSpaceOptions, InitializationOptions, PretrainOptions, ModelOptions, AcquisitionFunctionOptions, NormalizerOptions]);
 
-    // 统一初始formValues结构
-    const [formValues, setFormValues] = useState({
-        "Search Space": SearchSpaceOptions?.[0]?.name || '',
-        "Initialization": InitializationOptions?.[0]?.name || '',
-        "Pretrain": PretrainOptions?.[0]?.name || '',
-        "Model": ModelOptions?.[0]?.name || '',
-        "Acquisition Function": AcquisitionFunctionOptions?.[0]?.name || '',
-        "Normalizer": NormalizerOptions?.[0]?.name || '',
-        // 下面是各自的数据集等参数
-        "Search SpaceSelectedDatasets": [],
-        "InitializationSelectedDatasets": [],
-        "PretrainSelectedDatasets": [],
-        "ModelSelectedDatasets": [],
-        "Acquisition FunctionSelectedDatasets": [],
-        "NormalizerSelectedDatasets": [],
-        // 你可以继续添加其它参数
-    });
-
-    // 初始化时从localStorage读取数据
-    // useEffect(() => {
-    //     const savedData = localStorage.getItem('algorithmFormData');
-    //     if (savedData) {
-    //         const parsedData = JSON.parse(savedData);
-    //         setFormValues(parsedData);
-    //         form.setFieldsValue(parsedData);
-    //     }
-    // }, []);
 
     // 当表单数据变化时保存到localStorage
     const handleFormChange = (changedValues, allValues) => {
-        setFormValues(allValues);
+        setAlgorithmValue(allValues);
         localStorage.setItem('algorithmFormData', JSON.stringify(allValues));
         // 如果父组件提供了updateTable回调，则调用它
         if (updateTable) {
@@ -135,33 +122,116 @@ function SelectAlgorithm({
 
     // Handler for when data is selected from the SearchData modal
     const handleSelectData = (datasetData, algorithmType) => {
-        const updatedValues = {...formValues};
+        const updatedValues = {...algorithmValue};
         updatedValues[`${algorithmType}SelectedDatasets`] = datasetData.datasets;
-        setFormValues(updatedValues);
+        setAlgorithmValue(updatedValues);
         form.setFieldsValue(updatedValues);
         localStorage.setItem('algorithmFormData', JSON.stringify(updatedValues));
         if (updateTable) updateTable(updatedValues);
+        
+        // 同步更新transformedAlgorithmValue
+        if (transformedAlgorithmValue && updateTransformedAlgorithmValue) {
+            const updatedTransformedValue = {...transformedAlgorithmValue};
+            const algorithmIndex = updatedTransformedValue.algorithms.findIndex(alg => alg.name === algorithmType);
+            
+            if (algorithmIndex !== -1) {
+                // 从数据集中提取名称
+                const auxiliaryData = datasetData.datasets.map(dataset => dataset.name || dataset.value);
+                updatedTransformedValue.algorithms[algorithmIndex].auxiliaryData = auxiliaryData;
+                updateTransformedAlgorithmValue(updatedTransformedValue);
+            }
+        }
     };
 
     // 获取特定算法的已选数据集
     const getSelectedDatasets = (algorithmType) => {
-        return formValues[`${algorithmType}SelectedDatasets`] || [];
+        return algorithmValue[`${algorithmType}SelectedDatasets`] || [];
     };
 
     // 清除数据集
     const clearSelectedDatasets = (algorithmType) => {
-        const updatedValues = {...formValues};
+        const updatedValues = {...algorithmValue};
         updatedValues[`${algorithmType}SelectedDatasets`] = [];
-        setFormValues(updatedValues);
+        setAlgorithmValue(updatedValues);
         form.setFieldsValue(updatedValues);
         localStorage.setItem('algorithmFormData', JSON.stringify(updatedValues));
         if (updateTable) updateTable(updatedValues);
+        
+        // 同步更新transformedAlgorithmValue
+        if (transformedAlgorithmValue && updateTransformedAlgorithmValue) {
+            const updatedTransformedValue = {...transformedAlgorithmValue};
+            const algorithmIndex = updatedTransformedValue.algorithms.findIndex(alg => alg.name === algorithmType);
+            
+            if (algorithmIndex !== -1) {
+                updatedTransformedValue.algorithms[algorithmIndex].auxiliaryData = [];
+                updateTransformedAlgorithmValue(updatedTransformedValue);
+            }
+        }
+    };
+    
+    // 处理自动选择复选框变更
+    const handleAutoSelectChange = (e, algorithmType) => {
+        const checked = e.target.checked;
+        console.log(`Auto Select for ${algorithmType} changed to: ${checked}`);
+        
+        // 直接操作Form的值以确保UI更新
+        const currentFormValues = form.getFieldsValue();
+        console.log('Current form values:', currentFormValues);
+        
+        if (transformedAlgorithmValue && updateTransformedAlgorithmValue) {
+            // 必须创建深拷贝以确保React检测到变更
+            const updatedTransformedValue = JSON.parse(JSON.stringify(transformedAlgorithmValue));
+            console.log('Original transformed value:', updatedTransformedValue);
+            
+            const algorithmIndex = updatedTransformedValue.algorithms.findIndex(alg => alg.name === algorithmType);
+            
+            if (algorithmIndex !== -1) {
+                // 更新自动选择状态
+                updatedTransformedValue.algorithms[algorithmIndex].autoSelect = checked;
+                console.log('Updated algorithm at index', algorithmIndex, 'to:', updatedTransformedValue.algorithms[algorithmIndex]);
+                console.log('New transformed value:', updatedTransformedValue);
+                
+                // 提交到父组件更新状态
+                updateTransformedAlgorithmValue(updatedTransformedValue);
+            }
+        }
+    };
+    
+    // 获取特定算法的自动选择状态
+    const getAutoSelectStatus = (algorithmType) => {
+        if (transformedAlgorithmValue && transformedAlgorithmValue.algorithms) {
+            const algorithm = transformedAlgorithmValue.algorithms.find(alg => alg.name === algorithmType);
+            return algorithm?.autoSelect || false;
+        }
+        return false;
+    };
+    
+    // 处理算法类型选择变更
+    const handleAlgorithmTypeChange = (value, algorithmType) => {
+        // 更新旧格式值
+        const updatedValues = {...algorithmValue};
+        updatedValues[algorithmType] = value;
+        setAlgorithmValue(updatedValues);
+        form.setFieldsValue(updatedValues);
+        
+        // 同步更新transformedAlgorithmValue
+        if (transformedAlgorithmValue && updateTransformedAlgorithmValue) {
+            const updatedTransformedValue = {...transformedAlgorithmValue};
+            const algorithmIndex = updatedTransformedValue.algorithms.findIndex(alg => alg.name === algorithmType);
+            
+            if (algorithmIndex !== -1) {
+                updatedTransformedValue.algorithms[algorithmIndex].type = value;
+                updateTransformedAlgorithmValue(updatedTransformedValue);
+            }
+        }
     };
 
     // 渲染数据选择区域
     const renderDataSelectionArea = (algorithmType) => {
         const selectedDatasets = getSelectedDatasets(algorithmType);
         const hasSelectedData = selectedDatasets.length > 0;
+        const isAutoSelected = getAutoSelectStatus(algorithmType);
+        
         return (
             <div style={{marginTop: '8px'}}>
                 {!hasSelectedData ? (
@@ -171,11 +241,16 @@ function SelectAlgorithm({
                             size="small"
                             icon={<DatabaseOutlined/>}
                             onClick={() => openDataSelectionModal(algorithmType)}
+                            disabled={isAutoSelected}
                         >
                             Select Auxiliary Data
                         </Button>
-                        <Checkbox>
-                          <span title={''}>
+                        <Checkbox 
+                            checked={isAutoSelected}
+                            onChange={(e) => handleAutoSelectChange(e, algorithmType)}
+                            id={`checkbox-${algorithmType.replace(/\s+/g, '-').toLowerCase()}`}
+                        >
+                          <span title="自动选择辅助数据">
                             {'Auto Select'}
                           </span>
                         </Checkbox>
@@ -192,6 +267,7 @@ function SelectAlgorithm({
                                     size="small"
                                     icon={<EyeOutlined/>}
                                     onClick={() => openPreviewModal(algorithmType)}
+                                    disabled={isAutoSelected}
                                 />
                             </Tooltip>
                             <Tooltip title="编辑选择">
@@ -200,6 +276,7 @@ function SelectAlgorithm({
                                     size="small"
                                     icon={<EditOutlined/>}
                                     onClick={() => openDataSelectionModal(algorithmType)}
+                                    disabled={isAutoSelected}
                                 />
                             </Tooltip>
                             <Tooltip title="清除选择">
@@ -209,10 +286,15 @@ function SelectAlgorithm({
                                     danger
                                     icon={<DeleteOutlined/>}
                                     onClick={() => clearSelectedDatasets(algorithmType)}
+                                    disabled={isAutoSelected}
                                 />
                             </Tooltip>
-                            <Checkbox>
-                              <span title={''}>
+                            <Checkbox 
+                                checked={isAutoSelected}
+                                onChange={(e) => handleAutoSelectChange(e, algorithmType)}
+                                id={`checkbox-${algorithmType.replace(/\s+/g, '-').toLowerCase()}`}
+                            >
+                              <span title="自动选择辅助数据">
                                 {'Auto Select'}
                               </span>
                             </Checkbox>
@@ -272,7 +354,6 @@ function SelectAlgorithm({
      * @return {ReactElement} The rendered form item.
      */
     const renderFormItem = (name, options, rules = []) => {
-        console.log('options', options)
         return (
             <Form.Item
                 name={name}
@@ -286,6 +367,7 @@ function SelectAlgorithm({
                     filterOption={filterOption}
                     style={{width: '100%'}}
                     options={options}
+                    onChange={(value) => handleAlgorithmTypeChange(value, name)}
                 />
             </Form.Item>
         );
@@ -295,7 +377,7 @@ function SelectAlgorithm({
         <Form
             form={form}
             onValuesChange={handleFormChange}
-            initialValues={formValues}
+            initialValues={algorithmValue}
             layout="vertical"
             style={{width: "100%"}}
         >

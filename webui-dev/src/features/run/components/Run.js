@@ -10,7 +10,7 @@ import {
   ConfigProvider
 } from "antd";
 
-function Run() {
+function Run({run}) {
   const [form] = Form.useForm()
 
   const onFinish = (values) => {
@@ -89,7 +89,7 @@ function Run() {
             </Form.Item>
           </div>
           <Form.Item>
-            <Button type="primary" htmlType="submit"  style={{ width: "150px", backgroundColor: 'rgb(53, 162, 235)' }}>
+            <Button type="primary" onClick={run} style={{ width: "150px", backgroundColor: 'rgb(53, 162, 235)' }}>
               Run
             </Button>
           </Form.Item>

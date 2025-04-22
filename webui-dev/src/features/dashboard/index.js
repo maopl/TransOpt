@@ -47,20 +47,87 @@ const cardStyle = {
 const cardBodyStyle = { padding: '16px' };
 
 // 模拟数据
-const mockAlgorithms = [
-  { value: 'all', label: 'All Algorithms' },
-  { value: 'bo', label: 'Bayesian Optimization' },
-  { value: 'gp', label: 'Gaussian Process' },
-  { value: 'rf', label: 'Random Forest' },
-  { value: 'nn', label: 'Neural Network' }
-];
 
-const mockCategories = [
-  { value: 'all', label: 'All Categories' },
-  { value: 'optimization', label: 'Optimization' },
-  { value: 'regression', label: 'Regression' },
-  { value: 'classification', label: 'Classification' }
-];
+const mockData = [{'experimentName': '12345', 'problem_name': 'Sphere', 'dim': 1, 'obj': 1, 'fidelity': '', 'workloads': '1', 'budget_type': 'function evaluations', 'initial_number': 11, 'budget': '20', 'seeds': 4, 'SpaceRefiner': None, 'Sampler': 'random', 'Pretrain': None, 'Model': 'GP', 'ACF': 'EI', 'Normalizer': 'Standard', 'AutoSelect': {'SearchSpace': False, 'Initialization': False, 'AcquisitionFunction': False, 'Pretrain': False, 'Model': False, 'Normalizer': False}, 'auxiliaryData': {'SearchSpace': [...], 'Initialization': [...], 'AcquisitionFunction': [...], 'Pretrain': [...], 'Model': [...], 'Normalizer': [...]}}
+]
+const mockData2 = [
+  {
+    experimentName: 'Experiment 1',
+    problemList: [
+        {
+      "AcquisitionFunction": "EI",
+      "AutoSelect": {
+        "AcquisitionFunction": false,
+        "Initialization": false,
+        "Model": false,
+        "Normalizer": false,
+        "Pretrain": false,
+        "SearchSpace": false
+      },
+      "Initialization": "random",
+      "Model": "GP",
+      "Normalizer": "Standard",
+      "Pretrain": null,
+      "SearchSpace": null,
+      "auxiliaryData": {
+        "AcquisitionFunction": [],
+        "Initialization": [],
+        "Model": [],
+        "Normalizer": [],
+        "Pretrain": [],
+        "SearchSpace": []
+      },
+      "budget": 20,
+      "budget_type": "function evaluations",
+      "dim": 1,
+      "experimentName": "test",
+      "fidelity": "",
+      "initial_number": 11,
+      "obj": 1,
+      "problem_name": "Sphere_w1_s4_1745342235",
+      "seeds": 4,
+      "workloads": "1"
+    },
+      {
+        "AcquisitionFunction": "EI",
+        "AutoSelect": {
+          "AcquisitionFunction": false,
+          "Initialization": false,
+          "Model": false,
+          "Normalizer": false,
+          "Pretrain": false,
+          "SearchSpace": false
+        },
+        "Initialization": "random",
+        "Model": "GP",
+        "Normalizer": "Standard",
+        "Pretrain": null,
+        "SearchSpace": null,
+        "auxiliaryData": {
+          "AcquisitionFunction": [],
+          "Initialization": [],
+          "Model": [],
+          "Normalizer": [],
+          "Pretrain": [],
+          "SearchSpace": []
+        },
+        "budget": 20,
+        "budget_type": "function evaluations",
+        "dim": 1,
+        "experimentName": "test",
+        "fidelity": "",
+        "initial_number": 11,
+        "obj": 1,
+        "problem_name": "Sphere_w1_s2_1745342236",
+        "seeds": 2,
+        "workloads": "1"
+      }]
+  },
+  {
+    experimentName: 'Experiment 2',
+    problemList: []
+  }
+]
 
 const Dashboard = () => {
   // 状态管理
@@ -392,42 +459,24 @@ const Dashboard = () => {
           onFinish={handleSearch}
         >
           <Row gutter={16} align="middle">
-            <Col span={5}>
-              <Form.Item name="keyword" style={{ marginBottom: 0 }}>
+            <Col span={6}>
+              <Form.Item name="exprimentName" style={{ marginBottom: 0 }}>
                 <Input
-                  placeholder="Search by name"
+                  placeholder="Expriment Name"
                   prefix={<SearchOutlined />}
                   allowClear
                   size="middle"
                 />
               </Form.Item>
             </Col>
-            <Col span={4}>
-              <Form.Item name="algorithm" style={{ marginBottom: 0 }}>
-                <Select
-                  placeholder="Algorithm"
-                  defaultValue="all"
-                  style={{ width: "100%" }}
-                  size="middle"
-                >
-                  {mockAlgorithms.map(item => (
-                    <Option key={item.value} value={item.value}>{item.label}</Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={4}>
-              <Form.Item name="category" style={{ marginBottom: 0 }}>
-                <Select
-                  placeholder="Category"
-                  defaultValue="all"
-                  style={{ width: "100%" }}
-                  size="middle"
-                >
-                  {mockCategories.map(item => (
-                    <Option key={item.value} value={item.value}>{item.label}</Option>
-                  ))}
-                </Select>
+            <Col span={6}>
+              <Form.Item name="problemName" style={{ marginBottom: 0 }}>
+                <Input
+                    placeholder="Problem Name"
+                    prefix={<SearchOutlined />}
+                    allowClear
+                    size="middle"
+                />
               </Form.Item>
             </Col>
             <Col span={7}>
@@ -435,7 +484,7 @@ const Dashboard = () => {
                 <RangePicker style={{ width: "100%" }} size="middle" />
               </Form.Item>
             </Col>
-            <Col span={4}>
+            <Col span={5}>
               <Space>
                 <AntButton
                   type="primary"
@@ -928,11 +977,6 @@ const Dashboard = () => {
                   <strong>Normalizer:</strong> {tasksInfo[selectedTaskIndex].Normalizer}
                 </Text>
               </Col>
-              <Col span={24}>
-                <Text style={{ fontSize: '0.95em' }}>
-                  <strong>DatasetSelector:</strong> {tasksInfo[selectedTaskIndex].DatasetSelector}
-                </Text>
-              </Col>
             </Row>
           </section>
 
@@ -950,16 +994,14 @@ const Dashboard = () => {
                       <span>Narrow Search Space</span>
                       <span>
                       DatasetSelector-
-                        {tasksInfo[selectedTaskIndex].DatasetSelector
-                          ? tasksInfo[selectedTaskIndex].DatasetSelector.split(',')[0].split('-')[1]
-                          : ''}
+                        {`${tasksInfo[selectedTaskIndex].AutoSelect.SearchSpace}`}
                       </span>
                     </div>
                   }
                   style={{ marginBottom: '10px' }}
                 >
                   <ul style={{ paddingLeft: '20px', marginBottom: 0 }}>
-                    {tasksInfo[selectedTaskIndex].metadata.SpaceRefiner.map((dataset, index) => (
+                    {tasksInfo[selectedTaskIndex].auxiliaryData?.SearchSpace.map((dataset, index) => (
                       <li key={index} style={{ fontSize: '0.9em' }}>{dataset}</li>
                     ))}
                   </ul>
@@ -974,16 +1016,14 @@ const Dashboard = () => {
                       <span>Initialization</span>
                       <span>
                       DatasetSelector-
-                        {tasksInfo[selectedTaskIndex].DatasetSelector
-                          ? tasksInfo[selectedTaskIndex].DatasetSelector.split(',')[1].split('-')[1]
-                          : ''}
+                        {`${tasksInfo[selectedTaskIndex].AutoSelect.Initialization}`}
                       </span>
                     </div>
                   }
                   style={{ marginBottom: '10px' }}
                 >
                   <ul style={{ paddingLeft: '20px', marginBottom: 0 }}>
-                    {tasksInfo[selectedTaskIndex].metadata.Sampler.map((dataset, index) => (
+                    {tasksInfo[selectedTaskIndex].auxiliaryData.Initialization.map((dataset, index) => (
                       <li key={index} style={{ fontSize: '0.9em' }}>{dataset}</li>
                     ))}
                   </ul>
@@ -998,16 +1038,14 @@ const Dashboard = () => {
                       <span>Pre-train</span>
                       <span>
                         DatasetSelector-
-                        {tasksInfo[selectedTaskIndex].DatasetSelector
-                          ? tasksInfo[selectedTaskIndex].DatasetSelector.split(',')[2].split('-')[1]
-                          : ''}
+                        {`${tasksInfo[selectedTaskIndex].AutoSelect.Pretrain}`}
                       </span>
                     </div>
                   }
                   style={{ marginBottom: '10px' }}
                 >
                   <ul style={{ paddingLeft: '20px', marginBottom: 0 }}>
-                    {tasksInfo[selectedTaskIndex].metadata.Pretrain.map((dataset, index) => (
+                    {tasksInfo[selectedTaskIndex].auxiliaryData.Pretrain.map((dataset, index) => (
                       <li key={index} style={{ fontSize: '0.9em' }}>{dataset}</li>
                     ))}
                   </ul>
@@ -1022,16 +1060,14 @@ const Dashboard = () => {
                       <span>Surrogate Model</span>
                       <span>
                       DatasetSelector-
-                        {tasksInfo[selectedTaskIndex].DatasetSelector
-                          ? tasksInfo[selectedTaskIndex].DatasetSelector.split(',')[3].split('-')[1]
-                          : ''}
+                        {`${tasksInfo[selectedTaskIndex].AutoSelect.Model}`}
                       </span>
                     </div>
                   }
                   style={{ marginBottom: '10px' }}
                 >
                   <ul style={{ paddingLeft: '20px', marginBottom: 0 }}>
-                    {tasksInfo[selectedTaskIndex].metadata.Model.map((dataset, index) => (
+                    {tasksInfo[selectedTaskIndex].auxiliaryData.Model.map((dataset, index) => (
                       <li key={index} style={{ fontSize: '0.9em' }}>{dataset}</li>
                     ))}
                   </ul>
@@ -1046,16 +1082,14 @@ const Dashboard = () => {
                       <span>Acquisition Function</span>
                       <span>
                       DatasetSelector-
-                        {tasksInfo[selectedTaskIndex].DatasetSelector
-                          ? tasksInfo[selectedTaskIndex].DatasetSelector.split(',')[4].split('-')[1]
-                          : ''}
+                        {`${tasksInfo[selectedTaskIndex].AutoSelect.AcquisitionFunction}`}
                       </span>
                     </div>
                   }
                   style={{ marginBottom: '10px' }}
                 >
                   <ul style={{ paddingLeft: '20px', marginBottom: 0 }}>
-                    {tasksInfo[selectedTaskIndex].metadata.ACF.map((dataset, index) => (
+                    {tasksInfo[selectedTaskIndex].auxiliaryData.AcquisitionFunction.map((dataset, index) => (
                       <li key={index} style={{ fontSize: '0.9em' }}>{dataset}</li>
                     ))}
                   </ul>
@@ -1070,15 +1104,13 @@ const Dashboard = () => {
                       <span>Normalizer</span>
                       <span>
                       DatasetSelector-
-                        {tasksInfo[selectedTaskIndex].DatasetSelector
-                          ? tasksInfo[selectedTaskIndex].DatasetSelector.split(',')[5].split('-')[1]
-                          : ''}
+                        {`${tasksInfo[selectedTaskIndex].AutoSelect.Normalizer}`}
                       </span>
                     </div>
                   }
                 >
                   <ul style={{ paddingLeft: '20px', marginBottom: 0 }}>
-                    {tasksInfo[selectedTaskIndex].metadata.Normalizer.map((dataset, index) => (
+                    {tasksInfo[selectedTaskIndex].auxiliaryData.Normalizer.map((dataset, index) => (
                       <li key={index} style={{ fontSize: '0.9em' }}>{dataset}</li>
                     ))}
                   </ul>

@@ -1,8 +1,8 @@
 
 class ChatbotConfig:
     DEBUG = True
-    OPENAI_API_KEY = "sk-1XGNThXZQVYh6EI25b44Bb74940d4eEdBdDa81723e00C794"
-    OPENAI_URL = "https://aihubmix.com/v1"
+    OPENAI_API_KEY = "sb-d19dea274ed2ed0b2539aa75920829d2d419a03504802d7c"
+    OPENAI_URL = "https://api.openai-sb.com/v1/"
 
 
 

@@ -8,7 +8,7 @@ import numpy as np
 from transopt.agent.chat.openai_chat import OpenAIChat
 from transopt.agent.config import ChatbotConfig, Configer
 from transopt.agent.registry import *
-from transopt.analysis.parameter_network import plot_network
+from transopt.analysis.sensitivity import sensitivity_analysis
 from transopt.benchmark.instantiate_problems import InstantiateProblems
 from transopt.datamanager.manager import Database, DataManager
 from transopt.optimizer.construct_optimizer import (ConstructOptimizer,
@@ -329,7 +329,7 @@ class Services:
 
         dataset_info['additional_config'] = {
             "experimentName": config.get('experimentName', ''),
-            "experimentName": config.get('experimentDescription', ''),
+            "experimentDescription": config.get('experimentDescription', ''),
             "problem_name": task_set.get_curname(),
             "dim": len(dataset_info["variables"]),
             "obj": len(dataset_info["objectives"]),
@@ -568,7 +568,7 @@ class Services:
         ret = {}
         ret.update(self.construct_footprint_data(task_name, var_data, ranges, initial_number))
         ret.update(self.construct_trajectory_data(task_name, obj_data, obj_type))
-        # ret.update(self.construct_importance_data(task_name, var_data, obj_data, variables))
+        ret.update(self.construct_importance_data(task_name, var_data, obj_data, variables))
 
         return ret
 
@@ -662,8 +662,8 @@ class Services:
         return {"TrajectoryData": [trajectory_data]}
 
     def construct_importance_data(self, name, var_data, obj_data, variables):
-        # plot_network(np.array(var_data), np.array(obj_data), variables)
-        return {}
+        importance_data = sensitivity_analysis(np.array(var_data), np.array(obj_data), variables)
+        return {"ImportanceData": importance_data}
 
     def get_configuration(self):
         return self.configer.get_configuration()

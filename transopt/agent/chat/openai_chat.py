@@ -65,7 +65,7 @@ class OpenAIChat:
         self,
         api_key,
         model="gpt-3.5-turbo",
-        base_url="https://api.openai.com/v1",
+        base_url="https://api.openai-sb.com/v1/",
         client_kwargs: Optional[Dict[str, Any]] = None,
         data_manager: Optional[DataManager] = None,
     ):

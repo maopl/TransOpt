@@ -24,31 +24,40 @@ def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
     #     optimizer_config['SamplerInitNum'] = 11
     
     """Create the optimizer object."""
-    if optimizer_config['SpaceRefiner'] == 'None':
+    if optimizer_config['SearchSpace']['type'] == None:
         SpaceRefiner = None
     else:
-        if 'SpaceRefinerParameters' not in optimizer_config:
-            optimizer_config['SpaceRefinerParameters'] = {}
-        SpaceRefiner = space_refiner_registry[optimizer_config['SpaceRefiner']](optimizer_config['SpaceRefinerParameters'])
-        
+        if 'Parameters' not in optimizer_config['SearchSpace']:
+            optimizer_config['SearchSpace']['Parameters'] = {}
+        SpaceRefiner = space_refiner_registry[optimizer_config['SearchSpace']['type']](optimizer_config['SearchSpace']['Parameters'])
     
-    Sampler = sampler_registry[optimizer_config['Sampler']](optimizer_config['SamplerInitNum'], optimizer_config['SamplerParameters'])
-    ACF = acf_registry[optimizer_config['ACF']](config = optimizer_config['ACFParameters'])
+    if 'Parameters' not in optimizer_config['Initialization']:
+        optimizer_config['Initialization']['Parameters'] = {}
+    Initialization = sampler_registry[optimizer_config['Initialization']['type']](optimizer_config['Initialization']['InitNum'],optimizer_config['Initialization']['Parameters'])
+    
+    if 'Parameters' not in optimizer_config['AcquisitionFunction']:
+        optimizer_config['AcquisitionFunction']['Parameters'] = {}
+    ACF = acf_registry[optimizer_config['AcquisitionFunction']['type']](config = optimizer_config['AcquisitionFunction']['Parameters'])
 
-    # Model = model_registry[optimizer_config['Model']](config = optimizer_config['ModelParameters'])
-    Model = model_registry[optimizer_config['Model']]()
+    if 'Parameters' not in optimizer_config['Model']:
+        optimizer_config['Model']['Parameters'] = {}
+    Model = model_registry[optimizer_config['Model']['type']](config = optimizer_config['Model']['Parameters'])
 
-    if optimizer_config['Pretrain'] == 'None':
+    if optimizer_config['Pretrain']['type'] == None:
         Pretrain = None
     else:
-        Pretrain = pretrain_registry[optimizer_config['Pretrain']](optimizer_config['PretrainParameters'])
+        if 'Parameters' not in optimizer_config['Pretrain']:
+            optimizer_config['Pretrain']['Parameters'] = {}
+        Pretrain = pretrain_registry[optimizer_config['Pretrain']['type']](optimizer_config['Pretrain']['Parameters'])
         
+
     
-    
-    if optimizer_config['Normalizer'] == 'None':
+    if optimizer_config['Normalizer']['type'] == None:
         Normalizer = None
     else:
-        Normalizer = normalizer_registry[optimizer_config['Normalizer']](optimizer_config['NormalizerParameters'])
+        if 'Parameters' not in optimizer_config['Normalizer']:
+            optimizer_config['Normalizer']['Parameters'] = {}
+        Normalizer = normalizer_registry[optimizer_config['Normalizer']['type']](optimizer_config['Normalizer']['Parameters'])
         
     
     ''' Bugee original code. No 'Optimizer' in optimizer_config
@@ -62,44 +71,13 @@ def ConstructOptimizer(optimizer_config: dict = None, seed: int = 0) -> BO:
     # Just for test.
     optimizer_type = optimizer_config.get('Optimizer', 'BO')
     if optimizer_type == 'BO':
-        optimizer = BO(SpaceRefiner, Sampler, ACF, Pretrain, Model, Normalizer, optimizer_config)
+        optimizer = BO(SpaceRefiner, Initialization, ACF, Pretrain, Model, Normalizer, optimizer_config)
     elif optimizer_type == 'Bilevel':
         optimizer = Bilevel(optimizer_config)        
     return optimizer
 
 def ConstructSelector(optimizer_config, dict = None, seed: int = 0):
     DataSelectors = {}
-    
-    
-    # if optimizer_config['SpaceRefinerDataSelector'] == 'None':
-    #     DataSelectors['SpaceRefinerDataSelector'] = None
-    # else:
-    #     DataSelectors['SpaceRefinerDataSelector'] = selector_registry(optimizer_config['SpaceRefinerDataSelector'], optimizer_config['SpaceRefinerDataSelectorParameters'])
-    
-    # if optimizer_config['SamplerDataSelector'] == 'None':
-    #     DataSelectors['SamplerDataSelector'] = None
-    # else:
-    #     DataSelectors['SamplerDataSelector'] = selector_registry(optimizer_config['SamplerDataSelector'], optimizer_config['SamplerDataSelectorParameters'])
-    
-    # if optimizer_config['ACFDataSelector'] == 'None':
-    #     DataSelectors['ACFDataSelector'] = None
-    # else:
-    #     DataSelectors['ACFDataSelector'] = selector_registry(optimizer_config['ACFDataSelector'], optimizer_config['ACFDataSelectorParameters'])
-    
-    # if optimizer_config['PretrainDataSelector'] == 'None':
-    #     DataSelectors['PretrainDataSelector'] = None
-    # else:
-    #     DataSelectors['PretrainDataSelector'] = selector_registry(optimizer_config['PretrainDataSelector'], optimizer_config['PretrainDataSelectorParameters'])
-    
-    # if optimizer_config['ModelDataSelector'] == 'None':
-    #     DataSelectors['ModelDataSelector'] = None
-    # else:
-    #     DataSelectors['ModelDataSelector'] = selector_registry(optimizer_config['ModelDataSelector'], optimizer_config['ModelDataSelectorParameters'])
-
-    # if optimizer_config['NormalizerDataSelector'] == 'None':
-    #     DataSelectors['NormalizerDataSelector'] = None
-    # else:
-    #     DataSelectors['NormalizerDataSelector'] = selector_registry(optimizer_config['NormalizerDataSelector'], optimizer_config['NormalizerDataSelectorParameters'])
     
     
     for key in optimizer_config.keys():

@@ -269,7 +269,8 @@ class GP(Model):
         return sample
     
     def get_fmin(self):
-
-        
         return np.min(self._y)
+    
+    def meta_update(self):
+        pass
          

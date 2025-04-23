@@ -6,7 +6,7 @@ from multiprocessing import Manager, Process
 import numpy as np
 
 from transopt.agent.chat.openai_chat import OpenAIChat
-from transopt.agent.config import Config, RunningConfig
+from transopt.agent.config import ChatbotConfig, Configer
 from transopt.agent.registry import *
 from transopt.analysis.parameter_network import plot_network
 from transopt.benchmark.instantiate_problems import InstantiateProblems
@@ -19,17 +19,17 @@ from transopt.analysis.mds import FootPrint
 
 class Services:
     def __init__(self, task_queue, result_queue, lock):
-        self.config = Config()
-        self.running_config = RunningConfig()
+        self.chatbotconfig = ChatbotConfig()
+        self.configer = Configer()
         
         # DataManager for general tasks, not specific optimization tasks
         self.data_manager = DataManager()
         self.tasks_info = []
 
         self.openai_chat = OpenAIChat(
-            api_key=self.config.OPENAI_API_KEY,
+            api_key=self.chatbotconfig.OPENAI_API_KEY,
             model="gpt-3.5-turbo",
-            base_url=self.config.OPENAI_URL,
+            base_url=self.chatbotconfig.OPENAI_URL,
             data_manager= self.data_manager
         )
 
@@ -259,40 +259,46 @@ class Services:
         
         return self.data_manager.db.search_tables_by_metadata(conditions)
     
-    def set_metadata(self, dataset_names):
-        self.running_config.set_metadata(dataset_names)
-        pass
 
-    def receive_tasks(self, tasks_info):
-        tasks = {}
-        self.tasks_info = tasks_info
-        workloads = []
-        for task in tasks_info:
-            for item in task["workloads"].split(","):
-                try:
-                    workloads.append(int(item))
-                except:
-                    workloads.append(item)
-            tasks[task["name"]] = {
-                "budget_type": task["budget_type"],
-                "budget": int(task["budget"]),
-                "workloads": workloads,
-                "params": {"input_dim": int(task["num_vars"])},
-            }
 
-        self.running_config.set_tasks(tasks)
+    def receive_configuration(self, config_info):
+        self.configer.set_configuration(config_info)
         return
 
-    def receive_optimizer(self, optimizer_info):
+    # def receive_tasks(self, tasks_info):
+    #     tasks = {}
+    #     self.tasks_info = tasks_info
+    #     workloads = []
+    #     for task in tasks_info:
+    #         for item in task["workloads"].split(","):
+    #             try:
+    #                 workloads.append(int(item))
+    #             except:
+    #                 workloads.append(item)
+    #         tasks[task["name"]] = {
+    #             "budget_type": task["budget_type"],
+    #             "budget": int(task["budget"]),
+    #             "workloads": workloads,
+    #             "params": {"input_dim": int(task["num_vars"])},
+    #         }
 
-        self.running_config.set_optimizer(optimizer_info)
-        return
+    #     self.configer.set_tasks(tasks)
+    #     return
 
-    def receive_metadata(self, metadata_info):
-        print(metadata_info)
+    # def receive_optimizer(self, config_info):
 
-        self.running_config.set_metadata(metadata_info)
-        return
+    #     self.configer.set_optimizer(optimizer_info)
+    #     return
+
+    # def receive_metadata(self, metadata_info):
+    #     print(metadata_info)
+
+    #     self.configer.set_metadata(metadata_info)
+    #     return
+    
+    # def set_metadata(self, dataset_names):
+    #     self.configer.set_metadata(dataset_names)
+    #     pass
 
     def get_all_datasets(self):
         all_tables = self.data_manager.db.get_table_list()
@@ -302,7 +308,7 @@ class Services:
         experiment_tables = self.data_manager.db.get_table_list()
         return [(experiment_tables[table_id],self.data_manager.db.query_dataset_info(table)) for table_id, table in enumerate(experiment_tables)] 
    
-    def construct_dataset_info(self, task_set, running_config, seed):
+    def construct_dataset_info(self, task_set, config, seed):
         dataset_info = {}
         dataset_info["variables"] = [
             {"name": var.name, "type": var.type, "range": var.range}
@@ -322,42 +328,60 @@ class Services:
         dataset_name = f"{task_set.get_curname()}_w{task_set.get_cur_workload()}_s{seed}_{timestamp}"
 
         dataset_info['additional_config'] = {
+            "experimentName": config.get('experimentName', ''),
+            "experimentName": config.get('experimentDescription', ''),
             "problem_name": task_set.get_curname(),
             "dim": len(dataset_info["variables"]),
             "obj": len(dataset_info["objectives"]),
             "fidelity": ', '.join([d['name'] for d in dataset_info["fidelities"] if 'name' in d]) if dataset_info["fidelities"] else '',
             "workloads": task_set.get_cur_workload(),
             "budget_type": task_set.get_cur_budgettype(),
-            "initial_number": running_config.optimizer['SamplerInitNum'],
+            "initial_number": config['optimizer']['Initialization']['InitNum'],
             "budget": task_set.get_cur_budget(),
             "seeds": seed,
-            "SpaceRefiner": running_config.optimizer['SpaceRefiner'],
-            "Sampler": running_config.optimizer['Sampler'],
-            "Pretrain": running_config.optimizer['Pretrain'],
-            "Model": running_config.optimizer['Model'],
-            "ACF": running_config.optimizer['ACF'],
-            "Normalizer": running_config.optimizer['Normalizer'],
-            "DatasetSelector": f"SpaceRefiner-{running_config.optimizer['SpaceRefinerDataSelector']}, \
-                Sampler - {running_config.optimizer['SamplerDataSelector']}, \
-                Pretrain - {running_config.optimizer['PretrainDataSelector']}, \
-                Model - {running_config.optimizer['ModelDataSelector']}, \
-                ACF-{running_config.optimizer['ACFDataSelector']}, \
-                Normalizer - {running_config.optimizer['NormalizerDataSelector']}",
-            "metadata": running_config.metadata if running_config.metadata else [],
+            "SearchSpace": config['optimizer']['SearchSpace']['type'],
+            "Initialization": config['optimizer']['Initialization']['type'],
+            "Pretrain": config['optimizer']['Pretrain']['type'],
+            "Model": config['optimizer']['Model']['type'],
+            "AcquisitionFunction": config['optimizer']['AcquisitionFunction']['type'],
+            "Normalizer": config['optimizer']['Normalizer']['type'],
+            "AutoSelect": {'SearchSpace':config['optimizer']['SearchSpace']['autoSelect'],
+                          'Initialization':config['optimizer']['Initialization']['autoSelect'],
+                          'AcquisitionFunction':config['optimizer']['AcquisitionFunction']['autoSelect'],
+                          'Pretrain':config['optimizer']['Pretrain']['autoSelect'],
+                          'Model':config['optimizer']['Model']['autoSelect'],
+                          'Normalizer':config['optimizer']['Normalizer']['autoSelect']},
+            "auxiliaryData": {'SearchSpace':config['optimizer']['SearchSpace']['auxiliaryData'],
+                              'Initialization':config['optimizer']['Initialization']['auxiliaryData'],
+                              'AcquisitionFunction':config['optimizer']['AcquisitionFunction']['auxiliaryData'],
+                              'Pretrain':config['optimizer']['Pretrain']['auxiliaryData'],
+                              'Model':config['optimizer']['Model']['auxiliaryData'],
+                              'Normalizer':config['optimizer']['Normalizer']['auxiliaryData']},
         }
 
         return dataset_info, dataset_name
  
     def get_metadata(self, module_name):
-        if len(self.running_config.metadata[module_name]):
+        configuration = self.configer.get_configuration()
+        metadata = configuration['optimizer'][module_name]['auxiliaryData']
+        if len(metadata):
             metadata = {}
             metadata_info = {}
-            for dataset_name in self.running_config.metadata[module_name]:
+            for dataset_name in metadata:
                 metadata[dataset_name] = self.data_manager.db.select_data(dataset_name)
                 metadata_info[dataset_name] = self.data_manager.db.query_dataset_info(dataset_name)
             return metadata, metadata_info
         else:
             return {}, {}
+    
+    def get_autoselect(self, module_name):
+        configuration = self.configer.get_configuration()
+        autoselect = configuration['optimizer'][module_name]['autoSelect']
+        return autoselect
+    
+    
+    def auto_get_data(self, module_name):
+        return {}, {}
     
     def save_data(self, dataset_name, parameters, observations, iteration):
         data = [{} for i in range(len(parameters))]
@@ -375,18 +399,21 @@ class Services:
         else:
             raise ValueError("Invalid dataset name")
 
-    def run_optimize(self, seeds):
+    def run_optimize(self):
         # Create a separate process for each seed
         process_list = []
+        configurations = self.configer.get_configuration()
+        seeds = configurations['seeds'].split(',')
+        seeds = [int(seed) for seed in seeds]
         for seed in seeds:
-            p = Process(target=self._run_optimize_process, args=(int(seed),))
+            p = Process(target=self._run_optimize_process, args=(int(seed), configurations))
             process_list.append(p)
             p.start()
         
         for p in process_list:
             p.join()
     
-    def _run_optimize_process(self, seed):
+    def _run_optimize_process(self, seed, configurations):
         # Each process constructs its own DataManager
         try:
             import os
@@ -395,27 +422,29 @@ class Services:
             logger.info(f"Start process #{pid}")
 
             # Instantiate problems and optimizer
-            task_set = InstantiateProblems(self.running_config.tasks, seed)
-            optimizer = ConstructOptimizer(self.running_config.optimizer, seed)
-            dataselector = ConstructSelector(self.running_config.optimizer, seed)
+            task_set = InstantiateProblems(configurations['tasks'], seed)
+            optimizer = ConstructOptimizer(configurations['optimizer'], seed)
+            dataselector = ConstructSelector(configurations['optimizer'], seed)
 
             while (task_set.get_unsolved_num()):
                 search_space = task_set.get_cur_searchspace()
-                dataset_info, dataset_name = self.construct_dataset_info(task_set, self.running_config, seed=seed)
+                dataset_info, dataset_name = self.construct_dataset_info(task_set, configurations, seed=seed)
                 
                 self.data_manager.create_dataset(dataset_name, dataset_info, overwrite=True)
                 self.update_process_info(pid, {'dataset_name': dataset_name, 'task': task_set.get_curname(), 'budget': task_set.get_cur_budget()})
 
                 optimizer.link_task(task_name=task_set.get_curname(), search_space=search_space)
                     
-                metadata, metadata_info = self.get_metadata('SpaceRefiner')
-                if dataselector['SpaceRefinerDataSelector']:
-                    metadata, metadata_info = dataselector['SpaceRefinerDataSelector'].fetch_data(dataset_info)
+                metadata, metadata_info = self.get_metadata('SearchSpace')
+                autoselect = self.get_autoselect('SearchSpace')
+                if autoselect:
+                    metadata, metadata_info = self.auto_get_data('SearchSpace')
                 optimizer.search_space_refine(metadata, metadata_info)
                     
-                metadata, metadata_info = self.get_metadata('Sampler')
-                if dataselector['SamplerDataSelector']:
-                    metadata, metadata_info = dataselector['SamplerDataSelector'].fetch_data(dataset_info)
+                metadata, metadata_info = self.get_metadata('Initialization')
+                autoselect = self.get_autoselect('Initialization')
+                if autoselect:
+                    metadata, metadata_info = self.auto_get_data('Initialization')
                 samples = optimizer.sample_initial_set(metadata, metadata_info)
                 
                 
@@ -427,14 +456,16 @@ class Services:
                     
                 # Pretrain
                 metadata, metadata_info = self.get_metadata('Pretrain')
-                if dataselector['PretrainDataSelector']:
-                    metadata, metadata_info = dataselector['PretrainDataSelector'].fetch_data(dataset_info)
+                autoselect = self.get_autoselect('Pretrain')
+                if autoselect:
+                    metadata, metadata_info = self.auto_get_data('Pretrain')
                 optimizer.pretrain(metadata, metadata_info)
                 
                 
                 metadata, metadata_info = self.get_metadata('Model')
-                if dataselector['ModelDataSelector']:
-                    metadata, metadata_info = dataselector['ModelDataSelector'].fetch_data(dataset_info)
+                autoselect = self.get_autoselect('Model')
+                if autoselect:
+                    metadata, metadata_info = self.auto_get_data('Model')
                 optimizer.meta_fit(metadata, metadata_info)
                 
                 cur_iter = 0
@@ -635,8 +666,4 @@ class Services:
         return {}
 
     def get_configuration(self):
-        configuration_info = {}
-        configuration_info["tasks"] = self.tasks_info
-        configuration_info["optimizer"] = self.running_config.optimizer
-        configuration_info["datasets"] = self.running_config.metadata
-        return configuration_info
+        return self.configer.get_configuration()

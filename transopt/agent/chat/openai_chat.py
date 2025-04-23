@@ -8,7 +8,7 @@ import yaml
 from openai.types.chat.chat_completion import ChatCompletion
 from pydantic import BaseModel
 
-from transopt.agent.config import RunningConfig
+from transopt.agent.config import Configer
 from transopt.agent.registry import *
 from transopt.benchmark.instantiate_problems import InstantiateProblems
 from transopt.datamanager.manager import DataManager
@@ -80,7 +80,7 @@ class OpenAIChat:
         self.history = []
 
         self.data_manager = DataManager() if data_manager is None else data_manager
-        self.running_config = RunningConfig()
+        self.running_config = Configer()
 
     def _get_prompt(self):
         """Reads a prompt from a file."""

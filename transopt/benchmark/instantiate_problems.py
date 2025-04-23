@@ -4,9 +4,9 @@ from transopt.benchmark.problem_base.transfer_problem import TransferProblem, Re
 
 
 def InstantiateProblems(
-    tasks: dict = None, seed: int = 0, remote: bool = False, server_url: str = None
+    tasks: list = [], seed: int = 0, remote: bool = False, server_url: str = None
 ) -> TransferProblem:
-    tasks = tasks or {}
+    tasks = tasks or []
 
     if remote:
         if server_url is None:
@@ -15,11 +15,13 @@ def InstantiateProblems(
     else:
         transfer_problems = TransferProblem(seed)
 
-    for task_name, task_params in tasks.items():
-        budget = task_params.get("budget", 0)
-        workloads = task_params.get("workloads", [])
-        budget_type = task_params.get("budget_type", 'Num_FEs')
-        params = task_params.get("params", {})
+    for task in tasks:
+        task_name = task['name']
+        
+        budget = int(task.get("budget", 0))
+        workloads = task.get("workloads", [])
+        budget_type = task.get("budget_type", 'Num_FEs')
+        params = {'input_dim':int(task.get("num_vars", 1)), 'output_dim':int(task.get("num_objs", 0))}
 
         if task_name == "MPB":
             problem_cls = problem_registry[task_name]

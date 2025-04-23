@@ -39,12 +39,23 @@ def create_app():
 
     @app.route("/api/Dashboard/tasks", methods=["POST"])
     def report_send_tasks_information():
+        experiment = {}
         all_info = services.get_experiment_datasets()
         all_tasks_info = []
+        experiment = {}
         for task_name, task_info in all_info:
+            if task_info['additional_config']['experimentName'] not in experiment:
+                experiment[task_info['additional_config']['experimentName']] = []
             info = task_info['additional_config']
             info['problem_name'] = task_name
-            all_tasks_info.append(info)
+            experiment[task_info['additional_config']['experimentName']].append(info)
+        
+        for experiment_name, experiment_info in experiment.items():
+            all_tasks_info.append({
+                'experimentName': experiment_name,
+                'problemList': experiment_info
+            })
+
         
         
         return jsonify(all_tasks_info), 200
@@ -71,54 +82,54 @@ def create_app():
         return jsonify(charts), 200
 
 
-    @app.route("/api/configuration/select_task", methods=["POST"])
-    def configuration_recieve_tasks():
-        tasks_info = request.json
-        # try:
-        services.receive_tasks(tasks_info) 
-        # except Exception as e:
-        #     logger.error(f"Error in searching dataset: {e}")
-        #     return jsonify({"error": str(e)}), 500
+    # @app.route("/api/configuration/select_task", methods=["POST"])
+    # def configuration_recieve_tasks():
+    #     tasks_info = request.json
+    #     # try:
+    #     services.receive_tasks(tasks_info) 
+    #     # except Exception as e:
+    #     #     logger.error(f"Error in searching dataset: {e}")
+    #     #     return jsonify({"error": str(e)}), 500
         
-        return {"succeed": True}, 200
+    #     return {"succeed": True}, 200
 
 
-    @app.route("/api/configuration/select_algorithm", methods=["POST"])
-    def configuration_recieve_algorithm():
-        optimizer_info = request.json
-        print(optimizer_info)
-        # optimizer_info = {'SpaceRefiner': 'default', 
-        #                   'SpaceRefinerParameters': '', 
-        #                   'SpaceRefinerDataSelector': 'default', 
-        #                   'SpaceRefinerDataSelectorParameters': '', 
-        #                   'Sampler': 'default', 
-        #                   'SamplerParameters': '', 
-        #                   'SamplerInitNum': '11',
-        #                   'SamplerDataSelector': 'default', 
-        #                   'SamplerDataSelectorParameters': '', 
-        #                   'Pretrain': 'default', 
-        #                   'PretrainParameters': '', 
-        #                   'PretrainDataSelector': 'default', 
-        #                   'PretrainDataSelectorParameters': '', 
-        #                   'Model': 'default', 
-        #                   'ModelParameters': '', 
-        #                   'ModelDataSelector': 'default', 
-        #                   'ModelDataSelectorParameters': '', 
-        #                   'ACF': 'default', 
-        #                   'ACFParameters': '', 
-        #                   'ACFDataSelector': 'default', 
-        #                   'ACFDataSelectorParameters': '', 
-        #                   'Normalizer': 'default', 
-        #                   'NormalizerParameters': '', 
-        #                   'NormalizerDataSelector': 'default', 
-        #                   'NormalizerDataSelectorParameters': ''}
-        try:
-            services.receive_optimizer(optimizer_info)
-        except Exception as e:
-            logger.error(f"Error in searching dataset: {e}")
-            return jsonify({"error": str(e)}), 500
+    # @app.route("/api/configuration/select_algorithm", methods=["POST"])
+    # def configuration_recieve_algorithm():
+    #     optimizer_info = request.json
+    #     print(optimizer_info)
+    #     # optimizer_info = {'SpaceRefiner': 'default', 
+    #     #                   'SpaceRefinerParameters': '', 
+    #     #                   'SpaceRefinerDataSelector': 'default', 
+    #     #                   'SpaceRefinerDataSelectorParameters': '', 
+    #     #                   'Sampler': 'default', 
+    #     #                   'SamplerParameters': '', 
+    #     #                   'SamplerInitNum': '11',
+    #     #                   'SamplerDataSelector': 'default', 
+    #     #                   'SamplerDataSelectorParameters': '', 
+    #     #                   'Pretrain': 'default', 
+    #     #                   'PretrainParameters': '', 
+    #     #                   'PretrainDataSelector': 'default', 
+    #     #                   'PretrainDataSelectorParameters': '', 
+    #     #                   'Model': 'default', 
+    #     #                   'ModelParameters': '', 
+    #     #                   'ModelDataSelector': 'default', 
+    #     #                   'ModelDataSelectorParameters': '', 
+    #     #                   'ACF': 'default', 
+    #     #                   'ACFParameters': '', 
+    #     #                   'ACFDataSelector': 'default', 
+    #     #                   'ACFDataSelectorParameters': '', 
+    #     #                   'Normalizer': 'default', 
+    #     #                   'NormalizerParameters': '', 
+    #     #                   'NormalizerDataSelector': 'default', 
+    #     #                   'NormalizerDataSelectorParameters': ''}
+    #     try:
+    #         services.receive_optimizer(optimizer_info)
+    #     except Exception as e:
+    #         logger.error(f"Error in searching dataset: {e}")
+    #         return jsonify({"error": str(e)}), 500
         
-        return {"succeed": True}, 200
+    #     return {"succeed": True}, 200
 
 
     @app.route("/api/configuration/basic_information", methods=["POST"])
@@ -206,13 +217,15 @@ def create_app():
 
     @app.route("/api/configuration/run", methods=["POST"])
     def configuration_run():
-        run_info = request.json
+        config_info = request.json
         
-        if "Seeds" in run_info:
-            seeds = [int(seed) for seed in run_info['Seeds'].split(",")]
-        else:
-            seeds = [0]
-        services.run_optimize(seeds)  # Handle process creation within run_optimize
+        try:
+            services.receive_configuration(config_info)
+        except Exception as e:
+            logger.error(f"Error in searching dataset: {e}")
+            return jsonify({"error": str(e)}), 500
+    
+        services.run_optimize()  # Handle process creation within run_optimize
         
         return jsonify({"isSucceed": True}), 200
 

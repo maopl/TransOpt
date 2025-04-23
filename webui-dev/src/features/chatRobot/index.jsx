@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './styles.css';
 import robotIcon from '../../assets/images/robot-white.svg';
+import ChatUI from "./components/ChatUI";
 
 const ChatRobot = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -78,7 +79,7 @@ const ChatRobot = () => {
                     {/* Chat window header */}
                     <div className="chat-header">
                         <h3>TransOpt Assistant</h3>
-                        <button 
+                        <button
                             className="close-button"
                             onClick={() => setIsOpen(false)}
                             aria-label="Close chat window"
@@ -88,53 +89,53 @@ const ChatRobot = () => {
                         </svg>
                     </button>
                     </div>
+                    <ChatUI />
+                    {/*/!* Chat message area *!/*/}
+                    {/*<div className="chat-messages">*/}
+                    {/*    {messages.map((message) => (*/}
+                    {/*        <div*/}
+                    {/*            key={message.id}*/}
+                    {/*            className={`message ${message.sender === 'user' ? 'user-message' : 'bot-message'}`}*/}
+                    {/*        >*/}
+                    {/*            <div className="message-bubble">*/}
+                    {/*                <p>{message.text}</p>*/}
+                    {/*                <span className="message-time">{formatTime(message.timestamp)}</span>*/}
+                    {/*            </div>*/}
+                    {/*        </div>*/}
+                    {/*    ))}*/}
+                    {/*    {isTyping && (*/}
+                    {/*        <div className="message bot-message">*/}
+                    {/*            <div className="message-bubble typing">*/}
+                    {/*                <span className="typing-dot"></span>*/}
+                    {/*                <span className="typing-dot"></span>*/}
+                    {/*                <span className="typing-dot"></span>*/}
+                    {/*            </div>*/}
+                    {/*        </div>*/}
+                    {/*    )}*/}
+                    {/*    <div ref={messagesEndRef} />*/}
+                    {/*</div>*/}
 
-                    {/* Chat message area */}
-                    <div className="chat-messages">
-                        {messages.map((message) => (
-                            <div 
-                                key={message.id} 
-                                className={`message ${message.sender === 'user' ? 'user-message' : 'bot-message'}`}
-                            >
-                                <div className="message-bubble">
-                                    <p>{message.text}</p>
-                                    <span className="message-time">{formatTime(message.timestamp)}</span>
-                                </div>
-                            </div>
-                        ))}
-                        {isTyping && (
-                            <div className="message bot-message">
-                                <div className="message-bubble typing">
-                                    <span className="typing-dot"></span>
-                                    <span className="typing-dot"></span>
-                                    <span className="typing-dot"></span>
-                                </div>
-                            </div>
-                        )}
-                        <div ref={messagesEndRef} />
-                    </div>
-
-                    {/* Chat input area */}
-                    <div className="chat-input-area">
-                        <textarea
-                            className="chat-input"
-                            value={inputMessage}
-                            onChange={(e) => setInputMessage(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            placeholder="Type your question..."
-                            rows={1}
-                        />
-                        <button 
-                            className="send-button"
-                            onClick={handleSendMessage}
-                            disabled={inputMessage.trim() === ''}
-                            aria-label="Send message"
-                        >
-                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M2.5 10L2.5 8.5L15 2L10.5 10L15 18L2.5 11.5V10Z" fill="currentColor"/>
-                            </svg>
-                        </button>
-                    </div>
+                    {/*/!* Chat input area *!/*/}
+                    {/*<div className="chat-input-area">*/}
+                    {/*    <textarea*/}
+                    {/*        className="chat-input"*/}
+                    {/*        value={inputMessage}*/}
+                    {/*        onChange={(e) => setInputMessage(e.target.value)}*/}
+                    {/*        onKeyPress={handleKeyPress}*/}
+                    {/*        placeholder="Type your question..."*/}
+                    {/*        rows={1}*/}
+                    {/*    />*/}
+                    {/*    <button*/}
+                    {/*        className="send-button"*/}
+                    {/*        onClick={handleSendMessage}*/}
+                    {/*        disabled={inputMessage.trim() === ''}*/}
+                    {/*        aria-label="Send message"*/}
+                    {/*    >*/}
+                    {/*        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">*/}
+                    {/*            <path d="M2.5 10L2.5 8.5L15 2L10.5 10L15 18L2.5 11.5V10Z" fill="currentColor"/>*/}
+                    {/*        </svg>*/}
+                    {/*    </button>*/}
+                    {/*</div>*/}
                 </div>
             )}
         </div>

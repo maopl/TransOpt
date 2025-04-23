@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined } from '@ant-design/icons';
 import { Button, Form, Input, Select, Modal, Table } from "antd";
 
 const filterOption = (input, option) =>
   (option?.value ?? '').toLowerCase().includes(input.toLowerCase());
 
-function TaskTable({ tasks, handleDelete, setDrawerVisible }) {
+function TaskTable({ tasks, handleDelete, handleEdit, setDrawerVisible }) {
   return (
     <>
     <div>
@@ -25,14 +25,24 @@ function TaskTable({ tasks, handleDelete, setDrawerVisible }) {
         {
           title: "Action",
           key: "action",
+            width: 180,
           render: (_, record, index) => (
-            <Button
-              type="link"
-              danger
-              onClick={() => handleDelete(index)}
-            >
-              Delete
-            </Button>
+            <>
+              <Button
+                type="link"
+                style={{ }}
+                onClick={() => handleEdit(record, index)}
+              >
+                Edit
+              </Button>
+              <Button
+                type="link"
+                danger
+                onClick={() => handleDelete(index)}
+              >
+                Delete
+              </Button>
+            </>
           ),
         },
       ]}
@@ -59,6 +69,8 @@ function TaskTable({ tasks, handleDelete, setDrawerVisible }) {
 function SelectTask({ data,tasks, setTasks, updateTable }) {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [form] = Form.useForm(); // Form instance to manage form submission in the drawer
+  const [editingIndex, setEditingIndex] = useState(-1); // -1 表示新增模式，>=0 表示编辑模式
+  const [modalMode, setModalMode] = useState('add'); // 'add' 或 'edit'
 
   const handleDrawerSubmit = () => {
     form
@@ -66,10 +78,22 @@ function SelectTask({ data,tasks, setTasks, updateTable }) {
       .then(values => {
         console.log('Drawer form values:', values);
 
-        setTasks(prevTasks => [...prevTasks, values]);
+        if (modalMode === 'add') {
+          // 添加新任务
+          setTasks(prevTasks => [...prevTasks, values]);
+        } else {
+          // 更新已有任务
+          setTasks(prevTasks => {
+            const newTasks = [...prevTasks];
+            newTasks[editingIndex] = values;
+            return newTasks;
+          });
+        }
 
         form.resetFields(); // Reset the form fields after submission
         setDrawerVisible(false); // Close the drawer
+        setModalMode('add'); // 重置为添加模式
+        setEditingIndex(-1); // 重置编辑索引
 
       })
       .catch(info => {
@@ -82,13 +106,42 @@ function SelectTask({ data,tasks, setTasks, updateTable }) {
     const updatedTasks = tasks.filter((_, i) => i !== index);
     setTasks(updatedTasks);
   };
+
+  const handleEdit = (record, index) => {
+    setEditingIndex(index);
+    setModalMode('edit');
+    
+    // 填充表单
+    form.setFieldsValue(record);
+    
+    // 打开抽屉
+    setDrawerVisible(true);
+  };
+
+  // 打开添加任务的抽屉
+  const openAddDrawer = () => {
+    setModalMode('add');
+    setEditingIndex(-1);
+    form.resetFields();
+    setDrawerVisible(true);
+  };
+
   return (
     <>
-        <TaskTable tasks={tasks} handleDelete={handleDelete} setDrawerVisible={setDrawerVisible}/>
+        <TaskTable 
+          tasks={tasks} 
+          handleDelete={handleDelete} 
+          handleEdit={handleEdit} 
+          setDrawerVisible={openAddDrawer}
+        />
       <Modal
-        title="Add new task"
+        title={modalMode === 'add' ? "Add new task" : "Edit task"}
         placement="center"
-        onCancel={() => setDrawerVisible(false)}
+        onCancel={() => {
+          setDrawerVisible(false);
+          setModalMode('add');
+          setEditingIndex(-1);
+        }}
         open={drawerVisible}
         width={720}
         cancelText="Cancel"
@@ -97,8 +150,11 @@ function SelectTask({ data,tasks, setTasks, updateTable }) {
             <CancelBtn />
             <Button
                 onClick={handleDrawerSubmit}
-                type="primary" htmlType="submit" style={{ width: "73px", backgroundColor: 'rgb(53, 162, 235)' }}>
-              Add
+                type="primary" 
+                htmlType="submit" 
+                style={{ width: "73px", backgroundColor: 'rgb(53, 162, 235)' }}
+            >
+              {modalMode === 'add' ? "Add" : "Save"}
             </Button>
           </>
         )}

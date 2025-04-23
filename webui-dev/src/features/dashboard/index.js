@@ -30,6 +30,7 @@ import {
   ExperimentOutlined,
   FileOutlined
 } from '@ant-design/icons';
+import dayjs from 'dayjs';
 
 import LineChart from './components/LineChart';
 import BarChart from './components/BarChart';
@@ -60,7 +61,7 @@ const Dashboard = () => {
   const [isMoreInfoModalVisible, setIsMoreInfoModalVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isInitialLoading, setIsInitialLoading] = useState(false); // 首次加载状态
+  const [isInitialLoading, setIsInitialLoading] = useState(true); // 首次加载状态
   const [importance, setImportance] = useState(null);
   
   // 展开/折叠实验状态
@@ -68,58 +69,129 @@ const Dashboard = () => {
 
   // 搜索表单状态
   const [searchForm] = Form.useForm();
-  const [searchKeyword, setSearchKeyword] = useState('');
-  const [searchAlgorithm, setSearchAlgorithm] = useState('all');
-  const [searchCategory, setSearchCategory] = useState('all');
   const [searchExperimentName, setSearchExperimentName] = useState('');
+  const [searchProblemName, setSearchProblemName] = useState('');
+  const [searchDateRange, setSearchDateRange] = useState(null);
 
-  // 基于搜索条件过滤任务
-  const filterTasks = useCallback((tasks) => {
-    if (!tasks) return [];
-
-    return tasks.filter(task => {
-      // 关键词搜索
-      const keywordMatch = !searchKeyword ||
-        task.problem_name.toLowerCase().includes(searchKeyword.toLowerCase());
-
-      // 算法筛选
-      const algorithmMatch = searchAlgorithm === 'all' ||
-        task.Model === searchAlgorithm ||
-        task.AcquisitionFunction === searchAlgorithm;
-
-      // 分类筛选 (模拟，实际应用需要根据真实数据结构调整)
-      const categoryMatch = searchCategory === 'all';
-
-      return keywordMatch && algorithmMatch && categoryMatch;
-    });
-  }, [searchKeyword, searchAlgorithm, searchCategory]);
+  // 处理搜索表单提交
+  const handleSearch = (values) => {
+    console.log('Search form values:', values);
+    const { experimentName, problemName, dateRange } = values;
+    
+    // 设置搜索状态 - 仅更新前端显示过滤条件，不请求后端
+    setSearchExperimentName(experimentName || '');
+    setSearchProblemName(problemName || '');
+    setSearchDateRange(dateRange);
+    
+    // 计算新的过滤结果
+    const newFilteredExperiments = filterExperiments(
+      tasksInfo, 
+      experimentName || '', 
+      problemName || '', 
+      dateRange
+    );
+    
+    // 如果过滤后有结果，自动选择第一项
+    if (newFilteredExperiments.length > 0) {
+      const firstExp = newFilteredExperiments[0];
+      if (firstExp.filteredProblems.length > 0) {
+        // 寻找在过滤后数据中原始索引
+        const originalExpIndex = tasksInfo.findIndex(exp => 
+          exp.experimentName === firstExp.experimentName);
+        
+        if (originalExpIndex !== -1) {
+          const originalProblemIndex = tasksInfo[originalExpIndex].problemList.findIndex(prob => 
+            prob.problem_name === firstExp.filteredProblems[0].problem_name);
+          
+          if (originalProblemIndex !== -1) {
+            setSelectedExperimentIndex(originalExpIndex);
+            setSelectedTaskIndex(originalProblemIndex);
+          }
+        }
+      }
+    } else {
+      // 如果没有匹配结果，清除选择
+      setSelectedExperimentIndex(-1);
+      setSelectedTaskIndex(-1);
+    }
+  };
+  
+  // 重置搜索
+  const handleResetSearch = () => {
+    searchForm.resetFields();
+    setSearchExperimentName('');
+    setSearchProblemName('');
+    setSearchDateRange(null);
+    
+    // 重置后如果已有数据，选择第一项
+    if (tasksInfo.length > 0) {
+      setSelectedExperimentIndex(0);
+      if (tasksInfo[0].problemList.length > 0) {
+        setSelectedTaskIndex(0);
+      }
+    }
+  };
 
   // 基于搜索条件过滤实验和问题
-  const filterExperiments = useCallback(() => {
-    if (!tasksInfo || !tasksInfo.length) return [];
+  const filterExperiments = useCallback((data, experimentName, problemName, dateRange) => {
+    if (!data || !data.length) return [];
     
-    return tasksInfo.map(experiment => {
+    return data.map(experiment => {
       // 实验名称过滤
-      const experimentNameMatch = !searchExperimentName || 
-        experiment.experimentName.toLowerCase().includes(searchExperimentName.toLowerCase());
+      const experimentNameMatch = !experimentName || 
+        experiment.experimentName.toLowerCase().includes(experimentName.toLowerCase());
       
       if (!experimentNameMatch) return { ...experiment, filteredProblems: [] };
       
       // 过滤问题列表
       const filteredProblems = experiment.problemList.filter(problem => {
-        // 关键词搜索
-        const keywordMatch = !searchKeyword ||
-          problem.problem_name.toLowerCase().includes(searchKeyword.toLowerCase());
-
-        // 算法筛选
-        const algorithmMatch = searchAlgorithm === 'all' ||
-          problem.Model === searchAlgorithm ||
-          problem.AcquisitionFunction === searchAlgorithm;
-
-        // 分类筛选
-        const categoryMatch = searchCategory === 'all';
-
-        return keywordMatch && algorithmMatch && categoryMatch;
+        // 问题名称搜索
+        const problemNameMatch = !problemName ||
+          problem.displayName?.toLowerCase().includes(problemName.toLowerCase()) ||
+          problem.problem_name.toLowerCase().includes(problemName.toLowerCase());
+        
+        // 日期范围过滤
+        let dateRangeMatch = true;
+        if (dateRange && dateRange.length === 2 && dateRange[0] && dateRange[1]) {
+          try {
+            // 提取日期范围的开始和结束时间
+            const startDate = dayjs(dateRange[0]);
+            const endDate = dayjs(dateRange[1]);
+            
+            // 从问题名称中提取时间戳
+            const parts = problem.problem_name.split('_');
+            if (parts.length > 0) {
+              const timestamp = parts[parts.length - 1];
+              
+              // 检查最后一部分是否为时间戳（数字）
+              if (/^\d+$/.test(timestamp)) {
+                // 将时间戳（秒）转换为dayjs对象
+                const timestampMs = Number(timestamp) * 1000;
+                const problemDate = dayjs(timestampMs);
+                
+                console.log('日期比较:', {
+                  problemName: problem.problem_name,
+                  timestamp,
+                  problemDate: problemDate.format('YYYY-MM-DD HH:mm:ss'),
+                  startDate: startDate.format('YYYY-MM-DD HH:mm:ss'),
+                  endDate: endDate.format('YYYY-MM-DD HH:mm:ss')
+                });
+                
+                // 正确的日期范围比较逻辑
+                // 问题日期必须：(在开始日期之后或等于开始日期) 并且 (在结束日期之前或等于结束日期)
+                dateRangeMatch = (problemDate.isAfter(startDate) || problemDate.isSame(startDate, 'second')) && 
+                                 (problemDate.isBefore(endDate) || problemDate.isSame(endDate, 'second'));
+              } else {
+                console.log('无法解析时间戳:', timestamp);
+              }
+            }
+          } catch (error) {
+            console.error("日期比较错误:", error);
+            dateRangeMatch = true; // 出错时不过滤
+          }
+        }
+        
+        return problemNameMatch && dateRangeMatch
       });
       
       return {
@@ -127,7 +199,7 @@ const Dashboard = () => {
         filteredProblems
       };
     }).filter(experiment => experiment.filteredProblems.length > 0);
-  }, [searchExperimentName, searchKeyword, searchAlgorithm, searchCategory, tasksInfo]);
+  }, []);
 
   // 自定义灰色系图标
   const antIcon = <LoadingOutlined style={{ fontSize: 48, color: '#9E9E9E' }} spin />;
@@ -154,12 +226,57 @@ const Dashboard = () => {
         })
         .then(data => {
           console.log('Message from back-end:', data);
-          // 将后端数据转换为两层结构
-          // 注意：这里假设后端返回的是扁平结构，需要转换成两层
-          // 如果后端已经返回两层结构，则直接使用data
+
+          const experimentsData = data.map(experiment => {
+            // Process each problem to add displayName
+            const updatedProblemList = experiment.problemList.map(problem => {
+              // Parse the problem_name to extract timestamp and create formatted date
+              const parts = problem.problem_name.split('_');
+              let displayName = problem.problem_name;
+              
+              if (parts.length > 0) {
+                const timestamp = parts[parts.length - 1];
+                
+                // Check if the last part is a timestamp (number)
+                if (/^\d+$/.test(timestamp)) {
+                  try {
+                    // Convert timestamp to readable date format
+                    // Unix timestamp is typically in seconds, but JS Date expects milliseconds
+                    const date = new Date(Number(timestamp) * 1000);
+                    
+                    // Format the date as YYYY-MM-DD HH:MM:SS
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    const seconds = String(date.getSeconds()).padStart(2, '0');
+                    
+                    const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+                    
+                    // Replace the timestamp with formatted date in problem_name
+                    const newParts = [...parts];
+                    newParts[newParts.length - 1] = formattedDate;
+                    displayName = newParts.join('_');
+                  } catch (error) {
+                    console.error("Error formatting timestamp:", error);
+                    // Fallback to original problem_name if date conversion fails
+                  }
+                }
+              }
+              
+              return {
+                ...problem,
+                displayName
+              };
+            });
+            
+            return {
+              ...experiment,
+              problemList: updatedProblemList
+            };
+          });
           
-          // 临时使用mockData2做测试
-          const experimentsData = data;
           setTasksInfo(experimentsData);
           
           // 初始化展开第一个实验
@@ -317,36 +434,6 @@ const Dashboard = () => {
       });
   }, [selectedExperimentIndex, tasksInfo]);
 
-  // 处理搜索表单提交
-  const handleSearch = useCallback((values) => {
-    setSearchKeyword(values.keyword || '');
-    setSearchAlgorithm(values.algorithm || 'all');
-    setSearchCategory(values.category || 'all');
-    setSearchExperimentName(values.exprimentName || '');
-    // 重置选中的任务索引
-    if (tasksInfo.length > 0) {
-      setSelectedExperimentIndex(0);
-      setSelectedTaskIndex(0);
-    }
-  }, [tasksInfo]);
-
-  // 重置搜索条件
-  const handleResetSearch = () => {
-    searchForm.resetFields();
-    setSearchKeyword('');
-    setSearchAlgorithm('all');
-    setSearchCategory('all');
-    setSearchExperimentName('');
-    // 重置选中的任务索引
-    if (tasksInfo.length > 0) {
-      setSelectedExperimentIndex(0);
-      setSelectedTaskIndex(0);
-    }
-  };
-
-  // 错误提交相关函数
-  const showModal = () => setIsModalVisible(true);
-
   // 更多信息弹窗相关函数
   const showMoreInfoModal = () => setIsMoreInfoModalVisible(true);
   const handleMoreInfoCancel = () => setIsMoreInfoModalVisible(false);
@@ -473,7 +560,7 @@ const Dashboard = () => {
   }
 
   // 过滤后的任务列表
-  const filteredExperiments = filterExperiments();
+  const filteredExperiments = filterExperiments(tasksInfo, searchExperimentName, searchProblemName, searchDateRange);
 
   // 自定义图标和颜色
   const titleRender = (nodeData) => {
@@ -503,35 +590,35 @@ const Dashboard = () => {
       const isSelected = selectedExperimentIndex === experimentIndex && selectedTaskIndex === taskIndex;
       
       return (
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between',
-          width: '100%',
-          color: isSelected ? '#1890ff' : 'rgba(0, 0, 0, 0.65)',
-          fontWeight: isSelected ? '500' : 'normal'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <FileOutlined style={{ marginRight: '8px', color: isSelected ? '#1890ff' : '#999' }} />
-            <span>{nodeData.title}</span>
-          </div>
-          <Popconfirm
-            title="删除此任务"
-            description="确定要删除这个任务吗？"
-            onConfirm={() => {
-              const task = filteredExperiments[experimentIndex].filteredProblems[taskIndex];
-              handleDelete(task.problem_name);
-            }}
-            okText="是"
-            cancelText="否"
-            placement="right"
-          >
-            <DeleteOutlined 
-              style={{ color: '#ff4d4f', fontSize: '14px' }} 
-              onClick={(e) => e.stopPropagation?.()}
-            />
-          </Popconfirm>
-        </div>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '300px',
+            color: isSelected ? '#1890ff' : 'rgba(0, 0, 0, 0.65)',
+            fontWeight: isSelected ? '500' : 'normal'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <FileOutlined style={{ marginRight: '8px', color: isSelected ? '#1890ff' : '#999' }} />
+              <span>{nodeData.title}</span>
+            </div>
+            <Popconfirm
+              title="Delete this task"
+              description="Are you sure you want to delete this task?"
+              onConfirm={() => {
+                const task = filteredExperiments[experimentIndex].filteredProblems[taskIndex];
+                handleDelete(task.problem_name);
+              }}
+              okText="Yes"
+              cancelText="No"
+              placement="right"
+            >
+              <DeleteOutlined
+                style={{ color: '#ff4d4f', fontSize: '14px' }}
+                onClick={(e) => e.stopPropagation?.()}
+              />
+            </Popconfirm>
+         </div>
       );
     }
   };
@@ -561,7 +648,7 @@ const Dashboard = () => {
         >
           <Row gutter={16} align="middle">
             <Col span={6}>
-              <Form.Item name="exprimentName" style={{ marginBottom: 0 }}>
+              <Form.Item name="experimentName" style={{ marginBottom: 0 }}>
                 <Input
                   placeholder="Expriment Name"
                   prefix={<SearchOutlined />}
@@ -582,7 +669,11 @@ const Dashboard = () => {
             </Col>
             <Col span={7}>
               <Form.Item name="dateRange" style={{ marginBottom: 0 }}>
-                <RangePicker style={{ width: "100%" }} size="middle" />
+                <RangePicker
+                    style={{ width: "100%" }} size="middle"
+                    showTime={{ format: 'HH:mm:ss' }}
+                    format="YYYY-MM-DD HH:mm:ss"
+                />
               </Form.Item>
             </Col>
             <Col span={5}>
@@ -614,7 +705,8 @@ const Dashboard = () => {
       }}>
         {/* 左侧数据集列表 */}
         <div style={{
-          width: "390px",
+          minWidth: "420px",
+          width: "420px",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
@@ -669,7 +761,7 @@ const Dashboard = () => {
                   key: index.toString(),
                   icon: <ExperimentOutlined />,
                   children: experiment.filteredProblems.map((task, taskIndex) => ({
-                    title: task.problem_name,
+                    title: task.displayName,
                     key: `${index}-${taskIndex}`,
                     icon: <FileOutlined />,
                     isLeaf: true,
@@ -762,7 +854,7 @@ const Dashboard = () => {
                     <Space>
                       <InfoCircleOutlined style={{ color: "#1890ff", fontSize: "18px" }} />
                       <Title level={4} style={{ margin: 0 }}>
-                        {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].problem_name}
+                        {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].displayName}
                       </Title>
                     </Space>
 
@@ -799,7 +891,7 @@ const Dashboard = () => {
                     <Row gutter={[16, 8]}>
                       <Col span={24}>
                         <Text style={{ fontSize: '0.95em' }}>
-                          <strong>Problem Name:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].problem_name}
+                          <strong>Problem Name:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].displayName}
                         </Text>
                       </Col>
                       <Col span={8}>
@@ -961,7 +1053,7 @@ const Dashboard = () => {
             <Row gutter={[16, 8]}>
               <Col span={24}>
                 <Text style={{ fontSize: '0.95em' }}>
-                  <strong>Problem Name:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].problem_name}
+                  <strong>Problem Name:</strong> {tasksInfo[selectedExperimentIndex].problemList[selectedTaskIndex].displayName}
                 </Text>
               </Col>
               <Col span={8}>

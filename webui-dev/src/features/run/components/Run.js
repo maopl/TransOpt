@@ -89,7 +89,19 @@ function Run({run}) {
             </Form.Item>
           </div>
           <Form.Item>
-            <Button type="primary" onClick={run} style={{ width: "150px", backgroundColor: 'rgb(53, 162, 235)' }}>
+            <Button 
+              type="primary" 
+              onClick={() => {
+                form.validateFields().then(values => {
+                  // 先触发RunPage中的handleRun，然后在onFinish中执行API调用
+                  if (typeof run === 'function') {
+                    run();
+                  }
+                  form.submit(); // 提交表单，触发onFinish
+                });
+              }} 
+              style={{ width: "150px", backgroundColor: 'rgb(53, 162, 235)' }}
+            >
               Run
             </Button>
           </Form.Item>

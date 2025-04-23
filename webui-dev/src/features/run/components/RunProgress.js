@@ -1,113 +1,126 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { MinusCircleOutlined } from '@ant-design/icons'
 import {
     Progress,
     ConfigProvider
 } from "antd";
 
-
-class RunProgress extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            twoColors: {
-                '0%': '#108ee9',
-                '100%': '#87d068',
-            },
-            data: []
-        }
-    }
-    // 与后端交互，获取任务进度
-    componentDidMount() {
-        // 开始定时调用 fetchData 函数
-        // this.intervalId = setInterval(this.fetchData, 1000);
-      }
+const RunProgress = ({ isRunning = false }) => {
+    // 使用useState代替类组件中的state
+    const [twoColors] = useState({
+        '0%': '#108ee9',
+        '100%': '#87d068',
+    });
+    const [data, setData] = useState([]);
     
-      componentWillUnmount() {
-        // 清除定时器，以防止内存泄漏
-        clearInterval(this.intervalId);
-      }
-    
-      fetchData = async () => {
-        try {
-          const messageToSend = {
-            message:"ask for progress"
-          }
-          const response = await fetch('http://localhost:5001/api/configuration/run_progress', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(messageToSend)
-          });
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          const data = await response.json();
-          console.log('Progress:', data);
-          // 在这里处理从服务器获取的数据
-          this.setState({
-            data: data
-          })
-          // console.log('State:', this.state.BarData)
-        } catch (error) {
-          console.error('Error fetching data:', error);
-        }
-      };
+    // 使用useRef存储intervalId，以便在清理函数中访问最新值
+    const intervalIdRef = useRef(null);
 
-      handleClick = (task_name) => {
+    // 处理停止任务的请求
+    const handleClick = (task_name) => {
         const messageToSend = {
-          name: task_name
+            name: task_name
         }
         fetch('http://localhost:5001/api/configuration/stop_progress', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(messageToSend),
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        } 
-        return response.json();
-      })
-      .then(succeed => {
-        console.log('Message from back-end:', succeed);
-      })
-      .catch((error) => {
-        console.error('Error sending message:', error);
-      });
-      }
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(messageToSend),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            } 
+            return response.json();
+        })
+        .then(succeed => {
+            console.log('Message from back-end:', succeed);
+        })
+        .catch((error) => {
+            console.error('Error sending message:', error);
+        });
+    };
 
-      render() {
-        return (
-            <ConfigProvider
+    // 获取进度数据的函数
+    const fetchProgressData = () => {
+        fetch('http://localhost:5001/api/RunPage/get_progress', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(progressData => {
+            setData(progressData || []);
+        })
+        .catch(error => {
+            console.error('Error fetching progress data:', error);
+        });
+    };
+
+    // 监听isRunning状态的变化，控制定时器的启动和停止
+    useEffect(() => {
+        // 只有当isRunning为true时才启动定时器
+        if (isRunning) {
+            console.log('Starting progress polling...');
+            
+            // 立即获取一次初始数据
+            fetchProgressData();
+            
+            // 设置定时器，定期获取进度数据
+            intervalIdRef.current = setInterval(fetchProgressData, 1000);
+            
+            // 清理函数，在组件卸载或isRunning变为false时执行
+            return () => {
+                console.log('Stopping progress polling...');
+                if (intervalIdRef.current) {
+                    clearInterval(intervalIdRef.current);
+                    intervalIdRef.current = null;
+                }
+            };
+        }
+    }, [isRunning]); // 依赖项包括isRunning，确保其变化时重新执行effect
+
+    return (
+        <ConfigProvider
             theme={{
                 token:{
                     colorText: "#696969"
                 },
                 components: {
-                Progress: {
-                    remainingColor: "#696969"
-                },
+                    Progress: {
+                        remainingColor: "#696969"
+                    },
                 },
             }}
-            >
-                <div style={{ overflowY: 'auto', maxHeight: '200px', maxWidth: '100%' }}>
-                    {this.state.data.map((task, index) => (
-                        <div key={index} style={{ marginBottom: 10 }}>
-                            <h6>{task.name}</h6>
-                            <Progress percent={task.progress} status="active" type="line" strokeColor={this.state.twoColors} style={{ width:"93%", marginRight:25}} />
-                            <MinusCircleOutlined style={{color: 'white'}} onClick={()=>this.handleClick(task.name)} />
-                        </div>
-                    ))}
-                </div>
-            </ConfigProvider>
-        )
-      }
-}
-
-
+        >
+            <div style={{ overflowY: 'auto', maxHeight: '200px', maxWidth: '100%' }}>
+                {data.map((task, index) => (
+                    <div key={index} style={{ marginBottom: 10 }}>
+                        <h6>{task.name}</h6>
+                        <Progress 
+                            percent={task.progress} 
+                            status="active" 
+                            type="line" 
+                            strokeColor={twoColors} 
+                            style={{ width:"93%", marginRight:25}} 
+                        />
+                        <MinusCircleOutlined 
+                            style={{color: 'red'}} 
+                            onClick={() => handleClick(task.name)} 
+                        />
+                    </div>
+                ))}
+            </div>
+        </ConfigProvider>
+    );
+};
 
 export default RunProgress;

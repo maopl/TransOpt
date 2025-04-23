@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import SelectTask from "./components/SelectTask";
 import SelectAlgorithm from "./components/SelectAlgorithm";
-import RunPage from '../../features/run/index';
 import {Card, Divider, Spin, message, Form, Input, Select, Button, Modal} from "antd";
 import { LoadingOutlined } from '@ant-design/icons';
+import RunProgress from "../run/components/RunProgress";
 
 /**
  * 任务的数据格式转换
@@ -90,6 +90,7 @@ const Experiment = () => {
 
   // 简化状态变量
   const [loading, setLoading] = useState(true);
+  const [isRunning, setIsRunning] = useState(false); // 添加运行状态
 
   const [tasksData, setTasksData] = useState([]);
 
@@ -175,6 +176,9 @@ const Experiment = () => {
     // 使用新格式的算法值提交
     console.log('Transformed algorithm value:', algorithmValue);
     
+    // 设置isRunning为true，激活RunProgress组件
+    setIsRunning(true);
+    
     // 构建最终提交的数据结构
     const finalSubmitData = {
       ...values,
@@ -215,7 +219,9 @@ const Experiment = () => {
             title: 'Information',
             content: 'Error:' + errorMessage,
             okText: 'OK'
-          })
+          });
+          // 如果发生错误，停止RunProgress
+          setIsRunning(false);
         });
 
   };
@@ -452,10 +458,10 @@ const Experiment = () => {
               </Button>
             </Form.Item>
           </div>
-          {/*<Form.Item>*/}
-          {/*  <div style={{ marginTop: '25px' }}></div>*/}
-          {/*  <RunPage run={onFinish} />*/}
-          {/*</Form.Item>*/}
+          <><Form.Item>
+            <div style={{marginTop: '25px'}}></div>
+            <RunProgress isRunning={isRunning} />
+          </Form.Item></>
         </Form>
 
       </div>

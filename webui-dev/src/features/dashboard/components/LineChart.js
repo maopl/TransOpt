@@ -85,12 +85,20 @@ const Trajectory = ({ TrajectoryData }) => {
   };
 
   return (
-    <TitleCard title={"Convergence Trajectory"}>
-      <Line data={data} options={options}/>
-    </TitleCard>
-    // <div style={{ width: '100%', height: '400px' }}>
-    //   <Line data={data} options={options} />
-    // </div>
+      <div style={{
+        width: "350px",
+      }}>
+        <div style={{
+          fontWeight: "600",
+          fontSize: "1.25rem",
+          lineHeight: "1.75rem",
+          marginBottom: "10px"
+        }}>
+          Convergence Trajectory
+        </div>
+        <Line data={data} options={options}/>
+      </div>
+
   );
 };
 

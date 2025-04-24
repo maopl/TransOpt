@@ -1,5 +1,5 @@
 import React from 'react';
-import { Scatter } from 'react-chartjs-2';
+import {Bar, Scatter} from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   ScatterController,
@@ -74,9 +74,19 @@ function Footprint({ ScatterData = {} }) {
   };
 
   return (
-    <TitleCard title={"Footprint"}>
+      <div style={{
+        width: "350px",
+      }}>
+        <div style={{
+          fontWeight: "600",
+          fontSize: "1.25rem",
+          lineHeight: "1.75rem",
+          marginBottom: "10px"
+        }}>
+          Footprint
+        </div>
         <Scatter data={data} options={options}/>
-    </TitleCard>
+      </div>
   );
 }
 

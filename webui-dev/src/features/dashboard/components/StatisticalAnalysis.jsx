@@ -126,6 +126,7 @@ const StatisticalAnalysis = () => {
         Statistical Analysis
       </Button>
       <Modal
+        cancelText={'Cancel'}
         open={visible}
         onCancel={() => setVisible(false)}
         title="Statistical Analysis"

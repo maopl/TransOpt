@@ -7,7 +7,10 @@ const DeleteProblem = ({ problemName, onDelete }) => {
     <Popconfirm
       title="Delete this task"
       description="Are you sure you want to delete this task?"
-      onConfirm={() => onDelete(problemName)}
+      onConfirm={(e) => {
+        e.preventDefault();
+        onDelete(problemName)
+      }}
       okText="Yes"
       cancelText="No"
     >

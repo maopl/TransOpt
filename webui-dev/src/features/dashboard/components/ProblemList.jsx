@@ -44,7 +44,7 @@ const ProblemList = ({
      * @param selectedKeys
      */
     const onSelect = (selectedKeys) => {
-
+        console.log('selectedKeys', selectedKeys)
         const [experimentIndex, taskIndex] = selectedKeys[0].split('-').map(Number);
 
         // 如果存在taskIndex那么点击的是问题, 否则点击的是实验, 就选择实验下的第一个问题
@@ -104,10 +104,12 @@ const ProblemList = ({
                     <Popconfirm
                         title="Delete this task"
                         description="Are you sure you want to delete this task?"
-                        onConfirm={() => {
+                        onConfirm={e => {
+                            e.stopPropagation();
                             const task = filteredExperiments[experimentIndex].filteredProblems[taskIndex];
                             onDelete(task.problem_name);
                         }}
+                        onCancel={e => e.stopPropagation()}
                         okText="Yes"
                         cancelText="No"
                         placement="right"

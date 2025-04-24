@@ -5,7 +5,7 @@ import {
     ConfigProvider
 } from "antd";
 
-const RunProgress = ({ isRunning = false }) => {
+const RunProgress = () => {
     // 使用useState代替类组件中的state
     const [twoColors] = useState({
         '0%': '#108ee9',
@@ -65,28 +65,25 @@ const RunProgress = ({ isRunning = false }) => {
         });
     };
 
-    // 监听isRunning状态的变化，控制定时器的启动和停止
+    // 定时器的启动和停止
     useEffect(() => {
-        // 只有当isRunning为true时才启动定时器
-        if (isRunning) {
-            console.log('Starting progress polling...');
+        console.log('Starting progress polling...');
             
-            // 立即获取一次初始数据
-            fetchProgressData();
-            
-            // 设置定时器，定期获取进度数据
-            intervalIdRef.current = setInterval(fetchProgressData, 1000);
-            
-            // 清理函数，在组件卸载或isRunning变为false时执行
-            return () => {
-                console.log('Stopping progress polling...');
-                if (intervalIdRef.current) {
-                    clearInterval(intervalIdRef.current);
-                    intervalIdRef.current = null;
-                }
-            };
-        }
-    }, [isRunning]); // 依赖项包括isRunning，确保其变化时重新执行effect
+        // 立即获取一次初始数据
+        fetchProgressData();
+        
+        // 设置定时器，定期获取进度数据
+        intervalIdRef.current = setInterval(fetchProgressData, 1000);
+        
+        // 清理函数
+        return () => {
+            console.log('Stopping progress polling...');
+            if (intervalIdRef.current) {
+                clearInterval(intervalIdRef.current);
+                intervalIdRef.current = null;
+            }
+        };
+    }, []);
 
     return (
         <ConfigProvider

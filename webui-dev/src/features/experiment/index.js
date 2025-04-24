@@ -171,11 +171,7 @@ const Experiment = () => {
 
 
   const onFinish = (values) => {
-    console.log('Form values:', values);
-    console.log('tasks', tasks);
-    // 使用新格式的算法值提交
-    console.log('Transformed algorithm value:', algorithmValue);
-    
+
     // 设置isRunning为true，激活RunProgress组件
     setIsRunning(true);
     
@@ -187,10 +183,7 @@ const Experiment = () => {
     };
     
     console.log('Final submit data:', finalSubmitData);
-    
-    // 后续处理逻辑...
 
-    // 向后端发送请求...
     fetch('http://localhost:5001/api/configuration/run', {
       method: 'POST',
       headers: {
@@ -460,7 +453,9 @@ const Experiment = () => {
           </div>
           <><Form.Item>
             <div style={{marginTop: '25px'}}></div>
-            <RunProgress isRunning={isRunning} />
+            {
+              isRunning && <RunProgress />
+            }
           </Form.Item></>
         </Form>
 

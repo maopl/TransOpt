@@ -44,7 +44,7 @@ const RunProgress = () => {
 
     // 获取进度数据的函数
     const fetchProgressData = () => {
-        fetch('http://localhost:5001/api/RunPage/get_progress', {
+        fetch('http://localhost:5001/api/configuration/run_progress', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ const RunProgress = () => {
         fetchProgressData();
         
         // 设置定时器，定期获取进度数据
-        intervalIdRef.current = setInterval(fetchProgressData, 1000);
+        intervalIdRef.current = setInterval(fetchProgressData, 3000);
         
         // 清理函数
         return () => {

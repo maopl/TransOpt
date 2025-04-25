@@ -136,12 +136,15 @@ const ProblemList = ({
         <div style={{
             minWidth: "420px",
             width: "420px",
-            overflow: "hidden",
+            overflowY: "auto",
+            height: "100%",
         }}>
             <Card
                 style={{
-                    height: "100%",
                     ...cardStyle
+                }}
+                styles={{
+                    overflow: "hidden",
                 }}
             >
                 {/* 列表头部 - 显示结果数量 */}
@@ -161,11 +164,9 @@ const ProblemList = ({
 
                 {/* 可滚动的树形列表容器 */}
                 <div style={{
-                    overflowY: "auto",
-                    flex: "1 1 auto",
                     paddingRight: "10px",
-                    minHeight: 0,
-                    marginBottom: "10px"
+                    marginBottom: "10px",
+                    minHeight: "500px"
                 }}>
                     <Tree
                         treeData={filteredExperiments.map((experiment, index) => ({

@@ -328,7 +328,7 @@ const Dashboard = () => {
 
         <Spin icon={antIcon} spinning={deleteLoading}>
             <div style={{
-                height: "86vh",
+                height: "calc(100vh - 120px)",
                 padding: "20px",
                 display: "flex",
                 flexDirection: "column",
@@ -345,8 +345,10 @@ const Dashboard = () => {
                 {/* 主内容区域 - 左右布局 */}
                 <div style={{
                     display: "flex",
+                    flex: "1",
                     overflow: "hidden",
-                    minHeight: 0,
+                    height: "100%",
+                    minHeight: "500px",
                     gap: "16px"
                 }}>
                     {/* 左侧问题列表 */}

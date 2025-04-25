@@ -41,15 +41,23 @@ const ProblemList = ({
 
     /**
      * 点击回调
-     * @param selectedKeys
+     * @param _
+     * @param e
      */
-    const onSelect = (selectedKeys) => {
-        console.log('selectedKeys', selectedKeys)
-        const [experimentIndex, taskIndex] = selectedKeys[0].split('-').map(Number);
+    const onSelect = (_, e) => {
+
+        const currentKey = getNodeKey(filteredExperiments, currentProblem);
+        const selectedKey = e.node.key
+
+        // 如果点击的是当前选中的节点，不做任何操作
+        if (e.node.key === currentKey) {
+            return
+        }
+        const [experimentIndex, taskIndex] = selectedKey.split('-').map(Number);
 
         // 如果存在taskIndex那么点击的是问题, 否则点击的是实验, 就选择实验下的第一个问题
-        const currentProblem = filteredExperiments[experimentIndex]?.filteredProblems[taskIndex ?? 0];
-        setCurrentProblem(currentProblem);
+        const selectedProblem = filteredExperiments[experimentIndex]?.filteredProblems[taskIndex ?? 0];
+        setCurrentProblem(selectedProblem);
     };
 
     /**

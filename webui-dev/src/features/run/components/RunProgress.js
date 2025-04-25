@@ -5,7 +5,7 @@ import {
     ConfigProvider
 } from "antd";
 
-const RunProgress = () => {
+const RunProgress = ({setIsRunning}) => {
     // 使用useState代替类组件中的state
     const [twoColors] = useState({
         '0%': '#108ee9',
@@ -31,7 +31,8 @@ const RunProgress = () => {
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
-            } 
+            }
+            setIsRunning(false);
             return response.json();
         })
         .then(succeed => {
@@ -73,7 +74,7 @@ const RunProgress = () => {
         fetchProgressData();
         
         // 设置定时器，定期获取进度数据
-        intervalIdRef.current = setInterval(fetchProgressData, 3000);
+        intervalIdRef.current = setInterval(fetchProgressData, 2000);
         
         // 清理函数
         return () => {

@@ -213,9 +213,9 @@ const Experiment = () => {
             content: 'Error:' + errorMessage,
             okText: 'OK'
           });
-          // 如果发生错误，停止RunProgress
-          setIsRunning(false);
-        });
+        }).finally(() => {
+           setIsRunning(false);
+    })
 
   };
 
@@ -446,7 +446,7 @@ const Experiment = () => {
               </Form.Item>
             </div>
             <Form.Item>
-              <Button type="primary" htmlType="submit" style={{ width: "150px", backgroundColor: 'rgb(53, 162, 235)' }}>
+              <Button loading={isRunning} type="primary" htmlType="submit" style={{ width: "150px", backgroundColor: 'rgb(53, 162, 235)' }}>
                 Run
               </Button>
             </Form.Item>
@@ -454,7 +454,7 @@ const Experiment = () => {
           <><Form.Item>
             <div style={{marginTop: '25px'}}></div>
             {
-              isRunning && <RunProgress />
+              isRunning && <RunProgress setIsRunning={setIsRunning} />
             }
           </Form.Item></>
         </Form>
